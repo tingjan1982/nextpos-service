@@ -5,4 +5,7 @@ services:
 
 before_install:
   - docker pull amazoncorretto:11
-  - docker run --rm amazoncorretto:11 ./gradlew build
+  - docker create volume artifact_volume
+  - echo $DOCKER_PASSWORD | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker run --name project-builder -v $PWD:/source amazoncorretto:11 /bin/sh -c "cd /source ; ./gradlew clean build docker dockerPush"
+
