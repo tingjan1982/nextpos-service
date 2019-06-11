@@ -11,5 +11,5 @@ before_install:
 
 script:
   - docker run --rm -v $TRAVIS_BUILD_DIR:/source -v artifact_volume:/artifact_volume amazoncorretto:11 /bin/sh -c "cd /source ; ./gradlew clean build"
-  - echo $TRAVIS_BUILD_DIR
-  - docker build -t nextpos-service --build-arg JAR_FILE="/home/travis/build/tingjan1982/nextpos-service/build/libs/nextpos-service-0.0.1-SNAPSHOT.jar" .
+  - export ARTIFACT=$TRAVIS_BUILD_DIR/build/libs/nextpos-service-0.0.1-SNAPSHOT.jar
+  - docker build -t nextpos-service --build-arg JAR_FILE=${TRAVIS_BUILD_DIR}/build/libs/nextpos-service-0.0.1-SNAPSHOT.jar .
