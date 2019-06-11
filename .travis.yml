@@ -5,12 +5,12 @@ services:
 
 before_install:
   - docker pull amazoncorretto:11
-
+  - docker pull google/cloud-sdk:249.0.0-alpine
 
 script:
   - docker run --rm -v $TRAVIS_BUILD_DIR:/source -v artifact_volume:/artifact_volume amazoncorretto:11 /bin/sh -c "cd /source ; ./gradlew clean build"
-  - docker build --no-cache -t nextpos-service:latest --build-arg JAR_FILE=build/libs/nextpos-service-0.0.1-SNAPSHOT.jar .
+  - docker build joelin/nextpos-service:latest --build-arg JAR_FILE=build/libs/nextpos-service-0.0.1-SNAPSHOT.jar .
 
 after_script:
   - echo $DOCKER_PASSWORD | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - docker push nextpos-service:latest
+  - docker push joelin/nextpos-service:latest
