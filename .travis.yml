@@ -7,6 +7,7 @@ before_install:
   - docker pull amazoncorretto:11
   - echo $DOCKER_PASSWORD | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker run --name project-builder -v $TRAVIS_BUILD_DIR:/source amazoncorretto:11 /bin/sh -c "cd /source ; ./gradlew clean build"
+  - find $TRAVIS_BUILD_DIR
   - docker build -t nextpos-service --build-arg JAR_FILE=$TRAVIS_BUILD_DIR/build/libs/nextpos-service-0.0.1-SNAPSHOT.jar .
 
 
