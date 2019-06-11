@@ -17,5 +17,5 @@ script:
 
 
 after_script:
-  - docker run --rm -v $TRAVIS_BUILD_DIR:/source google/cloud-sdk:249.0.0-alpine /bin/sh /source/deploy_gcp.sh
+  - docker run --rm -v $TRAVIS_BUILD_DIR:/source google/cloud-sdk:249.0.0-alpine /bin/sh -c "cd /source ; sh deploy_gcp.sh"
   
