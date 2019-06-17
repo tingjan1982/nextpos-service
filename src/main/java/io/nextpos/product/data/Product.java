@@ -1,0 +1,73 @@
+package io.nextpos.product.data;
+
+import io.nextpos.shared.model.BaseObject;
+import io.nextpos.shared.model.Client;
+import io.nextpos.shared.model.VersionableClientObject;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.GenericGenerator;
+
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity(name = "client_product")
+@Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+public class Product extends BaseObject implements VersionableClientObject<ProductVersion> {
+
+    @Id
+    @GeneratedValue(generator = "uuid")
+    @GenericGenerator(name = "uuid", strategy = "uuid2")
+    private String id;
+
+    @ManyToOne
+    private Client client;
+
+    @OneToOne(fetch = FetchType.EAGER)
+    private ProductVersion latestVersion;
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<ProductVersion> productVersions = new ArrayList<>();
+
+    public Product(final Client client) {
+        this.client = client;
+    }
+
+    @Override
+    public Client getClient() {
+        return client;
+    }
+
+    @Override
+    public void setClient(final Client client) {
+        this.client = client;
+    }
+
+    @Override
+    public ProductVersion getLatestVersion() {
+        return latestVersion;
+    }
+
+    @Override
+    public ProductVersion addNewVersion(final ProductVersion productVersion) {
+        productVersion.setProduct(this);
+        productVersion.setState(ObjectState.DESIGN);
+
+        int version = 1;
+
+        if (latestVersion != null) {
+            latestVersion.setState(ObjectState.RETIRED);
+            version = latestVersion.getVersion() + 1;
+        }
+
+        latestVersion = productVersion;
+        productVersion.setVersion(version);
+
+        productVersions.add(productVersion);
+
+        return productVersion;
+    }
+}
