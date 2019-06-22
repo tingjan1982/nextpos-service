@@ -11,11 +11,11 @@ before_install:
 
 script:
   - docker run --rm -v $TRAVIS_BUILD_DIR:/source -v artifact_volume:/artifact_volume amazoncorretto:11 /bin/sh -c "cd /source ; ./gradlew clean build"
-  - docker build -t joelin/nextpos-service:latest --build-arg JAR_FILE=build/libs/nextpos-service-0.0.1-SNAPSHOT.jar .
-  - echo $DOCKER_PASSWORD | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - docker push joelin/nextpos-service:latest
 
 
 after_script:
+  - docker build -t joelin/nextpos-service:latest --build-arg JAR_FILE=build/libs/nextpos-service-0.0.1-SNAPSHOT.jar .
+  - echo $DOCKER_PASSWORD | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker push joelin/nextpos-service:latest
   - docker run --rm -v $TRAVIS_BUILD_DIR:/source google/cloud-sdk:249.0.0-alpine /bin/sh -c "cd /source ; sh deploy_gcp.sh"
   

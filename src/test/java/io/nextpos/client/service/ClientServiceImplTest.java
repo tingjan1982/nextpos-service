@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.transaction.Transactional;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,8 +28,8 @@ class ClientServiceImplTest {
 
         assertThat(createdClient.getId()).isNotNull();
 
-        final Client retrievedClient = clientService.getClient(createdClient.getId());
+        final Optional<Client> retrievedClient = clientService.getClient(createdClient.getId());
 
-        assertThat(retrievedClient).isNotNull();
+        assertThat(retrievedClient.isPresent()).isTrue();
     }
 }
