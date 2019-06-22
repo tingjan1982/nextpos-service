@@ -1,8 +1,9 @@
 package io.nextpos.product.data;
 
+import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
-import io.nextpos.shared.model.Client;
 import io.nextpos.shared.model.VersionableClientObject;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -15,7 +16,7 @@ import java.util.List;
 @Entity(name = "client_product")
 @Data
 @EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class Product extends BaseObject implements VersionableClientObject<ProductVersion> {
 
     @Id

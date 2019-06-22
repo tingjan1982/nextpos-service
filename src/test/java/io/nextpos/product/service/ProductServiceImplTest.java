@@ -1,9 +1,9 @@
 package io.nextpos.product.service;
 
+import io.nextpos.client.data.Client;
+import io.nextpos.client.data.ClientRepository;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductVersion;
-import io.nextpos.shared.model.Client;
-import io.nextpos.shared.model.ClientRepository;
 import io.nextpos.shared.model.VersionableClientObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -30,7 +30,7 @@ class ProductServiceImplTest {
     @Test
     void createAndGetProduct() {
 
-        final Client client = Client.builder().clientName("Ron").build();
+        final Client client = new Client("Ron");
         final Client createdClient = clientRepository.save(client);
 
         final ProductVersion productVersion = new ProductVersion("Gin Topic", "sku-001", BigDecimal.valueOf(350));

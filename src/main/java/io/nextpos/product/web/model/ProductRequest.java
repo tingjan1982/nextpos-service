@@ -13,6 +13,8 @@ public class ProductRequest {
 
     private String name;
 
+    private String sku;
+
     private String description;
 
     private BigDecimal price;

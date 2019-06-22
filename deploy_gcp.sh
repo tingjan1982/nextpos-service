@@ -12,4 +12,7 @@ gcloud config set compute/zone asia-east1-b
 #kubectl expose deployment nextpos-web --type=LoadBalancer --port 80 --target-port 8080
 
 gcloud container clusters get-credentials nextpos-cluster --zone asia-east1-b --project helpful-range-236813
-kubectl set image deployment/nextpos-web nextpos-web=docker.io/joelin/nextpos-service:latest
+kubectl set image deployment nextpos-web nextpos-web=docker.io/joelin/nextpos-service:latest
+kubectl scale deployment nextpos-web --replicas=0
+kubectl scale deployment nextpos-web --replicas=1
+kubectl get services nextpos-web 

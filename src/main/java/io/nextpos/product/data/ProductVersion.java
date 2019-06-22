@@ -39,11 +39,14 @@ public class ProductVersion extends BaseObject implements ObjectVersion {
 
     private String sku;
 
+    private String description;
+
     private BigDecimal price;
 
-    public ProductVersion(final String productName, final String sku, final BigDecimal price) {
+    public ProductVersion(final String productName, final String sku, final String description, final BigDecimal price) {
         this.productName = productName;
         this.sku = sku;
+        this.description = description;
         this.price = price;
     }
 
