@@ -29,9 +29,11 @@ public class BootstrapConfig {
     @PostConstruct
     public void bootstrap() {
 
-        final Client defaultClient = new Client(TEST_CLIENT);
-        final Client client = clientService.createClient(defaultClient);
+        if (clientService.getDefaultClient() == null) {
+            final Client defaultClient = new Client(TEST_CLIENT, TEST_CLIENT, "secret");
+            final Client client = clientService.createClient(defaultClient);
 
-        LOGGER.info("Created test client: {}", client);
+            LOGGER.info("Created test client: {}", client);
+        }
     }
 }

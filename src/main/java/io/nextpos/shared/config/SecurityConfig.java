@@ -18,12 +18,15 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.security.oauth2.provider.token.AccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+
+import javax.sql.DataSource;
 
 /**
  * https://www.baeldung.com/spring-boot-security-autoconfiguration
@@ -35,16 +38,23 @@ import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 @EnableWebSecurity(debug = false)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    private final DataSource dataSource;
 
-        http.csrf().disable()
-                .authorizeRequests()
-                .antMatchers("/actuator/**").permitAll()
-                .anyRequest().authenticated()
-                .and()
-                .httpBasic();
+    @Autowired
+    public SecurityConfig(final DataSource dataSource) {
+        this.dataSource = dataSource;
     }
+
+//    @Override
+//    protected void configure(HttpSecurity http) throws Exception {
+//
+//        http.csrf().disable()
+//                .authorizeRequests()
+//                .antMatchers("/actuator/**").permitAll()
+//                .anyRequest().authenticated()
+//                .and()
+//                .httpBasic();
+//    }
 
     @Override
     protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
@@ -92,6 +102,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
+
     /**
      * Authorization server configuration
      */
@@ -104,14 +115,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         private final AuthenticationManager authenticationManager;
 
-        private final PasswordEncoder passwordEncoder;
+        private final JdbcClientDetailsService clientDetailsService;
 
         @Autowired
-        public AuthorizationServer(final TokenStore tokenStore, final AccessTokenConverter accessTokenConverter, final AuthenticationManager authenticationManager, final PasswordEncoder passwordEncoder) {
+        public AuthorizationServer(final DataSource dataSource, final TokenStore tokenStore, final AccessTokenConverter accessTokenConverter, final AuthenticationManager authenticationManager, final PasswordEncoder passwordEncoder) {
             this.tokenStore = tokenStore;
             this.accessTokenConverter = accessTokenConverter;
             this.authenticationManager = authenticationManager;
-            this.passwordEncoder = passwordEncoder;
+
+            clientDetailsService = new JdbcClientDetailsService(dataSource);
+            clientDetailsService.setPasswordEncoder(passwordEncoder);
         }
 
 
@@ -124,17 +137,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         @Override
         public void configure(final ClientDetailsServiceConfigurer clients) throws Exception {
+            clients.withClientDetails(jdbcClientDetailsService());
+        }
 
-            clients.inMemory()
-                    .withClient("test-client")
-                    .secret(passwordEncoder.encode("test-secret"))
-                    .resourceIds(OAuthSettings.RESOURCE_ID)
-                    .authorizedGrantTypes("client_credentials", "password", "refresh_token")
-                    .scopes("all")
-                    .accessTokenValiditySeconds(3600)
-                    .refreshTokenValiditySeconds(3600);
+        /**
+         * This bean is exposed early for ClientServiceImpl to bootstrap the registration of test client.
+         * It will also later be used in ClientDetailsServiceConfiguration to expose it as a bean, which is by default
+         * defined as lazy.
+         *
+         * @return
+         */
+        @Bean("jdbcClientDetailsService")
+        public JdbcClientDetailsService jdbcClientDetailsService() {
+            return clientDetailsService;
         }
     }
+
 
     @EnableResourceServer
     public static class ResourceServer extends ResourceServerConfigurerAdapter {
@@ -150,7 +168,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         public void configure(ResourceServerSecurityConfigurer config) {
             config.tokenServices(tokenServices)
                     .resourceId(OAuthSettings.RESOURCE_ID);
-                    //.stateless(false);
+            //.stateless(false);
         }
 
         @Override
@@ -164,11 +182,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         }
     }
 
-    private static class OAuthSettings {
+    public static class OAuthSettings {
+
+        public static final String RESOURCE_ID = "nextpos-service";
 
         private static final String SIGNING_KEY = "1qaz2wsx";
+    }
 
-        private static final String RESOURCE_ID = "nextpos-service";
+    public static class OAuthScopes {
+
+        public static final String CREATE_SCOPE = "create";
+
+        public static final String READ_SCOPE = "read";
+
+        public static final String UPDATE_SCOPE = "update";
+
+        public static final String DELETE_SCOPE = "delete";
 
     }
 }

@@ -24,7 +24,13 @@ public class Client extends BaseObject {
 
     private String clientName;
 
-    public Client(final String clientName) {
+    private String username;
+
+    private String masterPassword;
+
+    public Client(final String clientName, final String username, final String masterPassword) {
         this.clientName = clientName;
+        this.username = username;
+        this.masterPassword = masterPassword;
     }
 }

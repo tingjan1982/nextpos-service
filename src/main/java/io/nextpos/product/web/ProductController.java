@@ -32,7 +32,7 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ProductResponse getProduct(@RequestAttribute(CLIENT) Client client, @PathVariable String id) {
+    public ProductResponse getProduct(@PathVariable String id) {
 
         final Product product = productService.getProduct(id);
 
