@@ -17,6 +17,8 @@ public class BootstrapConfig {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapConfig.class);
 
+    public static final String TEST_CLIENT = "test-client";
+
     private final ClientService clientService;
 
     @Autowired
@@ -27,7 +29,7 @@ public class BootstrapConfig {
     @PostConstruct
     public void bootstrap() {
 
-        final Client defaultClient = new Client("test-client");
+        final Client defaultClient = new Client(TEST_CLIENT);
         final Client client = clientService.createClient(defaultClient);
 
         LOGGER.info("Created test client: {}", client);

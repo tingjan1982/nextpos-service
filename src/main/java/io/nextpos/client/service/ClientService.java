@@ -10,4 +10,6 @@ public interface ClientService {
 
     Optional<Client> getClient(final String clientId);
 
+    Client getDefaultClient();
+
 }

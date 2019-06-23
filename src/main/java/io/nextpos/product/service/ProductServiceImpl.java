@@ -3,11 +3,13 @@ package io.nextpos.product.service;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductRepository;
 import io.nextpos.shared.event.SimpleSaveEvent;
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -33,7 +35,11 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product getProduct(final String id) {
-        return productRepository.getOne(id);
+        final Optional<Product> productOptional = productRepository.findById(id);
+
+        return productOptional.orElseThrow(() -> {
+            throw new ObjectNotFoundException(id, Product.class);
+        });
     }
 
     @Override

@@ -15,6 +15,8 @@ public class ProductController {
 
     private final ProductService productService;
 
+    private final String CLIENT = "req-client";
+
     @Autowired
     public ProductController(final ProductService productService) {
         this.productService = productService;
@@ -27,6 +29,14 @@ public class ProductController {
         final Product createdProduct = productService.createProduct(product);
 
         return toResponse(createdProduct);
+    }
+
+    @GetMapping("/{id}")
+    public ProductResponse getProduct(@RequestAttribute(CLIENT) Client client, @PathVariable String id) {
+
+        final Product product = productService.getProduct(id);
+
+        return toResponse(product);
     }
 
     private Product fromRequest(ProductRequest productRequest, Client client) {
@@ -51,6 +61,4 @@ public class ProductController {
                 latestVersion.getDescription(),
                 latestVersion.getPrice());
     }
-
-
 }
