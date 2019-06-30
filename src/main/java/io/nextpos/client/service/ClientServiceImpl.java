@@ -2,9 +2,19 @@ package io.nextpos.client.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientRepository;
+import io.nextpos.client.data.ClientUser;
+import io.nextpos.client.data.ClientUserRepository;
 import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.shared.config.SecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
@@ -13,14 +23,17 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
 @Service
 @Transactional
-public class ClientServiceImpl implements ClientService {
+public class ClientServiceImpl implements ClientService, UserDetailsService {
 
     private final ClientRepository clientRepository;
+
+    private final ClientUserRepository clientUserRepository;
 
     private final JdbcClientDetailsService clientDetailsService;
 
@@ -28,8 +41,9 @@ public class ClientServiceImpl implements ClientService {
 
 
     @Autowired
-    public ClientServiceImpl(final ClientRepository clientRepository, final JdbcClientDetailsService clientDetailsService, final PasswordEncoder passwordEncoder) {
+    public ClientServiceImpl(final ClientRepository clientRepository, final ClientUserRepository clientUserRepository, final JdbcClientDetailsService clientDetailsService, final PasswordEncoder passwordEncoder) {
         this.clientRepository = clientRepository;
+        this.clientUserRepository = clientUserRepository;
         this.clientDetailsService = clientDetailsService;
         this.passwordEncoder = passwordEncoder;
     }
@@ -59,7 +73,7 @@ public class ClientServiceImpl implements ClientService {
         result.setAuthorizedGrantTypes(Arrays.asList("client_credentials", "password", "refresh_token"));
         result.setAccessTokenValiditySeconds(3600);
         result.setRefreshTokenValiditySeconds(3600);
-        result.setScope(Arrays.asList("client:*", "user:*"));
+        result.setScope(SecurityConfig.OAuthScopes.SCOPES);
         result.setResourceIds(Collections.singletonList(SecurityConfig.OAuthSettings.RESOURCE_ID));
 
         return result;
@@ -73,5 +87,42 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public Client getDefaultClient() {
         return clientRepository.findByClientName(BootstrapConfig.TEST_CLIENT);
+    }
+
+
+    @Override
+    public ClientUser createClientUser(final ClientUser clientUser) {
+
+        final String encryptedPassword = passwordEncoder.encode(clientUser.getPassword());
+        clientUser.setPassword(encryptedPassword);
+
+        return clientUserRepository.save(clientUser);
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
+
+        final String clientUsername = findCurrentClientUsername();
+        final ClientUser clientUser = clientUserRepository.findById(new ClientUser.ClientUserId(username, clientUsername)).orElseThrow(() -> {
+            throw new UsernameNotFoundException("Username does not exist: " + username);
+        });
+
+        final Collection<? extends GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(clientUser.getRoles());
+        return new User(clientUser.getId().getUsername(), clientUser.getPassword(), authorities);
+    }
+
+    private String findCurrentClientUsername() {
+
+        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null) {
+            final Object principal = authentication.getPrincipal();
+
+            if (principal instanceof User) {
+                return ((User) principal).getUsername();
+            }
+        }
+
+        return null;
     }
 }

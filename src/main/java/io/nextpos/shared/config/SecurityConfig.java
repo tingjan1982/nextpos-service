@@ -1,8 +1,11 @@
 package io.nextpos.shared.config;
 
+import io.nextpos.client.service.ClientServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Lookup;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -27,6 +30,8 @@ import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenCo
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
 import javax.sql.DataSource;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * https://www.baeldung.com/spring-boot-security-autoconfiguration
@@ -34,16 +39,12 @@ import javax.sql.DataSource;
  * https://www.baeldung.com/spring-security-oauth-jwt
  * <p>
  * Contains core security configuration and shared beans that are needed by the authorization server and resource server.
+ *
+ * https://projects.spring.io/spring-security-oauth/docs/oauth2.html
  */
 @EnableWebSecurity(debug = false)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private final DataSource dataSource;
-
-    @Autowired
-    public SecurityConfig(final DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
 
 //    @Override
 //    protected void configure(HttpSecurity http) throws Exception {
@@ -59,10 +60,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
 
-        //auth.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder());
-        auth.inMemoryAuthentication().withUser("admin").password(passwordEncoder().encode("admin")).roles("ADMIN");
+        auth.userDetailsService(clientService()).passwordEncoder(passwordEncoder());
+        //auth.inMemoryAuthentication().withUser("admin").password(passwordEncoder().encode("admin")).roles("ADMIN");
     }
 
+    /**
+     * This was done instead of the usual constructor injection is to circumvent the circular reference issue
+     * during startup as ClientServiceImpl depends on JdbcClientDetailsService which is initialized in another class.
+     */
+    @Lookup
+    public ClientServiceImpl clientService() {
+        return null;
+    }
 
     /**
      * Expose AuthenticationManager as a bean.
@@ -171,6 +180,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             //.stateless(false);
         }
 
+        /**
+         * For more supported expression based access control, see: OAuth2SecurityExpressionMethods
+         * 
+         * @param http
+         * @throws Exception
+         */
         @Override
         public void configure(HttpSecurity http) throws Exception {
 
@@ -178,6 +193,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             http.csrf().disable()
                     .authorizeRequests()
                     .antMatchers("/actuator/**", "/clients/default").permitAll()
+                    .antMatchers(HttpMethod.POST, "/clients").permitAll()
+                    .antMatchers("/clients/**").access("#oauth2.hasAnyScopeMatching('client:.*')")
+                    .antMatchers("/products/**").access("#oauth2.hasScopeMatching('product:.*')")
                     .anyRequest().authenticated();
         }
     }
@@ -191,13 +209,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     public static class OAuthScopes {
 
-        public static final String CREATE_SCOPE = "create";
-
-        public static final String READ_SCOPE = "read";
-
-        public static final String UPDATE_SCOPE = "update";
-
-        public static final String DELETE_SCOPE = "delete";
-
+        public static final List<String> SCOPES = Arrays.asList(
+                "client:read",
+                "client:write",
+                "user:read",
+                "user:write",
+                "product:read",
+                "product:write",
+                "all"
+        );
     }
 }

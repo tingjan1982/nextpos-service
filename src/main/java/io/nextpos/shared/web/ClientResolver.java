@@ -18,9 +18,12 @@ import java.util.Optional;
 @Component
 public class ClientResolver extends OncePerRequestFilter {
 
+    public static final String REQ_ATTR_CLIENT = "req-client";
+
     private static final String CLIENT_ID = "x-client-id";
 
     private final ClientService clientService;
+
 
     @Autowired
     public ClientResolver(final ClientService clientService) {
@@ -42,7 +45,8 @@ public class ClientResolver extends OncePerRequestFilter {
             throw new ClientNotFoundException("Client cannot be found: " + clientId);
         });
 
-        request.setAttribute("req-client", client);
+
+        request.setAttribute(REQ_ATTR_CLIENT, client);
 
         filterChain.doFilter(request, response);
 

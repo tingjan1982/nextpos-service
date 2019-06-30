@@ -30,7 +30,7 @@ class ProductServiceImplTest {
     @Test
     void createAndGetProduct() {
 
-        final Client client = new Client("Ron");
+        final Client client = new Client("Ron", "user", "password");
         final Client createdClient = clientRepository.save(client);
 
         final ProductVersion productVersion = new ProductVersion("Gin Topic", "sku-001", "signature drink", BigDecimal.valueOf(350));
