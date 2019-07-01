@@ -6,7 +6,7 @@ public interface ObjectVersion {
 
     void setVersion(Integer version);
 
-    VersionableClientObject.ObjectState getState();
+    BusinessObjectState getState();
 
-    void setState(VersionableClientObject.ObjectState state);
+    void setState(BusinessObjectState state);
 }

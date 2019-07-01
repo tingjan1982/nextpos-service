@@ -12,8 +12,4 @@ public interface VersionableClientObject<T> {
 
     T addNewVersion(T object);
 
-    enum ObjectState {
-
-        DESIGN, DEPLOYED, RETIRED
-    }
 }

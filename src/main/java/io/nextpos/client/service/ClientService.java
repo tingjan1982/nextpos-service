@@ -15,6 +15,7 @@ public interface ClientService {
 
     void markClientAsDeleted(String clientId);
 
-    ClientUser createClientUser(ClientUser clientUser);
+    void deleteClient(String id);
 
+    ClientUser createClientUser(ClientUser clientUser);
 }

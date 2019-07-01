@@ -1,5 +1,6 @@
 package io.nextpos.client.data;
 
+import io.nextpos.product.data.Product;
 import io.nextpos.shared.model.BaseObject;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -7,9 +8,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.List;
 
 @Entity(name = "client")
 @Data
@@ -31,6 +31,9 @@ public class Client extends BaseObject {
     private String roles;
 
     private Status status = Status.ACTIVE;
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
+    private List<Product> products;
 
 
     public Client(final String clientName, final String username, final String masterPassword) {

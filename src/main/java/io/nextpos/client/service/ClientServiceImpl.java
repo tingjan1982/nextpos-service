@@ -6,6 +6,7 @@ import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.data.ClientUserRepository;
 import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.shared.config.SecurityConfig;
+import io.nextpos.shared.exception.ObjectAlreadyExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -57,10 +58,19 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
     @Override
     public Client createClient(final Client client) {
 
+        checkClientExists(client);
+
         clientDetailsService.addClientDetails(toClientDetails(client));
         client.setMasterPassword(passwordEncoder.encode(client.getMasterPassword()));
 
         return clientRepository.save(client);
+    }
+
+    private void checkClientExists(final Client client) {
+
+        clientRepository.findByUsername(client.getUsername()).ifPresent(c -> {
+            throw new ObjectAlreadyExistsException(c.getId(), Client.class);
+        });
     }
 
     private ClientDetails toClientDetails(Client client) {
@@ -87,13 +97,20 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
 
     @Override
     public Client getDefaultClient() {
-        return clientRepository.findByUsername(BootstrapConfig.MASTER_CLIENT);
+        return clientRepository.findByUsername(BootstrapConfig.MASTER_CLIENT).orElse(null);
     }
 
     @Override
     public void markClientAsDeleted(final String clientId) {
-
         clientRepository.findById(clientId).ifPresent(client -> client.setStatus(Client.Status.DELETED));
+    }
+
+    @Override
+    public void deleteClient(final String id) {
+        clientRepository.findById(id).ifPresent(client -> {
+            clientDetailsService.removeClientDetails(client.getUsername());
+            clientRepository.delete(client);
+        });
     }
 
     @Override

@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public interface ClientRepository extends JpaRepository<Client, String> {
 
-    Client findByUsername(String username);
+    Optional<Client> findByUsername(String username);
 
     Optional<Client> findByIdAndStatus(String id, Client.Status status);
 }

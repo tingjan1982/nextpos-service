@@ -4,7 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientRepository;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductVersion;
-import io.nextpos.shared.model.VersionableClientObject;
+import io.nextpos.shared.model.BusinessObjectState;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +53,7 @@ class ProductServiceImplTest {
         assertThat(actual.getLatestVersion().getProductName()).isEqualTo(expected.getLatestVersion().getProductName());
         assertThat(actual.getLatestVersion().getSku()).isEqualTo(expected.getLatestVersion().getSku());
         assertThat(actual.getLatestVersion().getPrice()).isEqualTo(expected.getLatestVersion().getPrice());
-        assertThat(actual.getLatestVersion().getState()).isEqualTo(VersionableClientObject.ObjectState.DESIGN);
+        assertThat(actual.getLatestVersion().getState()).isEqualTo(BusinessObjectState.DESIGN);
         assertThat(actual.getLatestVersion().getVersion()).isEqualTo(1);
         assertThat(actual.getCreatedTime()).isNotNull();
         assertThat(actual.getUpdatedTime()).isNotNull();

@@ -1,8 +1,8 @@
 package io.nextpos.product.data;
 
 import io.nextpos.shared.model.BaseObject;
+import io.nextpos.shared.model.BusinessObjectState;
 import io.nextpos.shared.model.ObjectVersion;
-import io.nextpos.shared.model.VersionableClientObject;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -33,7 +33,7 @@ public class ProductVersion extends BaseObject implements ObjectVersion {
 
     private Integer version;
 
-    private VersionableClientObject.ObjectState state;
+    private BusinessObjectState state;
 
     private String productName;
 
@@ -61,12 +61,12 @@ public class ProductVersion extends BaseObject implements ObjectVersion {
     }
 
     @Override
-    public VersionableClientObject.ObjectState getState() {
+    public BusinessObjectState getState() {
         return state;
     }
 
     @Override
-    public void setState(final VersionableClientObject.ObjectState state) {
+    public void setState(final BusinessObjectState state) {
         this.state = state;
     }
 }

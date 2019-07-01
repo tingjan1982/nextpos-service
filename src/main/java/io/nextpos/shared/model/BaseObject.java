@@ -21,7 +21,11 @@ public abstract class BaseObject {
 
     @PrePersist
     public void prePersist() {
-        this.createdTime = new Date();
+
+        if (createdTime == null) {
+            this.createdTime = new Date();
+        }
+
         this.updatedTime = new Date();
     }
 }

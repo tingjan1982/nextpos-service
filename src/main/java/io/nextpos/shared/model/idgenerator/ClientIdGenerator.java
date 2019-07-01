@@ -12,6 +12,9 @@ import org.hibernate.type.Type;
 import java.io.Serializable;
 import java.util.Properties;
 
+/**
+ * https://www.baeldung.com/hibernate-identifiers
+ */
 public class ClientIdGenerator implements IdentifierGenerator, Configurable {
 
     private static final int ID_LENGTH = 8;

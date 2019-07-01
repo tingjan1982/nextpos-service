@@ -193,7 +193,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             http.csrf().disable()
                     .authorizeRequests()
                     .antMatchers("/actuator/**", "/clients/default").permitAll()
-                    .antMatchers(HttpMethod.DELETE, "/clients/*").access("hasAuthority('MASTER')")
+                    .antMatchers(HttpMethod.DELETE, "/clients/**").access("hasAuthority('MASTER')")
                     .antMatchers(HttpMethod.POST, "/clients").permitAll()
                     .antMatchers(HttpMethod.POST, "/clients/me/users").access("hasAuthority('ADMIN') and #oauth2.hasScopeMatching('client:write')")
                     .antMatchers(HttpMethod.GET,"/products/**").access("hasAuthority('USER') and #oauth2.hasScopeMatching('product:.*')")

@@ -60,6 +60,13 @@ public class ClientController {
         clientService.markClientAsDeleted(id);
     }
 
+
+    @DeleteMapping("/{id}/hard")
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    public void hardDeleteClient(@PathVariable String id) {
+        clientService.deleteClient(id);
+    }
+
     private Client fromClientRequest(ClientRequest clientRequest) {
 
         return new Client(clientRequest.getClientName(),

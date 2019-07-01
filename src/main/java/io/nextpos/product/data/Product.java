@@ -2,6 +2,7 @@ package io.nextpos.product.data;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
+import io.nextpos.shared.model.BusinessObjectState;
 import io.nextpos.shared.model.VersionableClientObject;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -30,6 +31,7 @@ public class Product extends BaseObject implements VersionableClientObject<Produ
     @OneToOne(fetch = FetchType.EAGER)
     private ProductVersion latestVersion;
 
+    //todo: address potential performance issue
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ProductVersion> productVersions = new ArrayList<>();
 
@@ -55,12 +57,12 @@ public class Product extends BaseObject implements VersionableClientObject<Produ
     @Override
     public ProductVersion addNewVersion(final ProductVersion productVersion) {
         productVersion.setProduct(this);
-        productVersion.setState(ObjectState.DESIGN);
+        productVersion.setState(BusinessObjectState.DESIGN);
 
         int version = 1;
 
         if (latestVersion != null) {
-            latestVersion.setState(ObjectState.RETIRED);
+            latestVersion.setState(BusinessObjectState.RETIRED);
             version = latestVersion.getVersion() + 1;
         }
 
