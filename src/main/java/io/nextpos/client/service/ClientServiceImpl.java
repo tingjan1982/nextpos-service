@@ -22,10 +22,8 @@ import org.springframework.security.oauth2.provider.client.JdbcClientDetailsServ
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 @Transactional
@@ -74,6 +72,9 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
         result.setAccessTokenValiditySeconds(3600);
         result.setRefreshTokenValiditySeconds(3600);
         result.setScope(SecurityConfig.OAuthScopes.SCOPES);
+
+        String[] roles = Stream.of("ADMIN", client.getRoles()).filter(Objects::nonNull).toArray(String[]::new);
+        result.setAuthorities(AuthorityUtils.createAuthorityList(roles));
         result.setResourceIds(Collections.singletonList(SecurityConfig.OAuthSettings.RESOURCE_ID));
 
         return result;
@@ -81,14 +82,19 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
 
     @Override
     public Optional<Client> getClient(final String clientId) {
-        return clientRepository.findById(clientId);
+        return clientRepository.findByIdAndStatus(clientId, Client.Status.ACTIVE);
     }
 
     @Override
     public Client getDefaultClient() {
-        return clientRepository.findByClientName(BootstrapConfig.TEST_CLIENT);
+        return clientRepository.findByUsername(BootstrapConfig.MASTER_CLIENT);
     }
 
+    @Override
+    public void markClientAsDeleted(final String clientId) {
+
+        clientRepository.findById(clientId).ifPresent(client -> client.setStatus(Client.Status.DELETED));
+    }
 
     @Override
     public ClientUser createClientUser(final ClientUser clientUser) {

@@ -10,6 +10,7 @@ import io.nextpos.client.web.model.ClientUserResponse;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -53,6 +54,12 @@ public class ClientController {
         return toClientResponse(clientService.getDefaultClient());
     }
 
+    @DeleteMapping("/{id}")
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    public void deleteClient(@PathVariable String id) {
+        clientService.markClientAsDeleted(id);
+    }
+
     private Client fromClientRequest(ClientRequest clientRequest) {
 
         return new Client(clientRequest.getClientName(),
@@ -62,7 +69,7 @@ public class ClientController {
 
     private ClientResponse toClientResponse(final Client client) {
 
-        return new ClientResponse(client.getId(), client.getClientName(), client.getUsername(), client.getMasterPassword());
+        return new ClientResponse(client.getId(), client.getClientName(), client.getUsername(), client.getMasterPassword(), client.getStatus());
     }
 
     @PostMapping("/me/users")

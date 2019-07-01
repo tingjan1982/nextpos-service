@@ -5,6 +5,7 @@ import io.nextpos.client.service.ClientService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -17,7 +18,7 @@ public class BootstrapConfig {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapConfig.class);
 
-    public static final String TEST_CLIENT = "test-client";
+    public static final String MASTER_CLIENT = "master-client";
 
     private final ClientService clientService;
 
@@ -30,10 +31,13 @@ public class BootstrapConfig {
     public void bootstrap() {
 
         if (clientService.getDefaultClient() == null) {
-            final Client defaultClient = new Client(TEST_CLIENT, TEST_CLIENT, "secret");
+            final Client defaultClient = new Client(MASTER_CLIENT, MASTER_CLIENT, "1qaz2wsx3edc");
+            defaultClient.setRoles("MASTER");
             final Client client = clientService.createClient(defaultClient);
 
-            LOGGER.info("Created test client: {}", client);
+            final String secret = new RandomValueStringGenerator(32).generate();
+            LOGGER.info("test secret: {}", secret);
+            LOGGER.info("Created master client: {}", client);
         }
     }
 }

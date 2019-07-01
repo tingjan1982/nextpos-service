@@ -13,6 +13,8 @@ public interface ClientService {
 
     Client getDefaultClient();
 
+    void markClientAsDeleted(String clientId);
+
     ClientUser createClientUser(ClientUser clientUser);
 
 }

@@ -27,6 +27,9 @@ public class ClientUser extends BaseObject {
         this.roles = roles;
     }
 
+    /**
+     * https://www.baeldung.com/jpa-composite-primary-keys
+     */
     @Embeddable
     @Data
     @NoArgsConstructor

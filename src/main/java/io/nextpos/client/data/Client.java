@@ -18,8 +18,8 @@ import javax.persistence.Id;
 public class Client extends BaseObject {
 
     @Id
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "uuid2")
+    @GenericGenerator(name = "clientid", strategy = "io.nextpos.shared.model.idgenerator.ClientIdGenerator")
+    @GeneratedValue(generator = "clientid")
     private String id;
 
     private String clientName;
@@ -28,9 +28,18 @@ public class Client extends BaseObject {
 
     private String masterPassword;
 
+    private String roles;
+
+    private Status status = Status.ACTIVE;
+
+
     public Client(final String clientName, final String username, final String masterPassword) {
         this.clientName = clientName;
         this.username = username;
         this.masterPassword = masterPassword;
+    }
+
+    public enum Status {
+        ACTIVE, INACTIVE, DELETED
     }
 }
