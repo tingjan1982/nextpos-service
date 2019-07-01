@@ -4,5 +4,5 @@ public interface ObjectVersioning<P extends ParentObject> {
 
     P getParent();
 
-    BusinessObjectState getState();
+    int getVersion();
 }

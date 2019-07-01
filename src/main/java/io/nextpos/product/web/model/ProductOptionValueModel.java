@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class ProductOptionValueModel {
 
-    private String optionValue;
+    private String value;
 
-    private BigDecimal optionPrice;
+    private BigDecimal price;
 }

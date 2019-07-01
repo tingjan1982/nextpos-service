@@ -29,6 +29,6 @@ public class ObjectVersionIdGenerator implements IdentifierGenerator, Configurab
         final ObjectVersioning objectVersioning = (ObjectVersioning) object;
         final Serializable parentId = objectVersioning.getParent().getId();
 
-        return parentId + "-" + objectVersioning.getState().name().toLowerCase();
+        return parentId + "-" + objectVersioning.getVersion();
     }
 }

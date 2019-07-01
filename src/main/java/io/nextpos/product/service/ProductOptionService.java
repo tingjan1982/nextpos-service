@@ -7,4 +7,6 @@ public interface ProductOptionService {
     ProductOption createProductOption(ProductOption productOption);
 
     ProductOption getProductOption(String id);
+
+    void deployProductOption(String id);
 }

@@ -196,8 +196,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers(HttpMethod.DELETE, "/clients/**").access("hasAuthority('MASTER')")
                     .antMatchers(HttpMethod.POST, "/clients").permitAll()
                     .antMatchers(HttpMethod.POST, "/clients/me/users").access("hasAuthority('ADMIN') and #oauth2.hasScopeMatching('client:write')")
-                    .antMatchers(HttpMethod.GET,"/products/**").access("hasAuthority('USER') and #oauth2.hasScopeMatching('product:.*')")
-                    .antMatchers(HttpMethod.POST,"/products/**").access("hasAuthority('USER') and #oauth2.hasScopeMatching('product:.*')")
+                    .antMatchers(HttpMethod.GET,"/products/**", "/productoptions/**").access("hasAnyAuthority('USER') and #oauth2.hasScopeMatching('product:.*')")
+                    .antMatchers(HttpMethod.POST,"/products/**", "/productoptions/**").access("hasAuthority('USER') and #oauth2.hasScopeMatching('product:.*')")
                     .anyRequest().authenticated();
         }
     }

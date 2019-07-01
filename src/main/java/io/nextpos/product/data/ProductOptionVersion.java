@@ -1,18 +1,15 @@
 package io.nextpos.product.data;
 
 import io.nextpos.shared.model.BaseObject;
-import io.nextpos.shared.model.BusinessObjectState;
 import io.nextpos.shared.model.ObjectVersioning;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity(name = "product_option_version")
 @Data
@@ -21,20 +18,22 @@ import java.util.List;
 public class ProductOptionVersion extends BaseObject implements ObjectVersioning<ProductOption> {
 
     @Id
-    @GenericGenerator(name = "versionable", strategy = "io.nextpos.shared.model.idgenerator.ObjectVersionIdGenerator")
-    @GeneratedValue(generator = "versionable")
+    @GenericGenerator(name = "versionId", strategy = "io.nextpos.shared.model.idgenerator.ObjectVersionIdGenerator")
+    @GeneratedValue(generator = "versionId")
     private String id;
 
     @ManyToOne
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private ProductOption productOption;
 
-    private BusinessObjectState state;
+    private int version;
 
     private String optionName;
 
     private OptionType optionType;
 
-    @OneToMany(mappedBy = "productOption", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "productOption", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<ProductOptionValue> optionValues = new ArrayList<>();
 
 
@@ -57,6 +56,22 @@ public class ProductOptionVersion extends BaseObject implements ObjectVersioning
         }
     }
 
+    ProductOptionVersion copy() {
+
+        final ProductOptionVersion productOptionCopy = new ProductOptionVersion(optionName, optionType);
+        productOptionCopy.setVersion(version + 1);
+
+        final List<ProductOptionValue> optionValuesCopy = optionValues.stream().map(po -> {
+            final ProductOptionValue copy = po.copy();
+            copy.setProductOption(productOptionCopy);
+            return copy;
+        }).collect(Collectors.toList());
+
+        productOptionCopy.getOptionValues().addAll(optionValuesCopy);
+
+        return productOptionCopy;
+    }
+
     @Override
     public ProductOption getParent() {
         return productOption;
@@ -73,6 +88,8 @@ public class ProductOptionVersion extends BaseObject implements ObjectVersioning
         private Long id;
 
         @ManyToOne
+        @ToString.Exclude
+        @EqualsAndHashCode.Exclude
         private ProductOptionVersion productOption;
 
         private String optionValue;
@@ -83,11 +100,14 @@ public class ProductOptionVersion extends BaseObject implements ObjectVersioning
             this.optionValue = optionValue;
             this.optionPrice = optionPrice;
         }
+
+        ProductOptionValue copy() {
+            return new ProductOptionValue(optionValue, optionPrice);
+        }
     }
 
 
     public enum OptionType {
-
         ONE_CHOICE, MULTIPLE_CHOICE, FREE_TEXT
     }
 }

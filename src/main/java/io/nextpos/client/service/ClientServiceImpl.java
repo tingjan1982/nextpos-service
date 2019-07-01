@@ -83,7 +83,7 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
         result.setRefreshTokenValiditySeconds(3600);
         result.setScope(SecurityConfig.OAuthScopes.SCOPES);
 
-        String[] roles = Stream.of("ADMIN", client.getRoles()).filter(Objects::nonNull).toArray(String[]::new);
+        String[] roles = Stream.of("ADMIN", "USER", client.getRoles()).filter(Objects::nonNull).toArray(String[]::new);
         result.setAuthorities(AuthorityUtils.createAuthorityList(roles));
         result.setResourceIds(Collections.singletonList(SecurityConfig.OAuthSettings.RESOURCE_ID));
 

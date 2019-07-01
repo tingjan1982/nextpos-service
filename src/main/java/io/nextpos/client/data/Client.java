@@ -1,16 +1,18 @@
 package io.nextpos.client.data;
 
 import io.nextpos.product.data.Product;
+import io.nextpos.product.data.ProductOption;
 import io.nextpos.shared.model.BaseObject;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.List;
 
+/**
+ * The 1 to many associations here are declared in case of a force deletion of client that
+ * would also cascade deletions of associated objects.
+ */
 @Entity(name = "client")
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -33,7 +35,14 @@ public class Client extends BaseObject {
     private Status status = Status.ACTIVE;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<Product> products;
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<ProductOption> productOptions;
 
 
     public Client(final String clientName, final String username, final String masterPassword) {

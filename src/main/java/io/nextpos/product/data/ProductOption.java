@@ -2,7 +2,6 @@ package io.nextpos.product.data;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
-import io.nextpos.shared.model.BusinessObjectState;
 import io.nextpos.shared.model.ParentObject;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -30,17 +29,26 @@ public class ProductOption extends BaseObject implements ParentObject<String> {
      * There is always a staging version.
      */
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL,optional = false)
-    private ProductOptionVersion stagingProductOption;
+    private ProductOptionVersion latestProductOption;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private ProductOptionVersion deployedProductOption;
 
 
-    public ProductOption(final Client client, final ProductOptionVersion stagingProductOption) {
+    public ProductOption(final Client client, final ProductOptionVersion latestProductOption) {
         this.client = client;
-        this.stagingProductOption = stagingProductOption;
+        this.latestProductOption = latestProductOption;
 
-        this.stagingProductOption.setState(BusinessObjectState.DESIGN);
-        this.stagingProductOption.setProductOption(this);
+        this.latestProductOption.setVersion(1);
+        this.latestProductOption.setProductOption(this);
+    }
+
+    public void deploy() {
+        final ProductOptionVersion newLatest = latestProductOption.copy();
+        newLatest.setProductOption(this);
+
+        deployedProductOption = latestProductOption;
+
+        latestProductOption = newLatest;
     }
 }

@@ -54,7 +54,7 @@ class ProductOptionServiceImplTest {
             assertThat(c.getId()).isNotNull();
         });
 
-        assertThat(productOption.getStagingProductOption()).satisfies(staging -> {
+        assertThat(productOption.getLatestProductOption()).satisfies(staging -> {
             assertThat(staging.getId()).contains(productOption.getId());
             assertThat(staging.getOptionType()).isEqualTo(ProductOptionVersion.OptionType.ONE_CHOICE);
             assertThat(staging.getOptionValues()).hasSize(5);
@@ -75,7 +75,7 @@ class ProductOptionServiceImplTest {
 
         final ProductOption createdProductOption = productOptionService.createProductOption(productOption);
 
-        assertThat(createdProductOption.getStagingProductOption()).satisfies(staging -> {
+        assertThat(createdProductOption.getLatestProductOption()).satisfies(staging -> {
             assertThat(staging.getId()).contains(productOption.getId());
             assertThat(staging.getOptionType()).isEqualTo(ProductOptionVersion.OptionType.MULTIPLE_CHOICE);
             assertThat(staging.getOptionValues()).hasSize(2);
@@ -95,10 +95,35 @@ class ProductOptionServiceImplTest {
 
         final ProductOption createdProductOption = productOptionService.createProductOption(productOption);
 
-        assertThat(createdProductOption.getStagingProductOption()).satisfies(staging -> {
+        assertThat(createdProductOption.getLatestProductOption()).satisfies(staging -> {
             assertThat(staging.getId()).contains(productOption.getId());
             assertThat(staging.getOptionType()).isEqualTo(ProductOptionVersion.OptionType.FREE_TEXT);
             assertThat(staging.getOptionValues()).isEmpty();
+        });
+    }
+
+    @Test
+    public void deployProductOption() {
+
+        final Client client = new Client("test", "test", "test");
+        clientService.createClient(client);
+
+        final ProductOptionVersion stagingProductOption = new ProductOptionVersion("extras", ProductOptionVersion.OptionType.MULTIPLE_CHOICE);
+        stagingProductOption.addOptionValue("cheese");
+        stagingProductOption.addOptionValue("egg");
+
+        final ProductOption productOption = new ProductOption(client, stagingProductOption);
+
+        final ProductOption createdProductOption = productOptionService.createProductOption(productOption);
+
+        assertThat(createdProductOption.getLatestProductOption()).isNotNull();
+        assertThat(createdProductOption.getDeployedProductOption()).isNull();
+
+        productOptionService.deployProductOption(createdProductOption.getId());
+
+        assertThat(createdProductOption.getDeployedProductOption()).satisfies(po -> {
+            assertThat(po).isNotNull();
+            assertThat(po.getId()).contains("2"); // check that the version is incremented.
         });
     }
 }

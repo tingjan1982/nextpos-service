@@ -2,6 +2,7 @@ package io.nextpos.product.service;
 
 import io.nextpos.product.data.ProductOption;
 import io.nextpos.product.data.ProductOptionRepository;
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,14 @@ public class ProductOptionServiceImpl implements ProductOptionService {
 
     @Override
     public ProductOption getProductOption(final String id) {
-        return productOptionRepository.getOne(id);
+        return productOptionRepository.findById(id).orElseThrow(() -> {
+            throw new ObjectNotFoundException(id, ProductOption.class);
+        });
+    }
+
+    @Override
+    public void deployProductOption(final String id) {
+        final ProductOption productOption = getProductOption(id);
+        productOption.deploy();
     }
 }
