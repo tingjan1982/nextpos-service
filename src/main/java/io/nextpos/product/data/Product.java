@@ -35,8 +35,14 @@ public class Product extends BaseObject implements VersionableClientObject<Produ
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ProductVersion> productVersions = new ArrayList<>();
 
-    public Product(final Client client) {
+    @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private List<ProductOptionRelation.ProductOptionOfProduct> productOptionOfProducts = new ArrayList<>();
+
+
+    public Product(final Client client, final ProductVersion latestVersion) {
         this.client = client;
+
+        this.addNewVersion(latestVersion);
     }
 
     @Override

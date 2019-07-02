@@ -34,8 +34,7 @@ class ProductServiceImplTest {
         final Client createdClient = clientRepository.save(client);
 
         final ProductVersion productVersion = new ProductVersion("Gin Topic", "sku-001", "signature drink", BigDecimal.valueOf(350));
-        final Product product = new Product(createdClient);
-        product.addNewVersion(productVersion);
+        final Product product = new Product(createdClient, productVersion);
 
         final Product createdProduct = productService.createProduct(product);
 

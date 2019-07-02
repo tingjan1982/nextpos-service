@@ -41,15 +41,12 @@ public class ProductController {
 
     private Product fromRequest(ProductRequest productRequest, Client client) {
 
-        final Product product = new Product(client);
         final ProductVersion productVersion = new ProductVersion(productRequest.getName(),
                 productRequest.getSku(),
                 productRequest.getDescription(),
                 productRequest.getPrice());
 
-        product.addNewVersion(productVersion);
-
-        return product;
+        return new Product(client, productVersion);
     }
 
     private ProductResponse toResponse(Product product) {

@@ -34,6 +34,7 @@ dependencies {
     implementation 'org.springframework.security:spring-security-oauth2-resource-server'
     implementation 'org.springframework.security:spring-security-jwt'
 
+    implementation 'io.vavr:vavr:0.9.3'
     //implementation 'org.springframework.cloud:spring-cloud-starter-aws-jdbc'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.postgresql:postgresql'

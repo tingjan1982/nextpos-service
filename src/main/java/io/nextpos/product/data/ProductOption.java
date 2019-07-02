@@ -10,7 +10,12 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
+/**
+ * https://www.baeldung.com/jpa-one-to-one
+ */
 @Entity(name = "client_product_option")
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -28,13 +33,16 @@ public class ProductOption extends BaseObject implements ParentObject<String> {
     /**
      * There is always a staging version.
      */
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL,optional = false)
+    @OneToOne(mappedBy = "productOption", fetch = FetchType.EAGER, cascade = CascadeType.ALL,optional = false)
     private ProductOptionVersion latestProductOption;
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "productOption", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private ProductOptionVersion deployedProductOption;
 
+    @OneToMany(mappedBy = "productOption")
+    private List<ProductOptionRelation.ProductOptionOfProduct> productOptionOfProducts = new ArrayList<>();
 
+    
     public ProductOption(final Client client, final ProductOptionVersion latestProductOption) {
         this.client = client;
         this.latestProductOption = latestProductOption;
@@ -48,7 +56,6 @@ public class ProductOption extends BaseObject implements ParentObject<String> {
         newLatest.setProductOption(this);
 
         deployedProductOption = latestProductOption;
-
         latestProductOption = newLatest;
     }
 }

@@ -1,12 +1,13 @@
 package io.nextpos.product.service;
 
-import io.nextpos.product.data.ProductOption;
-import io.nextpos.product.data.ProductOptionRepository;
+import io.nextpos.product.data.*;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -14,9 +15,12 @@ public class ProductOptionServiceImpl implements ProductOptionService {
 
     private final ProductOptionRepository productOptionRepository;
 
+    private final ProductOptionRelationRepository productOptionRelationRepository;
+
     @Autowired
-    public ProductOptionServiceImpl(final ProductOptionRepository productOptionRepository) {
+    public ProductOptionServiceImpl(final ProductOptionRepository productOptionRepository, final ProductOptionRelationRepository productOptionRelationRepository) {
         this.productOptionRepository = productOptionRepository;
+        this.productOptionRelationRepository = productOptionRelationRepository;
     }
 
     @Override
@@ -32,8 +36,19 @@ public class ProductOptionServiceImpl implements ProductOptionService {
     }
 
     @Override
-    public void deployProductOption(final String id) {
+    public ProductOption deployProductOption(final String id) {
+
         final ProductOption productOption = getProductOption(id);
         productOption.deploy();
+
+        return productOptionRepository.save(productOption);
+    }
+
+    @Override
+    public List<ProductOptionRelation> addProductOptionToProduct(final ProductOption productOption, final List<Product> products) {
+
+        return products.stream()
+                .map(p -> new ProductOptionRelation.ProductOptionOfProduct(productOption, p))
+                .map(productOptionRelationRepository::save).collect(Collectors.toList());
     }
 }
