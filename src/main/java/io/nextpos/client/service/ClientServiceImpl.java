@@ -96,6 +96,11 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
     }
 
     @Override
+    public Optional<Client> getClientByUsername(final String username) {
+        return clientRepository.findByUsername(username);
+    }
+
+    @Override
     public Client getDefaultClient() {
         return clientRepository.findByUsername(BootstrapConfig.MASTER_CLIENT).orElse(null);
     }

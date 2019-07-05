@@ -1,6 +1,9 @@
 package io.nextpos.shared.config;
 
+import io.nextpos.client.data.Client;
+import io.nextpos.client.service.ClientService;
 import io.nextpos.client.service.ClientServiceImpl;
+import io.nextpos.shared.exception.ConfigurationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Lookup;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +17,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
+import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
@@ -21,17 +26,16 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
-import org.springframework.security.oauth2.provider.token.AccessTokenConverter;
-import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
-import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
-import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.*;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 
 import javax.sql.DataSource;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * https://www.baeldung.com/spring-boot-security-autoconfiguration
@@ -39,7 +43,7 @@ import java.util.List;
  * https://www.baeldung.com/spring-security-oauth-jwt
  * <p>
  * Contains core security configuration and shared beans that are needed by the authorization server and resource server.
- *
+ * <p>
  * https://projects.spring.io/spring-security-oauth/docs/oauth2.html
  */
 @EnableWebSecurity(debug = false)
@@ -94,6 +98,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public JwtAccessTokenConverter accessTokenConverter() {
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
         converter.setSigningKey(OAuthSettings.SIGNING_KEY);
+        converter.setAccessTokenConverter(new CustomAccessTokenConverter());
+
         return converter;
     }
 
@@ -112,6 +118,37 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
 
+    class CustomAccessTokenConverter extends DefaultAccessTokenConverter {
+
+        @Override
+        public OAuth2Authentication extractAuthentication(Map<String, ?> claims) {
+            OAuth2Authentication authentication = super.extractAuthentication(claims);
+            authentication.setDetails(new ExtraClaims(claims));
+
+            return authentication;
+        }
+    }
+
+    public static class ExtraClaims {
+
+        private static final String CLIENT_ID = "clientId";
+
+        private final Map<String, ?> claims;
+
+        ExtraClaims(final Map<String, ?> claims) {
+            this.claims = claims;
+        }
+
+        public Map<String, ?> getClaims() {
+            return claims;
+        }
+
+        public String getClientId() {
+            return (String) claims.get(CLIENT_ID);
+        }
+    }
+
+
     /**
      * Authorization server configuration
      */
@@ -120,14 +157,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         private final TokenStore tokenStore;
 
-        private final AccessTokenConverter accessTokenConverter;
+        private final JwtAccessTokenConverter accessTokenConverter;
 
         private final AuthenticationManager authenticationManager;
 
         private final JdbcClientDetailsService clientDetailsService;
 
+
         @Autowired
-        public AuthorizationServer(final DataSource dataSource, final TokenStore tokenStore, final AccessTokenConverter accessTokenConverter, final AuthenticationManager authenticationManager, final PasswordEncoder passwordEncoder) {
+        public AuthorizationServer(final DataSource dataSource, final TokenStore tokenStore, final JwtAccessTokenConverter accessTokenConverter, final AuthenticationManager authenticationManager, final PasswordEncoder passwordEncoder) {
             this.tokenStore = tokenStore;
             this.accessTokenConverter = accessTokenConverter;
             this.authenticationManager = authenticationManager;
@@ -139,14 +177,24 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         @Override
         public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+
+            final TokenEnhancerChain enhancerChain = new TokenEnhancerChain();
+            final ClientTokenEnhancer clientTokenEnhancer = new ClientTokenEnhancer(clientService());
+            enhancerChain.setTokenEnhancers(Arrays.asList(clientTokenEnhancer, accessTokenConverter));
+
             endpoints.tokenStore(tokenStore)
-                    .accessTokenConverter(accessTokenConverter)
+                    .tokenEnhancer(enhancerChain)
                     .authenticationManager(authenticationManager);
         }
 
         @Override
         public void configure(final ClientDetailsServiceConfigurer clients) throws Exception {
             clients.withClientDetails(jdbcClientDetailsService());
+        }
+
+        @Lookup
+        public ClientServiceImpl clientService() {
+            return null;
         }
 
         /**
@@ -159,6 +207,31 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         @Bean("jdbcClientDetailsService")
         public JdbcClientDetailsService jdbcClientDetailsService() {
             return clientDetailsService;
+        }
+
+
+        class ClientTokenEnhancer implements TokenEnhancer {
+
+            private final ClientService clientService;
+
+            ClientTokenEnhancer(final ClientService clientService) {
+                this.clientService = clientService;
+            }
+
+            @Override
+            public OAuth2AccessToken enhance(final OAuth2AccessToken accessToken, final OAuth2Authentication authentication) {
+
+                final String clientId = authentication.getOAuth2Request().getClientId();
+                final Client client = clientService.getClientByUsername(clientId).orElseThrow(() -> {
+                    throw new ConfigurationException("Client is not resolvable by username. The token cannot be enhanced: " + clientId);
+                });
+
+
+                final Map<String, Object> additionalInfo = Map.of(ExtraClaims.CLIENT_ID, client.getId());
+                ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(additionalInfo);
+
+                return accessToken;
+            }
         }
     }
 
@@ -182,7 +255,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         /**
          * For more supported expression based access control, see: OAuth2SecurityExpressionMethods
-         * 
+         *
          * @param http
          * @throws Exception
          */
@@ -196,8 +269,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers(HttpMethod.DELETE, "/clients/**").access("hasAuthority('MASTER')")
                     .antMatchers(HttpMethod.POST, "/clients").permitAll()
                     .antMatchers(HttpMethod.POST, "/clients/me/users").access("hasAuthority('ADMIN') and #oauth2.hasScopeMatching('client:write')")
-                    .antMatchers(HttpMethod.GET,"/products/**", "/productoptions/**").access("hasAnyAuthority('USER') and #oauth2.hasScopeMatching('product:.*')")
-                    .antMatchers(HttpMethod.POST,"/products/**", "/productoptions/**").access("hasAuthority('USER') and #oauth2.hasScopeMatching('product:.*')")
+                    .antMatchers(HttpMethod.GET, "/products/**", "/productoptions/**").access("hasAnyAuthority('USER') and #oauth2.hasScopeMatching('product:.*')")
+                    .antMatchers(HttpMethod.POST, "/products/**", "/productoptions/**").access("hasAuthority('USER') and #oauth2.hasScopeMatching('product:.*')")
                     .anyRequest().authenticated();
         }
     }

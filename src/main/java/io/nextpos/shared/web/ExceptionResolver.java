@@ -1,5 +1,6 @@
 package io.nextpos.shared.web;
 
+import io.nextpos.shared.exception.ConfigurationException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,6 +15,13 @@ public class ExceptionResolver {
     @ExceptionHandler(ObjectNotFoundException.class)
     @ResponseStatus(code = HttpStatus.NOT_FOUND)
     public ErrorResponse handleObjectNotFound(ObjectNotFoundException exception) {
+
+        return ErrorResponse.simpleErrorResponse(exception.getMessage());
+    }
+
+    @ExceptionHandler(ConfigurationException.class)
+    @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleConfigurationException(ConfigurationException exception) {
 
         return ErrorResponse.simpleErrorResponse(exception.getMessage());
     }

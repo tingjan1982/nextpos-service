@@ -11,6 +11,8 @@ public interface ClientService {
 
     Optional<Client> getClient(final String clientId);
 
+    Optional<Client> getClientByUsername(final String username);
+
     Client getDefaultClient();
 
     void markClientAsDeleted(String clientId);
