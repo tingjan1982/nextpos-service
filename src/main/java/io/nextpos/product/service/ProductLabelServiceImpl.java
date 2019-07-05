@@ -26,8 +26,8 @@ public class ProductLabelServiceImpl implements ProductLabelService {
     }
 
     @Override
-    public ProductLabel getProductLabel(final String id) {
-        return productLabelRepository.getOne(id);
+    public Optional<ProductLabel> getProductLabel(final String id) {
+        return productLabelRepository.findById(id);
     }
 
     @Override

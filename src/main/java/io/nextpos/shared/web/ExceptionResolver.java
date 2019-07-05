@@ -4,6 +4,7 @@ import io.nextpos.shared.exception.ConfigurationException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -24,6 +25,13 @@ public class ExceptionResolver {
     public ErrorResponse handleConfigurationException(ConfigurationException exception) {
 
         return ErrorResponse.simpleErrorResponse(exception.getMessage());
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleConstraintViolationException(ConstraintViolationException exception) {
+        return new ErrorResponse("Request cannot be completed due to some constraint violation.",
+                exception.getConstraintName());
     }
 
 

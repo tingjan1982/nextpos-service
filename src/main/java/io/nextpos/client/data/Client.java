@@ -1,6 +1,7 @@
 package io.nextpos.client.data;
 
 import io.nextpos.product.data.Product;
+import io.nextpos.product.data.ProductLabel;
 import io.nextpos.product.data.ProductOption;
 import io.nextpos.shared.model.BaseObject;
 import lombok.*;
@@ -44,6 +45,11 @@ public class Client extends BaseObject {
     @EqualsAndHashCode.Exclude
     private List<ProductOption> productOptions;
 
+    @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<ProductLabel> productLabels;
+    
 
     public Client(final String clientName, final String username, final String masterPassword) {
         this.clientName = clientName;

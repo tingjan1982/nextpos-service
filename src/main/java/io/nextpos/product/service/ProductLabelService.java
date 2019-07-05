@@ -9,7 +9,7 @@ public interface ProductLabelService {
 
     ProductLabel createProductLabel(ProductLabel productLabel);
 
-    ProductLabel getProductLabel(String id);
+    Optional<ProductLabel> getProductLabel(String id);
 
     Optional<ProductLabel> getProductLabelByName(String name, final Client client);
 }

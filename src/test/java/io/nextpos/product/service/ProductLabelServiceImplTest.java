@@ -41,7 +41,7 @@ class ProductLabelServiceImplTest {
         assertThat(createdProductLabel.getClient()).isEqualTo(client);
         assertThat(createdProductLabel.getChildLabels()).hasSize(2);
 
-        assertThat(productLabelService.getProductLabel(createdProductLabel.getId())).isNotNull();
+        assertThat(productLabelService.getProductLabel(createdProductLabel.getId()).isPresent()).isTrue();
 
         final ProductLabel retrievedLabel = productLabelService.getProductLabelByName("drink", client)
                 .orElseThrow();
