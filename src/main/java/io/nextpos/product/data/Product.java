@@ -4,10 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.BusinessObjectState;
 import io.nextpos.shared.model.VersionableClientObject;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -30,6 +27,11 @@ public class Product extends BaseObject implements VersionableClientObject<Produ
 
     @OneToOne(fetch = FetchType.EAGER)
     private ProductVersion latestVersion;
+
+    @ManyToOne
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private ProductLabel productLabel;
 
     //todo: address potential performance issue
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL)

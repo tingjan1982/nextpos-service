@@ -33,13 +33,13 @@ public class ProductOption extends BaseObject implements ParentObject<String> {
     /**
      * There is always a staging version.
      */
-    @OneToOne(mappedBy = "productOption", fetch = FetchType.EAGER, cascade = CascadeType.ALL,optional = false)
+    @OneToOne(mappedBy = "productOption", fetch = FetchType.EAGER, cascade = CascadeType.ALL, optional = false, orphanRemoval = true)
     private ProductOptionVersion latestProductOption;
 
-    @OneToOne(mappedBy = "productOption", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "productOption", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private ProductOptionVersion deployedProductOption;
 
-    @OneToMany(mappedBy = "productOption")
+    @OneToMany(mappedBy = "productOption", cascade = CascadeType.ALL)
     private List<ProductOptionRelation.ProductOptionOfProduct> productOptionOfProducts = new ArrayList<>();
 
     

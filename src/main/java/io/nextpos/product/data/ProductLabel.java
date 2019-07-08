@@ -3,6 +3,8 @@ package io.nextpos.product.data;
 import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -24,9 +26,9 @@ public class ProductLabel extends BaseObject {
     private String name;
 
     @ManyToOne
+    @JoinColumn(name = "clientId")
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @JoinColumn(name = "clientId")
     private Client client;
 
     @ManyToOne
@@ -34,7 +36,11 @@ public class ProductLabel extends BaseObject {
     @ToString.Exclude
     private ProductLabel parentLabel;
 
+    /**
+     * https://stackoverflow.com/questions/4334970/hibernate-cannot-simultaneously-fetch-multiple-bags
+     */
     @OneToMany(mappedBy = "parentLabel", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Fetch(value = FetchMode.SUBSELECT)
     private List<ProductLabel> childLabels = new ArrayList<>();
 
 
