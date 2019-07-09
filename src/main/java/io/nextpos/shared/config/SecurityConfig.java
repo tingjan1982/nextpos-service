@@ -4,6 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.client.service.ClientServiceImpl;
 import io.nextpos.shared.exception.ConfigurationException;
+import io.nextpos.shared.web.RequestIdContextFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Lookup;
 import org.springframework.context.annotation.Bean;
@@ -31,6 +32,7 @@ import org.springframework.security.oauth2.provider.client.JdbcClientDetailsServ
 import org.springframework.security.oauth2.provider.token.*;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 
 import javax.sql.DataSource;
 import java.util.Arrays;
@@ -241,9 +243,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         private final ResourceServerTokenServices tokenServices;
 
+        private final RequestIdContextFilter requestIdContextFilter;
+
         @Autowired
-        public ResourceServer(final ResourceServerTokenServices tokenService) {
+        public ResourceServer(final ResourceServerTokenServices tokenService, final RequestIdContextFilter requestIdContextFilter) {
             this.tokenServices = tokenService;
+            this.requestIdContextFilter = requestIdContextFilter;
         }
 
         @Override
@@ -256,6 +261,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         /**
          * For more supported expression based access control, see: OAuth2SecurityExpressionMethods
          *
+         * For adding filter in the security filter chain, see:
+         * https://www.baeldung.com/spring-security-registered-filters
+         * https://www.baeldung.com/spring-security-custom-filter
+         * https://stackoverflow.com/questions/44651573/how-to-add-filter-before-my-another-filter-in-spring-security?noredirect=1&lq=1
+         *
          * @param http
          * @throws Exception
          */
@@ -264,6 +274,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
             http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
             http.csrf().disable()
+                    .addFilterBefore(requestIdContextFilter, WebAsyncManagerIntegrationFilter.class)
                     .authorizeRequests()
                     .antMatchers("/actuator/**", "/clients/default").permitAll()
                     .antMatchers(HttpMethod.DELETE, "/clients/**").access("hasAuthority('MASTER')")

@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,7 +30,7 @@ public class ClientController {
     }
 
     @PostMapping
-    public ClientResponse createClient(@RequestBody ClientRequest clientRequest) {
+    public ClientResponse createClient(@Valid @RequestBody ClientRequest clientRequest) {
 
         final Client client = fromClientRequest(clientRequest);
         final Client createdClient = clientService.createClient(client);

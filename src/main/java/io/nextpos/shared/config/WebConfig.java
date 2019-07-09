@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.filter.CommonsRequestLoggingFilter;
 
 @Configuration
 public class WebConfig {
@@ -22,7 +23,29 @@ public class WebConfig {
         FilterRegistrationBean<ClientResolver> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(clientResolver);
         registrationBean.addUrlPatterns("/products/*", "/productoptions/*", "/labels/*", "/clients/me/users");
-        
+
+        return registrationBean;
+    }
+
+    /**
+     * API payload logging:
+     * https://www.baeldung.com/spring-http-logging
+     *
+     * @return
+     */
+    @Bean
+    public FilterRegistrationBean<CommonsRequestLoggingFilter> commonsRequestLoggingFilter() {
+        final CommonsRequestLoggingFilter filter = new CommonsRequestLoggingFilter();
+        filter.setIncludeQueryString(true);
+        filter.setIncludePayload(true);
+        filter.setMaxPayloadLength(10000);
+        filter.setIncludeHeaders(true);
+        filter.setAfterMessagePrefix("REQUEST DATA: ");
+
+        FilterRegistrationBean<CommonsRequestLoggingFilter> registrationBean = new FilterRegistrationBean<>();
+        registrationBean.setFilter(filter);
+        registrationBean.addUrlPatterns("/*");
+
         return registrationBean;
     }
 }

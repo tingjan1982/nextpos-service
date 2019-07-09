@@ -12,6 +12,8 @@ import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/products")
 public class ProductController {
@@ -26,8 +28,8 @@ public class ProductController {
         this.productLabelService = productLabelService;
     }
 
-    @PostMapping("")
-    public ProductResponse createProduct(@RequestAttribute("req-client") Client client, @RequestBody ProductRequest productRequest) {
+    @PostMapping
+    public ProductResponse createProduct(@RequestAttribute("req-client") Client client, @Valid @RequestBody ProductRequest productRequest) {
 
         final Product product = fromRequest(productRequest, client);
         final Product createdProduct = productService.createProduct(product);
