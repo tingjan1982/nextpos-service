@@ -1,12 +1,18 @@
 package io.nextpos.ordermanagement.service;
 
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderLineItem;
+import io.nextpos.ordermanagement.data.ProductSnapshot;
+import org.assertj.core.data.Index;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.transaction.Transactional;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,25 +28,49 @@ class OrderServiceImplTest {
     @Test
     void createAndGetOrder() {
 
-        final Order order = Order.builder().build();
+        BigDecimal taxRate = new BigDecimal("0.05");
+        final Order order = new Order("client-id", taxRate);
+
+        final List<ProductSnapshot.ProductOptionSnapshot> options = List.of(
+                new ProductSnapshot.ProductOptionSnapshot("ice", "1/3"),
+                new ProductSnapshot.ProductOptionSnapshot("sugar", "none")
+        );
+
+        final ProductSnapshot product = new ProductSnapshot(UUID.randomUUID().toString(), "coffee", "tw01", BigDecimal.valueOf(100), options);
+        final OrderLineItem lineItem = new OrderLineItem(product, 1, taxRate);
+        final OrderLineItem lineItem2 = new OrderLineItem(product, 2, taxRate);
+        order.addOrderLineItem(lineItem).addOrderLineItem(lineItem2);
 
         final Order createdOrder = orderService.createOrder(order);
 
         assertThat(createdOrder.getId()).isNotNull();
+        assertThat(createdOrder.getClientId()).isEqualTo("client-id");
         assertThat(createdOrder.getState()).isEqualTo(Order.OrderState.NEW);
+        assertThat(createdOrder.getTotal()).satisfies(total -> {
+            assertThat(total.getAmountWithoutTax()).isEqualByComparingTo(new BigDecimal("300"));
+            assertThat(total.getAmountWithTax()).isEqualByComparingTo(new BigDecimal("315"));
+            assertThat(total.getTax()).isEqualByComparingTo(new BigDecimal("15"));
+        });
 
-        final Order existingOrder = orderService.getOrder(createdOrder.getId());
+        assertThat(createdOrder.getOrderLineItems()).hasSize(2);
+        assertThat(createdOrder.getOrderLineItems()).satisfies(li -> {
+            assertThat(li.getState()).isEqualTo(OrderLineItem.OrderLineItemState.NEW);
+            assertThat(li.getQuantity()).isEqualTo(2);
+            assertThat(li.getProductSnapshot()).satisfies(p -> {
+                assertThat(p.getName()).isEqualTo(product.getName());
+                assertThat(p.getSku()).isEqualTo(product.getSku());
+                assertThat(p.getPrice()).isEqualTo(product.getPrice());
+            });
+            assertThat(li.getSubTotal()).satisfies(subTotal -> {
+                assertThat(subTotal.getAmountWithoutTax()).isEqualByComparingTo(new BigDecimal("200"));
+                assertThat(subTotal.getAmountWithTax()).isEqualByComparingTo(new BigDecimal("210"));
+                assertThat(subTotal.getTax()).isEqualByComparingTo(new BigDecimal("10"));
+            });
+
+        }, Index.atIndex(1));
+
+        final Order existingOrder = orderService.getOrder(createdOrder.getId()).orElseThrow();
 
         assertThat(existingOrder).isEqualTo(createdOrder);
-    }
-
-    @Test
-    void deleteOrder() {
-
-        final Order createdOrder = orderService.createOrder(Order.builder().build());
-
-        orderService.deleteOrder(createdOrder);
-
-        assertThat(orderService.orderExists(createdOrder.getId())).isFalse();
     }
 }

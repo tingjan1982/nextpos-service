@@ -1,39 +1,57 @@
 package io.nextpos.ordermanagement.data;
 
 import io.nextpos.shared.model.BaseObject;
-import lombok.Builder;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.GenericGenerator;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 import java.math.BigDecimal;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
-@Entity(name = "client_order")
+import static io.nextpos.ordermanagement.data.Order.OrderState.*;
+
+/**
+ * MongoDB behavior on entity object:
+ * https://docs.spring.io/spring-data/mongodb/docs/2.1.9.RELEASE/reference/html/#mongo-template.save-update-remove
+ */
+@Document
 @Data
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class Order extends BaseObject {
 
     @Id
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String id;
+
+    private String clientId;
 
     private OrderState state;
 
-    private BigDecimal orderTotalWithTax;
+    private List<OrderLineItem> orderLineItems = new ArrayList<>();
 
-    private BigDecimal orderTax;
+    private TaxableAmount total;
 
-    @Builder(toBuilder = true)
-    public Order(final Date createdTime, final Date updatedTime, final OrderState state, final BigDecimal orderTotalWithTax, final BigDecimal orderTax) {
-        super(createdTime, updatedTime);
-        this.state = state;
-        this.orderTotalWithTax = orderTotalWithTax;
-        this.orderTax = orderTax;
+    public Order(final String clientId, BigDecimal taxRate) {
+        this.clientId = clientId;
+
+        state = NEW;
+        total = new TaxableAmount(taxRate);
+    }
+
+    public Order addOrderLineItem(OrderLineItem orderLineItem) {
+        orderLineItems.add(orderLineItem);
+
+        final BigDecimal lineItemTotal = orderLineItems.stream()
+                .map(li -> li.getProductSnapshot().getPrice().multiply(BigDecimal.valueOf(li.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        total.calculate(lineItemTotal);
+        
+        return this;
     }
 
     public enum OrderState {
@@ -44,6 +62,36 @@ public class Order extends BaseObject {
         DELIVERED,
         SETTLED,
         CANCELLED,
-        REFUNDED
+        REFUNDED,
+        DELETED,
+        ANY
     }
+
+    public enum OrderAction {
+
+        SUBMIT(NEW, List.of(OPEN)),
+        DELIVER(OPEN, List.of(PARTIALLY_DELIVERED, DELIVERED)),
+        SETTLE(DELIVERED, List.of(SETTLED)),
+        CANCEL(ANY, List.of(CANCELLED)),
+        REFUND(SETTLED, List.of(REFUNDED));
+
+        private final OrderState validStartState;
+
+        private final List<OrderState> validNextState;
+
+
+        OrderAction(final OrderState validStartState, final List<OrderState> validNextState) {
+            this.validStartState = validStartState;
+            this.validNextState = validNextState;
+        }
+
+        public OrderState getValidStartState() {
+            return validStartState;
+        }
+
+        public List<OrderState> getValidNextState() {
+            return validNextState;
+        }
+    }
+
 }

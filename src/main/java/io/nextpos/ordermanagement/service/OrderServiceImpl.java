@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -21,15 +22,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order createOrder(final Order order) {
-
-        order.setState(Order.OrderState.NEW);
-        
         return orderRepository.save(order);
     }
 
     @Override
-    public Order getOrder(final String id) {
-        return orderRepository.getOne(id);
+    public Optional<Order> getOrder(final String id) {
+        return orderRepository.findById(id);
     }
 
     @Override
@@ -37,8 +35,4 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.existsById(id);
     }
 
-    @Override
-    public void deleteOrder(final Order order) {
-        orderRepository.delete(order);
-    }
 }

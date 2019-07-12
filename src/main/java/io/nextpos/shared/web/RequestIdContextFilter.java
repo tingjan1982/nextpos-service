@@ -11,6 +11,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.UUID;
 
+/**
+ * https://www.baeldung.com/spring-response-header
+ */
 @Component
 public class RequestIdContextFilter extends OncePerRequestFilter {
 
@@ -26,9 +29,9 @@ public class RequestIdContextFilter extends OncePerRequestFilter {
 
         try {
             MDC.put(MDC_REQUEST_ID, requestId);
+            response.setHeader(REQUEST_ID_HEADER, requestId);
             filterChain.doFilter(request, response);
         } finally {
-            response.setHeader(REQUEST_ID_HEADER, requestId);
             MDC.remove(MDC_REQUEST_ID);
         }
     }

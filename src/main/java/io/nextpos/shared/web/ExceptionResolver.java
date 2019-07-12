@@ -49,6 +49,9 @@ public class ExceptionResolver {
         return ErrorResponse.simpleErrorResponse("Request cannot be completed due to some constraint violation: " + exception.getConstraintName());
     }
 
+    /**
+     * https://www.baeldung.com/spring-boot-bean-validation
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleValidationExceptions(MethodArgumentNotValidException ex) {
