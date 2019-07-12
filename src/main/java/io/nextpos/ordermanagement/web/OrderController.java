@@ -12,6 +12,7 @@ import io.nextpos.product.data.ProductVersion;
 import io.nextpos.product.service.ProductService;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.settings.service.SettingsService;
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.web.ClientResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,17 @@ public class OrderController {
         return toOrderResponse(createdOrder);
     }
 
+    @GetMapping("/{id}")
+    public OrderResponse getOrder(@PathVariable String id) {
+
+        final Order order = orderService.getOrder(id).orElseThrow(() -> {
+            throw new ObjectNotFoundException(id, Order.class);
+        });
+        
+        return toOrderResponse(order);
+    }
+
+
     private Order fromOrderRequest(final Client client, final OrderRequest orderRequest) {
 
         final CountrySettings countrySettings = settingsService.getCountrySettings("TW");
@@ -82,12 +94,27 @@ public class OrderController {
 
         }
 
+        LOGGER.info("Transformed to order object: {}", order);
+
         return order;
     }
 
     private OrderResponse toOrderResponse(final Order order) {
 
-        return new OrderResponse(order.getId(), order.getState(), order.getTotal());
+        final List<OrderResponse.OrderLineItemResponse> orderLineItems = order.getOrderLineItems().stream()
+                .map(li -> {
+
+                    final String options = li.getProductSnapshot().getProductOptions().stream()
+                            .map(po -> String.format("%s:%s ==> %s", po.getOptionName(), po.getOptionValue(), po.getOptionPrice()))
+                            .collect(Collectors.joining(", "));
+
+                    return new OrderResponse.OrderLineItemResponse(li.getProductSnapshot().getName(), li.getProductSnapshot().getPrice(), li.getQuantity(), li.getSubTotal(), options);
+                }).collect(Collectors.toList());
+
+        final OrderResponse orderResponse = new OrderResponse(order.getId(), order.getState(), order.getTotal(), orderLineItems);
+        LOGGER.info("Rendered order response: {}", orderResponse);
+
+        return orderResponse;
     }
 
 }

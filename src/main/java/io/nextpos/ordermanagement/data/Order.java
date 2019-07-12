@@ -45,11 +45,11 @@ public class Order extends BaseObject {
     public Order addOrderLineItem(OrderLineItem orderLineItem) {
         orderLineItems.add(orderLineItem);
 
-        final BigDecimal lineItemTotal = orderLineItems.stream()
-                .map(li -> li.getProductSnapshot().getPrice().multiply(BigDecimal.valueOf(li.getQuantity())))
+        final BigDecimal lineItemsTotal = orderLineItems.stream()
+                .map(li -> li.getSubTotal().getAmountWithoutTax())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        total.calculate(lineItemTotal);
+        total.calculate(lineItemsTotal);
         
         return this;
     }

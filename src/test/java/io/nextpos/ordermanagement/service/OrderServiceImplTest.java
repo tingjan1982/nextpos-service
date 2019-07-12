@@ -33,7 +33,7 @@ class OrderServiceImplTest {
 
         final List<ProductSnapshot.ProductOptionSnapshot> options = List.of(
                 new ProductSnapshot.ProductOptionSnapshot("ice", "1/3"),
-                new ProductSnapshot.ProductOptionSnapshot("sugar", "none")
+                new ProductSnapshot.ProductOptionSnapshot("sugar", "none", BigDecimal.valueOf(10))
         );
 
         final ProductSnapshot product = new ProductSnapshot(UUID.randomUUID().toString(), "coffee", "tw01", BigDecimal.valueOf(100), options);
@@ -47,9 +47,9 @@ class OrderServiceImplTest {
         assertThat(createdOrder.getClientId()).isEqualTo("client-id");
         assertThat(createdOrder.getState()).isEqualTo(Order.OrderState.NEW);
         assertThat(createdOrder.getTotal()).satisfies(total -> {
-            assertThat(total.getAmountWithoutTax()).isEqualByComparingTo(new BigDecimal("300"));
-            assertThat(total.getAmountWithTax()).isEqualByComparingTo(new BigDecimal("315"));
-            assertThat(total.getTax()).isEqualByComparingTo(new BigDecimal("15"));
+            assertThat(total.getAmountWithoutTax()).isEqualByComparingTo(new BigDecimal("330"));
+            assertThat(total.getAmountWithTax()).isEqualByComparingTo(new BigDecimal("346.5"));
+            assertThat(total.getTax()).isEqualByComparingTo(new BigDecimal("16.5"));
         });
 
         assertThat(createdOrder.getOrderLineItems()).hasSize(2);
@@ -62,9 +62,9 @@ class OrderServiceImplTest {
                 assertThat(p.getPrice()).isEqualTo(product.getPrice());
             });
             assertThat(li.getSubTotal()).satisfies(subTotal -> {
-                assertThat(subTotal.getAmountWithoutTax()).isEqualByComparingTo(new BigDecimal("200"));
-                assertThat(subTotal.getAmountWithTax()).isEqualByComparingTo(new BigDecimal("210"));
-                assertThat(subTotal.getTax()).isEqualByComparingTo(new BigDecimal("10"));
+                assertThat(subTotal.getAmountWithoutTax()).isEqualByComparingTo(new BigDecimal("220"));
+                assertThat(subTotal.getAmountWithTax()).isEqualByComparingTo(new BigDecimal("231"));
+                assertThat(subTotal.getTax()).isEqualByComparingTo(new BigDecimal("11"));
             });
 
         }, Index.atIndex(1));

@@ -35,7 +35,14 @@ public class OrderLineItem extends BaseObject {
     }
 
     private void computeSubTotal() {
-        subTotal.calculate(productSnapshot.getPrice().multiply(BigDecimal.valueOf(quantity)));
+
+        final BigDecimal optionPriceTotal = productSnapshot.getProductOptions().stream()
+                .filter(po -> BigDecimal.ZERO.compareTo(po.getOptionPrice()) < 0)
+                .map(ProductSnapshot.ProductOptionSnapshot::getOptionPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        final BigDecimal lineItemTotal = productSnapshot.getPrice().add(optionPriceTotal).multiply(BigDecimal.valueOf(quantity));
+        subTotal.calculate(lineItemTotal);
     }
 
     public enum OrderLineItemState {
