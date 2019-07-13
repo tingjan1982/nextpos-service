@@ -38,7 +38,7 @@ public class Order extends BaseObject {
     public Order(final String clientId, BigDecimal taxRate) {
         this.clientId = clientId;
 
-        state = NEW;
+        state = OPEN;
         total = new TaxableAmount(taxRate);
     }
 
@@ -56,8 +56,8 @@ public class Order extends BaseObject {
 
     public enum OrderState {
 
-        NEW,
         OPEN,
+        IN_PROCESS,
         PARTIALLY_DELIVERED,
         DELIVERED,
         SETTLED,
@@ -69,18 +69,18 @@ public class Order extends BaseObject {
 
     public enum OrderAction {
 
-        SUBMIT(NEW, List.of(OPEN)),
-        DELIVER(OPEN, List.of(PARTIALLY_DELIVERED, DELIVERED)),
-        SETTLE(DELIVERED, List.of(SETTLED)),
-        CANCEL(ANY, List.of(CANCELLED)),
-        REFUND(SETTLED, List.of(REFUNDED));
+        SUBMIT(OPEN, IN_PROCESS),
+        DELIVER(IN_PROCESS, DELIVERED),
+        SETTLE(DELIVERED, SETTLED),
+        CANCEL(ANY, CANCELLED),
+        REFUND(SETTLED, REFUNDED);
 
         private final OrderState validStartState;
 
-        private final List<OrderState> validNextState;
+        private final OrderState validNextState;
 
 
-        OrderAction(final OrderState validStartState, final List<OrderState> validNextState) {
+        OrderAction(final OrderState validStartState, final OrderState validNextState) {
             this.validStartState = validStartState;
             this.validNextState = validNextState;
         }
@@ -89,7 +89,7 @@ public class Order extends BaseObject {
             return validStartState;
         }
 
-        public List<OrderState> getValidNextState() {
+        public OrderState getValidNextState() {
             return validNextState;
         }
     }

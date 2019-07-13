@@ -28,7 +28,7 @@ public class OrderLineItem extends BaseObject {
         this.productSnapshot = productSnapshot;
         this.quantity = quantity;
 
-        state = OrderLineItemState.NEW;
+        state = OrderLineItemState.OPEN;
         subTotal = new TaxableAmount(taxRate);
 
         computeSubTotal();
@@ -47,8 +47,8 @@ public class OrderLineItem extends BaseObject {
 
     public enum OrderLineItemState {
 
-        NEW,
         OPEN,
+        IN_PROCESS,
         DELIVERED
     }
 }

@@ -2,11 +2,13 @@ package io.nextpos.ordermanagement.service;
 
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderRepository;
+import io.nextpos.ordermanagement.data.OrderStateChange;
+import io.nextpos.ordermanagement.data.OrderStateChangeRepository;
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -14,9 +16,12 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
 
+    private final OrderStateChangeRepository orderStateChangeRepository;
+
     @Autowired
-    public OrderServiceImpl(final OrderRepository orderRepository) {
+    public OrderServiceImpl(final OrderRepository orderRepository, final OrderStateChangeRepository orderStateChangeRepository) {
         this.orderRepository = orderRepository;
+        this.orderStateChangeRepository = orderStateChangeRepository;
     }
 
 
@@ -26,13 +31,31 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Optional<Order> getOrder(final String id) {
-        return orderRepository.findById(id);
+    public Order getOrder(final String id) {
+        return orderRepository.findById(id).orElseThrow(() -> {
+            throw new ObjectNotFoundException(id, Order.class);
+        });
     }
 
     @Override
     public boolean orderExists(final String id) {
         return orderRepository.existsById(id);
+    }
+
+    @Override
+    public OrderStateChange transitionOrderState(final Order order, final Order.OrderState orderState) {
+
+        final OrderStateChange orderStateChange = orderStateChangeRepository.findById(order.getId())
+                .orElse(new OrderStateChange(order.getId()));
+
+        orderStateChange.addStateChange(order.getState(), orderState);
+        orderStateChangeRepository.save(orderStateChange);
+
+        order.setState(orderState);
+
+        orderRepository.save(order);
+
+        return orderStateChange;
     }
 
 }

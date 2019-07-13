@@ -1,6 +1,7 @@
 package io.nextpos.shared.web;
 
 import io.nextpos.shared.exception.ConfigurationException;
+import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.exception.ObjectAlreadyExistsException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import lombok.AllArgsConstructor;
@@ -39,6 +40,13 @@ public class ExceptionResolver {
     @ExceptionHandler(ConfigurationException.class)
     @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleConfigurationException(ConfigurationException exception) {
+
+        return ErrorResponse.simpleErrorResponse(exception.getMessage());
+    }
+
+    @ExceptionHandler(GeneralApplicationException.class)
+    @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleGeneralApplicationException(GeneralApplicationException exception) {
 
         return ErrorResponse.simpleErrorResponse(exception.getMessage());
     }

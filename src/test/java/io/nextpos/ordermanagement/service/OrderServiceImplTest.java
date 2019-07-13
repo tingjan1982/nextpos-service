@@ -45,7 +45,7 @@ class OrderServiceImplTest {
 
         assertThat(createdOrder.getId()).isNotNull();
         assertThat(createdOrder.getClientId()).isEqualTo("client-id");
-        assertThat(createdOrder.getState()).isEqualTo(Order.OrderState.NEW);
+        assertThat(createdOrder.getState()).isEqualTo(Order.OrderState.OPEN);
         assertThat(createdOrder.getTotal()).satisfies(total -> {
             assertThat(total.getAmountWithoutTax()).isEqualByComparingTo(new BigDecimal("330"));
             assertThat(total.getAmountWithTax()).isEqualByComparingTo(new BigDecimal("346.5"));
@@ -54,7 +54,7 @@ class OrderServiceImplTest {
 
         assertThat(createdOrder.getOrderLineItems()).hasSize(2);
         assertThat(createdOrder.getOrderLineItems()).satisfies(li -> {
-            assertThat(li.getState()).isEqualTo(OrderLineItem.OrderLineItemState.NEW);
+            assertThat(li.getState()).isEqualTo(OrderLineItem.OrderLineItemState.OPEN);
             assertThat(li.getQuantity()).isEqualTo(2);
             assertThat(li.getProductSnapshot()).satisfies(p -> {
                 assertThat(p.getName()).isEqualTo(product.getName());
@@ -69,7 +69,7 @@ class OrderServiceImplTest {
 
         }, Index.atIndex(1));
 
-        final Order existingOrder = orderService.getOrder(createdOrder.getId()).orElseThrow();
+        final Order existingOrder = orderService.getOrder(createdOrder.getId());
 
         assertThat(existingOrder).isEqualTo(createdOrder);
     }
