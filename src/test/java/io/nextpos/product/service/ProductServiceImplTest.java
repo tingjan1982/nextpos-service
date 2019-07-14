@@ -4,6 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientRepository;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductVersion;
+import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.model.BusinessObjectState;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -30,7 +31,7 @@ class ProductServiceImplTest {
     @Test
     void createAndGetProduct() {
 
-        final Client client = new Client("Ron", "user", "password");
+        final Client client = DummyObjects.dummyClient();
         final Client createdClient = clientRepository.save(client);
 
         final ProductVersion productVersion = new ProductVersion("Gin Topic", "sku-001", "signature drink", BigDecimal.valueOf(350));

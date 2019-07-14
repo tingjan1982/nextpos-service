@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 public class DummyObjects {
 
     public static Client dummyClient() {
-        return new Client("test", "admin@anextpos.io", "secret");
+        return new Client("test", "admin@anextpos.io", "secret", "TW");
     }
 
     public static ProductVersion dummyProductVersion() {

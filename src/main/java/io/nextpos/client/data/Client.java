@@ -33,6 +33,8 @@ public class Client extends BaseObject {
 
     private String roles;
 
+    private String countryCode;
+
     private Status status = Status.ACTIVE;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
@@ -51,10 +53,11 @@ public class Client extends BaseObject {
     private List<ProductLabel> productLabels;
     
 
-    public Client(final String clientName, final String username, final String masterPassword) {
+    public Client(final String clientName, final String username, final String masterPassword, final String countryCode) {
         this.clientName = clientName;
         this.username = username;
         this.masterPassword = masterPassword;
+        this.countryCode = countryCode;
     }
 
     public enum Status {

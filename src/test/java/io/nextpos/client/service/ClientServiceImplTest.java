@@ -2,6 +2,7 @@ package io.nextpos.client.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
+import io.nextpos.shared.DummyObjects;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,7 @@ class ClientServiceImplTest {
     @Test
     void createAndGetClient() {
 
-        final Client client = new Client("Ron", "user", "password");
+        final Client client = DummyObjects.dummyClient();
         final Client createdClient = clientService.createClient(client);
 
         assertThat(createdClient.getId()).isNotNull();

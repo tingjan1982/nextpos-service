@@ -165,7 +165,7 @@ class ProductOptionServiceImplTest {
     }
 
     private Client createClient() {
-        final Client client = new Client("test", "test", "test");
+        final Client client = DummyObjects.dummyClient();
         clientService.createClient(client);
         return client;
     }

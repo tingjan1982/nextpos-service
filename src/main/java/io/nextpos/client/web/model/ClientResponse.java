@@ -18,5 +18,7 @@ public class ClientResponse {
 
     private String encryptedPassword;
 
+    private String country;
+
     private Client.Status status;
 }

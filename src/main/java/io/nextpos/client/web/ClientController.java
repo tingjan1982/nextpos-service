@@ -7,6 +7,7 @@ import io.nextpos.client.web.model.ClientRequest;
 import io.nextpos.client.web.model.ClientResponse;
 import io.nextpos.client.web.model.ClientUserRequest;
 import io.nextpos.client.web.model.ClientUserResponse;
+import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,12 +73,13 @@ public class ClientController {
 
         return new Client(clientRequest.getClientName(),
                 clientRequest.getUsername(),
-                clientRequest.getMasterPassword());
+                clientRequest.getMasterPassword(),
+                BootstrapConfig.DEFAULT_COUNTRY_CODE);
     }
 
     private ClientResponse toClientResponse(final Client client) {
 
-        return new ClientResponse(client.getId(), client.getClientName(), client.getUsername(), client.getMasterPassword(), client.getStatus());
+        return new ClientResponse(client.getId(), client.getClientName(), client.getUsername(), client.getMasterPassword(), client.getCountryCode(), client.getStatus());
     }
 
     @PostMapping("/me/users")

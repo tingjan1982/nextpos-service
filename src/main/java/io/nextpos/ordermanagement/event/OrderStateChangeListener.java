@@ -49,6 +49,7 @@ public class OrderStateChangeListener {
             event.getFuture().complete(orderStateChange);
         }
 
-        event.getFuture().completeExceptionally(new GeneralApplicationException("Unable to process state transition on order id: " + order.getId()));
+        final String errorMsg = String.format("Unable to process order action [%s] from the order state [%s], [orderId=%s]", orderAction, orderState, order.getId());
+        event.getFuture().completeExceptionally(new GeneralApplicationException(errorMsg));
     }
 }

@@ -98,7 +98,7 @@ public class OrderController {
 
     private Order fromOrderRequest(final Client client, final OrderRequest orderRequest) {
 
-        final CountrySettings countrySettings = settingsService.getCountrySettings("TW");
+        final CountrySettings countrySettings = settingsService.getCountrySettings(client.getCountryCode());
         final Order order = new Order(client.getId(), countrySettings.getTaxRate());
 
         if (!CollectionUtils.isEmpty(orderRequest.getLineItems())) {
@@ -112,7 +112,6 @@ public class OrderController {
                     productOptionSnapshots = li.getProductOptions().stream()
                             .map(po -> new ProductSnapshot.ProductOptionSnapshot(po.getOptionName(), po.getOptionValue(), po.getOptionPrice()))
                             .collect(Collectors.toList());
-
                 }
 
                 final ProductSnapshot productSnapshot = new ProductSnapshot(product.getId(),
@@ -120,6 +119,7 @@ public class OrderController {
                         productVersion.getSku(),
                         productVersion.getPrice(),
                         productOptionSnapshots);
+
                 final OrderLineItem orderLineItem = new OrderLineItem(productSnapshot, li.getQuantity(), countrySettings.getTaxRate());
                 order.addOrderLineItem(orderLineItem);
             });
