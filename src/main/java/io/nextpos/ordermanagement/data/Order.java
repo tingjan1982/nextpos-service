@@ -1,16 +1,20 @@
 package io.nextpos.ordermanagement.data;
 
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.model.BaseObject;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.nextpos.ordermanagement.data.Order.OrderState.*;
 
@@ -35,23 +39,59 @@ public class Order extends BaseObject {
 
     private TaxableAmount total;
 
-    public Order(final String clientId, BigDecimal taxRate) {
-        this.clientId = clientId;
+    /**
+     * this represents the id suffix of line item id.
+     */
+    private AtomicInteger internalCounter;
 
-        state = OPEN;
-        total = new TaxableAmount(taxRate);
+    public Order(final String clientId, BigDecimal taxRate) {
+        this.id = new ObjectId().toString();
+        this.clientId = clientId;
+        this.state = OPEN;
+        this.total = new TaxableAmount(taxRate);
+        this.internalCounter = new AtomicInteger(1);
     }
 
     public Order addOrderLineItem(OrderLineItem orderLineItem) {
+
+        final String orderLineItemId = this.id + "-" + internalCounter.getAndIncrement();
+        orderLineItem.setId(orderLineItemId);
         orderLineItems.add(orderLineItem);
 
+        computeTotal();
+
+        return this;
+    }
+
+    /**
+     * Quantity of 0 will remove the line item.
+     *
+     * @param lineItemId
+     * @param quantity
+     */
+    public void updateOrderLineItem(String lineItemId, int quantity) {
+
+        final OrderLineItem orderLineItem = orderLineItems.stream()
+                .filter(li -> StringUtils.equals(li.getId(), lineItemId))
+                .findFirst().orElseThrow(() -> {
+                    throw new ObjectNotFoundException(lineItemId, OrderLineItem.class);
+                });
+
+        if (quantity == 0) {
+            orderLineItems.remove(orderLineItem);
+        } else {
+            orderLineItem.updateQuantity(quantity);
+        }
+
+        computeTotal();
+    }
+
+    private void computeTotal() {
         final BigDecimal lineItemsTotal = orderLineItems.stream()
                 .map(li -> li.getSubTotal().getAmountWithoutTax())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         total.calculate(lineItemsTotal);
-        
-        return this;
     }
 
     public enum OrderState {

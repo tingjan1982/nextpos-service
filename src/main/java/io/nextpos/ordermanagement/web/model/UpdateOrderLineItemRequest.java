@@ -4,12 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderRequest {
+public class UpdateOrderLineItemRequest {
 
-    private List<OrderLineItemRequest> lineItems;
+    @PositiveOrZero
+    private int quantity;
+
+    private List<OrderProductOptionRequest> productOptions;
 }

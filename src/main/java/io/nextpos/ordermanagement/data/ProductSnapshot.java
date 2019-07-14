@@ -25,7 +25,7 @@ public class ProductSnapshot {
         this.id = id;
         this.name = name;
         this.sku = sku;
-        this.price = price;
+        this.price = price != null ? price : BigDecimal.ZERO;
         this.productOptions = productOptions;
     }
 
@@ -46,7 +46,7 @@ public class ProductSnapshot {
         public ProductOptionSnapshot(final String optionName, final String optionValue, final BigDecimal optionPrice) {
             this.optionName = optionName;
             this.optionValue = optionValue;
-            this.optionPrice = optionPrice;
+            this.optionPrice = optionPrice != null ? optionPrice : BigDecimal.ZERO;
         }
     }
 

@@ -2,6 +2,7 @@ package io.nextpos.ordermanagement.service;
 
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderStateChange;
+import io.nextpos.ordermanagement.web.model.UpdateOrderLineItemRequest;
 
 public interface OrderService {
 
@@ -12,4 +13,6 @@ public interface OrderService {
     boolean orderExists(String id);
 
     OrderStateChange transitionOrderState(Order order, Order.OrderState orderState);
+
+    Order updateOrderLineItem(String id, String lineItemId, UpdateOrderLineItemRequest updateOrderLineItemRequest);
 }

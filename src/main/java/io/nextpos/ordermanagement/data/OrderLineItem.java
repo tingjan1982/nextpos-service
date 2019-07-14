@@ -34,6 +34,11 @@ public class OrderLineItem extends BaseObject {
         computeSubTotal();
     }
 
+    void updateQuantity(int quantity) {
+        this.quantity = quantity;
+        computeSubTotal();
+    }
+
     private void computeSubTotal() {
 
         final BigDecimal optionPriceTotal = productSnapshot.getProductOptions().stream()

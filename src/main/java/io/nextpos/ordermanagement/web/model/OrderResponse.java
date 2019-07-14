@@ -27,6 +27,8 @@ public class OrderResponse {
     @AllArgsConstructor
     public static class OrderLineItemResponse {
 
+        private String lineItemId;
+
         private String productName;
 
         private BigDecimal price;

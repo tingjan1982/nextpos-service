@@ -10,6 +10,7 @@ import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordermanagement.web.model.OrderRequest;
 import io.nextpos.ordermanagement.web.model.OrderResponse;
 import io.nextpos.ordermanagement.web.model.OrderStateChangeResponse;
+import io.nextpos.ordermanagement.web.model.UpdateOrderLineItemRequest;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductVersion;
 import io.nextpos.product.service.ProductService;
@@ -65,6 +66,14 @@ public class OrderController {
     public OrderResponse getOrder(@PathVariable String id) {
 
         final Order order = orderService.getOrder(id);
+        return toOrderResponse(order);
+    }
+
+    @PatchMapping("/{id}/lineitems/{lineItemId}")
+    public OrderResponse updateOrder(@PathVariable String id, @PathVariable String lineItemId, @RequestBody UpdateOrderLineItemRequest updateOrderLineItemRequest) {
+
+        final Order order = orderService.updateOrderLineItem(id, lineItemId, updateOrderLineItemRequest);
+
         return toOrderResponse(order);
     }
 
@@ -135,12 +144,11 @@ public class OrderController {
 
         final List<OrderResponse.OrderLineItemResponse> orderLineItems = order.getOrderLineItems().stream()
                 .map(li -> {
-
                     final String options = li.getProductSnapshot().getProductOptions().stream()
-                            .map(po -> String.format("%s:%s ==> %s", po.getOptionName(), po.getOptionValue(), po.getOptionPrice()))
+                            .map(po -> String.format("%s: %s => %s", po.getOptionName(), po.getOptionValue(), po.getOptionPrice()))
                             .collect(Collectors.joining(", "));
 
-                    return new OrderResponse.OrderLineItemResponse(li.getProductSnapshot().getName(), li.getProductSnapshot().getPrice(), li.getQuantity(), li.getSubTotal(), options);
+                    return new OrderResponse.OrderLineItemResponse(li.getId(), li.getProductSnapshot().getName(), li.getProductSnapshot().getPrice(), li.getQuantity(), li.getSubTotal(), options);
                 }).collect(Collectors.toList());
 
         final OrderResponse orderResponse = new OrderResponse(order.getId(), order.getState(), order.getTotal(), orderLineItems);
