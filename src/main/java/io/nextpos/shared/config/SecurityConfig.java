@@ -274,6 +274,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
             http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
             http.csrf().disable()
+                    .cors().and()
                     .addFilterBefore(requestIdContextFilter, WebAsyncManagerIntegrationFilter.class)
                     .authorizeRequests()
                     .antMatchers("/actuator/**", "/clients/default").permitAll()

@@ -83,7 +83,7 @@ public class ClientController {
     }
 
     @PostMapping("/me/users")
-    public ClientUserResponse createClientUser(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @RequestBody ClientUserRequest clientUserRequest) {
+    public ClientUserResponse createClientUser(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @Valid @RequestBody ClientUserRequest clientUserRequest) {
 
         final ClientUser clientUser = fromClientUserRequest(client, clientUserRequest);
         final ClientUser createdClientUser = clientService.createClientUser(clientUser);

@@ -104,29 +104,29 @@ public class Order extends BaseObject {
         CANCELLED,
         REFUNDED,
         DELETED,
-        ANY
     }
 
     public enum OrderAction {
 
+        DELETE(OPEN, DELETED),
         SUBMIT(OPEN, IN_PROCESS),
+        CANCEL(IN_PROCESS, CANCELLED),
         DELIVER(IN_PROCESS, DELIVERED),
         SETTLE(DELIVERED, SETTLED),
-        CANCEL(ANY, CANCELLED),
         REFUND(SETTLED, REFUNDED);
 
-        private final OrderState validStartState;
+        private final OrderState validFromState;
 
         private final OrderState validNextState;
 
 
-        OrderAction(final OrderState validStartState, final OrderState validNextState) {
-            this.validStartState = validStartState;
+        OrderAction(final OrderState validFromState, final OrderState validNextState) {
+            this.validFromState = validFromState;
             this.validNextState = validNextState;
         }
 
-        public OrderState getValidStartState() {
-            return validStartState;
+        public OrderState getValidFromState() {
+            return validFromState;
         }
 
         public OrderState getValidNextState() {

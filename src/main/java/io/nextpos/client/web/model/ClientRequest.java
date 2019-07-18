@@ -1,5 +1,6 @@
 package io.nextpos.client.web.model;
 
+import io.nextpos.shared.model.validator.ValidPassword;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,6 @@ public class ClientRequest {
     @Email
     private String username;
 
-    //@ValidPassword
+    @ValidPassword
     private String masterPassword;
 }
