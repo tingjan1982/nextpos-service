@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 import static io.nextpos.shared.web.ClientResolver.REQ_ATTR_CLIENT;
 
 @RestController
@@ -24,7 +26,7 @@ public class ProductLabelController {
     }
 
     @PostMapping
-    public ProductLabelResponse createProductLabel(@RequestAttribute(REQ_ATTR_CLIENT) Client client, @RequestBody ProductLabelRequest productLabelRequest) {
+    public ProductLabelResponse createProductLabel(@RequestAttribute(REQ_ATTR_CLIENT) Client client, @Valid @RequestBody ProductLabelRequest productLabelRequest) {
 
         ProductLabel productLabel = fromProductLabelRequest(productLabelRequest, client);
         final ProductLabel createdProductLabel = productLabelService.createProductLabel(productLabel);

@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,7 +35,7 @@ public class ProductOptionController {
 
 
     @PostMapping
-    public ProductOptionResponse createProductOption(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @RequestBody ProductOptionRequest productOptionRequest) {
+    public ProductOptionResponse createProductOption(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @Valid @RequestBody ProductOptionRequest productOptionRequest) {
 
         final ProductOption productOption = fromProductOptionRequest(client, productOptionRequest);
         final ProductOption createdProductOption = productOptionService.createProductOption(productOption);
@@ -58,7 +59,7 @@ public class ProductOptionController {
     }
 
     @PostMapping("/{id}/relations")
-    public ProductOptionRelationResponse linkToProduct(@PathVariable String id, @RequestBody ProductOptionRelationRequest productOptionRelationRequest) {
+    public ProductOptionRelationResponse linkToProduct(@PathVariable String id, @Valid @RequestBody ProductOptionRelationRequest productOptionRelationRequest) {
 
         final ProductOption productOption = productOptionService.getProductOption(id);
         final List<Product> products = fromProductOptionRelationRequest(productOptionRelationRequest);
@@ -84,7 +85,8 @@ public class ProductOptionController {
 
     private ProductOption fromProductOptionRequest(Client client, ProductOptionRequest productOptionRequest) {
 
-        final ProductOptionVersion stagingProductOption = new ProductOptionVersion(productOptionRequest.getOptionName(), productOptionRequest.getOptionType());
+        final ProductOptionVersion.OptionType optionType = ProductOptionVersion.OptionType.valueOf(productOptionRequest.getOptionType());
+        final ProductOptionVersion stagingProductOption = new ProductOptionVersion(productOptionRequest.getOptionName(), optionType);
 
         if (!CollectionUtils.isEmpty(productOptionRequest.getOptionValues())) {
             productOptionRequest.getOptionValues().forEach(value -> stagingProductOption.addOptionValue(value.getValue(), value.getPrice()));

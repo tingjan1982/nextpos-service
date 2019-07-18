@@ -7,6 +7,8 @@ import io.nextpos.shared.exception.ObjectNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.hibernate.exception.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -17,11 +19,15 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.Instant;
 import java.util.AbstractMap;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
 public class ExceptionResolver {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionResolver.class);
+
 
     @ExceptionHandler(ObjectNotFoundException.class)
     @ResponseStatus(code = HttpStatus.NOT_FOUND)
@@ -54,7 +60,12 @@ public class ExceptionResolver {
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ErrorResponse handleConstraintViolationException(ConstraintViolationException exception) {
-        return ErrorResponse.simpleErrorResponse("Request cannot be completed due to some constraint violation: " + exception.getConstraintName());
+
+        LOGGER.error("{}", exception.getMessage(), exception);
+        final ErrorResponse errorResponse = ErrorResponse.simpleErrorResponse("Request cannot be completed. Please check your payload or provide x-request-id to support team for further diagnosis.");
+        errorResponse.setDetails(exception.getSQLException().getMessage());
+
+        return errorResponse;
     }
 
     /**
@@ -66,6 +77,7 @@ public class ExceptionResolver {
 
         final BindingResult bindingResult = ex.getBindingResult();
         final HashMap<String, String> fieldErrors = bindingResult.getAllErrors().stream()
+                .filter(error -> error instanceof FieldError)
                 .map(error -> new AbstractMap.SimpleEntry<>(((FieldError) error).getField(), error.getDefaultMessage()))
                 .collect(HashMap::new,
                         (map, entry) -> map.put(entry.getKey(), entry.getValue()),
@@ -91,7 +103,7 @@ public class ExceptionResolver {
         private Instant timestamp;
 
         static ErrorResponse simpleErrorResponse(String message) {
-            return new ErrorResponse(message, null, "NA", Instant.now());
+            return new ErrorResponse(message, Collections.emptyMap(), "NA", Instant.now());
         }
 
 
