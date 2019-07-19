@@ -3,10 +3,7 @@ package io.nextpos.product.data;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.BusinessObjectState;
 import io.nextpos.shared.model.ObjectVersioning;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.Entity;
@@ -18,7 +15,7 @@ import java.math.BigDecimal;
 @Entity(name = "product_version")
 @Data
 @EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class ProductVersion extends BaseObject implements ObjectVersioning<Product> {
 
     @Id

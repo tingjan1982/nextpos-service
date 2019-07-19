@@ -30,10 +30,13 @@ public class BootstrapConfig {
 
     private final SettingsService settingsService;
 
+    private final SettingsConfigurationProperties settingsProperties;
+
     @Autowired
-    public BootstrapConfig(final ClientService clientService, final SettingsService settingsService) {
+    public BootstrapConfig(final ClientService clientService, final SettingsService settingsService, final SettingsConfigurationProperties settingsProperties) {
         this.clientService = clientService;
         this.settingsService = settingsService;
+        this.settingsProperties = settingsProperties;
     }
 
     @PostConstruct
@@ -51,6 +54,8 @@ public class BootstrapConfig {
 
         if (settingsService.findCountrySettings(DEFAULT_COUNTRY_CODE).isEmpty()) {
             final CountrySettings defaultCountrySettings = new CountrySettings(DEFAULT_COUNTRY_CODE, BigDecimal.valueOf(0.05), Currency.getInstance("TWD"));
+            settingsProperties.getCommonAttributes().forEach(defaultCountrySettings::addCommonAttribute);
+
             settingsService.createCountrySettings(defaultCountrySettings);
 
             LOGGER.info("Created default country settings: {}", defaultCountrySettings);

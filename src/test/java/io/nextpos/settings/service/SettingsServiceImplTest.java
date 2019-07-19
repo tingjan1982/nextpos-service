@@ -23,11 +23,13 @@ class SettingsServiceImplTest {
     void createCountrySettings() {
 
         final CountrySettings countrySettings = new CountrySettings("US", BigDecimal.valueOf(0.08), Currency.getInstance("USD"));
+        countrySettings.addCommonAttribute("UBN");
 
         settingsService.createCountrySettings(countrySettings);
 
         final CountrySettings retrievedCountrySettings = settingsService.getCountrySettings(countrySettings.getIsoCountryCode());
 
         assertThat(retrievedCountrySettings).isNotNull();
+        assertThat(retrievedCountrySettings.getCommonAttributes()).hasSize(1);
     }
 }

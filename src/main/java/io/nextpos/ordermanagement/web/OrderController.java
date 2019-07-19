@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 // todo: major revisit to simplify the object transformation part.
@@ -85,7 +86,7 @@ public class OrderController {
         eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, orderAction, future));
 
         try {
-            final OrderStateChange orderStateChange = future.get();
+            final OrderStateChange orderStateChange = future.get(30, TimeUnit.SECONDS);
             return toOrderStateChangeResponse(orderStateChange);
 
         } catch (GeneralApplicationException e) {
@@ -114,7 +115,7 @@ public class OrderController {
             orderRequest.getLineItems().forEach(li -> {
 
                 final Product product = productService.getProduct(li.getProductId());
-                final ProductVersion productVersion = product.getDesignVersion();
+                final ProductVersion productVersion = product.getLiveVersion();
                 List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots = Collections.emptyList();
 
                 if (!CollectionUtils.isEmpty(li.getProductOptions())) {

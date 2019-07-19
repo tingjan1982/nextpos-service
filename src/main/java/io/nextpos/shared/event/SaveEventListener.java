@@ -3,11 +3,13 @@ package io.nextpos.shared.event;
 import io.nextpos.shared.model.BaseObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
+@Profile("disabled")
 public class SaveEventListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SaveEventListener.class);

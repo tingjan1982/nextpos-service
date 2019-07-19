@@ -1,6 +1,7 @@
 package io.nextpos.product.data;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.BusinessObjectState;
 import io.nextpos.shared.model.ParentObject;
@@ -52,7 +53,9 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
     }
 
     public ProductVersion getLiveVersion() {
-        return versions.get(Version.LIVE);
+        return getObjectByVersion(Version.LIVE).orElseThrow(() -> {
+            throw new ObjectNotFoundException(id, ProductVersion.class);
+        });
     }
 
     @Override

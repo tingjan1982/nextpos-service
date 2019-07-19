@@ -1,5 +1,6 @@
 package io.nextpos.ordermanagement.data;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,7 @@ import java.util.List;
 
 @Document
 @Data
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class OrderStateChange {
 
     @Id
@@ -37,7 +38,7 @@ public class OrderStateChange {
     }
 
     @Data
-    @NoArgsConstructor
+    @NoArgsConstructor(access = AccessLevel.PACKAGE)
     @AllArgsConstructor
     public static class OrderStateChangeEntry {
 

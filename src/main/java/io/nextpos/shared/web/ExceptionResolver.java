@@ -51,7 +51,7 @@ public class ExceptionResolver {
     }
 
     @ExceptionHandler(GeneralApplicationException.class)
-    @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ErrorResponse handleGeneralApplicationException(GeneralApplicationException exception) {
 
         return ErrorResponse.simpleErrorResponse(exception.getMessage());

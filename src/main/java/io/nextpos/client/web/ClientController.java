@@ -12,6 +12,7 @@ import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -71,15 +72,27 @@ public class ClientController {
 
     private Client fromClientRequest(ClientRequest clientRequest) {
 
-        return new Client(clientRequest.getClientName(),
+        final Client client = new Client(clientRequest.getClientName(),
                 clientRequest.getUsername(),
                 clientRequest.getMasterPassword(),
                 BootstrapConfig.DEFAULT_COUNTRY_CODE);
+
+        if (!CollectionUtils.isEmpty(clientRequest.getAttributes())) {
+            clientRequest.getAttributes().forEach(client::addAttribute);
+        }
+
+        return client;
     }
 
     private ClientResponse toClientResponse(final Client client) {
 
-        return new ClientResponse(client.getId(), client.getClientName(), client.getUsername(), client.getMasterPassword(), client.getCountryCode(), client.getStatus());
+        return new ClientResponse(client.getId(),
+                client.getClientName(),
+                client.getUsername(),
+                client.getMasterPassword(),
+                client.getCountryCode(),
+                client.getStatus(),
+                client.getAttributes());
     }
 
     @PostMapping("/me/users")
