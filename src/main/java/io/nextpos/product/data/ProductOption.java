@@ -3,15 +3,13 @@ package io.nextpos.product.data;
 import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.ParentObject;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * https://www.baeldung.com/jpa-one-to-one
@@ -20,7 +18,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class ProductOption extends BaseObject implements ParentObject<String> {
+public class ProductOption extends BaseObject implements ParentObject<String, ProductOptionVersion> {
 
     @Id
     @GeneratedValue(generator = "uuid")
@@ -28,34 +26,51 @@ public class ProductOption extends BaseObject implements ParentObject<String> {
     private String id;
 
     @ManyToOne
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Client client;
 
-    /**
-     * There is always a staging version.
-     */
-    @OneToOne(mappedBy = "productOption", fetch = FetchType.EAGER, cascade = CascadeType.ALL, optional = false, orphanRemoval = true)
-    private ProductOptionVersion latestProductOption;
+    @OneToMany(mappedBy = "productOption", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @MapKeyEnumerated(EnumType.STRING)
+    private Map<Version, ProductOptionVersion> versions = new HashMap<>();
 
-    @OneToOne(mappedBy = "productOption", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    private ProductOptionVersion deployedProductOption;
-
-    @OneToMany(mappedBy = "productOption", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "productOption", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Fetch(value = FetchMode.SUBSELECT)
     private List<ProductOptionRelation.ProductOptionOfProduct> productOptionOfProducts = new ArrayList<>();
 
     
     public ProductOption(final Client client, final ProductOptionVersion latestProductOption) {
         this.client = client;
-        this.latestProductOption = latestProductOption;
 
-        this.latestProductOption.setVersion(1);
-        this.latestProductOption.setProductOption(this);
+        latestProductOption.setVersion(1);
+        latestProductOption.setProductOption(this);
+
+        versions.put(Version.DESIGN, latestProductOption);
+    }
+
+    @Override
+    public ProductOptionVersion getDesignVersion() {
+        return versions.get(Version.DESIGN);
+    }
+
+    @Override
+    public ProductOptionVersion getLiveVersion() {
+        return versions.get(Version.LIVE);
+    }
+
+    @Override
+    public Optional<ProductOptionVersion> getObjectByVersion(final Version version) {
+        return Optional.ofNullable(versions.get(version));
     }
 
     public void deploy() {
+
+        final ProductOptionVersion latestProductOption = this.getDesignVersion();
         final ProductOptionVersion newLatest = latestProductOption.copy();
         newLatest.setProductOption(this);
 
-        deployedProductOption = latestProductOption;
-        latestProductOption = newLatest;
+        versions.put(Version.LIVE, latestProductOption);
+        versions.put(Version.DESIGN, newLatest);
     }
+
 }

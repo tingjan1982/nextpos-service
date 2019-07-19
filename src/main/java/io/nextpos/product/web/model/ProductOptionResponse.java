@@ -1,7 +1,7 @@
 package io.nextpos.product.web.model;
 
 import io.nextpos.product.data.ProductOptionVersion;
-import io.nextpos.product.web.ProductOptionController;
+import io.nextpos.product.data.Version;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,7 +19,7 @@ public class ProductOptionResponse {
 
     private String optionName;
 
-    private ProductOptionController.Version version;
+    private Version version;
 
     private ProductOptionVersion.OptionType optionType;
 

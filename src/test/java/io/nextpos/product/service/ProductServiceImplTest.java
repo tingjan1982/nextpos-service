@@ -50,11 +50,11 @@ class ProductServiceImplTest {
 
         assertThat(actual.getId()).isNotNull();
         assertThat(actual.getClient().getId()).isNotNull();
-        assertThat(actual.getLatestVersion().getProductName()).isEqualTo(expected.getLatestVersion().getProductName());
-        assertThat(actual.getLatestVersion().getSku()).isEqualTo(expected.getLatestVersion().getSku());
-        assertThat(actual.getLatestVersion().getPrice()).isEqualTo(expected.getLatestVersion().getPrice());
-        assertThat(actual.getLatestVersion().getState()).isEqualTo(BusinessObjectState.DESIGN);
-        assertThat(actual.getLatestVersion().getVersion()).isEqualTo(1);
+        assertThat(actual.getDesignVersion().getProductName()).isEqualTo(expected.getDesignVersion().getProductName());
+        assertThat(actual.getDesignVersion().getSku()).isEqualTo(expected.getDesignVersion().getSku());
+        assertThat(actual.getDesignVersion().getPrice()).isEqualTo(expected.getDesignVersion().getPrice());
+        assertThat(actual.getDesignVersion().getState()).isEqualTo(BusinessObjectState.DESIGN);
+        assertThat(actual.getDesignVersion().getVersion()).isEqualTo(1);
         assertThat(actual.getCreatedTime()).isNotNull();
         assertThat(actual.getUpdatedTime()).isNotNull();
 

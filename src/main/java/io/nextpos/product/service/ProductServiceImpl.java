@@ -25,7 +25,6 @@ public class ProductServiceImpl implements ProductService {
         this.eventPublisher = eventPublisher;
     }
 
-
     @Override
     public Product createProduct(final Product product) {
         eventPublisher.publishEvent(new SimpleSaveEvent(product));
@@ -40,6 +39,14 @@ public class ProductServiceImpl implements ProductService {
         return productOptional.orElseThrow(() -> {
             throw new ObjectNotFoundException(id, Product.class);
         });
+    }
+
+    @Override
+    public void deployProduct(final String id) {
+        final Product product = this.getProduct(id);
+        product.deploy();
+
+        productRepository.save(product);
     }
 
     @Override

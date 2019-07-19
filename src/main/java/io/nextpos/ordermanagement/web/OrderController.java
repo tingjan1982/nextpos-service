@@ -114,7 +114,7 @@ public class OrderController {
             orderRequest.getLineItems().forEach(li -> {
 
                 final Product product = productService.getProduct(li.getProductId());
-                final ProductVersion productVersion = product.getLatestVersion();
+                final ProductVersion productVersion = product.getDesignVersion();
                 List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots = Collections.emptyList();
 
                 if (!CollectionUtils.isEmpty(li.getProductOptions())) {

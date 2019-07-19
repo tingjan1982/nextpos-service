@@ -3,19 +3,18 @@ package io.nextpos.product.data;
 import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.BusinessObjectState;
-import io.nextpos.shared.model.VersionableClientObject;
+import io.nextpos.shared.model.ParentObject;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Entity(name = "client_product")
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class Product extends BaseObject implements VersionableClientObject<ProductVersion> {
+public class Product extends BaseObject implements ParentObject<String, ProductVersion> {
 
     @Id
     @GeneratedValue(generator = "uuid")
@@ -25,17 +24,14 @@ public class Product extends BaseObject implements VersionableClientObject<Produ
     @ManyToOne
     private Client client;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    private ProductVersion latestVersion;
-
     @ManyToOne
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private ProductLabel productLabel;
 
-    //todo: address potential performance issue
-    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private List<ProductVersion> productVersions = new ArrayList<>();
+    @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @MapKeyEnumerated(EnumType.STRING)
+    private Map<Version, ProductVersion> versions = new HashMap<>();
 
     @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<ProductOptionRelation.ProductOptionOfProduct> productOptionOfProducts = new ArrayList<>();
@@ -44,41 +40,34 @@ public class Product extends BaseObject implements VersionableClientObject<Produ
     public Product(final Client client, final ProductVersion latestVersion) {
         this.client = client;
 
-        this.addNewVersion(latestVersion);
+        latestVersion.setState(BusinessObjectState.DESIGN);
+        latestVersion.setVersion(1);
+        latestVersion.setProduct(this);
+
+        versions .put(Version.DESIGN, latestVersion);
+    }
+
+    public ProductVersion getDesignVersion() {
+        return versions.get(Version.DESIGN);
+    }
+
+    public ProductVersion getLiveVersion() {
+        return versions.get(Version.LIVE);
     }
 
     @Override
-    public Client getClient() {
-        return client;
+    public Optional<ProductVersion> getObjectByVersion(final Version version) {
+        return Optional.ofNullable(versions.get(version));
     }
 
     @Override
-    public void setClient(final Client client) {
-        this.client = client;
-    }
+    public void deploy() {
+        final ProductVersion latestVersion = getDesignVersion();
 
-    @Override
-    public ProductVersion getLatestVersion() {
-        return latestVersion;
-    }
+        final ProductVersion newLatest = latestVersion.copy();
+        newLatest.setProduct(this);
 
-    @Override
-    public ProductVersion addNewVersion(final ProductVersion productVersion) {
-        productVersion.setProduct(this);
-        productVersion.setState(BusinessObjectState.DESIGN);
-
-        int version = 1;
-
-        if (latestVersion != null) {
-            latestVersion.setState(BusinessObjectState.RETIRED);
-            version = latestVersion.getVersion() + 1;
-        }
-
-        latestVersion = productVersion;
-        productVersion.setVersion(version);
-
-        productVersions.add(productVersion);
-
-        return productVersion;
+        versions.put(Version.LIVE, latestVersion);
+        versions.put(Version.DESIGN, newLatest);
     }
 }

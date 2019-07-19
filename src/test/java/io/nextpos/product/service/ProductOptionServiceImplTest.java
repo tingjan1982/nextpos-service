@@ -61,7 +61,7 @@ class ProductOptionServiceImplTest {
             assertThat(c.getId()).isNotNull();
         });
 
-        assertThat(productOption.getLatestProductOption()).satisfies(staging -> {
+        assertThat(productOption.getDesignVersion()).satisfies(staging -> {
             assertThat(staging.getId()).contains(productOption.getId());
             assertThat(staging.getOptionType()).isEqualTo(ProductOptionVersion.OptionType.ONE_CHOICE);
             assertThat(staging.getOptionValues()).hasSize(5);
@@ -81,7 +81,7 @@ class ProductOptionServiceImplTest {
 
         final ProductOption createdProductOption = productOptionService.createProductOption(productOption);
 
-        assertThat(createdProductOption.getLatestProductOption()).satisfies(staging -> {
+        assertThat(createdProductOption.getDesignVersion()).satisfies(staging -> {
             assertThat(staging.getId()).contains(productOption.getId());
             assertThat(staging.getOptionType()).isEqualTo(ProductOptionVersion.OptionType.MULTIPLE_CHOICE);
             assertThat(staging.getOptionValues()).hasSize(2);
@@ -100,7 +100,7 @@ class ProductOptionServiceImplTest {
 
         final ProductOption createdProductOption = productOptionService.createProductOption(productOption);
 
-        assertThat(createdProductOption.getLatestProductOption()).satisfies(staging -> {
+        assertThat(createdProductOption.getDesignVersion()).satisfies(staging -> {
             assertThat(staging.getId()).contains(productOption.getId());
             assertThat(staging.getOptionType()).isEqualTo(ProductOptionVersion.OptionType.FREE_TEXT);
             assertThat(staging.getOptionValues()).isEmpty();
@@ -120,17 +120,19 @@ class ProductOptionServiceImplTest {
 
         final ProductOption createdProductOption = productOptionService.createProductOption(productOption);
 
-        assertThat(createdProductOption.getLatestProductOption()).isNotNull();
-        assertThat(createdProductOption.getDeployedProductOption()).isNull();
+        assertThat(createdProductOption.getDesignVersion()).isNotNull();
+        assertThat(createdProductOption.getLiveVersion()).isNull();
+
+        final ProductOption test = productOptionService.getProductOption(createdProductOption.getId());
 
         final ProductOption updated = productOptionService.deployProductOption(createdProductOption.getId());
 
-        assertThat(updated.getDeployedProductOption()).satisfies(po -> {
+        assertThat(updated.getLiveVersion()).satisfies(po -> {
             assertThat(po).isNotNull();
             assertThat(po.getId()).contains("-1"); // check that the version is incremented.
         });
 
-        assertThat(updated.getLatestProductOption()).satisfies(po -> {
+        assertThat(updated.getDesignVersion()).satisfies(po -> {
             assertThat(po).isNotNull();
             assertThat(po.getId()).contains("-2"); // check that the version is incremented.
         });

@@ -1,15 +1,14 @@
 package io.nextpos.product.web;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.product.data.Product;
-import io.nextpos.product.data.ProductLabel;
-import io.nextpos.product.data.ProductVersion;
+import io.nextpos.product.data.*;
 import io.nextpos.product.service.ProductLabelService;
 import io.nextpos.product.service.ProductService;
 import io.nextpos.product.web.model.ProductRequest;
 import io.nextpos.product.web.model.ProductResponse;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -34,15 +33,22 @@ public class ProductController {
         final Product product = fromRequest(productRequest, client);
         final Product createdProduct = productService.createProduct(product);
 
-        return toResponse(createdProduct);
+        return toResponse(createdProduct, Version.DESIGN);
     }
 
     @GetMapping("/{id}")
-    public ProductResponse getProduct(@PathVariable String id) {
+    public ProductResponse getProduct(@PathVariable String id, @RequestParam(value = "version", required = false, defaultValue = "DESIGN") Version version) {
 
         final Product product = productService.getProduct(id);
 
-        return toResponse(product);
+        return toResponse(product, version);
+    }
+
+    @PostMapping("/{id}/deploy")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deployProduct(@PathVariable String id) {
+
+        productService.deployProduct(id);
     }
 
     private Product fromRequest(ProductRequest productRequest, Client client) {
@@ -64,16 +70,21 @@ public class ProductController {
         return product;
     }
 
-    private ProductResponse toResponse(Product product) {
+    private ProductResponse toResponse(Product product, final Version version) {
 
-        final ProductVersion latestVersion = product.getLatestVersion();
+        ProductVersion productVersion = product.getObjectByVersion(version).orElseThrow(() -> {
+            throw new ObjectNotFoundException(product.getId() + "-" +  version, ProductOptionVersion.class);
+        });
+
         final ProductLabel productLabel = product.getProductLabel();
 
         return new ProductResponse(product.getId(),
-                latestVersion.getProductName(),
-                latestVersion.getSku(),
-                latestVersion.getDescription(),
-                latestVersion.getPrice(),
+                productVersion.getId(),
+                productVersion.getProductName(),
+                version,
+                productVersion.getSku(),
+                productVersion.getDescription(),
+                productVersion.getPrice(),
                 productLabel != null ? productLabel.getName() : null);
     }
 }

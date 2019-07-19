@@ -2,7 +2,7 @@ package io.nextpos.product.data;
 
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.BusinessObjectState;
-import io.nextpos.shared.model.ObjectVersion;
+import io.nextpos.shared.model.ObjectVersioning;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -19,11 +19,11 @@ import java.math.BigDecimal;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class ProductVersion extends BaseObject implements ObjectVersion {
+public class ProductVersion extends BaseObject implements ObjectVersioning<Product> {
 
     @Id
-    @GeneratedValue(generator = "uuid")
-    @GenericGenerator(name = "uuid", strategy = "uuid2")
+    @GenericGenerator(name = "versionId", strategy = "io.nextpos.shared.model.idgenerator.ObjectVersionIdGenerator")
+    @GeneratedValue(generator = "versionId")
     private String id;
 
     @ManyToOne
@@ -31,7 +31,7 @@ public class ProductVersion extends BaseObject implements ObjectVersion {
     @EqualsAndHashCode.Exclude
     private Product product;
 
-    private Integer version;
+    private int version;
 
     private BusinessObjectState state;
 
@@ -51,22 +51,15 @@ public class ProductVersion extends BaseObject implements ObjectVersion {
     }
 
     @Override
-    public Integer getVersion() {
-        return version;
+    public Product getParent() {
+        return product;
     }
 
-    @Override
-    public void setVersion(final Integer version) {
-        this.version = version;
-    }
+    public ProductVersion copy() {
 
-    @Override
-    public BusinessObjectState getState() {
-        return state;
-    }
+        final ProductVersion copy = new ProductVersion(productName, sku, description, price);
+        copy.setVersion(version + 1);
 
-    @Override
-    public void setState(final BusinessObjectState state) {
-        this.state = state;
+        return copy;
     }
 }

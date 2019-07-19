@@ -1,10 +1,7 @@
 package io.nextpos.product.web;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.product.data.Product;
-import io.nextpos.product.data.ProductOption;
-import io.nextpos.product.data.ProductOptionRelation;
-import io.nextpos.product.data.ProductOptionVersion;
+import io.nextpos.product.data.*;
 import io.nextpos.product.service.ProductOptionService;
 import io.nextpos.product.service.ProductService;
 import io.nextpos.product.web.model.*;
@@ -97,20 +94,9 @@ public class ProductOptionController {
 
     private ProductOptionResponse toProductOptionResponse(final ProductOption productOption, final Version version) {
 
-        ProductOptionVersion productOptionVersion = null;
-
-        switch (version) {
-            case DESIGN:
-                productOptionVersion = productOption.getLatestProductOption();
-                break;
-            case LIVE:
-                productOptionVersion = productOption.getDeployedProductOption();
-                break;
-        }
-
-        if (productOptionVersion == null) {
-            throw new ObjectNotFoundException(productOption.getId(), ProductOption.class);
-        }
+        ProductOptionVersion productOptionVersion = productOption.getObjectByVersion(version).orElseThrow(() -> {
+            throw new ObjectNotFoundException(productOption.getId() + "-" + version, ProductOptionVersion.class);
+        });
 
         final List<ProductOptionValueModel> optionValues = productOptionVersion.getOptionValues().stream()
                 .map(v -> new ProductOptionValueModel(v.getOptionValue(), v.getOptionPrice()))
@@ -123,9 +109,4 @@ public class ProductOptionController {
                 productOptionVersion.getOptionType(),
                 optionValues);
     }
-
-    public enum Version {
-        DESIGN, LIVE
-    }
-
 }

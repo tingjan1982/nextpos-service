@@ -8,5 +8,7 @@ public interface ProductService {
 
     Product getProduct(String id);
 
+    void deployProduct(String id);
+
     void deleteProduct(Product product);
 }

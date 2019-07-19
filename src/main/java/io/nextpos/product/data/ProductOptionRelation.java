@@ -51,13 +51,4 @@ public abstract class ProductOptionRelation {
             this.product.getProductOptionOfProducts().add(this);
         }
     }
-
-//    @Entity
-//    @DiscriminatorValue("category")
-//    @Data
-//    @EqualsAndHashCode(callSuper = true)
-//    public static class CategoryRelation extends ProductOptionRelation {
-//
-//
-//    }
 }

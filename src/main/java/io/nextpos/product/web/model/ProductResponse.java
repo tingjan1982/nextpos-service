@@ -1,5 +1,6 @@
 package io.nextpos.product.web.model;
 
+import io.nextpos.product.data.Version;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,7 +14,11 @@ public class ProductResponse {
 
     private String id;
 
+    private String versionId;
+
     private String name;
+
+    private Version version;
 
     private String sku;
 
