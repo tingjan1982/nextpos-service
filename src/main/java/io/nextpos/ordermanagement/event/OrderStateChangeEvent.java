@@ -26,11 +26,11 @@ public class OrderStateChangeEvent extends ApplicationEvent {
         return order;
     }
 
-    public Order.OrderAction getOrderAction() {
+    Order.OrderAction getOrderAction() {
         return orderAction;
     }
 
-    public CompletableFuture<OrderStateChange> getFuture() {
+    CompletableFuture<OrderStateChange> getFuture() {
         return future;
     }
 }

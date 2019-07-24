@@ -3,6 +3,8 @@ package io.nextpos.ordermanagement.service;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
+import io.nextpos.ordermanagement.web.model.UpdateOrderLineItemRequest;
+import io.nextpos.shared.DummyObjects;
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -71,6 +73,29 @@ class OrderServiceImplTest {
 
         final Order existingOrder = orderService.getOrder(createdOrder.getId());
 
-        assertThat(existingOrder).isEqualTo(createdOrder);
+        assertThat(existingOrder).isEqualToIgnoringGivenFields(createdOrder, "internalCounter");
+    }
+
+    @Test
+    public void addAndUpdateOrderLineItem() {
+
+        final BigDecimal taxRate = BigDecimal.valueOf(0.05);
+        final Order order = new Order("KING", taxRate);
+        final Order createdOrder = orderService.createOrder(order);
+
+
+        final ProductSnapshot product = DummyObjects.productSnapshot();
+        final OrderLineItem orderLineItem = new OrderLineItem(product, 1, taxRate);
+
+        orderService.addOrderLineItem(createdOrder, orderLineItem);
+
+        assertThat(createdOrder.getOrderLineItems()).hasSize(1);
+
+        final UpdateOrderLineItemRequest updateRequest = new UpdateOrderLineItemRequest(5, List.of());
+        final Order updatedOrder = orderService.updateOrderLineItem(createdOrder.getId(), createdOrder.getOrderLineItems().get(0).getId(), updateRequest);
+
+        assertThat(updatedOrder.getOrderLineItems()).satisfies(li -> {
+            assertThat(li.getQuantity()).isEqualTo(5);
+        }, Index.atIndex(0));
     }
 }

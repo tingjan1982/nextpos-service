@@ -7,10 +7,7 @@ import io.nextpos.ordermanagement.data.OrderStateChange;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.ordermanagement.event.OrderStateChangeEvent;
 import io.nextpos.ordermanagement.service.OrderService;
-import io.nextpos.ordermanagement.web.model.OrderRequest;
-import io.nextpos.ordermanagement.web.model.OrderResponse;
-import io.nextpos.ordermanagement.web.model.OrderStateChangeResponse;
-import io.nextpos.ordermanagement.web.model.UpdateOrderLineItemRequest;
+import io.nextpos.ordermanagement.web.model.*;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductVersion;
 import io.nextpos.product.service.ProductService;
@@ -25,6 +22,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -70,8 +68,19 @@ public class OrderController {
         return toOrderResponse(order);
     }
 
+    @PostMapping("/{id}/lineitems")
+    public OrderResponse AddOrderLineItem(@PathVariable String id, @RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @Valid @RequestBody OrderLineItemRequest orderLineItemRequest) {
+
+        final Order order = orderService.getOrder(id);
+        final OrderLineItem orderLineItem = fromOrderLineItemRequest(client, orderLineItemRequest);
+
+        orderService.addOrderLineItem(order, orderLineItem);
+
+        return toOrderResponse(order);
+    }
+
     @PatchMapping("/{id}/lineitems/{lineItemId}")
-    public OrderResponse updateOrder(@PathVariable String id, @PathVariable String lineItemId, @RequestBody UpdateOrderLineItemRequest updateOrderLineItemRequest) {
+    public OrderResponse updateOrderLineItem(@PathVariable String id, @PathVariable String lineItemId, @RequestBody UpdateOrderLineItemRequest updateOrderLineItemRequest) {
 
         final Order order = orderService.updateOrderLineItem(id, lineItemId, updateOrderLineItemRequest);
 
@@ -113,24 +122,7 @@ public class OrderController {
 
         if (!CollectionUtils.isEmpty(orderRequest.getLineItems())) {
             orderRequest.getLineItems().forEach(li -> {
-
-                final Product product = productService.getProduct(li.getProductId());
-                final ProductVersion productVersion = product.getLiveVersion();
-                List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots = Collections.emptyList();
-
-                if (!CollectionUtils.isEmpty(li.getProductOptions())) {
-                    productOptionSnapshots = li.getProductOptions().stream()
-                            .map(po -> new ProductSnapshot.ProductOptionSnapshot(po.getOptionName(), po.getOptionValue(), po.getOptionPrice()))
-                            .collect(Collectors.toList());
-                }
-
-                final ProductSnapshot productSnapshot = new ProductSnapshot(product.getId(),
-                        productVersion.getProductName(),
-                        productVersion.getSku(),
-                        productVersion.getPrice(),
-                        productOptionSnapshots);
-
-                final OrderLineItem orderLineItem = new OrderLineItem(productSnapshot, li.getQuantity(), countrySettings.getTaxRate());
+                final OrderLineItem orderLineItem = fromOrderLineItemRequest(client, li);
                 order.addOrderLineItem(orderLineItem);
             });
 
@@ -140,6 +132,30 @@ public class OrderController {
 
         return order;
     }
+
+    private OrderLineItem fromOrderLineItemRequest(final Client client, final OrderLineItemRequest li) {
+
+        final CountrySettings countrySettings = settingsService.getCountrySettings(client.getCountryCode());
+
+        final Product product = productService.getProduct(li.getProductId());
+        final ProductVersion productVersion = product.getLiveVersion();
+        List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots = Collections.emptyList();
+
+        if (!CollectionUtils.isEmpty(li.getProductOptions())) {
+            productOptionSnapshots = li.getProductOptions().stream()
+                    .map(po -> new ProductSnapshot.ProductOptionSnapshot(po.getOptionName(), po.getOptionValue(), po.getOptionPrice()))
+                    .collect(Collectors.toList());
+        }
+
+        final ProductSnapshot productSnapshot = new ProductSnapshot(product.getId(),
+                productVersion.getProductName(),
+                productVersion.getSku(),
+                productVersion.getPrice(),
+                productOptionSnapshots);
+
+        return new OrderLineItem(productSnapshot, li.getQuantity(), countrySettings.getTaxRate());
+    }
+
 
     private OrderResponse toOrderResponse(final Order order) {
 

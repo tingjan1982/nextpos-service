@@ -1,9 +1,6 @@
 package io.nextpos.ordermanagement.service;
 
-import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.OrderRepository;
-import io.nextpos.ordermanagement.data.OrderStateChange;
-import io.nextpos.ordermanagement.data.OrderStateChangeRepository;
+import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.web.model.UpdateOrderLineItemRequest;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,6 +48,14 @@ public class OrderServiceImpl implements OrderService {
 //        final Query query = new Query(where("orderLineItems.id").is(lineItemId));
 //        final Update update = new Update().set("orderLineItems.$.quantity", updateOrderLineItemRequest.getQuantity());
 //        mongoTemplate.updateFirst(query, update, Order.class);
+
+        return orderRepository.save(order);
+    }
+
+    @Override
+    public Order addOrderLineItem(final Order order, final OrderLineItem orderLineItem) {
+
+        order.addOrderLineItem(orderLineItem);
 
         return orderRepository.save(order);
     }

@@ -2,6 +2,7 @@ package io.nextpos.ordermanagement.data;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -26,7 +27,10 @@ public class ProductSnapshot {
         this.name = name;
         this.sku = sku;
         this.price = price != null ? price : BigDecimal.ZERO;
-        this.productOptions = productOptions;
+
+        if (!CollectionUtils.isEmpty(productOptions)) {
+            this.productOptions = productOptions;
+        }
     }
 
     @Data
