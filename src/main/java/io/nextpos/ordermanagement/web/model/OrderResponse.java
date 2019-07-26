@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 @Data
@@ -15,6 +16,10 @@ import java.util.List;
 public class OrderResponse {
 
     private String orderId;
+
+    private Date createdDate;
+
+    private Date modifiedDate;
 
     private Order.OrderState state;
 

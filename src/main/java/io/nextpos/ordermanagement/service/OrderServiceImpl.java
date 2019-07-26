@@ -40,6 +40,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public void deleteOrder(final Order order) {
+        orderRepository.delete(order);
+    }
+
+    @Override
     public Order updateOrderLineItem(final String id, final String lineItemId, final UpdateOrderLineItemRequest updateOrderLineItemRequest) {
 
         final Order order = this.getOrder(id);
@@ -58,11 +63,6 @@ public class OrderServiceImpl implements OrderService {
         order.addOrderLineItem(orderLineItem);
 
         return orderRepository.save(order);
-    }
-
-    @Override
-    public boolean orderExists(final String id) {
-        return orderRepository.existsById(id);
     }
 
     @Override

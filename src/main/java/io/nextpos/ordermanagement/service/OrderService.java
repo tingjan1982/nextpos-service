@@ -11,7 +11,7 @@ public interface OrderService {
 
     Order getOrder(String id);
 
-    boolean orderExists(String id);
+    void deleteOrder(Order order);
 
     OrderStateChange transitionOrderState(Order order, Order.OrderState orderState);
 

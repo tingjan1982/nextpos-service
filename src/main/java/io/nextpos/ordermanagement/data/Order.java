@@ -1,7 +1,6 @@
 package io.nextpos.ordermanagement.data;
 
 import io.nextpos.shared.exception.ObjectNotFoundException;
-import io.nextpos.shared.model.BaseObject;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -26,7 +25,7 @@ import static io.nextpos.ordermanagement.data.Order.OrderState.*;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class Order extends BaseObject {
+public class Order extends MongoBaseObject {
 
     @Id
     private String id;

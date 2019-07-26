@@ -1,17 +1,14 @@
 package io.nextpos.ordermanagement.data;
 
-import io.nextpos.shared.model.BaseObject;
 import lombok.AccessLevel;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class OrderLineItem extends BaseObject {
+public class OrderLineItem {
 
     private String id;
 

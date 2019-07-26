@@ -168,7 +168,7 @@ public class OrderController {
                     return new OrderResponse.OrderLineItemResponse(li.getId(), li.getProductSnapshot().getName(), li.getProductSnapshot().getPrice(), li.getQuantity(), li.getSubTotal(), options);
                 }).collect(Collectors.toList());
 
-        final OrderResponse orderResponse = new OrderResponse(order.getId(), order.getState(), order.getTotal(), orderLineItems);
+        final OrderResponse orderResponse = new OrderResponse(order.getId(), order.getCreatedDate(), order.getModifiedDate(), order.getState(), order.getTotal(), orderLineItems);
         LOGGER.info("Rendered order response: {}", orderResponse);
 
         return orderResponse;
