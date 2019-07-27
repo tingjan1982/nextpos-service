@@ -54,7 +54,7 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
 
     public ProductVersion getLiveVersion() {
         return getObjectByVersion(Version.LIVE).orElseThrow(() -> {
-            throw new ObjectNotFoundException(id, ProductVersion.class);
+            throw new ObjectNotFoundException(Version.LIVE.name(), ProductVersion.class);
         });
     }
 

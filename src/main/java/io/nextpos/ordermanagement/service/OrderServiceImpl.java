@@ -69,7 +69,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderStateChange transitionOrderState(final Order order, final Order.OrderState orderState) {
 
         final OrderStateChange orderStateChange = orderStateChangeRepository.findById(order.getId())
-                .orElse(new OrderStateChange(order.getId()));
+                .orElse(new OrderStateChange(order.getId(), order.getClientId()));
 
         orderStateChange.addStateChange(order.getState(), orderState);
         orderStateChangeRepository.save(orderStateChange);

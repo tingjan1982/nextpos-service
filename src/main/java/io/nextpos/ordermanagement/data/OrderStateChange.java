@@ -20,13 +20,16 @@ public class OrderStateChange {
     @Id
     private String orderId;
 
+    private String clientId;
+
     @Transient
     private OrderStateChangeEntry lastEntry;
 
     private List<OrderStateChangeEntry> stateChanges = new ArrayList<>();
 
-    public OrderStateChange(final String orderId) {
+    public OrderStateChange(final String orderId, final String clientId) {
         this.orderId = orderId;
+        this.clientId = clientId;
     }
 
     public void addStateChange(Order.OrderState fromState, Order.OrderState toState) {

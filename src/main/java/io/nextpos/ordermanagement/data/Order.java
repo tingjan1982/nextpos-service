@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
@@ -43,12 +44,25 @@ public class Order extends MongoBaseObject {
      */
     private AtomicInteger internalCounter;
 
+    @Version
+    private Long version;
+
     public Order(final String clientId, BigDecimal taxRate) {
         this.id = new ObjectId().toString();
         this.clientId = clientId;
         this.state = OPEN;
         this.total = new TaxableAmount(taxRate);
         this.internalCounter = new AtomicInteger(1);
+    }
+
+    /**
+     * https://jira.spring.io/browse/DATAMONGO-946
+     * 
+     * @return
+     */
+    @Override
+    public boolean isNew() {
+        return version == null;
     }
 
     public Order addOrderLineItem(OrderLineItem orderLineItem) {

@@ -3,6 +3,7 @@ package io.nextpos.reporting.service;
 import com.mongodb.BasicDBObject;
 import io.nextpos.client.data.Client;
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.reporting.data.OrderStateElapsedTimeReport;
 import io.nextpos.reporting.data.ReportingParameter;
 import io.nextpos.reporting.data.SalesReport;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +13,6 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Service
 @Transactional
@@ -43,27 +42,22 @@ public class ReportingServiceImpl implements ReportingService {
     @Override
     public SalesReport generateSalesReport(final Client client, final ReportingParameter reportingParameter) {
 
-        final LocalDateTime startOfDay = LocalDate.now().atTime(8, 0);
-        final LocalDateTime endOfDay = startOfDay.plusDays(1);
-
         final ProjectionOperation projection = Aggregation.project("clientId", "total", "orderLineItems", "modifiedDate");
         final UnwindOperation flattenLineItems = Aggregation.unwind("orderLineItems");
 
         final MatchOperation clientMatcher = Aggregation.match(
                 Criteria.where("clientId").is(client.getId())
-                        .and("modifiedDate").gte(startOfDay).lte(endOfDay));
+                        .and("modifiedDate").gte(reportingParameter.getFromDate()).lte(reportingParameter.getToDate()));
 
         final ConvertOperators.ToDecimal subTotalToDecimal = createToDecimal("orderLineItems.subTotal.amountWithTax");
         final GroupOperation lineItemsSubTotal = Aggregation.group(
                 Fields.fields().and("clientId", "$clientId").and("name", "$orderLineItems.productSnapshot.name"))
                 .sum(subTotalToDecimal).as("lineItemsSubTotal")
-                .first("modifiedDate").as("salesDate")
                 .first("orderLineItems.productSnapshot.name").as("productName");
 
         final ConvertOperators.ToDecimal totalToDecimal = createToDecimal("lineItemsSubTotal");
         final GroupOperation ordersTotal = Aggregation.group("clientId").sum(totalToDecimal).as("salesTotal")
-                .first("salesDate").as("salesDate")
-                .push(new BasicDBObject().append("name", "$productName").append("amount", "$lineItemsSubTotal")).as("products");
+                .push(new BasicDBObject().append("name", "$productName").append("amount", "$lineItemsSubTotal")).as("salesByProducts");
 
         final TypedAggregation<Order> salesAmountOfTheDay = Aggregation.newAggregation(Order.class,
                 projection,
@@ -72,8 +66,19 @@ public class ReportingServiceImpl implements ReportingService {
                 lineItemsSubTotal, ordersTotal);
 
         final AggregationResults<SalesReport> result = mongoTemplate.aggregate(salesAmountOfTheDay, SalesReport.class);
+        final SalesReport salesReport = result.getUniqueMappedResult();
 
-        return result.getUniqueMappedResult();
+        if (salesReport != null) {
+            salesReport.setFromDate(reportingParameter.getFromDate());
+            salesReport.setToDate(reportingParameter.getToDate());
+        }
+
+        return salesReport;
+    }
+
+    @Override
+    public OrderStateElapsedTimeReport generateOrderStateElapsedTimeReport(final Client client, final Order.OrderState fromState, final Order.OrderState toState) {
+        return null;
     }
 
     private ConvertOperators.ToDecimal createToDecimal(String fieldReference) {
