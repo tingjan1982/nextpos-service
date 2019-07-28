@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
-public class ReportingParameter {
+public class ReportDateParameter {
 
     private LocalDateTime fromDate;
 

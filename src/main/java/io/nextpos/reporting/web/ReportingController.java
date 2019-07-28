@@ -1,9 +1,10 @@
 package io.nextpos.reporting.web;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.reporting.data.ReportingParameter;
-import io.nextpos.reporting.data.SalesReport;
+import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.reporting.data.*;
 import io.nextpos.reporting.service.ReportingService;
+import io.nextpos.reporting.web.model.OrderStateAverageTimeReportResponse;
 import io.nextpos.reporting.web.model.SalesReportResponse;
 import io.nextpos.shared.web.ClientResolver;
 import org.apache.commons.lang3.tuple.Pair;
@@ -13,11 +14,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,19 +31,19 @@ public class ReportingController {
 
     @GetMapping("/salesreport")
     public SalesReportResponse getSalesReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                              @RequestParam(name = "date", defaultValue = "TODAY") DateParameter dateParameter,
+                                              @RequestParam(name = "date", defaultValue = "TODAY") DateParameterType dateParameterType,
                                               @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromDate,
                                               @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date toDate) {
 
-        ReportingParameter reportingParameter;
+        ReportDateParameter reportDateParameter;
 
-        if (dateParameter == DateParameter.RANGE) {
-            reportingParameter = dateParameter.toReportingParameter(fromDate, toDate);
+        if (dateParameterType == DateParameterType.RANGE) {
+            reportDateParameter = dateParameterType.toReportingParameter(fromDate, toDate);
         } else {
-            reportingParameter = dateParameter.toReportingParameter();
+            reportDateParameter = dateParameterType.toReportingParameter();
         }
 
-        final SalesReport salesReport = reportingService.generateSalesReport(client, reportingParameter);
+        final SalesReport salesReport = reportingService.generateSalesReport(client, reportDateParameter);
         return toSalesReportResponse(salesReport);
     }
 
@@ -60,59 +56,34 @@ public class ReportingController {
         return new SalesReportResponse(salesReport.getId(), salesReport.getFromDate(), salesReport.getToDate(), salesReport.getSalesTotal(), salesByProducts);
     }
 
-    public enum DateParameter {
-        TODAY {
-            @Override
-            public ReportingParameter toReportingParameter() {
+    @GetMapping("/averageDeliveryTime")
+    public OrderStateAverageTimeReportResponse getOrderStateAverageTimeReport(
+            @RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+            @RequestParam(name = "date", defaultValue = "TODAY") DateParameterType dateParameterType,
+            @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromDate,
+            @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date toDate) {
 
-                final LocalDateTime startOfDay = LocalDate.now().atTime(8, 0);
-                final LocalDateTime endOfDay = startOfDay.plusDays(1);
+        ReportDateParameter reportDateParameter;
 
-                return new ReportingParameter(startOfDay, endOfDay);
-            }
-        },
-
-        WEEK {
-            @Override
-            public ReportingParameter toReportingParameter() {
-
-                final LocalDateTime startOfWeek = LocalDate.now().atTime(8, 0).with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-                final LocalDateTime endOfWeek = startOfWeek.plusWeeks(1);
-
-                return new ReportingParameter(startOfWeek, endOfWeek);
-            }
-        },
-
-        MONTH {
-            @Override
-            public ReportingParameter toReportingParameter() {
-
-                final LocalDateTime startOfMonth = LocalDate.now().atTime(8, 0).with(TemporalAdjusters.firstDayOfMonth());
-                final LocalDateTime endOfMonth = startOfMonth.plusMonths(1);
-
-                return new ReportingParameter(startOfMonth, endOfMonth);
-            }
-        },
-
-        RANGE {
-            @Override
-            public ReportingParameter toReportingParameter() {
-                throw new UnsupportedOperationException("The parameterized variant of this method should be used instead.");
-            }
-        };
-
-        public abstract ReportingParameter toReportingParameter();
-
-        public ReportingParameter toReportingParameter(Date fromDate, Date toDate) {
-
-            if (fromDate != null && toDate != null) {
-                final LocalDateTime fromDT = LocalDate.ofInstant(fromDate.toInstant(), ZoneId.systemDefault()).atTime(8, 0);
-                final LocalDateTime toDT = LocalDate.ofInstant(toDate.toInstant(), ZoneId.systemDefault()).atTime(8, 0);
-
-                return new ReportingParameter(fromDT, toDT);
-            }
-
-            return TODAY.toReportingParameter();
+        if (dateParameterType == DateParameterType.RANGE) {
+            reportDateParameter = dateParameterType.toReportingParameter(fromDate, toDate);
+        } else {
+            reportDateParameter = dateParameterType.toReportingParameter();
         }
+
+        final OrderStateParameter orderStateParameter = new OrderStateParameter(reportDateParameter, Order.OrderState.OPEN, Order.OrderState.DELIVERED);
+        final OrderStateAverageTimeReport report = reportingService.generateStateTransitionAverageTimeReport(client, orderStateParameter);
+
+        return toOrderStateAverageTimeReportResponse(report, orderStateParameter);
+    }
+
+    private OrderStateAverageTimeReportResponse toOrderStateAverageTimeReportResponse(final OrderStateAverageTimeReport report, final OrderStateParameter orderStateParameter) {
+
+        return new OrderStateAverageTimeReportResponse(report.getId(),
+                orderStateParameter.getDateParameter().getFromDate(),
+                orderStateParameter.getDateParameter().getToDate(),
+                report.getFromState(),
+                report.getToState(),
+                report.getAverageWaitTime() / 1000);
     }
 }
