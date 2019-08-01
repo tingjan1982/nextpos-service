@@ -14,7 +14,11 @@ public class DummyObjects {
     }
 
     public static ProductVersion dummyProductVersion() {
-        return new ProductVersion("name", "sku", "description", BigDecimal.ZERO);
+        return dummyProductVersion("name");
+    }
+
+    public static ProductVersion dummyProductVersion(String productName) {
+        return new ProductVersion(productName, "sku", "description", BigDecimal.ZERO);
     }
 
     public static ProductSnapshot productSnapshot() {

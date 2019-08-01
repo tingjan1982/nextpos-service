@@ -56,6 +56,7 @@ public class ProductVersion extends BaseObject implements ObjectVersioning<Produ
 
         final ProductVersion copy = new ProductVersion(productName, sku, description, price);
         copy.setVersion(version + 1);
+        copy.setState(BusinessObjectState.DESIGN);
 
         return copy;
     }

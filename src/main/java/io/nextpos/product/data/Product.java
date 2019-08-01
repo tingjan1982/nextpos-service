@@ -45,7 +45,7 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
         latestVersion.setVersion(1);
         latestVersion.setProduct(this);
 
-        versions .put(Version.DESIGN, latestVersion);
+        versions.put(Version.DESIGN, latestVersion);
     }
 
     public ProductVersion getDesignVersion() {
@@ -66,8 +66,10 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
     @Override
     public void deploy() {
         final ProductVersion latestVersion = getDesignVersion();
+        latestVersion.setState(BusinessObjectState.DEPLOYED);
 
         final ProductVersion newLatest = latestVersion.copy();
+        newLatest.setState(BusinessObjectState.DESIGN);
         newLatest.setProduct(this);
 
         versions.put(Version.LIVE, latestVersion);
