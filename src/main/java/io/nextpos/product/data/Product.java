@@ -3,7 +3,6 @@ package io.nextpos.product.data;
 import io.nextpos.client.data.Client;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.model.BaseObject;
-import io.nextpos.shared.model.BusinessObjectState;
 import io.nextpos.shared.model.ParentObject;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
@@ -11,6 +10,11 @@ import org.hibernate.annotations.GenericGenerator;
 import javax.persistence.*;
 import java.util.*;
 
+/**
+ * Information on mapping a a one-to-many relationship with a Map.
+ * https://stackoverflow.com/questions/25439813/difference-between-mapkey-mapkeycolumn-and-mapkeyjoincolumn-in-jpa-and-hiber
+ *
+ */
 @Entity(name = "client_product")
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -41,8 +45,8 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
     public Product(final Client client, final ProductVersion latestVersion) {
         this.client = client;
 
-        latestVersion.setState(BusinessObjectState.DESIGN);
-        latestVersion.setVersion(1);
+        latestVersion.setVersion(Version.DESIGN);
+        latestVersion.setVersionNumber(1);
         latestVersion.setProduct(this);
 
         versions.put(Version.DESIGN, latestVersion);
@@ -65,11 +69,13 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
 
     @Override
     public void deploy() {
+
+        getObjectByVersion(Version.LIVE).ifPresent(liveVersion -> liveVersion.setVersion(Version.RETIRED));
+
         final ProductVersion latestVersion = getDesignVersion();
-        latestVersion.setState(BusinessObjectState.DEPLOYED);
+        latestVersion.setVersion(Version.LIVE);
 
         final ProductVersion newLatest = latestVersion.copy();
-        newLatest.setState(BusinessObjectState.DESIGN);
         newLatest.setProduct(this);
 
         versions.put(Version.LIVE, latestVersion);

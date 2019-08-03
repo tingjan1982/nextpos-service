@@ -53,6 +53,7 @@ class ReportingServiceImplTest {
 
         assertThat(salesReport).isNotNull();
         assertThat(salesReport.getSalesTotal()).isGreaterThan(BigDecimal.ZERO);
+        assertThat(salesReport.getOrderCount()).isGreaterThan(0);
 
         orderService.deleteOrder(createdOrder);
     }

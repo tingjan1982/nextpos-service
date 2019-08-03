@@ -3,9 +3,9 @@ package io.nextpos.product.web;
 import io.nextpos.client.data.Client;
 import io.nextpos.product.data.ProductLabel;
 import io.nextpos.product.data.ProductVersion;
+import io.nextpos.product.data.Version;
 import io.nextpos.product.service.ProductSearchService;
 import io.nextpos.product.web.model.ProductSearchResponse;
-import io.nextpos.shared.model.BusinessObjectState;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -28,9 +28,9 @@ public class ProductSearchController {
 
     @GetMapping("/products/grouped")
     public ProductSearchResponse getProductsGroupedByLabels(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                            @RequestParam(value = "state", defaultValue = "DESIGN") BusinessObjectState state) {
+                                                            @RequestParam(value = "state", defaultValue = "DESIGN") Version version) {
 
-        final Map<ProductLabel, List<ProductVersion>> groupedProducts = productSearchService.getAllProductsGroupedByLabels(client, state);
+        final Map<ProductLabel, List<ProductVersion>> groupedProducts = productSearchService.getAllProductsGroupedByLabels(client, version);
 
         return toProductSearchResponse(groupedProducts);
     }

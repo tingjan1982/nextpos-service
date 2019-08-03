@@ -53,7 +53,7 @@ public class ReportingController {
                 .map(doc -> Pair.of(doc.get("name", String.class), doc.get("amount", Decimal128.class).bigDecimalValue()))
                 .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
 
-        return new SalesReportResponse(salesReport.getId(), salesReport.getFromDate(), salesReport.getToDate(), salesReport.getSalesTotal(), salesByProducts);
+        return new SalesReportResponse(salesReport.getId(), salesReport.getFromDate(), salesReport.getToDate(), salesReport.getOrderCount(), salesReport.getSalesTotal(), salesByProducts);
     }
 
     @GetMapping("/averageDeliveryTime")

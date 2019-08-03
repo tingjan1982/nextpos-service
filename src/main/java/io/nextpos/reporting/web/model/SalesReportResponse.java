@@ -19,6 +19,8 @@ public class SalesReportResponse {
 
     private LocalDateTime toDate;
 
+    private int orderCount;
+
     private BigDecimal salesTotal;
 
     /**

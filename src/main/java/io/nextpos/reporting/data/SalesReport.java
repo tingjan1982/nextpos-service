@@ -18,6 +18,8 @@ public class SalesReport {
 
     private LocalDateTime toDate;
 
+    private int orderCount;
+
     private BigDecimal salesTotal;
 
     private List<Document> salesByProducts;

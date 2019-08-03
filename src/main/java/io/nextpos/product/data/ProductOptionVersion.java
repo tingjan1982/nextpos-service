@@ -27,7 +27,10 @@ public class ProductOptionVersion extends BaseObject implements ObjectVersioning
     @EqualsAndHashCode.Exclude
     private ProductOption productOption;
 
-    private int version;
+    private int versionNumber;
+
+    @Enumerated(EnumType.STRING)
+    private Version version;
 
     private String optionName;
 
@@ -59,7 +62,8 @@ public class ProductOptionVersion extends BaseObject implements ObjectVersioning
     ProductOptionVersion copy() {
 
         final ProductOptionVersion productOptionCopy = new ProductOptionVersion(optionName, optionType);
-        productOptionCopy.setVersion(version + 1);
+        productOptionCopy.setVersion(Version.DESIGN);
+        productOptionCopy.setVersionNumber(versionNumber + 1);
 
         final List<ProductOptionValue> optionValuesCopy = optionValues.stream().map(po -> {
             final ProductOptionValue copy = po.copy();

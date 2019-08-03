@@ -2,10 +2,7 @@ package io.nextpos.product.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
-import io.nextpos.product.data.Product;
-import io.nextpos.product.data.ProductOption;
-import io.nextpos.product.data.ProductOptionRelation;
-import io.nextpos.product.data.ProductOptionVersion;
+import io.nextpos.product.data.*;
 import io.nextpos.shared.DummyObjects;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -27,6 +24,9 @@ class ProductOptionServiceImplTest {
 
     @Autowired
     private ProductOptionService productOptionService;
+
+    @Autowired
+    private ProductOptionVersionRepository productOptionVersionRepository;
 
     @Autowired
     private ProductService productService;
@@ -123,19 +123,25 @@ class ProductOptionServiceImplTest {
         assertThat(createdProductOption.getDesignVersion()).isNotNull();
         assertThat(createdProductOption.getLiveVersion()).isNull();
 
-        final ProductOption test = productOptionService.getProductOption(createdProductOption.getId());
+        productOptionService.getProductOption(createdProductOption.getId());
 
         final ProductOption updated = productOptionService.deployProductOption(createdProductOption.getId());
 
         assertThat(updated.getLiveVersion()).satisfies(po -> {
             assertThat(po).isNotNull();
             assertThat(po.getId()).contains("-1"); // check that the version is incremented.
+            assertThat(po.getVersion()).isEqualTo(Version.LIVE);
         });
 
         assertThat(updated.getDesignVersion()).satisfies(po -> {
             assertThat(po).isNotNull();
             assertThat(po.getId()).contains("-2"); // check that the version is incremented.
+            assertThat(po.getVersion()).isEqualTo(Version.DESIGN);
         });
+
+        productOptionService.deployProductOption(createdProductOption.getId());
+
+        assertThat(productOptionVersionRepository.findAll()).hasSize(2);
     }
 
     @Test

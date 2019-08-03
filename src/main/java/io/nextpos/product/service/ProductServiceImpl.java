@@ -2,6 +2,7 @@ package io.nextpos.product.service;
 
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductRepository;
+import io.nextpos.product.data.ProductVersionRepository;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,9 +16,12 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
 
+    private final ProductVersionRepository productVersionRepository;
+
     @Autowired
-    public ProductServiceImpl(final ProductRepository productRepository) {
+    public ProductServiceImpl(final ProductRepository productRepository, final ProductVersionRepository productVersionRepository) {
         this.productRepository = productRepository;
+        this.productVersionRepository = productVersionRepository;
     }
 
     @Override
@@ -39,6 +43,8 @@ public class ProductServiceImpl implements ProductService {
         final Product product = this.getProduct(id);
         product.deploy();
 
+        productVersionRepository.deleteRetiredProductVersions(product);
+        
         productRepository.save(product);
     }
 

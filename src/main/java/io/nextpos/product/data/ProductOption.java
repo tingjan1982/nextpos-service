@@ -42,7 +42,8 @@ public class ProductOption extends BaseObject implements ParentObject<String, Pr
     public ProductOption(final Client client, final ProductOptionVersion latestProductOption) {
         this.client = client;
 
-        latestProductOption.setVersion(1);
+        latestProductOption.setVersionNumber(1);
+        latestProductOption.setVersion(Version.DESIGN);
         latestProductOption.setProductOption(this);
 
         versions.put(Version.DESIGN, latestProductOption);
@@ -65,7 +66,16 @@ public class ProductOption extends BaseObject implements ParentObject<String, Pr
 
     public void deploy() {
 
+        getObjectByVersion(Version.LIVE).ifPresent(liveVersion -> {
+            liveVersion.setVersion(Version.RETIRED);
+
+            // fix the integrity constraint violation: foreign key no action issue
+            liveVersion.getOptionValues().forEach(pov -> pov.setProductOption(null));
+        });
+
         final ProductOptionVersion latestProductOption = this.getDesignVersion();
+        latestProductOption.setVersion(Version.LIVE);
+
         final ProductOptionVersion newLatest = latestProductOption.copy();
         newLatest.setProductOption(this);
 

@@ -5,8 +5,8 @@ import io.nextpos.client.service.ClientService;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
 import io.nextpos.product.data.ProductVersion;
+import io.nextpos.product.data.Version;
 import io.nextpos.shared.DummyObjects;
-import io.nextpos.shared.model.BusinessObjectState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +67,7 @@ class ProductSearchServiceImplTest {
     @Test
     void getAllProductsByTopLabels() {
 
-        final Map<ProductLabel, List<ProductVersion>> products = productSearchService.getAllProductsGroupedByLabels(client, BusinessObjectState.DESIGN);
+        final Map<ProductLabel, List<ProductVersion>> products = productSearchService.getAllProductsGroupedByLabels(client, Version.DESIGN);
 
         assertThat(products).hasSize(3);
     }

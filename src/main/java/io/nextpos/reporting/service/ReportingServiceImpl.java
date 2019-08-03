@@ -9,6 +9,7 @@ import io.nextpos.reporting.data.OrderStateParameter;
 import io.nextpos.reporting.data.ReportDateParameter;
 import io.nextpos.reporting.data.SalesReport;
 import org.apache.commons.lang3.Validate;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
@@ -61,14 +62,16 @@ public class ReportingServiceImpl implements ReportingService {
                 .first("orderLineItems.productSnapshot.name").as("productName");
 
         final ConvertOperators.ToDecimal totalToDecimal = createToDecimal("lineItemsSubTotal");
-        final GroupOperation ordersTotal = Aggregation.group("clientId").sum(totalToDecimal).as("salesTotal")
+        final GroupOperation ordersTotal = Aggregation.group("clientId")
+                .sum(totalToDecimal).as("salesTotal")
                 .push(new BasicDBObject().append("name", "$productName").append("amount", "$lineItemsSubTotal")).as("salesByProducts");
 
         final TypedAggregation<Order> salesAmountOfTheDay = Aggregation.newAggregation(Order.class,
                 projection,
                 flattenLineItems,
                 clientMatcher,
-                lineItemsSubTotal, ordersTotal);
+                lineItemsSubTotal,
+                ordersTotal);
 
         final AggregationResults<SalesReport> result = mongoTemplate.aggregate(salesAmountOfTheDay, SalesReport.class);
         final SalesReport salesReport = result.getUniqueMappedResult();
@@ -76,9 +79,29 @@ public class ReportingServiceImpl implements ReportingService {
         if (salesReport != null) {
             salesReport.setFromDate(reportDateParameter.getFromDate());
             salesReport.setToDate(reportDateParameter.getToDate());
+            final int orderCount = this.getOrderCount(client, reportDateParameter);
+            salesReport.setOrderCount(orderCount);
         }
 
         return salesReport;
+    }
+
+    private int getOrderCount(Client client, ReportDateParameter reportDateParameter) {
+
+        final ProjectionOperation projection = Aggregation.project("clientId", "modifiedDate");
+        final MatchOperation clientMatcher = Aggregation.match(
+                Criteria.where("clientId").is(client.getId())
+                        .and("modifiedDate").gte(reportDateParameter.getFromDate()).lte(reportDateParameter.getToDate()));
+        final GroupOperation orderCount = Aggregation.group("clientId").count().as("orderCount");
+
+        final AggregationResults<Document> orderCountResult = mongoTemplate.aggregate(
+                Aggregation.newAggregation(Order.class, projection, clientMatcher, orderCount), Document.class);
+
+        if (orderCountResult.getUniqueMappedResult() != null) {
+            return (int) orderCountResult.getUniqueMappedResult().get("orderCount");
+        }
+
+        return 0;
     }
 
     @Override

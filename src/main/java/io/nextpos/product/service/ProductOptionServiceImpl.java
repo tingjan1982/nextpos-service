@@ -15,11 +15,14 @@ public class ProductOptionServiceImpl implements ProductOptionService {
 
     private final ProductOptionRepository productOptionRepository;
 
+    private final ProductOptionVersionRepository productOptionVersionRepository;
+
     private final ProductOptionRelationRepository productOptionRelationRepository;
 
     @Autowired
-    public ProductOptionServiceImpl(final ProductOptionRepository productOptionRepository, final ProductOptionRelationRepository productOptionRelationRepository) {
+    public ProductOptionServiceImpl(final ProductOptionRepository productOptionRepository, final ProductOptionVersionRepository productOptionVersionRepository, final ProductOptionRelationRepository productOptionRelationRepository) {
         this.productOptionRepository = productOptionRepository;
+        this.productOptionVersionRepository = productOptionVersionRepository;
         this.productOptionRelationRepository = productOptionRelationRepository;
     }
 
@@ -40,6 +43,8 @@ public class ProductOptionServiceImpl implements ProductOptionService {
 
         final ProductOption productOption = getProductOption(id);
         productOption.deploy();
+
+        productOptionVersionRepository.deleteRetiredProductOptionVersions(productOption);
 
         return productOptionRepository.save(productOption);
     }

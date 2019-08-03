@@ -1,15 +1,11 @@
 package io.nextpos.product.data;
 
 import io.nextpos.shared.model.BaseObject;
-import io.nextpos.shared.model.BusinessObjectState;
 import io.nextpos.shared.model.ObjectVersioning;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 import java.math.BigDecimal;
 
 @Entity(name = "product_version")
@@ -28,9 +24,10 @@ public class ProductVersion extends BaseObject implements ObjectVersioning<Produ
     @EqualsAndHashCode.Exclude
     private Product product;
 
-    private int version;
+    private int versionNumber;
 
-    private BusinessObjectState state;
+    @Enumerated(EnumType.STRING)
+    private Version version;
 
     private String productName;
 
@@ -55,8 +52,8 @@ public class ProductVersion extends BaseObject implements ObjectVersioning<Produ
     public ProductVersion copy() {
 
         final ProductVersion copy = new ProductVersion(productName, sku, description, price);
-        copy.setVersion(version + 1);
-        copy.setState(BusinessObjectState.DESIGN);
+        copy.setVersionNumber(versionNumber + 1);
+        copy.setVersion(Version.DESIGN);
 
         return copy;
     }
