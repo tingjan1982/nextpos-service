@@ -1,6 +1,7 @@
 package io.nextpos.ordermanagement.data;
 
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import io.nextpos.shared.model.MongoBaseObject;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

@@ -5,15 +5,14 @@ import io.nextpos.client.service.ClientService;
 import io.nextpos.product.data.ProductLabel;
 import io.nextpos.shared.DummyObjects;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.transaction.Transactional;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest
 @Transactional
 class ProductLabelServiceImplTest {
@@ -47,6 +46,25 @@ class ProductLabelServiceImplTest {
                 .orElseThrow();
 
         assertThat(retrievedLabel).isNotNull();
+    }
 
+    @Test
+    void getProductLabels() {
+
+        final Client client = DummyObjects.dummyClient();
+        clientService.createClient(client);
+
+        final List<ProductLabel> emptyList = productLabelService.getProductLabels(client);
+
+        assertThat(emptyList).isNotNull();
+        assertThat(emptyList).hasSize(0);
+
+        productLabelService.createProductLabel(new ProductLabel("label1", client));
+        productLabelService.createProductLabel(new ProductLabel("label2", client));
+        productLabelService.createProductLabel(new ProductLabel("label3", client));
+
+        final List<ProductLabel> productLabels = productLabelService.getProductLabels(client);
+
+        assertThat(productLabels).hasSize(3);
     }
 }

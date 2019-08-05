@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -33,5 +34,10 @@ public class ProductLabelServiceImpl implements ProductLabelService {
     @Override
     public Optional<ProductLabel> getProductLabelByName(final String name, final Client client) {
         return productLabelRepository.findByNameAndClient(name, client);
+    }
+
+    @Override
+    public List<ProductLabel> getProductLabels(final Client client) {
+        return productLabelRepository.findAllByClientAndParentLabelIsNull(client);
     }
 }

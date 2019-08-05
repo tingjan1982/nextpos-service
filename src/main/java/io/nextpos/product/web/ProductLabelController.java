@@ -5,12 +5,15 @@ import io.nextpos.product.data.ProductLabel;
 import io.nextpos.product.service.ProductLabelService;
 import io.nextpos.product.web.model.ProductLabelRequest;
 import io.nextpos.product.web.model.ProductLabelResponse;
+import io.nextpos.product.web.model.ProductLabelsResponse;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static io.nextpos.shared.web.ClientResolver.REQ_ATTR_CLIENT;
 
@@ -41,6 +44,21 @@ public class ProductLabelController {
         });
 
         return toProductLabelResponse(productLabel);
+    }
+
+    @GetMapping
+    public ProductLabelsResponse getProductLabels(@RequestAttribute(REQ_ATTR_CLIENT) Client client) {
+
+        final List<ProductLabel> productLabels = productLabelService.getProductLabels(client);
+        return toProductLabelsResponse(productLabels);
+
+    }
+
+    private ProductLabelsResponse toProductLabelsResponse(final List<ProductLabel> productLabels) {
+        final List<String> labelNames = productLabels.stream()
+                .map(ProductLabel::getName).collect(Collectors.toList());
+
+        return new ProductLabelsResponse(labelNames);
     }
 
     private ProductLabel fromProductLabelRequest(final ProductLabelRequest productLabelRequest, final Client client) {
