@@ -6,7 +6,6 @@ import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.service.OrderTransactionService;
-import io.nextpos.ordertransaction.web.model.BillLineItemBean;
 import io.nextpos.ordertransaction.web.model.OrderTransactionRequest;
 import io.nextpos.ordertransaction.web.model.OrderTransactionResponse;
 import io.nextpos.shared.exception.ClientNotFoundException;
@@ -74,14 +73,14 @@ public class OrderTransactionController {
                 order.getClientId(),
                 order.getTotal().getAmountWithTax(),
                 settleAmount,
-                orderTransactionRequest.getPaymentMethod(),
-                orderTransactionRequest.getBillType(),
+                OrderTransaction.PaymentMethod.valueOf(orderTransactionRequest.getPaymentMethod()),
+                OrderTransaction.BillType.valueOf(orderTransactionRequest.getBillType()),
                 billLineItems);
     }
 
     private List<OrderTransaction.BillLineItem> populateBillLineItems(final Order order, final OrderTransactionRequest orderTransactionRequest) {
 
-        final OrderTransaction.BillType billType = orderTransactionRequest.getBillType();
+        final OrderTransaction.BillType billType = OrderTransaction.BillType.valueOf(orderTransactionRequest.getBillType());
 
         switch(billType) {
             case SINGLE:
@@ -113,8 +112,8 @@ public class OrderTransactionController {
 
     private OrderTransactionResponse toOrderTransactionResponse(final Client client, final OrderTransaction orderTransaction) {
 
-        final List<BillLineItemBean> billLineItems = orderTransaction.getBillDetails().getBillLineItems().stream()
-                .map(li -> new BillLineItemBean(li.getName(), li.getQuantity(), li.getSubTotal()))
+        final List<OrderTransactionResponse.BillLineItemResponse> billLineItems = orderTransaction.getBillDetails().getBillLineItems().stream()
+                .map(li -> new OrderTransactionResponse.BillLineItemResponse(li.getName(), li.getQuantity(), li.getSubTotal()))
                 .collect(Collectors.toList());
 
         return new OrderTransactionResponse(orderTransaction.getId(),

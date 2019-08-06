@@ -70,6 +70,8 @@ public class ExceptionResolver {
 
     /**
      * https://www.baeldung.com/spring-boot-bean-validation
+     *
+     * Object level error is detected and set on the details section of error response.
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -84,9 +86,14 @@ public class ExceptionResolver {
                         HashMap::putAll
                 );
 
+        StringBuilder details = new StringBuilder();
+        bindingResult.getAllErrors().stream()
+                .filter(error -> !(error instanceof FieldError))
+                .findFirst().ifPresent(error -> details.append(error.getDefaultMessage()));
+
         final String errorMessage = "Validation failed for object='" + bindingResult.getObjectName() + "'. Error count: " + bindingResult.getErrorCount();
 
-        return new ErrorResponse(errorMessage, fieldErrors, null, Instant.now());
+        return new ErrorResponse(errorMessage, fieldErrors, details.toString(), Instant.now());
     }
 
 

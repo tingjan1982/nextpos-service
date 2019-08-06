@@ -27,5 +27,17 @@ public class OrderTransactionResponse {
 
     private OrderTransaction.BillType billType;
 
-    private List<BillLineItemBean> billLineItems;
+    private List<BillLineItemResponse> billLineItems;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BillLineItemResponse {
+
+        private String name;
+
+        private int quantity;
+
+        private BigDecimal subTotal;
+    }
 }
