@@ -55,8 +55,8 @@ public class ProductLabelController {
     }
 
     private ProductLabelsResponse toProductLabelsResponse(final List<ProductLabel> productLabels) {
-        final List<String> labelNames = productLabels.stream()
-                .map(ProductLabel::getName).collect(Collectors.toList());
+        final List<ProductLabelResponse> labelNames = productLabels.stream()
+                .map(label -> new ProductLabelResponse(label.getId(), label.getName())).collect(Collectors.toList());
 
         return new ProductLabelsResponse(labelNames);
     }
