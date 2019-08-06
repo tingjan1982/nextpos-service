@@ -2,6 +2,7 @@ package io.nextpos.ordertransaction.service;
 
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.data.OrderTransactionRepository;
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +27,14 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         orderTransaction.getInvoiceDetails().setInvoiceNumber(invoiceNumber);
 
         return orderTransactionRepository.save(orderTransaction);
+    }
+
+    @Override
+    public OrderTransaction getOrderTransaction(final String id) {
+
+        return orderTransactionRepository.findById(id).orElseThrow(() -> {
+            throw new ObjectNotFoundException(id, OrderTransaction.class);
+        });
     }
 
     private String getInvoiceNumberExternally() {

@@ -1,14 +1,12 @@
 package io.nextpos.ordertransaction.data;
 
 import io.nextpos.shared.model.MongoBaseObject;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +21,8 @@ public class OrderTransaction extends MongoBaseObject {
 
     private String orderId;
 
+    private String clientId;
+
     private BigDecimal orderTotal;
 
     private BigDecimal settleAmount;
@@ -34,23 +34,27 @@ public class OrderTransaction extends MongoBaseObject {
     private BillDetails billDetails;
 
     public OrderTransaction(final String orderId,
+                            final String clientId,
                             final BigDecimal orderTotal,
                             final BigDecimal settleAmount,
                             final PaymentMethod paymentMethod,
-                            final BillType billType) {
+                            final BillType billType,
+                            final List<BillLineItem> billLineItems) {
         this.orderId = orderId;
+        this.clientId = clientId;
         this.orderTotal = orderTotal;
         this.settleAmount = settleAmount;
         this.paymentMethodDetails = new PaymentMethodDetails(paymentMethod);
         this.invoiceDetails = new InvoiceDetails();
         this.billDetails = new BillDetails(billType);
+        this.billDetails.getBillLineItems().addAll(billLineItems);
     }
-
 
     @Override
     public boolean isNew() {
         return id == null;
     }
+
 
     @Data
     public static class PaymentMethodDetails {
@@ -84,10 +88,7 @@ public class OrderTransaction extends MongoBaseObject {
 
         private BillType billType;
 
-        /**
-         * This is only applicable for CUSTOM BillType.
-         */
-        private List<BillLineItem> billLineItems;
+        private List<BillLineItem> billLineItems = new ArrayList<>();
 
         BillDetails(final BillType billType) {
             this.billType = billType;
@@ -95,6 +96,7 @@ public class OrderTransaction extends MongoBaseObject {
     }
 
     @Data
+    @AllArgsConstructor
     public static class BillLineItem {
 
         private String name;

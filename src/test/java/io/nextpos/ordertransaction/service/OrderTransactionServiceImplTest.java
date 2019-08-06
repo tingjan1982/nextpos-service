@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
@@ -21,9 +22,10 @@ class OrderTransactionServiceImplTest {
     @Test
     void createOrderTransaction() {
 
-        final OrderTransaction orderTransaction = new OrderTransaction(new ObjectId().toString(), BigDecimal.valueOf(150), BigDecimal.valueOf(150),
+        final OrderTransaction orderTransaction = new OrderTransaction(new ObjectId().toString(), "dummy-client-id", BigDecimal.valueOf(150), BigDecimal.valueOf(150),
                 OrderTransaction.PaymentMethod.CARD,
-                OrderTransaction.BillType.SINGLE);
+                OrderTransaction.BillType.SINGLE,
+                List.of());
 
         orderTransactionService.createOrderTransaction(orderTransaction);
 

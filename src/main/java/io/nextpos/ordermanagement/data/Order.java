@@ -85,11 +85,7 @@ public class Order extends MongoBaseObject {
      */
     public void updateOrderLineItem(String lineItemId, int quantity) {
 
-        final OrderLineItem orderLineItem = orderLineItems.stream()
-                .filter(li -> StringUtils.equals(li.getId(), lineItemId))
-                .findFirst().orElseThrow(() -> {
-                    throw new ObjectNotFoundException(lineItemId, OrderLineItem.class);
-                });
+        final OrderLineItem orderLineItem = this.getOrderLineItem(lineItemId);
 
         if (quantity == 0) {
             orderLineItems.remove(orderLineItem);
@@ -98,6 +94,14 @@ public class Order extends MongoBaseObject {
         }
 
         computeTotal();
+    }
+
+    public OrderLineItem getOrderLineItem(String lineItemId) {
+        return orderLineItems.stream()
+                .filter(li -> StringUtils.equals(li.getId(), lineItemId))
+                .findFirst().orElseThrow(() -> {
+                    throw new ObjectNotFoundException(lineItemId, OrderLineItem.class);
+                });
     }
 
     private void computeTotal() {

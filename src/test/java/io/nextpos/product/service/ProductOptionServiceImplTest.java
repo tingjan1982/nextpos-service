@@ -5,7 +5,6 @@ import io.nextpos.client.service.ClientService;
 import io.nextpos.product.data.*;
 import io.nextpos.shared.DummyObjects;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -17,7 +16,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest
 @Transactional
 class ProductOptionServiceImplTest {

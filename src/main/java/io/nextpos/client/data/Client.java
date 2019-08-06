@@ -74,7 +74,22 @@ public class Client extends BaseObject {
         return this;
     }
 
+    public String getAttribute(String key) {
+        return attributes.get(key);
+    }
+
     public enum Status {
         ACTIVE, INACTIVE, DELETED
+    }
+
+    /**
+     * This enum identifies some common client attributes that have business meaning and are used in the frontend app.
+     */
+    public enum ClientAttributes {
+
+        /**
+         * Unified Business Number, which is a Taiwan specific attribute.
+         */
+        UBN
     }
 }

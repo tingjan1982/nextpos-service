@@ -27,7 +27,7 @@ class ClientServiceImplTest {
     void createAndGetClient() {
 
         final Client client = DummyObjects.dummyClient();
-        client.getAttributes().put("UBN", "22640971");
+        client.getAttributes().put(Client.ClientAttributes.UBN.name(), "22640971");
 
         final Client createdClient = clientService.createClient(client);
 
