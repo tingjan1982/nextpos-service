@@ -51,22 +51,22 @@ class ProductSearchServiceImplTest {
 
         final Product coffee = new Product(client, DummyObjects.dummyProductVersion("black coffee"));
         coffee.setProductLabel(drinkLabel);
-        productService.createProduct(coffee);
+        productService.saveProduct(coffee);
 
         final Product appleJuice = new Product(client, DummyObjects.dummyProductVersion("apple juice"));
         appleJuice.setProductLabel(drinkLabel);
-        productService.createProduct(appleJuice);
+        productService.saveProduct(appleJuice);
 
         final Product foodProduct = new Product(client, DummyObjects.dummyProductVersion());
         foodProduct.setProductLabel(foodLabel);
-        productService.createProduct(foodProduct);
+        productService.saveProduct(foodProduct);
 
         final Product pasta = new Product(client, DummyObjects.dummyProductVersion("carbonara"));
         pasta.setProductLabel(pastaLabel);
-        productService.createProduct(pasta);
+        productService.saveProduct(pasta);
 
         final Product productWithoutLabel = new Product(client, DummyObjects.dummyProductVersion("productWithoutLabel"));
-        productService.createProduct(productWithoutLabel);
+        productService.saveProduct(productWithoutLabel);
     }
 
     @Test

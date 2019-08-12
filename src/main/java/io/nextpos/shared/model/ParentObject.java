@@ -15,7 +15,7 @@ import java.util.Optional;
  * @param <ID>
  * @param <T>
  */
-public interface ParentObject<ID extends Serializable, T extends ObjectVersioning> {
+public interface ParentObject<ID extends Serializable, T extends ObjectVersioning> extends ClientObject {
 
     ID getId();
 

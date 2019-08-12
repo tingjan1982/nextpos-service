@@ -4,7 +4,7 @@ import io.nextpos.product.data.Product;
 
 public interface ProductService {
 
-    Product createProduct(Product product);
+    Product saveProduct(Product product);
 
     Product getProduct(String id);
 

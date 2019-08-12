@@ -154,7 +154,7 @@ class ProductOptionServiceImplTest {
 
         final Product product = new Product(client, DummyObjects.dummyProductVersion());
 
-        productService.createProduct(product);
+        productService.saveProduct(product);
 
         final List<ProductOptionRelation> productOptionRelations = productOptionService.addProductOptionToProduct(productOption, Collections.singletonList(product));
         final ProductOptionRelation productOptionRelation = productOptionRelations.get(0);

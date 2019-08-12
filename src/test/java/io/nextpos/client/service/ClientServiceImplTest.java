@@ -4,7 +4,6 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.shared.DummyObjects;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,7 +14,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest
 @Transactional
 class ClientServiceImplTest {
@@ -55,5 +53,16 @@ class ClientServiceImplTest {
 
         final UserDetails userDetails = clientService.loadUserByUsername(username);
         assertThat(userDetails).isNotNull();
+    }
+
+    @Test
+    void compareClient() {
+
+        final Client dummyClient = DummyObjects.dummyClient();
+        clientService.createClient(dummyClient);
+
+        final Client retrievedDummyClient = clientService.getClient(dummyClient.getId()).orElseThrow();
+
+        assertThat(dummyClient).isEqualTo(retrievedDummyClient);
     }
 }

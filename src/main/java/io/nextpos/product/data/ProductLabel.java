@@ -2,6 +2,7 @@ package io.nextpos.product.data;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
+import io.nextpos.shared.model.ClientObject;
 import lombok.*;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -16,7 +17,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class ProductLabel extends BaseObject {
+public class ProductLabel extends BaseObject implements ClientObject {
 
     @Id
     @GeneratedValue(generator = "uuid")
