@@ -41,7 +41,7 @@ public class ProductSearchController {
 
         groupedProducts.forEach((key, value) -> {
             final List<ProductSearchResponse.ProductSearchResult> products = value.stream()
-                    .map(product -> new ProductSearchResponse.ProductSearchResult(product.getProductName(), product.getPrice()))
+                    .map(product -> new ProductSearchResponse.ProductSearchResult(product.getProduct().getId(), product.getProductName(), product.getPrice()))
                     .collect(Collectors.toList());
             results.put(key.getName(), products);
         });

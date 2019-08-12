@@ -43,9 +43,11 @@ class ProductSearchServiceImplTest {
         final ProductLabel drinkLabel = new ProductLabel("drink", client);
         final ProductLabel foodLabel = new ProductLabel("food", client);
         final ProductLabel pastaLabel = foodLabel.addChildProductLabel("pasta");
+        final ProductLabel labelWithoutProduct = new ProductLabel("not used", client);
 
         productLabelService.createProductLabel(drinkLabel);
         productLabelService.createProductLabel(foodLabel);
+        productLabelService.createProductLabel(labelWithoutProduct);
 
         final Product coffee = new Product(client, DummyObjects.dummyProductVersion("black coffee"));
         coffee.setProductLabel(drinkLabel);
@@ -62,13 +64,16 @@ class ProductSearchServiceImplTest {
         final Product pasta = new Product(client, DummyObjects.dummyProductVersion("carbonara"));
         pasta.setProductLabel(pastaLabel);
         productService.createProduct(pasta);
+
+        final Product productWithoutLabel = new Product(client, DummyObjects.dummyProductVersion("productWithoutLabel"));
+        productService.createProduct(productWithoutLabel);
     }
 
     @Test
-    void getAllProductsByTopLabels() {
+    void getAllProductsGroupedByLabels() {
 
         final Map<ProductLabel, List<ProductVersion>> products = productSearchService.getAllProductsGroupedByLabels(client, Version.DESIGN);
 
-        assertThat(products).hasSize(3);
+        assertThat(products).hasSize(5);
     }
 }

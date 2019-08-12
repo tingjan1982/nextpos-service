@@ -29,6 +29,8 @@ public class OrderTransactionResponse {
 
     private List<BillLineItemResponse> billLineItems;
 
+    private String orderDetailsPrintInstruction;
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

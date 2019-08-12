@@ -20,6 +20,8 @@ public class ProductSearchResponse {
     @AllArgsConstructor
     public static class ProductSearchResult {
 
+        private String id;
+
         private String name;
 
         private BigDecimal price;

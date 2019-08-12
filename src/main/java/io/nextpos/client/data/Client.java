@@ -90,6 +90,11 @@ public class Client extends BaseObject {
         /**
          * Unified Business Number, which is a Taiwan specific attribute.
          */
-        UBN
+        UBN,
+
+        /**
+         * Business address that displays on the receipt
+         */
+        ADDRESS
     }
 }

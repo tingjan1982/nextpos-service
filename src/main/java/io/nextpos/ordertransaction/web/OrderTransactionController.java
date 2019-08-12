@@ -40,8 +40,9 @@ public class OrderTransactionController {
 
         OrderTransaction orderTransaction = fromOrderTransactionRequest(client, orderTransactionRequest);
         final OrderTransaction createdOrderTransaction = orderTransactionService.createOrderTransaction(orderTransaction);
+        final String orderDetailsPrintInstruction = orderTransactionService.createOrderDetailsPrintInstruction(client, orderTransaction);
 
-        return toOrderTransactionResponse(client, createdOrderTransaction);
+        return toOrderTransactionResponse(client, createdOrderTransaction, orderDetailsPrintInstruction);
     }
 
     @GetMapping("/{id}")
@@ -49,7 +50,7 @@ public class OrderTransactionController {
 
         final OrderTransaction orderTransaction = orderTransactionService.getOrderTransaction(id);
 
-        return toOrderTransactionResponse(client, orderTransaction);
+        return toOrderTransactionResponse(client, orderTransaction, null);
     }
 
     private OrderTransaction fromOrderTransactionRequest(final Client client, final OrderTransactionRequest orderTransactionRequest) {
@@ -110,7 +111,7 @@ public class OrderTransactionController {
         }
     }
 
-    private OrderTransactionResponse toOrderTransactionResponse(final Client client, final OrderTransaction orderTransaction) {
+    private OrderTransactionResponse toOrderTransactionResponse(final Client client, final OrderTransaction orderTransaction, final String orderDetailsPrintInstruction) {
 
         final List<OrderTransactionResponse.BillLineItemResponse> billLineItems = orderTransaction.getBillDetails().getBillLineItems().stream()
                 .map(li -> new OrderTransactionResponse.BillLineItemResponse(li.getName(), li.getQuantity(), li.getSubTotal()))
@@ -123,6 +124,7 @@ public class OrderTransactionController {
                 orderTransaction.getOrderTotal(),
                 orderTransaction.getSettleAmount(),
                 orderTransaction.getBillDetails().getBillType(),
-                billLineItems);
+                billLineItems,
+                orderDetailsPrintInstruction);
     }
 }
