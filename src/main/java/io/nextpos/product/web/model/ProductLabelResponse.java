@@ -15,12 +15,15 @@ public class ProductLabelResponse {
 
     private String id;
 
+    private String value;
+
     private String label;
 
     private List<ProductLabelResponse> subLabels = new ArrayList<>();
 
     public ProductLabelResponse(final String id, final String label) {
         this.id = id;
+        this.value = id;
         this.label = label;
     }
 

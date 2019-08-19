@@ -14,7 +14,7 @@ script:
 
 
 after_script:
-  - docker build -t joelin/nextpos-service:latest --build-arg JAR_FILE=build/libs/nextpos-service-0.0.1-SNAPSHOT.jar .
+  - docker build -t joelin/nextpos-service:latest --build-arg JAR_FILE=build/libs/nextpos-service-0.0.1-SNAPSHOT.jar --build-arg SERVICE_ACCOUNT_JSON=helpful-range-236813-681ca732dc15.json .
   - echo $DOCKER_PASSWORD | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker push joelin/nextpos-service:latest
   - docker run --rm -v $TRAVIS_BUILD_DIR:/source google/cloud-sdk:249.0.0-alpine /bin/sh -c "cd /source ; sh deploy_gcp.sh"
