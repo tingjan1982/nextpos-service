@@ -20,7 +20,7 @@ public class SalesReport {
 
     private int orderCount;
 
-    private BigDecimal salesTotal;
+    private BigDecimal salesTotal = BigDecimal.ZERO;
 
-    private List<Document> salesByProducts;
+    private List<Document> salesByProducts = List.of();
 }

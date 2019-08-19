@@ -74,14 +74,17 @@ public class ReportingServiceImpl implements ReportingService {
                 ordersTotal);
 
         final AggregationResults<SalesReport> result = mongoTemplate.aggregate(salesAmountOfTheDay, SalesReport.class);
-        final SalesReport salesReport = result.getUniqueMappedResult();
+        SalesReport salesReport = result.getUniqueMappedResult();
 
         if (salesReport != null) {
-            salesReport.setFromDate(reportDateParameter.getFromDate());
-            salesReport.setToDate(reportDateParameter.getToDate());
             final int orderCount = this.getOrderCount(client, reportDateParameter);
             salesReport.setOrderCount(orderCount);
+        } else {
+            salesReport = new SalesReport();
         }
+
+        salesReport.setFromDate(reportDateParameter.getFromDate());
+        salesReport.setToDate(reportDateParameter.getToDate());
 
         return salesReport;
     }
@@ -135,12 +138,15 @@ public class ReportingServiceImpl implements ReportingService {
                 computeTimeDifference,
                 averageWaitTime), OrderStateAverageTimeReport.class);
 
-        final OrderStateAverageTimeReport report = result.getUniqueMappedResult();
+        OrderStateAverageTimeReport report = result.getUniqueMappedResult();
 
-        if (report != null) {
-            report.setFromState(orderStateParameter.getFromState());
-            report.setToState(orderStateParameter.getToState());
+        if (report == null) {
+            report = new OrderStateAverageTimeReport();
+            report.setAverageWaitTime(-1);
         }
+
+        report.setFromState(orderStateParameter.getFromState());
+        report.setToState(orderStateParameter.getToState());
 
         return report;
     }

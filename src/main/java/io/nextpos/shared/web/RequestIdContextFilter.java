@@ -1,5 +1,7 @@
 package io.nextpos.shared.web;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -17,6 +19,7 @@ import java.util.UUID;
 @Component
 public class RequestIdContextFilter extends OncePerRequestFilter {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(RequestIdContextFilter.class);
 
     private static final String MDC_REQUEST_ID = "request.id";
 
@@ -31,7 +34,11 @@ public class RequestIdContextFilter extends OncePerRequestFilter {
             MDC.put(MDC_REQUEST_ID, requestId);
             response.setHeader(REQUEST_ID_HEADER, requestId);
             filterChain.doFilter(request, response);
-        } finally {
+        } catch (Exception e) {
+            LOGGER.error("Caught unexpected exception on request [{}]: {}", requestId, e.getMessage(), e);
+            throw e;
+        }
+        finally {
             MDC.remove(MDC_REQUEST_ID);
         }
     }
