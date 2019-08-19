@@ -5,7 +5,6 @@ import io.nextpos.product.data.*;
 import io.nextpos.product.service.ProductOptionService;
 import io.nextpos.product.service.ProductService;
 import io.nextpos.product.web.model.*;
-import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -94,9 +93,7 @@ public class ProductOptionController {
 
     private ProductOptionResponse toProductOptionResponse(final ProductOption productOption, final Version version) {
 
-        ProductOptionVersion productOptionVersion = productOption.getObjectByVersion(version).orElseThrow(() -> {
-            throw new ObjectNotFoundException(productOption.getId() + "-" + version, ProductOptionVersion.class);
-        });
+        ProductOptionVersion productOptionVersion = productOption.getObjectByVersionThrows(version);
 
         final List<ProductOptionValueModel> optionValues = productOptionVersion.getOptionValues().stream()
                 .map(v -> new ProductOptionValueModel(v.getOptionValue(), v.getOptionPrice()))

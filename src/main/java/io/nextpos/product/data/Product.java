@@ -1,10 +1,11 @@
 package io.nextpos.product.data;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.ParentObject;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -39,6 +40,7 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
     private Map<Version, ProductVersion> versions = new HashMap<>();
 
     @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Fetch(value = FetchMode.SUBSELECT)
     private List<ProductOptionRelation.ProductOptionOfProduct> productOptionOfProducts = new ArrayList<>();
 
 
@@ -53,13 +55,11 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
     }
 
     public ProductVersion getDesignVersion() {
-        return versions.get(Version.DESIGN);
+        return getObjectByVersionThrows(Version.DESIGN);
     }
 
     public ProductVersion getLiveVersion() {
-        return getObjectByVersion(Version.LIVE).orElseThrow(() -> {
-            throw new ObjectNotFoundException(Version.LIVE.name(), ProductVersion.class);
-        });
+        return getObjectByVersionThrows(Version.LIVE);
     }
 
     @Override

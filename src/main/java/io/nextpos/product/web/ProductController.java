@@ -5,6 +5,8 @@ import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.product.data.*;
 import io.nextpos.product.service.ProductLabelService;
 import io.nextpos.product.service.ProductService;
+import io.nextpos.product.web.model.ProductOptionResponse;
+import io.nextpos.product.web.model.ProductOptionValueModel;
 import io.nextpos.product.web.model.ProductRequest;
 import io.nextpos.product.web.model.ProductResponse;
 import io.nextpos.shared.exception.ObjectNotFoundException;
@@ -13,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/products")
@@ -105,11 +109,13 @@ public class ProductController {
 
     private ProductResponse toResponse(Product product, final Version version) {
 
-        ProductVersion productVersion = product.getObjectByVersion(version).orElseThrow(() -> {
-            throw new ObjectNotFoundException(product.getId() + "-" +  version, ProductOptionVersion.class);
-        });
+        ProductVersion productVersion = product.getObjectByVersionThrows(version);
 
         final ProductLabel productLabel = product.getProductLabel();
+
+        final List<ProductOptionResponse> productOptions = product.getProductOptionOfProducts().stream()
+                .map(po -> toProductOptionResponse(version, po))
+                .collect(Collectors.toList());
 
         return new ProductResponse(product.getId(),
                 productVersion.getId(),
@@ -118,6 +124,22 @@ public class ProductController {
                 productVersion.getSku(),
                 productVersion.getDescription(),
                 productVersion.getPrice(),
-                productLabel != null ? productLabel.getName() : null);
+                productLabel != null ? productLabel.getName() : null,
+                productOptions);
+    }
+
+    private ProductOptionResponse toProductOptionResponse(final Version version, final ProductOptionRelation.ProductOptionOfProduct po) {
+
+        final ProductOptionVersion productOptionVersion = po.getProductOption().getObjectByVersionThrows(version);
+        final List<ProductOptionValueModel> optionValues = productOptionVersion.getOptionValues().stream()
+                .map(pov -> new ProductOptionValueModel(pov.getOptionValue(), pov.getOptionPrice()))
+                .collect(Collectors.toList());
+
+        return new ProductOptionResponse(po.getProductOption().getId(),
+                productOptionVersion.getId(),
+                productOptionVersion.getOptionName(),
+                version,
+                productOptionVersion.getOptionType(),
+                optionValues);
     }
 }

@@ -1,8 +1,10 @@
 package io.nextpos.shared.model;
 
 import io.nextpos.product.data.Version;
+import io.nextpos.shared.exception.ObjectNotFoundException;
 
 import java.io.Serializable;
+import java.lang.reflect.ParameterizedType;
 import java.util.Optional;
 
 /**
@@ -24,6 +26,22 @@ public interface ParentObject<ID extends Serializable, T extends ObjectVersionin
     T getLiveVersion();
 
     Optional<T> getObjectByVersion(Version version);
+
+    default T getObjectByVersionThrows(Version version) {
+        return this.getObjectByVersion(version).orElseThrow(() -> {
+            throw new ObjectNotFoundException(getId() + "-" + version, getObjectVersioningClassType());
+        });
+    }
+
+    /**
+     * How to resolve generic class type at runtime:
+     * 
+     * https://www.javacodegeeks.com/2013/12/advanced-java-generics-retreiving-generic-type-arguments.html
+     */
+    default Class<T> getObjectVersioningClassType() {
+        ParameterizedType parameterizedType = (ParameterizedType) this.getClass().getGenericInterfaces()[0];
+        return (Class<T>) parameterizedType.getActualTypeArguments()[1];
+    }
 
     void deploy();
 }

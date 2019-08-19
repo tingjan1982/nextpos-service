@@ -51,6 +51,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 //    testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo'
 }
 
@@ -58,6 +59,13 @@ dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
     }
+}
+
+/**
+ * https://docs.gradle.org/current/userguide/java_testing.html#test_filtering
+ */
+test {
+    useJUnitPlatform()
 }
 
 /**

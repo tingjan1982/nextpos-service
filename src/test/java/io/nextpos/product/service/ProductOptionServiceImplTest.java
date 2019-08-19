@@ -4,6 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.product.data.*;
 import io.nextpos.shared.DummyObjects;
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 @SpringBootTest
@@ -119,7 +121,7 @@ class ProductOptionServiceImplTest {
         final ProductOption createdProductOption = productOptionService.createProductOption(productOption);
 
         assertThat(createdProductOption.getDesignVersion()).isNotNull();
-        assertThat(createdProductOption.getLiveVersion()).isNull();
+        assertThrows(ObjectNotFoundException.class, createdProductOption::getLiveVersion);
 
         productOptionService.getProductOption(createdProductOption.getId());
 

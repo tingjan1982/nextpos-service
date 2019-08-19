@@ -51,12 +51,12 @@ public class ProductOption extends BaseObject implements ParentObject<String, Pr
 
     @Override
     public ProductOptionVersion getDesignVersion() {
-        return versions.get(Version.DESIGN);
+        return getObjectByVersionThrows(Version.DESIGN);
     }
 
     @Override
     public ProductOptionVersion getLiveVersion() {
-        return versions.get(Version.LIVE);
+        return getObjectByVersionThrows(Version.LIVE);
     }
 
     @Override

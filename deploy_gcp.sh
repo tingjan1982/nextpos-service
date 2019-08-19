@@ -13,6 +13,7 @@ gcloud config set compute/zone asia-east1-b
 
 gcloud container clusters get-credentials nextpos-cluster --zone asia-east1-b --project helpful-range-236813
 kubectl set image deployment nextpos-web nextpos-web=docker.io/joelin/nextpos-service:latest
+kubectl set env deployment/nextpos-web PROFILE=gcp
 kubectl scale deployment nextpos-web --replicas=0
 kubectl scale deployment nextpos-web --replicas=1
 kubectl get services nextpos-web 
