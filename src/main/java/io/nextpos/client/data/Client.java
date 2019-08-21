@@ -38,7 +38,7 @@ public class Client extends BaseObject {
 
     private String countryCode;
 
-    private Status status = Status.ACTIVE;
+    private Status status = Status.PENDING_ACTIVE;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @MapKeyColumn(name = "attribute_key")
@@ -79,7 +79,25 @@ public class Client extends BaseObject {
     }
 
     public enum Status {
-        ACTIVE, INACTIVE, DELETED
+        /**
+         * New signed up client that hasn't been activated via email.
+         */
+        PENDING_ACTIVE,
+        
+        /**
+         * Indicate client is active and eligible to full service capability.
+         */
+        ACTIVE,
+
+        /**
+         * Indicate client is denied access to service. It could be due to non-payment.
+         */
+        INACTIVE,
+
+        /**
+         * Marking client as deleted for client who wish to terminate service contract, but no actual records are deleted.
+         */
+        DELETED
     }
 
     /**

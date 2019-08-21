@@ -1,6 +1,7 @@
 package io.nextpos.shared.config;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.notification.data.NotificationDetails;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.product.data.Product;
@@ -30,7 +31,7 @@ import java.util.List;
  */
 @Configuration
 @EnableJpaRepositories(basePackageClasses = {Client.class, Product.class, CountrySettings.class})
-@EnableMongoRepositories(basePackageClasses = {Order.class, OrderTransaction.class})
+@EnableMongoRepositories(basePackageClasses = {Order.class, OrderTransaction.class, NotificationDetails.class})
 @EnableMongoAuditing
 public class DataSourceConfig {
 

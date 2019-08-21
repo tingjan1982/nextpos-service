@@ -91,8 +91,13 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
     }
 
     @Override
+    public Client saveClient(final Client client) {
+        return clientRepository.save(client);
+    }
+
+    @Override
     public Optional<Client> getClient(final String clientId) {
-        return clientRepository.findByIdAndStatus(clientId, Client.Status.ACTIVE);
+        return clientRepository.findByIdAndStatusIn(clientId, Client.Status.ACTIVE, Client.Status.PENDING_ACTIVE);
     }
 
     @Override

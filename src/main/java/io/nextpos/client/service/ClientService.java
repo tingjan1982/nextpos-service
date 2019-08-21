@@ -9,6 +9,8 @@ public interface ClientService {
 
     Client createClient(Client client);
 
+    Client saveClient(Client client);
+
     Optional<Client> getClient(final String clientId);
 
     Optional<Client> getClientByUsername(final String username);

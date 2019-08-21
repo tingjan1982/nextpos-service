@@ -8,5 +8,5 @@ public interface ClientRepository extends JpaRepository<Client, String> {
 
     Optional<Client> findByUsername(String username);
 
-    Optional<Client> findByIdAndStatus(String id, Client.Status status);
+    Optional<Client> findByIdAndStatusIn(String id, Client.Status... status);
 }

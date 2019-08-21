@@ -2,6 +2,7 @@ package io.nextpos.client.web;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
+import io.nextpos.client.service.ClientActivationService;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.client.web.model.ClientRequest;
 import io.nextpos.client.web.model.ClientResponse;
@@ -25,10 +26,12 @@ public class ClientController {
 
     private final ClientService clientService;
 
+    private final ClientActivationService clientActivationService;
 
     @Autowired
-    public ClientController(final ClientService clientService) {
+    public ClientController(final ClientService clientService, final ClientActivationService clientActivationService) {
         this.clientService = clientService;
+        this.clientActivationService = clientActivationService;
     }
 
     @PostMapping
@@ -36,6 +39,8 @@ public class ClientController {
 
         final Client client = fromClientRequest(clientRequest);
         final Client createdClient = clientService.createClient(client);
+
+        clientActivationService.sendActivationNotification(createdClient);
 
         return toClientResponse(createdClient);
 

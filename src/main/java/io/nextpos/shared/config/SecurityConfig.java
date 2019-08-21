@@ -51,16 +51,12 @@ import java.util.Map;
 @EnableWebSecurity(debug = false)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-
 //    @Override
 //    protected void configure(HttpSecurity http) throws Exception {
 //
 //        http.csrf().disable()
 //                .authorizeRequests()
-//                .antMatchers("/actuator/**").permitAll()
-//                .anyRequest().authenticated()
-//                .and()
-//                .httpBasic();
+//                .antMatchers("/**").permitAll();
 //    }
 
     @Override
@@ -120,7 +116,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
 
-    class CustomAccessTokenConverter extends DefaultAccessTokenConverter {
+    static class CustomAccessTokenConverter extends DefaultAccessTokenConverter {
 
         @Override
         public OAuth2Authentication extractAuthentication(Map<String, ?> claims) {
@@ -277,7 +273,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .cors().and()
                     .addFilterBefore(requestIdContextFilter, WebAsyncManagerIntegrationFilter.class)
                     .authorizeRequests()
-                    .antMatchers("/actuator/**", "/clients/default").permitAll()
+                    .antMatchers("/actuator/**", "/clients/default", "/activateaccount", "/error", "/favicon.ico").permitAll()
                     .antMatchers(HttpMethod.DELETE, "/clients/**").access("hasAuthority('MASTER')")
                     .antMatchers(HttpMethod.POST, "/clients").permitAll()
                     .antMatchers(HttpMethod.POST, "/clients/me/users").access("hasAuthority('ADMIN') and #oauth2.hasScopeMatching('client:write')")
