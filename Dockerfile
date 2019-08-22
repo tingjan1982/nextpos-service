@@ -12,5 +12,6 @@ COPY ${SERVICE_ACCOUNT_JSON} /service_account.json
 ENV PROFILE default
 ENV GOOGLE_APPLICATION_CREDENTIALS /service_account.json
 ENV MAIL_PASSWORD password
+ENV SMS_AUTH_TOKEN password
 
-ENTRYPOINT ["sh", "-c", "java -Djava.security.egd=file:/dev/./urandom -Dspring.profiles.active=$PROFILE -Dspring.mail.password=$MAIL_PASSWORD -jar /app.jar"]
+ENTRYPOINT ["sh", "-c", "java -Djava.security.egd=file:/dev/./urandom -Dspring.profiles.active=$PROFILE -Dspring.mail.password=$MAIL_PASSWORD -Dnotifications.sms.authToken=$SMS_AUTH_TOKEN -jar /app.jar"]

@@ -7,19 +7,27 @@ import io.nextpos.notification.data.EmailDetails;
 import io.nextpos.notification.data.NotificationDetails;
 import io.nextpos.notification.service.NotificationService;
 import io.nextpos.shared.exception.GeneralApplicationException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.io.StringWriter;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Reference:
+ * https://www.baeldung.com/registration-verify-user-by-email
+ */
 @Service
 @Transactional
 public class ClientActivationServiceImpl implements ClientActivationService {
@@ -31,6 +39,9 @@ public class ClientActivationServiceImpl implements ClientActivationService {
     private final NotificationService notificationService;
 
     private final Configuration freeMarkerCfg;
+
+    @Value("${app.hostname}")
+    private String hostname;
 
     @Autowired
     public ClientActivationServiceImpl(final ClientService clientService, final NotificationService notificationService, final Configuration freeMarkerCfg) {
@@ -46,7 +57,7 @@ public class ClientActivationServiceImpl implements ClientActivationService {
             final long timestamp = System.currentTimeMillis();
             String activationToken = String.format("%s=%s", client.getId(), timestamp);
             final String encodedToken = Base64.getEncoder().encodeToString(activationToken.getBytes());
-            final String activationLink = "http://localhost:8080/activateaccount?activationToken=" + encodedToken;
+            final String activationLink = String.format("http://%s:8080/activateaccount?activationToken=%s", resolveHostName(), encodedToken);
 
             final Template template = freeMarkerCfg.getTemplate("/emailActivation.ftl");
             final StringWriter writer = new StringWriter();
@@ -59,6 +70,16 @@ public class ClientActivationServiceImpl implements ClientActivationService {
             LOGGER.error(e.getMessage(), e);
             throw new GeneralApplicationException("Error while generating order details XML template: " + e.getMessage());
         }
+    }
+
+    String resolveHostName() throws UnknownHostException {
+
+        if (StringUtils.isNotEmpty(hostname)) {
+            return hostname;
+        }
+        
+        final InetAddress ip = InetAddress.getLocalHost();
+        return ip.getHostAddress();
     }
 
     @Override

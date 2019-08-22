@@ -5,13 +5,17 @@ import io.nextpos.notification.data.NotificationDetails;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 
 import javax.transaction.Transactional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @SpringBootTest
 @Transactional
+@TestPropertySource(properties = "app.hostname=dummyhost")
 class ClientActivationServiceImplTest {
 
     @Autowired
@@ -25,5 +29,14 @@ class ClientActivationServiceImplTest {
 
         final CompletableFuture<NotificationDetails> future = clientActivationService.sendActivationNotification(client);
         future.get(10, TimeUnit.SECONDS);
+    }
+
+    @Test
+    void resolveHostName() throws Exception {
+
+        final String hostName = ((ClientActivationServiceImpl) clientActivationService).resolveHostName();
+
+        assertThat(hostName).isNotNull();
+        assertThat(hostName).isEqualTo("dummyhost");
     }
 }

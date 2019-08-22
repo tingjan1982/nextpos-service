@@ -2,6 +2,7 @@ package io.nextpos.notification.service;
 
 import io.nextpos.notification.data.EmailDetails;
 import io.nextpos.notification.data.NotificationDetails;
+import io.nextpos.notification.data.SmsDetails;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,6 +27,19 @@ class NotificationServiceImplTest {
                 "Test from " + NotificationServiceImplTest.class.getName(), "you got mail");
 
         final CompletableFuture<NotificationDetails> future = notificationService.sendNotification(emailDetails);
+        final NotificationDetails savedDetails = future.get(10, TimeUnit.SECONDS);
+
+        assertThat(savedDetails.getId()).isNotNull();
+        assertThat(savedDetails.getDeliveryStatus()).isEqualTo(NotificationDetails.DeliveryStatus.SUCCESS);
+    }
+
+    @Test
+    void sendSmsNotification() throws Exception {
+
+        final SmsDetails smsDetails = new SmsDetails("dummy-id", "from", "+886988120232", "test message");
+
+        final CompletableFuture<NotificationDetails> future = notificationService.sendNotification(smsDetails);
+
         final NotificationDetails savedDetails = future.get(10, TimeUnit.SECONDS);
 
         assertThat(savedDetails.getId()).isNotNull();

@@ -1,8 +1,13 @@
 package io.nextpos.notification.service;
 
+import com.twilio.Twilio;
+import com.twilio.rest.api.v2010.account.Message;
+import com.twilio.type.PhoneNumber;
+import io.nextpos.notification.config.NotificationProperties;
 import io.nextpos.notification.data.EmailDetails;
 import io.nextpos.notification.data.NotificationDetails;
 import io.nextpos.notification.data.NotificationDetailsRepository;
+import io.nextpos.notification.data.SmsDetails;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import org.apache.commons.codec.Charsets;
 import org.slf4j.Logger;
@@ -37,10 +42,13 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationDetailsRepository notificationDetailsRepository;
 
+    private final NotificationProperties notificationProperties;
+
     @Autowired
-    public NotificationServiceImpl(final JavaMailSender javaMailSender, final NotificationDetailsRepository notificationDetailsRepository) {
+    public NotificationServiceImpl(final JavaMailSender javaMailSender, final NotificationDetailsRepository notificationDetailsRepository, final NotificationProperties notificationProperties) {
         this.javaMailSender = javaMailSender;
         this.notificationDetailsRepository = notificationDetailsRepository;
+        this.notificationProperties = notificationProperties;
     }
 
     @Override
@@ -50,9 +58,11 @@ public class NotificationServiceImpl implements NotificationService {
             LOGGER.info("Notification is on its way");
             return this.determineSendStrategyAndSend(notificationDetails);
         }).whenComplete((d, t) -> {
-            LOGGER.info("Notification has been sent");
-            notificationDetails.setDeliveryStatus(NotificationDetails.DeliveryStatus.SUCCESS);
-            notificationDetailsRepository.save(notificationDetails);
+            if (t == null) {
+                LOGGER.info("Notification has been sent");
+                notificationDetails.setDeliveryStatus(NotificationDetails.DeliveryStatus.SUCCESS);
+                notificationDetailsRepository.save(notificationDetails);
+            }
         }).exceptionally(ex -> {
             LOGGER.error("There were some problems while sending out notification: {}", ex.getMessage(), ex);
             return null;
@@ -62,6 +72,7 @@ public class NotificationServiceImpl implements NotificationService {
     private NotificationDetails determineSendStrategyAndSend(NotificationDetails notificationDetails) {
         LOGGER.info("Preparing to send notification: {}", notificationDetails);
 
+        // todo: try out the Rest API implementation
         if (notificationDetails instanceof EmailDetails) {
             try {
                 final EmailDetails emailDetails = (EmailDetails) notificationDetails;
@@ -69,7 +80,6 @@ public class NotificationServiceImpl implements NotificationService {
                 MimeMessage message = javaMailSender.createMimeMessage();
                 MimeMessageHelper helper = new MimeMessageHelper(message, true, Charsets.UTF_8.name());
 
-                //final SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
                 helper.setTo(emailDetails.getRecipientEmail());
                 helper.setSubject(emailDetails.getSubject());
                 helper.setText(emailDetails.getEmailContent(), true);
@@ -80,20 +90,20 @@ public class NotificationServiceImpl implements NotificationService {
                 throw new GeneralApplicationException("Problem with sending email: " + e.getMessage());
             }
 
-//            Client client = Client.create();
-//            client.addFilter(new HTTPBasicAuthFilter("api", "c74822277520a5a9533ea1b40693e414-2ae2c6f3-24964f0f"));
-//            WebResource webResource = client.resource("https://api.mailgun.net/v3/sandboxdb5a2b7445a8403a8085bc2b50852b7a.mailgun.org/messages");
-//            MultivaluedMapImpl formData = new MultivaluedMapImpl();
-//            formData.add("from", "Mailgun Sandbox <postmaster@sandboxdb5a2b7445a8403a8085bc2b50852b7a.mailgun.org>");
-//            formData.add("to", "Joe Lin <tingjan1982@gmail.com>");
-//            formData.add("subject", "Hello Joe Lin");
-//            formData.add("text", "Congratulations Joe Lin, you just sent an email with Mailgun!  You are truly awesome!");
-//            return webResource.type(MediaType.APPLICATION_FORM_URLENCODED).
-//                    post(ClientResponse.class, formData);
+        } else if (notificationDetails instanceof SmsDetails) {
 
-//            Properties props = System.getProperties();
-//            props.put("mail.smtps.host", "smtp.mailgun.org");
-//            props.put("mail.smtps.auth", "true");
+            final SmsDetails smsDetails = (SmsDetails) notificationDetails;
+            final String ACCOUNT_SID = notificationProperties.getAccountSid();
+            final String AUTH_TOKEN = notificationProperties.getAuthToken();
+            Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
+
+            Message message = Message.creator(
+                    new PhoneNumber(smsDetails.getToNumber()),
+                    new PhoneNumber("+15103808519"),
+                    smsDetails.getMessage())
+                    .create();
+
+            LOGGER.info("SMS Message: {}", message);
         }
 
         return notificationDetails;
