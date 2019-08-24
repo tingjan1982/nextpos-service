@@ -25,6 +25,7 @@ public class WebConfig {
         registrationBean.addUrlPatterns("/products/*",
                 "/productoptions/*",
                 "/labels/*",
+                "/clients/me",
                 "/clients/me/users",
                 "/orders/*",
                 "/reporting/*",

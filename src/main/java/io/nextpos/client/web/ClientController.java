@@ -46,6 +46,12 @@ public class ClientController {
 
     }
 
+    @GetMapping("/me")
+    public ClientResponse getCurrentClient(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        return toClientResponse(client);
+    }
+
     @GetMapping("/{id}")
     public ClientResponse getClient(@PathVariable String id) {
 
