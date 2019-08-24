@@ -7,6 +7,7 @@ import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.product.data.Product;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.converter.Decimal128ToBigDecimal;
+import io.nextpos.workingarea.data.WorkingArea;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -30,7 +31,7 @@ import java.util.List;
  *  in Order Mongo Document.
  */
 @Configuration
-@EnableJpaRepositories(basePackageClasses = {Client.class, Product.class, CountrySettings.class})
+@EnableJpaRepositories(basePackageClasses = {Client.class, Product.class, CountrySettings.class, WorkingArea.class})
 @EnableMongoRepositories(basePackageClasses = {Order.class, OrderTransaction.class, NotificationDetails.class})
 @EnableMongoAuditing
 public class DataSourceConfig {

@@ -24,4 +24,6 @@ public class ProductRequest {
     private BigDecimal price;
 
     private String productLabelId;
+
+    private String workingAreaId;
 }

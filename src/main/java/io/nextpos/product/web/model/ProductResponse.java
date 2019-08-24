@@ -29,5 +29,7 @@ public class ProductResponse {
 
     private String productLabel;
 
+    private String workingArea;
+
     private List<ProductOptionResponse> productOptions;
 }

@@ -10,6 +10,8 @@ import io.nextpos.product.web.model.ProductOptionValueModel;
 import io.nextpos.product.web.model.ProductRequest;
 import io.nextpos.product.web.model.ProductResponse;
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import io.nextpos.workingarea.data.WorkingArea;
+import io.nextpos.workingarea.service.WorkingAreaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -26,12 +28,15 @@ public class ProductController {
 
     private final ProductLabelService productLabelService;
 
+    private final WorkingAreaService workingAreaService;
+
     private final ClientObjectOwnershipService clientObjectOwnershipService;
 
     @Autowired
-    public ProductController(final ProductService productService, final ProductLabelService productLabelService, final ClientObjectOwnershipService clientObjectOwnershipService) {
+    public ProductController(final ProductService productService, final ProductLabelService productLabelService, final WorkingAreaService workingAreaService, final ClientObjectOwnershipService clientObjectOwnershipService) {
         this.productService = productService;
         this.productLabelService = productLabelService;
+        this.workingAreaService = workingAreaService;
         this.clientObjectOwnershipService = clientObjectOwnershipService;
     }
 
@@ -51,7 +56,8 @@ public class ProductController {
                 productRequest.getDescription(),
                 productRequest.getPrice());
         final Product product = new Product(client, productVersion);
-        product.setProductLabel(resolveProductLabel(productRequest));
+        product.setProductLabel(resolveProductLabel(productRequest.getProductLabelId()));
+        product.setWorkingArea(resolveWorkingArea(client, productRequest.getWorkingAreaId()));
 
         return product;
     }
@@ -72,21 +78,32 @@ public class ProductController {
                                          @Valid @RequestBody ProductRequest productRequest) {
 
         final Product product = clientObjectOwnershipService.checkOwnership(client, () -> productService.getProduct(id));
-        updateProductFromRequest(product, productRequest);
+        updateProductFromRequest(client, product, productRequest);
 
         productService.saveProduct(product);
 
         return toResponse(product, Version.DESIGN);
     }
 
-    private void updateProductFromRequest(final Product product, final ProductRequest productRequest) {
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProduct(@PathVariable final String id,
+                              @RequestAttribute("req-client") Client client) {
+
+        final Product product = clientObjectOwnershipService.checkOwnership(client, () -> productService.getProduct(id));
+
+        productService.deleteProduct(product);
+    }
+
+    private void updateProductFromRequest(final Client client, final Product product, final ProductRequest productRequest) {
         final ProductVersion designVersion = product.getDesignVersion();
         designVersion.setProductName(productRequest.getName());
         designVersion.setSku(productRequest.getSku());
         designVersion.setDescription(productRequest.getDescription());
         designVersion.setPrice(productRequest.getPrice());
 
-        product.setProductLabel(resolveProductLabel(productRequest));
+        product.setProductLabel(resolveProductLabel(productRequest.getProductLabelId()));
+        product.setWorkingArea(resolveWorkingArea(client, productRequest.getWorkingAreaId()));
     }
 
 
@@ -97,11 +114,20 @@ public class ProductController {
         productService.deployProduct(id);
     }
 
-    private ProductLabel resolveProductLabel(ProductRequest productRequest) {
-        if (productRequest.getProductLabelId() != null) {
-            return productLabelService.getProductLabel(productRequest.getProductLabelId()).orElseThrow(() -> {
-                throw new ObjectNotFoundException(productRequest.getProductLabelId(), ProductLabel.class);
+    // todo: check ownership
+    private ProductLabel resolveProductLabel(String labelId) {
+        if (labelId != null) {
+            return productLabelService.getProductLabel(labelId).orElseThrow(() -> {
+                throw new ObjectNotFoundException(labelId, ProductLabel.class);
             });
+        }
+
+        return null;
+    }
+
+    private WorkingArea resolveWorkingArea(Client client, String workingAreaId) {
+        if (workingAreaId != null) {
+            return clientObjectOwnershipService.checkOwnership(client, () -> workingAreaService.getWorkingArea(workingAreaId));
         }
 
         return null;
@@ -112,6 +138,7 @@ public class ProductController {
         ProductVersion productVersion = product.getObjectByVersionThrows(version);
 
         final ProductLabel productLabel = product.getProductLabel();
+        final WorkingArea workingArea = product.getWorkingArea();
 
         final List<ProductOptionResponse> productOptions = product.getProductOptionOfProducts().stream()
                 .map(po -> toProductOptionResponse(version, po))
@@ -125,6 +152,7 @@ public class ProductController {
                 productVersion.getDescription(),
                 productVersion.getPrice(),
                 productLabel != null ? productLabel.getName() : null,
+                workingArea != null ? workingArea.getName() : null,
                 productOptions);
     }
 

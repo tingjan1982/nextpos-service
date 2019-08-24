@@ -24,6 +24,8 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -60,10 +62,21 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
 
         checkClientExists(client);
 
-        clientDetailsService.addClientDetails(toClientDetails(client));
-        client.setMasterPassword(passwordEncoder.encode(client.getMasterPassword()));
+        final ClientDetails clientDetails = toClientDetails(client);
+        clientDetailsService.addClientDetails(clientDetails);
 
-        return clientRepository.save(client);
+        final String plainPassword = client.getMasterPassword();
+        final String encryptedPassword = passwordEncoder.encode(plainPassword);
+        client.setMasterPassword(encryptedPassword);
+
+        final Client savedClient = clientRepository.save(client);
+
+        final String clientRoles = clientDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority).collect(Collectors.joining(","));
+        final ClientUser defaultClientUser = new ClientUser(new ClientUser.ClientUserId(client.getUsername(), client.getUsername()), plainPassword, clientRoles);
+        this.createClientUser(defaultClientUser);
+
+        return savedClient;
     }
 
     private void checkClientExists(final Client client) {
@@ -79,8 +92,9 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
         result.setClientId(client.getUsername());
         result.setClientSecret(client.getMasterPassword());
         result.setAuthorizedGrantTypes(Arrays.asList("client_credentials", "password", "refresh_token"));
-        result.setAccessTokenValiditySeconds(3600);
-        result.setRefreshTokenValiditySeconds(3600);
+        final int validPeriod = Long.valueOf(TimeUnit.DAYS.toSeconds(1)).intValue();
+        result.setAccessTokenValiditySeconds(validPeriod);
+        result.setRefreshTokenValiditySeconds(validPeriod);
         result.setScope(SecurityConfig.OAuthScopes.SCOPES);
 
         String[] roles = Stream.of("ADMIN", "USER", client.getRoles()).filter(Objects::nonNull).toArray(String[]::new);

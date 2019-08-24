@@ -3,6 +3,7 @@ package io.nextpos.product.data;
 import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.ParentObject;
+import io.nextpos.workingarea.data.WorkingArea;
 import lombok.*;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -34,6 +35,11 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private ProductLabel productLabel;
+
+    @ManyToOne
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private WorkingArea workingArea;
 
     @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @MapKeyEnumerated(EnumType.STRING)

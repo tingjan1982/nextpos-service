@@ -208,7 +208,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         }
 
 
-        class ClientTokenEnhancer implements TokenEnhancer {
+        static class ClientTokenEnhancer implements TokenEnhancer {
 
             private final ClientService clientService;
 

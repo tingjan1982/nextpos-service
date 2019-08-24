@@ -4,6 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientRepository;
 import io.nextpos.product.data.*;
 import io.nextpos.shared.DummyObjects;
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import javax.transaction.Transactional;
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
@@ -39,7 +41,7 @@ class ProductServiceImplTest {
     }
 
     @Test
-    void createAndGetProduct() {
+    void crudProduct() {
 
         final ProductLabel label = new ProductLabel("label", createdClient);
         productLabelService.createProductLabel(label);
@@ -63,6 +65,10 @@ class ProductServiceImplTest {
         assertThat(updatedProduct.getId()).isEqualTo(createdProduct.getId());
         assertThat(updatedProduct.getProductLabel()).isNull();
         assertThat(updatedProduct.getDesignVersion().getProductName()).isEqualTo("updated");
+
+        productService.deleteProduct(updatedProduct);
+
+        assertThrows(ObjectNotFoundException.class, () -> productService.getProduct(updatedProduct.getId()));
     }
 
     private void assertProduct(Product actual, Product expected) {
