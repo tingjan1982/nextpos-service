@@ -1,6 +1,7 @@
 package io.nextpos.shared.model.idgenerator;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.shared.exception.GeneralApplicationException;
 import org.hibernate.HibernateException;
 import org.hibernate.MappingException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
@@ -28,7 +29,7 @@ public class ClientIdGenerator implements IdentifierGenerator, Configurable {
     public Serializable generate(final SharedSessionContractImplementor session, final Object object) throws HibernateException {
 
         if (!object.getClass().isAssignableFrom(Client.class)) {
-            throw new RuntimeException("This generator can only be used on " + Client.class.getName());
+            throw new GeneralApplicationException("This generator can only be used on " + Client.class.getName());
         }
 
         Client client = (Client) object;

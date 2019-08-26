@@ -1,0 +1,26 @@
+package io.nextpos.tablelayout.web.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.PositiveOrZero;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class TableDetailsRequest {
+
+    @NotEmpty
+    private String tableName;
+
+    @PositiveOrZero
+    private int coordinateX;
+
+    @PositiveOrZero
+    private int coordinateY;
+
+    @PositiveOrZero
+    private int capacity;
+}

@@ -3,8 +3,11 @@ package io.nextpos.workingarea.web;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.shared.web.ClientResolver;
+import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
+import io.nextpos.workingarea.web.model.PrinterRequest;
+import io.nextpos.workingarea.web.model.PrinterResponse;
 import io.nextpos.workingarea.web.model.WorkingAreaRequest;
 import io.nextpos.workingarea.web.model.WorkingAreaResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,5 +54,35 @@ public class WorkingAreaController {
 
     private WorkingAreaResponse toWorkingAreaResponse(final WorkingArea savedWorkingArea) {
         return new WorkingAreaResponse(savedWorkingArea.getId(), savedWorkingArea.getName(), savedWorkingArea.getNoOfPrintCopies());
+    }
+
+    @PostMapping("/printers")
+    public PrinterResponse createPrinter(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                         @Valid @RequestBody PrinterRequest printerRequest) {
+
+        Printer printer = fromPrinterRequest(client, printerRequest);
+        final Printer savedPrinter = workingAreaService.savePrinter(printer);
+
+        return toPrinterResponse(savedPrinter);
+    }
+
+    @GetMapping("/printers/{id}")
+    public PrinterResponse getPrinter(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @PathVariable final String id) {
+
+        final Printer printer = clientObjectOwnershipService.checkOwnership(client, () -> workingAreaService.getPrinter(id));
+        return toPrinterResponse(printer);
+    }
+
+    private Printer fromPrinterRequest(final Client client, final PrinterRequest printerRequest) {
+
+        final Printer.ServiceType serviceType = Printer.ServiceType.valueOf(printerRequest.getServiceType());
+        return new Printer(client,
+                printerRequest.getName(),
+                printerRequest.getIpAddress(),
+                serviceType);
+    }
+
+    private PrinterResponse toPrinterResponse(final Printer savedPrinter) {
+        return new PrinterResponse(savedPrinter.getId(), savedPrinter.getName(), savedPrinter.getIpAddress(), savedPrinter.getServiceType());
     }
 }

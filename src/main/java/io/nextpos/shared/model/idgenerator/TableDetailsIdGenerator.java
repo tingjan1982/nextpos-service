@@ -1,7 +1,7 @@
 package io.nextpos.shared.model.idgenerator;
 
 import io.nextpos.shared.exception.GeneralApplicationException;
-import io.nextpos.shared.model.ObjectVersioning;
+import io.nextpos.tablelayout.data.TableLayout;
 import org.hibernate.HibernateException;
 import org.hibernate.MappingException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
@@ -13,7 +13,7 @@ import org.hibernate.type.Type;
 import java.io.Serializable;
 import java.util.Properties;
 
-public class ObjectVersionIdGenerator implements IdentifierGenerator, Configurable {
+public class TableDetailsIdGenerator implements IdentifierGenerator, Configurable {
 
     @Override
     public void configure(final Type type, final Properties params, final ServiceRegistry serviceRegistry) throws MappingException {
@@ -23,13 +23,14 @@ public class ObjectVersionIdGenerator implements IdentifierGenerator, Configurab
     @Override
     public Serializable generate(final SharedSessionContractImplementor session, final Object object) throws HibernateException {
 
-        if (!(object instanceof ObjectVersioning)) {
-            throw new GeneralApplicationException("This id generator is only suitable for class that implements " + ObjectVersioning.class.getName());
+        if (!(object instanceof TableLayout.TableDetails)) {
+            throw new GeneralApplicationException("This id generator is only suitable for " + TableLayout.TableDetails.class.getName());
         }
 
-        final ObjectVersioning objectVersioning = (ObjectVersioning) object;
-        final Serializable parentId = objectVersioning.getParent().getId();
+        final TableLayout.TableDetails tableDetails = (TableLayout.TableDetails) object;
 
-        return parentId + "-" + objectVersioning.getVersionNumber();
+        final Serializable parentId = tableDetails.getTableLayout().getId();
+
+        return String.format("%s-%d-%d", parentId, tableDetails.getXCoordinate(), tableDetails.getYCoordinate());
     }
 }

@@ -31,7 +31,8 @@ public class WebConfig {
                 "/reporting/*",
                 "/searches/*",
                 "/workingareas/*",
-                "/printers/*");
+                "/printers/*",
+                "/tablelayouts/*");
 
         return registrationBean;
     }
