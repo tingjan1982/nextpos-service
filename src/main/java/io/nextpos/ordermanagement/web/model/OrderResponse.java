@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.Date;
 import java.util.List;
 
@@ -17,6 +18,8 @@ public class OrderResponse {
 
     private String orderId;
 
+    private String tableId;
+
     private Date createdDate;
 
     private Date modifiedDate;
@@ -24,6 +27,8 @@ public class OrderResponse {
     private Order.OrderState state;
 
     private TaxableAmount total;
+
+    private Currency currency;
 
     private List<OrderLineItemResponse> lineItems;
 

@@ -6,14 +6,13 @@ import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
-import io.nextpos.workingarea.web.model.PrinterRequest;
-import io.nextpos.workingarea.web.model.PrinterResponse;
-import io.nextpos.workingarea.web.model.WorkingAreaRequest;
-import io.nextpos.workingarea.web.model.WorkingAreaResponse;
+import io.nextpos.workingarea.web.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 public class WorkingAreaController {
@@ -45,6 +44,16 @@ public class WorkingAreaController {
         return toWorkingAreaResponse(workingArea);
     }
 
+    @GetMapping("/workingareas")
+    public WorkingAreasResponse getWorkingAreas(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+        List<WorkingArea> workingAreas = workingAreaService.getWorkingAreas(client);
+
+        final List<WorkingAreaResponse> workingAreaResponses = workingAreas.stream()
+                .map(this::toWorkingAreaResponse).collect(Collectors.toList());
+
+        return new WorkingAreasResponse(workingAreaResponses);
+    }
+
     private WorkingArea fromWorkingAreaRequest(final Client client, final WorkingAreaRequest workingAreaRequest) {
         final WorkingArea workingArea = new WorkingArea(client, workingAreaRequest.getName());
         workingArea.setNoOfPrintCopies(workingAreaRequest.getNoOfPrintCopies());
@@ -71,6 +80,17 @@ public class WorkingAreaController {
 
         final Printer printer = clientObjectOwnershipService.checkOwnership(client, () -> workingAreaService.getPrinter(id));
         return toPrinterResponse(printer);
+    }
+
+    @GetMapping("/printers")
+    public PrintersResponse getPrinters(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        List<Printer> printers = workingAreaService.getPrinters(client);
+
+        final List<PrinterResponse> printerResponses = printers.stream()
+                .map(this::toPrinterResponse).collect(Collectors.toList());
+
+        return new PrintersResponse(printerResponses);
     }
 
     private Printer fromPrinterRequest(final Client client, final PrinterRequest printerRequest) {

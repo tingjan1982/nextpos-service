@@ -14,6 +14,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -40,6 +41,10 @@ public class Order extends MongoBaseObject {
 
     private TaxableAmount total;
 
+    private Currency currency;
+
+    private String tableId;
+
     /**
      * this represents the id suffix of line item id.
      */
@@ -48,7 +53,7 @@ public class Order extends MongoBaseObject {
     @Version
     private Long version;
 
-    public Order(final String clientId, BigDecimal taxRate) {
+    public Order(final String clientId, BigDecimal taxRate, final Currency currency) {
         this.id = new ObjectId().toString();
         this.clientId = clientId;
         this.state = OPEN;

@@ -14,6 +14,7 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -33,7 +34,7 @@ class OrderStateChangeListenerTest {
     @Test
     void orderStateChange_HappyPath() throws Exception {
 
-        final Order order = new Order("client-id", BigDecimal.ZERO);
+        final Order order = new Order("client-id", BigDecimal.ZERO, Currency.getInstance("TWD"));
         orderService.createOrder(order);
 
         final CompletableFuture<OrderStateChange> future = new CompletableFuture<>();
@@ -53,7 +54,7 @@ class OrderStateChangeListenerTest {
     @Test
     void orderStateChange_Delete() throws Exception {
 
-        final Order order = new Order("client-id", BigDecimal.ZERO);
+        final Order order = new Order("client-id", BigDecimal.ZERO, Currency.getInstance("TWD"));
         orderService.createOrder(order);
 
         final CompletableFuture<OrderStateChange> future = new CompletableFuture<>();
@@ -69,7 +70,7 @@ class OrderStateChangeListenerTest {
     @Test
     void orderStateChange_Cancel() throws Exception {
 
-        final Order order = new Order("client-id", BigDecimal.ZERO);
+        final Order order = new Order("client-id", BigDecimal.ZERO, Currency.getInstance("TWD"));
         orderService.createOrder(order);
 
         final CompletableFuture<OrderStateChange> future = new CompletableFuture<>();
@@ -87,7 +88,7 @@ class OrderStateChangeListenerTest {
     @Test
     void orderStateChange_Refund() throws Exception {
 
-        final Order order = new Order("client-id", BigDecimal.ZERO);
+        final Order order = new Order("client-id", BigDecimal.ZERO, Currency.getInstance("TWD"));
         orderService.createOrder(order);
 
         final CompletableFuture<OrderStateChange> future = new CompletableFuture<>();
@@ -109,7 +110,7 @@ class OrderStateChangeListenerTest {
     @Test
     void orderStateChange_InvalidTransition() throws Exception {
 
-        final Order order = new Order("client-id", BigDecimal.ZERO);
+        final Order order = new Order("client-id", BigDecimal.ZERO, Currency.getInstance("TWD"));
         orderService.createOrder(order);
 
         final CompletableFuture<OrderStateChange> future = new CompletableFuture<>();

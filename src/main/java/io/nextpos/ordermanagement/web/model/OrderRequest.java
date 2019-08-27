@@ -11,5 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderRequest {
 
+    private String tableId;
+
     private List<OrderLineItemRequest> lineItems;
 }

@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,7 +32,7 @@ class OrderServiceImplTest {
     void createAndGetOrder() {
 
         BigDecimal taxRate = new BigDecimal("0.05");
-        final Order order = new Order("client-id", taxRate);
+        final Order order = new Order("client-id", taxRate, Currency.getInstance("TWD"));
 
         final List<ProductSnapshot.ProductOptionSnapshot> options = List.of(
                 new ProductSnapshot.ProductOptionSnapshot("ice", "1/3"),
@@ -80,7 +81,7 @@ class OrderServiceImplTest {
     public void addAndUpdateOrderLineItem() {
 
         final BigDecimal taxRate = BigDecimal.valueOf(0.05);
-        final Order order = new Order("KING", taxRate);
+        final Order order = new Order("KING", taxRate, Currency.getInstance("TWD"));
         final Order createdOrder = orderService.createOrder(order);
 
 

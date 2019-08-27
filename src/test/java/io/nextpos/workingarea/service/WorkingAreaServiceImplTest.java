@@ -46,6 +46,8 @@ class WorkingAreaServiceImplTest {
         assertThat(savedBar.getPrinters()).hasSize(1);
 
         assertThatCode(() -> workingAreaService.getWorkingArea(savedBar.getId())).doesNotThrowAnyException();
+
+        assertThat(workingAreaService.getWorkingAreas(client)).hasSize(1);
     }
 
     @Test
@@ -60,5 +62,7 @@ class WorkingAreaServiceImplTest {
         assertThat(savedPrinter.getServiceType()).isEqualTo(Printer.ServiceType.CHECKOUT);
 
         assertThatCode(() -> workingAreaService.getPrinter(savedPrinter.getId())).doesNotThrowAnyException();
+
+        assertThat(workingAreaService.getPrinters(client)).hasSize(1);
     }
 }

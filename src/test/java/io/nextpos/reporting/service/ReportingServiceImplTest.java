@@ -21,6 +21,7 @@ import org.springframework.data.mongodb.core.query.Query;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.util.Currency;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -94,7 +95,7 @@ class ReportingServiceImplTest {
     private Order createOrder(final String clientId) {
 
         final BigDecimal taxRate = BigDecimal.ZERO;
-        final Order order = new Order(clientId, taxRate);
+        final Order order = new Order(clientId, taxRate, Currency.getInstance("TWD"));
         final ProductSnapshot product = DummyObjects.productSnapshot();
         final OrderLineItem orderLineItem = new OrderLineItem(product, 5, taxRate);
         order.addOrderLineItem(orderLineItem);

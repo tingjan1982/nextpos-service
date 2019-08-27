@@ -15,6 +15,7 @@ import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.settings.service.SettingsService;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.web.ClientResolver;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -118,7 +119,11 @@ public class OrderController {
     private Order fromOrderRequest(final Client client, final OrderRequest orderRequest) {
 
         final CountrySettings countrySettings = settingsService.getCountrySettings(client.getCountryCode());
-        final Order order = new Order(client.getId(), countrySettings.getTaxRate());
+        final Order order = new Order(client.getId(), countrySettings.getTaxRate(), countrySettings.getCurrency());
+
+        if (StringUtils.isNotEmpty(orderRequest.getTableId())) {
+            order.setTableId(orderRequest.getTableId());
+        }
 
         if (!CollectionUtils.isEmpty(orderRequest.getLineItems())) {
             orderRequest.getLineItems().forEach(li -> {
@@ -168,10 +173,14 @@ public class OrderController {
                     return new OrderResponse.OrderLineItemResponse(li.getId(), li.getProductSnapshot().getName(), li.getProductSnapshot().getPrice(), li.getQuantity(), li.getSubTotal(), options);
                 }).collect(Collectors.toList());
 
-        final OrderResponse orderResponse = new OrderResponse(order.getId(), order.getCreatedDate(), order.getModifiedDate(), order.getState(), order.getTotal(), orderLineItems);
-        LOGGER.info("Rendered order response: {}", orderResponse);
-
-        return orderResponse;
+        return new OrderResponse(order.getId(),
+                order.getTableId(),
+                order.getCreatedDate(),
+                order.getModifiedDate(),
+                order.getState(),
+                order.getTotal(),
+                order.getCurrency(),
+                orderLineItems);
     }
 
 }
