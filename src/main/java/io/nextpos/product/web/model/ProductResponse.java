@@ -27,6 +27,8 @@ public class ProductResponse {
 
     private BigDecimal price;
 
+    private String productLabelId;
+
     private String productLabel;
 
     private String workingArea;

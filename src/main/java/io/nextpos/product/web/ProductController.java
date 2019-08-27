@@ -151,6 +151,7 @@ public class ProductController {
                 productVersion.getSku(),
                 productVersion.getDescription(),
                 productVersion.getPrice(),
+                productLabel != null? productLabel.getId() : null,
                 productLabel != null ? productLabel.getName() : null,
                 workingArea != null ? workingArea.getName() : null,
                 productOptions);
