@@ -18,8 +18,6 @@ import java.util.Properties;
  */
 public class ClientIdGenerator implements IdentifierGenerator, Configurable {
 
-    private static final int ID_LENGTH = 8;
-
     @Override
     public void configure(final Type type, final Properties params, final ServiceRegistry serviceRegistry) throws MappingException {
         
@@ -33,17 +31,6 @@ public class ClientIdGenerator implements IdentifierGenerator, Configurable {
         }
 
         Client client = (Client) object;
-        String id = client.getUsername().toUpperCase();
-        final int emailSeparator = id.indexOf('@');
-
-        if (emailSeparator != -1) {
-            id = id.substring(0, emailSeparator);
-        }
-
-        if (id.length() > ID_LENGTH) {
-            id = id.substring(0, ID_LENGTH);
-        }
-
-        return id;
+        return client.getUsername().toUpperCase();
     }
 }

@@ -25,6 +25,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Transactional
 class OrderStateChangeListenerTest {
 
+    private static final String CLIENT_ID = "client-id";
+
     @Autowired
     private ApplicationEventPublisher eventPublisher;
 
@@ -34,7 +36,7 @@ class OrderStateChangeListenerTest {
     @Test
     void orderStateChange_HappyPath() throws Exception {
 
-        final Order order = new Order("client-id", BigDecimal.ZERO, Currency.getInstance("TWD"));
+        final Order order = new Order(CLIENT_ID, BigDecimal.ZERO, Currency.getInstance("TWD"));
         orderService.createOrder(order);
 
         final CompletableFuture<OrderStateChange> future = new CompletableFuture<>();
@@ -54,7 +56,7 @@ class OrderStateChangeListenerTest {
     @Test
     void orderStateChange_Delete() throws Exception {
 
-        final Order order = new Order("client-id", BigDecimal.ZERO, Currency.getInstance("TWD"));
+        final Order order = new Order(CLIENT_ID, BigDecimal.ZERO, Currency.getInstance("TWD"));
         orderService.createOrder(order);
 
         final CompletableFuture<OrderStateChange> future = new CompletableFuture<>();
@@ -70,7 +72,7 @@ class OrderStateChangeListenerTest {
     @Test
     void orderStateChange_Cancel() throws Exception {
 
-        final Order order = new Order("client-id", BigDecimal.ZERO, Currency.getInstance("TWD"));
+        final Order order = new Order(CLIENT_ID, BigDecimal.ZERO, Currency.getInstance("TWD"));
         orderService.createOrder(order);
 
         final CompletableFuture<OrderStateChange> future = new CompletableFuture<>();
@@ -88,7 +90,7 @@ class OrderStateChangeListenerTest {
     @Test
     void orderStateChange_Refund() throws Exception {
 
-        final Order order = new Order("client-id", BigDecimal.ZERO, Currency.getInstance("TWD"));
+        final Order order = new Order(CLIENT_ID, BigDecimal.ZERO, Currency.getInstance("TWD"));
         orderService.createOrder(order);
 
         final CompletableFuture<OrderStateChange> future = new CompletableFuture<>();
@@ -110,7 +112,7 @@ class OrderStateChangeListenerTest {
     @Test
     void orderStateChange_InvalidTransition() throws Exception {
 
-        final Order order = new Order("client-id", BigDecimal.ZERO, Currency.getInstance("TWD"));
+        final Order order = new Order(CLIENT_ID, BigDecimal.ZERO, Currency.getInstance("TWD"));
         orderService.createOrder(order);
 
         final CompletableFuture<OrderStateChange> future = new CompletableFuture<>();

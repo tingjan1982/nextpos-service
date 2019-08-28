@@ -10,7 +10,7 @@ import java.util.Collections;
 public class DummyObjects {
 
     public static Client dummyClient() {
-        return new Client("test", "admin@anextpos.io", "secret", "TW");
+        return new Client("test", "admin@nextpos.io", "secret", "TW");
     }
 
     public static ProductVersion dummyProductVersion() {

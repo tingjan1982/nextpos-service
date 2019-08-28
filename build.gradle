@@ -51,6 +51,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
+    testImplementation 'com.icegreen:greenmail:1.5.10'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 
     /**

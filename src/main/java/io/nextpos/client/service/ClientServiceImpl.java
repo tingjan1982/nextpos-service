@@ -18,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.ClientDetails;
+import org.springframework.security.oauth2.provider.NoSuchClientException;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.stereotype.Service;
@@ -73,6 +74,7 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
 
         final String clientRoles = clientDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).collect(Collectors.joining(","));
+        // client's default user will use email as the username.
         final ClientUser defaultClientUser = new ClientUser(new ClientUser.ClientUserId(client.getUsername(), client.getUsername()), plainPassword, clientRoles);
         this.createClientUser(defaultClientUser);
 
@@ -121,7 +123,19 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
 
     @Override
     public Client getDefaultClient() {
-        return clientRepository.findByUsername(BootstrapConfig.MASTER_CLIENT).orElse(null);
+        return clientRepository.findByUsername(BootstrapConfig.MASTER_CLIENT).orElseGet(() -> {
+            /*
+             * remove ClientDetails from clientDetailsService. This is needed for passing unit test suites
+             * as multiple spring containers are initiated when they have different configurations. (e.g. contains @TestPropertySource).
+             */
+            try {
+                clientDetailsService.removeClientDetails(BootstrapConfig.MASTER_CLIENT);
+            } catch (NoSuchClientException e) {
+                // ignored as it will not be found for the first time.
+            }
+
+            return null;
+        });
     }
 
     @Override
@@ -140,10 +154,19 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
     @Override
     public ClientUser createClientUser(final ClientUser clientUser) {
 
+        clientUserRepository.findById(clientUser.getId()).ifPresent(u -> {
+            throw new ObjectAlreadyExistsException(clientUser.getId().toString(), ClientUser.class);
+        });
+
         final String encryptedPassword = passwordEncoder.encode(clientUser.getPassword());
         clientUser.setPassword(encryptedPassword);
 
         return clientUserRepository.save(clientUser);
+    }
+
+    @Override
+    public List<ClientUser> getClientUsers(final Client client) {
+        return clientUserRepository.findAllByClientId(client.getUsername());
     }
 
     @Override

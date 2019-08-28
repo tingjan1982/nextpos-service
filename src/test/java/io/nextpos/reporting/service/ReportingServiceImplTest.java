@@ -11,6 +11,7 @@ import io.nextpos.reporting.data.OrderStateAverageTimeReport;
 import io.nextpos.reporting.data.OrderStateParameter;
 import io.nextpos.reporting.data.SalesReport;
 import io.nextpos.shared.DummyObjects;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,15 +41,19 @@ class ReportingServiceImplTest {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    private Client client;
+
+    @BeforeEach
+    void prepare() {
+        final String clientId = ReportingServiceImplTest.class.getSimpleName();
+        client = DummyObjects.dummyClient();
+        client.setId(clientId);
+    }
 
     @Test
     void generateSalesReport() {
 
-        final String clientId = ReportingServiceImplTest.class.getSimpleName();
-        final Client client = DummyObjects.dummyClient();
-        client.setId(clientId);
-
-        final Order createdOrder = this.createOrder(clientId);
+        final Order createdOrder = this.createOrder(client.getId());
 
         final SalesReport salesReport = reportingService.generateSalesReport(client, DateParameterType.TODAY.toReportingParameter());
 
@@ -62,11 +67,7 @@ class ReportingServiceImplTest {
     @Test
     public void generateOrderStateAverageTimeReport() {
 
-        final String clientId = ReportingServiceImplTest.class.getSimpleName();
-        final Client client = DummyObjects.dummyClient();
-        client.setId(clientId);
-
-        final List<Order> orders = List.of(this.createAndTransitionOrderToDelivered(clientId), this.createAndTransitionOrderToDelivered(clientId));
+        final List<Order> orders = List.of(this.createAndTransitionOrderToDelivered(client.getId()), this.createAndTransitionOrderToDelivered(client.getId()));
 
         final OrderStateParameter orderStateParameter = new OrderStateParameter(
                 DateParameterType.TODAY.toReportingParameter(),

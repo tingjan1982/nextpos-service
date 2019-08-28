@@ -38,7 +38,7 @@ class ClientObjectOwnershipServiceImplTest {
         clientService.createClient(client1);
         clientService.createClient(client2);
 
-        assertThat(client1).isEqualTo(clientService.getClient("USER1").orElseThrow());
+        assertThat(client1).isEqualTo(clientService.getClient("USER1@GMAIL.CO").orElseThrow());
 
         final Product product = new Product(client1, DummyObjects.dummyProductVersion());
         productService.saveProduct(product);

@@ -4,10 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientActivationService;
 import io.nextpos.client.service.ClientService;
-import io.nextpos.client.web.model.ClientRequest;
-import io.nextpos.client.web.model.ClientResponse;
-import io.nextpos.client.web.model.ClientUserRequest;
-import io.nextpos.client.web.model.ClientUserResponse;
+import io.nextpos.client.web.model.*;
 import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.web.ClientResolver;
@@ -19,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/clients")
@@ -113,6 +111,16 @@ public class ClientController {
         final ClientUser createdClientUser = clientService.createClientUser(clientUser);
 
         return toClientUserResponse(createdClientUser);
+    }
+
+    @GetMapping("/me/users")
+    public ClientUsersResponse getClientUsers(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        final List<ClientUser> clientUsers = clientService.getClientUsers(client);
+        final List<ClientUserResponse> clientUsersResponse = clientUsers.stream()
+                .map(this::toClientUserResponse).collect(Collectors.toList());
+
+        return new ClientUsersResponse(clientUsersResponse);
     }
 
     private ClientUser fromClientUserRequest(Client client, ClientUserRequest clientUserRequest) {

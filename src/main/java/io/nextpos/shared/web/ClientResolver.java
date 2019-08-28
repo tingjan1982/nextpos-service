@@ -20,7 +20,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Optional;
 
 @Component
 public class ClientResolver extends OncePerRequestFilter {
@@ -42,24 +41,35 @@ public class ClientResolver extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response, final FilterChain filterChain) throws ServletException, IOException {
 
-        final String clientId = request.getHeader(CLIENT_ID);
+//        final String clientId = request.getHeader(CLIENT_ID);
+//
+//        if (StringUtils.isBlank(clientId)) {
+//            throw new ClientNotFoundException("Client id is missing in the header: x-client-id");
+//        }
+//
+//        final Optional<Client> clientOptional = clientService.getClient(clientId);
+//
+//        final Client client = clientOptional.orElseThrow(() -> {
+//            throw new ClientNotFoundException("Client cannot be found: " + clientId);
+//        });
 
-        if (StringUtils.isBlank(clientId)) {
-            throw new ClientNotFoundException("Client id is missing in the header: x-client-id");
-        }
+        //checkClientCredentials(client);
 
-        final Optional<Client> clientOptional = clientService.getClient(clientId);
-
-        final Client client = clientOptional.orElseThrow(() -> {
-            throw new ClientNotFoundException("Client cannot be found: " + clientId);
-        });
-
-        checkClientCredentials(client);
-
-        request.setAttribute(REQ_ATTR_CLIENT, client);
+        request.setAttribute(REQ_ATTR_CLIENT, resolveClient());
 
         filterChain.doFilter(request, response);
 
+    }
+
+    private Client resolveClient() {
+        final OAuth2Authentication authentication = (OAuth2Authentication) SecurityContextHolder.getContext().getAuthentication();
+        final OAuth2AuthenticationDetails oAuth2AuthenticationDetails = (OAuth2AuthenticationDetails) authentication.getDetails();
+        final SecurityConfig.ExtraClaims extraClaims = (SecurityConfig.ExtraClaims) oAuth2AuthenticationDetails.getDecodedDetails();
+
+        final String clientId = extraClaims.getClientId();
+        return clientService.getClient(clientId).orElseThrow(() -> {
+            throw new ClientNotFoundException("Client cannot be found: " + clientId);
+        });
     }
 
     private void checkClientCredentials(Client client) {

@@ -3,6 +3,7 @@ package io.nextpos.client.service;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.shared.DummyObjects;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,10 +22,16 @@ class ClientServiceImplTest {
     @Autowired
     private ClientServiceImpl clientService;
 
+    private Client client;
+
+    @BeforeEach
+    void prepare() {
+        client = DummyObjects.dummyClient();
+    }
+
     @Test
     void createAndGetClient() {
 
-        final Client client = DummyObjects.dummyClient();
         client.getAttributes().put(Client.ClientAttributes.UBN.name(), "22640971");
 
         final Client createdClient = clientService.createClient(client);
@@ -39,11 +46,11 @@ class ClientServiceImplTest {
     }
 
     @Test
-    @WithMockUser("client-id")
+    @WithMockUser("admin@nextpos.io")
     void createAndGetClientUser() {
 
-        final String username = "admin@admin.io";
-        final ClientUser clientUser = new ClientUser(new ClientUser.ClientUserId(username, "client-id"), "admin", "ADMIN");
+        final String username = "user@nextpos.io";
+        final ClientUser clientUser = new ClientUser(new ClientUser.ClientUserId(username, client.getUsername()), "admin", "ADMIN");
 
         final ClientUser createdUser = clientService.createClientUser(clientUser);
 
@@ -53,6 +60,8 @@ class ClientServiceImplTest {
 
         final UserDetails userDetails = clientService.loadUserByUsername(username);
         assertThat(userDetails).isNotNull();
+
+        assertThat(clientService.getClientUsers(client)).hasSize(1);
     }
 
     @Test
