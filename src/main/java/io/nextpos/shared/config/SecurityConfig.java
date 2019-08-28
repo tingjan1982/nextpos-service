@@ -47,6 +47,8 @@ import java.util.Map;
  * Contains core security configuration and shared beans that are needed by the authorization server and resource server.
  * <p>
  * https://projects.spring.io/spring-security-oauth/docs/oauth2.html
+ *
+ * https://docs.spring.io/spring-security-oauth2-boot/docs/current/reference/htmlsingle/
  */
 @EnableWebSecurity(debug = false)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {

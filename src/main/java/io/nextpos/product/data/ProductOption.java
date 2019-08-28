@@ -34,7 +34,8 @@ public class ProductOption extends BaseObject implements ParentObject<String, Pr
     @MapKeyEnumerated(EnumType.STRING)
     private Map<Version, ProductOptionVersion> versions = new HashMap<>();
 
-    @OneToMany(mappedBy = "productOption", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    // todo: may consider using EntityGraph to load this collection eagerly. Commented out code is to allow product deletion to work successfully.
+    @OneToMany(mappedBy = "productOption")//, fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @Fetch(value = FetchMode.SUBSELECT)
     private List<ProductOptionRelation.ProductOptionOfProduct> productOptionOfProducts = new ArrayList<>();
 

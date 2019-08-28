@@ -4,6 +4,9 @@ import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
 import io.nextpos.product.data.ProductOption;
 import io.nextpos.shared.model.BaseObject;
+import io.nextpos.tablelayout.data.TableLayout;
+import io.nextpos.workingarea.data.Printer;
+import io.nextpos.workingarea.data.WorkingArea;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
@@ -46,20 +49,39 @@ public class Client extends BaseObject {
     @CollectionTable(name = "client_attributes", joinColumns = @JoinColumn(name = "client_id"))
     private Map<String, String> attributes = new HashMap<>();
 
-    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private List<ProductOption> productOptions;
+    /**
+     * The following associations exist so when client is deleted, all associated client objects are also removed via cascade operation.
+     */
 
-    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<Product> products;
 
-    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<ProductOption> productOptions;
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<ProductLabel> productLabels;
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<TableLayout> tableLayouts;
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<WorkingArea> workingAreas;
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Printer> printers;
 
 
     public Client(final String clientName, final String username, final String masterPassword, final String countryCode) {

@@ -6,10 +6,13 @@ import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.ordermanagement.web.model.UpdateOrderLineItemRequest;
 import io.nextpos.shared.DummyObjects;
 import org.assertj.core.data.Index;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
@@ -24,15 +27,33 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Transactional
 class OrderServiceImplTest {
 
+    private static final String CLIENT_ID = "KING";
+
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private ShiftService shiftService;
+
+
+    @BeforeEach
+    void prepare() {
+        shiftService.openShift(CLIENT_ID, BigDecimal.ONE);
+    }
+
+    @AfterEach
+    void teardown() {
+        shiftService.closeShift(CLIENT_ID, BigDecimal.ONE);
+    }
 
     @Test
+    @WithMockUser("dummyUser")
     void createAndGetOrder() {
 
         BigDecimal taxRate = new BigDecimal("0.05");
-        final Order order = new Order("client-id", taxRate, Currency.getInstance("TWD"));
+
+        final Order order = new Order(CLIENT_ID, taxRate, Currency.getInstance("TWD"));
+        order.setTableId("table 1");
 
         final List<ProductSnapshot.ProductOptionSnapshot> options = List.of(
                 new ProductSnapshot.ProductOptionSnapshot("ice", "1/3"),
@@ -47,7 +68,7 @@ class OrderServiceImplTest {
         final Order createdOrder = orderService.createOrder(order);
 
         assertThat(createdOrder.getId()).isNotNull();
-        assertThat(createdOrder.getClientId()).isEqualTo("client-id");
+        assertThat(createdOrder.getClientId()).isEqualTo(CLIENT_ID);
         assertThat(createdOrder.getState()).isEqualTo(Order.OrderState.OPEN);
         assertThat(createdOrder.getTotal()).satisfies(total -> {
             assertThat(total.getAmountWithoutTax()).isEqualByComparingTo(new BigDecimal("330"));
@@ -75,13 +96,18 @@ class OrderServiceImplTest {
         final Order existingOrder = orderService.getOrder(createdOrder.getId());
 
         assertThat(existingOrder).isEqualToIgnoringGivenFields(createdOrder, "internalCounter");
+
+        final List<Order> inflightOrders = orderService.getInflightOrders(CLIENT_ID);
+
+        assertThat(inflightOrders).hasSize(1);
     }
 
     @Test
+    @WithMockUser("dummyUser")
     public void addAndUpdateOrderLineItem() {
 
         final BigDecimal taxRate = BigDecimal.valueOf(0.05);
-        final Order order = new Order("KING", taxRate, Currency.getInstance("TWD"));
+        final Order order = new Order(CLIENT_ID, taxRate, Currency.getInstance("TWD"));
         final Order createdOrder = orderService.createOrder(order);
 
 

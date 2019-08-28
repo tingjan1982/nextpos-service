@@ -15,6 +15,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Currency;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -58,6 +59,7 @@ public class Order extends MongoBaseObject {
         this.clientId = clientId;
         this.state = OPEN;
         this.total = new TaxableAmount(taxRate);
+        this.currency = currency;
         this.internalCounter = new AtomicInteger(1);
     }
 
@@ -119,14 +121,47 @@ public class Order extends MongoBaseObject {
 
     public enum OrderState {
 
+        /**
+         * Initial state
+         */
         OPEN,
+
+        /**
+         * When order is submitted.
+         */
         IN_PROCESS,
+
         PARTIALLY_DELIVERED,
+
+        /**
+         * When order is fulfilled.
+         */
         DELIVERED,
+
+        /**
+         * When order is paid.
+         */
         SETTLED,
+
+        /**
+         * When order is cancelled.
+         */
         CANCELLED,
+
+        /**
+         * When order is refunded.
+         */
         REFUNDED,
+
+        /**
+         * When order is deleted, possibly due to testing or mistake.
+         */
         DELETED,
+
+        /**
+         * When order is marked as closed to indicate it can be filtered out when trying to display current orders.
+         */
+        CLOSED;
     }
 
     public enum OrderAction {
@@ -136,19 +171,25 @@ public class Order extends MongoBaseObject {
         CANCEL(IN_PROCESS, CANCELLED),
         DELIVER(IN_PROCESS, DELIVERED),
         SETTLE(DELIVERED, SETTLED),
-        REFUND(SETTLED, REFUNDED);
+        REFUND(SETTLED, REFUNDED),
+        CLOSE(EnumSet.of(SETTLED, REFUNDED), CLOSED);
 
-        private final OrderState validFromState;
+        private final EnumSet<OrderState> validFromState;
 
         private final OrderState validNextState;
 
 
         OrderAction(final OrderState validFromState, final OrderState validNextState) {
+            this.validFromState = EnumSet.of(validFromState);
+            this.validNextState = validNextState;
+        }
+
+        OrderAction(final EnumSet<OrderState> validFromState, final OrderState validNextState) {
             this.validFromState = validFromState;
             this.validNextState = validNextState;
         }
 
-        public OrderState getValidFromState() {
+        public EnumSet<OrderState> getValidFromState() {
             return validFromState;
         }
 

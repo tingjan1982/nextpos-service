@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -62,12 +63,43 @@ public class OrderController {
         return toOrderResponse(createdOrder);
     }
 
+    /**
+     * The merge function is to circumvent the following potential error:
+     * java.lang.IllegalStateException: Duplicate key A1 (attempted merging values OrdersResponse.LightOrderResponse(orderId=5d65f8587d6ffa3008fc2023, state=OPEN, total=TaxableAmount(taxRate=0.05, amountWithoutTax=155.00, amountWithTax=162.7500, tax=7.7500)) and OrdersResponse.LightOrderResponse(orderId=5d65f90a7d6ffa3008fc2024, state=OPEN, total=TaxableAmount(taxRate=0.05, amountWithoutTax=155.00, amountWithTax=162.7500, tax=7.7500)))
+     *
+     * toMap reference:
+     * https://www.geeksforgeeks.org/collectors-tomap-method-in-java-with-examples/
+     * 
+     * @param client
+     * @return
+     */
+    @GetMapping("/inflight")
+    public OrdersResponse getOrders(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        List<Order> orders = orderService.getInflightOrders(client.getId());
+        final Map<String, OrdersResponse.LightOrderResponse> orderResponses = orders.stream()
+                .collect(Collectors.toMap(Order::getTableId,
+                        o -> new OrdersResponse.LightOrderResponse(o.getId(), o.getState(), o.getTotal()),
+                        (o1, o2) -> {
+                            LOGGER.warn("Found orders with same table, replacing with the latter one: o1={}, o2={}", o1.getOrderId(), o2.getOrderId());
+                            return o2;
+                        }));
+
+        return new OrdersResponse(orderResponses);
+    }
+
     @GetMapping("/{id}")
     public OrderResponse getOrder(@PathVariable String id) {
 
         final Order order = orderService.getOrder(id);
         return toOrderResponse(order);
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @PathVariable final String id) {
+        // todo: implement delete order.
+    }
+
 
     @PostMapping("/{id}/lineitems")
     public OrderResponse AddOrderLineItem(@PathVariable String id, @RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @Valid @RequestBody OrderLineItemRequest orderLineItemRequest) {

@@ -38,7 +38,8 @@ public class OrderStateChangeListener {
 
         LOGGER.info("Order state: {}, Order Action: {}", orderState, orderAction);
 
-        if (orderAction.getValidFromState() == orderState) {
+        // todo: test CLOSE action
+        if (orderAction.getValidFromState().contains(orderState)) {
             final Order.OrderState transitionState = orderAction.getValidNextState();
             LOGGER.info("Order in valid state, proceed with order transition: {}", transitionState);
 

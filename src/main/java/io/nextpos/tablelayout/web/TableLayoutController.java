@@ -72,6 +72,7 @@ public class TableLayoutController {
                 savedTableLayout.getLayoutName(),
                 savedTableLayout.getGridSizeX(),
                 savedTableLayout.getGridSizeY(),
+                tables.size(),
                 savedTableLayout.getTotalCapacity(),
                 tables);
     }

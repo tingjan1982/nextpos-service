@@ -19,6 +19,8 @@ public class TableLayoutResponse {
 
     private int gridSizeY;
 
+    private int totalTables;
+
     private int totalCapacity;
 
     private List<TableDetailsResponse> tables;

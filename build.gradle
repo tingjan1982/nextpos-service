@@ -52,7 +52,11 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.junit.jupiter:junit-jupiter-api'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-//    testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo'
+
+    /**
+     * https://www.baeldung.com/spring-boot-embedded-mongodb
+     */
+    testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo'
 }
 
 dependencyManagement {
