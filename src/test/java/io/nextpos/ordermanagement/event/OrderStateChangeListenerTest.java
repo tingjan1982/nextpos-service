@@ -7,7 +7,6 @@ import io.nextpos.shared.exception.GeneralApplicationException;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
@@ -20,7 +19,6 @@ import java.util.concurrent.ExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest
 @Transactional
 class OrderStateChangeListenerTest {

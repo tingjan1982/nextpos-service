@@ -9,6 +9,7 @@ import org.hibernate.id.Configurable;
 import org.hibernate.id.IdentifierGenerator;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.Type;
+import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
 
 import java.io.Serializable;
 import java.util.Properties;
@@ -30,7 +31,7 @@ public class ClientIdGenerator implements IdentifierGenerator, Configurable {
             throw new GeneralApplicationException("This generator can only be used on " + Client.class.getName());
         }
 
-        Client client = (Client) object;
-        return client.getUsername().toUpperCase();
+        final RandomValueStringGenerator randomValueStringGenerator = new RandomValueStringGenerator(28);
+        return "cli-" + randomValueStringGenerator.generate();
     }
 }

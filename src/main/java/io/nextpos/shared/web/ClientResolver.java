@@ -66,7 +66,7 @@ public class ClientResolver extends OncePerRequestFilter {
         final OAuth2AuthenticationDetails oAuth2AuthenticationDetails = (OAuth2AuthenticationDetails) authentication.getDetails();
         final SecurityConfig.ExtraClaims extraClaims = (SecurityConfig.ExtraClaims) oAuth2AuthenticationDetails.getDecodedDetails();
 
-        final String clientId = extraClaims.getClientId();
+        final String clientId = extraClaims.getApplicationClientId();
         return clientService.getClient(clientId).orElseThrow(() -> {
             throw new ClientNotFoundException("Client cannot be found: " + clientId);
         });
@@ -78,7 +78,7 @@ public class ClientResolver extends OncePerRequestFilter {
         final OAuth2AuthenticationDetails oAuth2AuthenticationDetails = (OAuth2AuthenticationDetails) authentication.getDetails();
         final SecurityConfig.ExtraClaims extraClaims = (SecurityConfig.ExtraClaims) oAuth2AuthenticationDetails.getDecodedDetails();
 
-        final boolean accessCheck = StringUtils.equals(client.getId(), extraClaims.getClientId());
+        final boolean accessCheck = StringUtils.equals(client.getId(), extraClaims.getApplicationClientId());
         LOGGER.info("Access control check on client access token against header: {}", accessCheck);
 
         if (!accessCheck) {

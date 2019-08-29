@@ -8,6 +8,7 @@ import io.nextpos.product.data.Product;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.converter.Decimal128ToBigDecimal;
 import io.nextpos.tablelayout.data.TableLayout;
+import io.nextpos.timecard.data.UserTimeCard;
 import io.nextpos.workingarea.data.WorkingArea;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +34,7 @@ import java.util.List;
  */
 @Configuration
 @EnableJpaRepositories(basePackageClasses = {Client.class, Product.class, CountrySettings.class, WorkingArea.class, TableLayout.class})
-@EnableMongoRepositories(basePackageClasses = {Order.class, OrderTransaction.class, NotificationDetails.class})
+@EnableMongoRepositories(basePackageClasses = {Order.class, OrderTransaction.class, NotificationDetails.class, UserTimeCard.class})
 @EnableMongoAuditing
 public class DataSourceConfig {
 

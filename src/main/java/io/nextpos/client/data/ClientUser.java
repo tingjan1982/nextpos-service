@@ -17,6 +17,8 @@ public class ClientUser extends BaseObject {
     @EmbeddedId
     private ClientUserId id;
 
+    private String nickname;
+
     private String password;
 
     private String roles;
@@ -38,6 +40,7 @@ public class ClientUser extends BaseObject {
 
         private String username;
 
+        // todo: this should be renamed to clientUsername to avoid confusion.
         private String clientId;
     }
 }

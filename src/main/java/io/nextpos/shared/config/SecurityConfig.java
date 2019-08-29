@@ -65,7 +65,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
 
         auth.userDetailsService(clientService()).passwordEncoder(passwordEncoder());
-        //auth.inMemoryAuthentication().withUser("admin").password(passwordEncoder().encode("admin")).roles("ADMIN");
     }
 
     /**
@@ -131,7 +130,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     public static class ExtraClaims {
 
-        private static final String CLIENT_ID = "clientId";
+        private static final String APPLICATION_CLIENT_ID = "application_client_id";
+
+        /**
+         * OAuth2 token user name (if oauth token is obtained via password grant type)
+         */
+        private static final String USER_NAME = "user_name";
 
         private final Map<String, ?> claims;
 
@@ -143,8 +147,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             return claims;
         }
 
-        public String getClientId() {
-            return (String) claims.get(CLIENT_ID);
+        /**
+         * Used in ClientResolver to resolve the Client object referenced by access token for access control check.
+         */
+        public String getApplicationClientId() {
+            return (String) claims.get(APPLICATION_CLIENT_ID);
+        }
+
+        public String getOAuth2TokenUsername() {
+            return ((String) claims.get(USER_NAME));
         }
     }
 
@@ -227,7 +238,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 });
 
 
-                final Map<String, Object> additionalInfo = Map.of(ExtraClaims.CLIENT_ID, client.getId());
+                final Map<String, Object> additionalInfo = Map.of(ExtraClaims.APPLICATION_CLIENT_ID, client.getId());
                 ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(additionalInfo);
 
                 return accessToken;

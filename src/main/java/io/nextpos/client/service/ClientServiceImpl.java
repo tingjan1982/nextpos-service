@@ -7,6 +7,7 @@ import io.nextpos.client.data.ClientUserRepository;
 import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.shared.config.SecurityConfig;
 import io.nextpos.shared.exception.ObjectAlreadyExistsException;
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -116,6 +117,14 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
         return clientRepository.findByIdAndStatusIn(clientId, Client.Status.ACTIVE, Client.Status.PENDING_ACTIVE);
     }
 
+    /**
+     * In OAuth2, clientId is the username in Authorization header.
+     * Client object is created with clientId and username.
+     * ClientUser object is created with username and clientId, which really is Client's username.
+     *
+     * @param username
+     * @return
+     */
     @Override
     public Optional<Client> getClientByUsername(final String username) {
         return clientRepository.findByUsername(username);
@@ -147,6 +156,7 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
     public void deleteClient(final String id) {
         clientRepository.findById(id).ifPresent(client -> {
             clientDetailsService.removeClientDetails(client.getUsername());
+            clientUserRepository.deleteClientUsersByClientId(client.getUsername());
             clientRepository.delete(client);
         });
     }
@@ -162,6 +172,15 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
         clientUser.setPassword(encryptedPassword);
 
         return clientUserRepository.save(clientUser);
+    }
+
+    @Override
+    public ClientUser getClientUser(final Client client, final String username) {
+
+        final ClientUser.ClientUserId clientUserId = new ClientUser.ClientUserId(username, client.getUsername());
+        return clientUserRepository.findById(clientUserId).orElseThrow(() -> {
+            throw new ObjectNotFoundException(clientUserId.toString(), ClientUser.class);
+        });
     }
 
     @Override
@@ -181,6 +200,9 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
         return new User(clientUser.getId().getUsername(), clientUser.getPassword(), authorities);
     }
 
+    /**
+     * This only works during /oauth/token.
+     */
     private String findCurrentClientUsername() {
 
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

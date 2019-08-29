@@ -24,5 +24,7 @@ public interface ClientService {
 
     ClientUser createClientUser(ClientUser clientUser);
 
+    ClientUser getClientUser(Client client, String username);
+
     List<ClientUser> getClientUsers(Client client);
 }
