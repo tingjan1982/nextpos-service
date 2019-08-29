@@ -15,11 +15,24 @@ public class ShiftResponse {
 
     private String id;
 
+    private String clientId;
+
     private Shift.ShiftStatus shiftStatus;
 
-    private Date timestamp;
+    private ShiftDetailsResponse open;
 
-    private String who;
+    private ShiftDetailsResponse close;
 
-    private BigDecimal balance;
+    private BigDecimal difference;
+
+    @Data
+    @AllArgsConstructor
+    public static class ShiftDetailsResponse {
+
+        private Date timestamp;
+
+        private String who;
+
+        private BigDecimal balance;
+    }
 }

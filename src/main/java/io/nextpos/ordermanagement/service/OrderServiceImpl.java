@@ -33,9 +33,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order createOrder(final Order order) {
-        // todo: maybe another way to check for active shift.
-        shiftService.getActiveShift(order.getClientId());
 
+        shiftService.getActiveShiftOrThrows(order.getClientId());
         return orderRepository.save(order);
     }
 
@@ -55,7 +54,7 @@ public class OrderServiceImpl implements OrderService {
                 Order.OrderState.SETTLED,
                 Order.OrderState.REFUNDED
         };
-        final Shift activeShift = shiftService.getActiveShift(clientId);
+        final Shift activeShift = shiftService.getActiveShiftOrThrows(clientId);
 
         return orderRepository.findAllByClientIdAndTableIdIsNotNullAndCreatedDateGreaterThanEqualAndStateIsIn(clientId, activeShift.getStart().getTimestamp(), states);
     }

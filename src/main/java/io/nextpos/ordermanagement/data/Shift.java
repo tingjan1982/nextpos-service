@@ -28,10 +28,10 @@ public class Shift extends MongoBaseObject {
 
     private ShiftStatus shiftStatus;
 
-    public Shift(final String clientId, final String shiftStartBy, final BigDecimal openingBalance) {
+    public Shift(final String clientId, final Date startTimestamp, final String shiftStartBy, final BigDecimal openingBalance) {
         this.clientId = clientId;
 
-        start = new ShiftDetails(new Date(), shiftStartBy, openingBalance);
+        start = new ShiftDetails(startTimestamp, shiftStartBy, openingBalance);
         end = new ShiftDetails();
         shiftStatus = ShiftStatus.ACTIVE;
     }
@@ -71,6 +71,11 @@ public class Shift extends MongoBaseObject {
     }
 
     public enum ShiftStatus {
+
+        /**
+         * Indicates no active shift.
+         */
+        INACTIVE,
 
         /**
          * Indicates shift is active.

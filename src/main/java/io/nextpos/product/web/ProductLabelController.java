@@ -6,7 +6,6 @@ import io.nextpos.product.service.ProductLabelService;
 import io.nextpos.product.web.model.ProductLabelRequest;
 import io.nextpos.product.web.model.ProductLabelResponse;
 import io.nextpos.product.web.model.ProductLabelsResponse;
-import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
@@ -39,10 +38,8 @@ public class ProductLabelController {
 
     @GetMapping("/{id}")
     public ProductLabelResponse getProductLabel(@PathVariable String id) {
-        final ProductLabel productLabel = productLabelService.getProductLabel(id).orElseThrow(() -> {
-            throw new ObjectNotFoundException(id, ProductLabel.class);
-        });
 
+        final ProductLabel productLabel = productLabelService.getProductLabelOrThrows(id);
         return toProductLabelResponse(productLabel);
     }
 

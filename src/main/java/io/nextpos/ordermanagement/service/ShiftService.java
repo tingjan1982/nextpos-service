@@ -3,6 +3,7 @@ package io.nextpos.ordermanagement.service;
 import io.nextpos.ordermanagement.data.Shift;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 public interface ShiftService {
 
@@ -10,7 +11,7 @@ public interface ShiftService {
 
     Shift closeShift(String clientId, BigDecimal closingBalance);
 
-    Shift getActiveShift(String clientId);
+    Optional<Shift> getActiveShift(String clientId);
 
-
+    Shift getActiveShiftOrThrows(String clientId);
 }

@@ -3,27 +3,25 @@ package io.nextpos.ordermanagement.event;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderStateChange;
 import io.nextpos.ordermanagement.service.OrderService;
+import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.exception.GeneralApplicationException;
-import org.assertj.core.api.AssertionsForClassTypes;
 import org.assertj.core.data.Index;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
 
 import javax.transaction.Transactional;
-import java.math.BigDecimal;
-import java.util.Currency;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
 class OrderStateChangeListenerTest {
-
-    private static final String CLIENT_ID = "client-id";
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
@@ -31,11 +29,19 @@ class OrderStateChangeListenerTest {
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private CountrySettings defaultCountrySettings;
+
+    private Order order;
+
+    @BeforeEach
+    void prepare() {
+        order = new Order("client-id", defaultCountrySettings.getTaxRate(), defaultCountrySettings.getCurrency());
+        orderService.createOrder(order);
+    }
+
     @Test
     void orderStateChange_HappyPath() throws Exception {
-
-        final Order order = new Order(CLIENT_ID, BigDecimal.ZERO, Currency.getInstance("TWD"));
-        orderService.createOrder(order);
 
         final CompletableFuture<OrderStateChange> future = new CompletableFuture<>();
         eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.SUBMIT, new CompletableFuture<>()));
@@ -54,9 +60,6 @@ class OrderStateChangeListenerTest {
     @Test
     void orderStateChange_Delete() throws Exception {
 
-        final Order order = new Order(CLIENT_ID, BigDecimal.ZERO, Currency.getInstance("TWD"));
-        orderService.createOrder(order);
-
         final CompletableFuture<OrderStateChange> future = new CompletableFuture<>();
         eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.DELETE, future));
 
@@ -69,9 +72,6 @@ class OrderStateChangeListenerTest {
 
     @Test
     void orderStateChange_Cancel() throws Exception {
-
-        final Order order = new Order(CLIENT_ID, BigDecimal.ZERO, Currency.getInstance("TWD"));
-        orderService.createOrder(order);
 
         final CompletableFuture<OrderStateChange> future = new CompletableFuture<>();
         eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.SUBMIT, new CompletableFuture<>()));
@@ -88,9 +88,6 @@ class OrderStateChangeListenerTest {
     @Test
     void orderStateChange_Refund() throws Exception {
 
-        final Order order = new Order(CLIENT_ID, BigDecimal.ZERO, Currency.getInstance("TWD"));
-        orderService.createOrder(order);
-
         final CompletableFuture<OrderStateChange> future = new CompletableFuture<>();
         eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.SUBMIT, new CompletableFuture<>()));
         eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.DELIVER, new CompletableFuture<>()));
@@ -104,19 +101,32 @@ class OrderStateChangeListenerTest {
         assertThat(orderStateChange.getStateChanges()).satisfies(entry -> assertThat(entry.getToState()).isEqualTo(Order.OrderState.REFUNDED), Index.atIndex(3));
     }
 
+    @Test
+    void orderStateChange_Close() throws Exception {
+
+        final CompletableFuture<OrderStateChange> future = new CompletableFuture<>();
+        eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.SUBMIT, new CompletableFuture<>()));
+        eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.DELIVER, new CompletableFuture<>()));
+        eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.SETTLE, new CompletableFuture<>()));
+        eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.CLOSE, future));
+
+        final OrderStateChange orderStateChange = future.get();
+
+        assertThat(orderStateChange.getOrderId()).isEqualTo(order.getId());
+        assertThat(orderStateChange.getStateChanges()).hasSize(4);
+        assertThat(orderStateChange.getStateChanges()).satisfies(entry -> assertThat(entry.getToState()).isEqualTo(Order.OrderState.CLOSED), Index.atIndex(3));
+    }
+
     /**
      * https://www.baeldung.com/assertj-exception-assertion
      */
     @Test
-    void orderStateChange_InvalidTransition() throws Exception {
-
-        final Order order = new Order(CLIENT_ID, BigDecimal.ZERO, Currency.getInstance("TWD"));
-        orderService.createOrder(order);
+    void orderStateChange_InvalidTransition() {
 
         final CompletableFuture<OrderStateChange> future = new CompletableFuture<>();
         eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.SETTLE, future));
 
-        AssertionsForClassTypes.assertThatThrownBy(future::get).isInstanceOf(ExecutionException.class)
+        assertThatThrownBy(future::get).isInstanceOf(ExecutionException.class)
                 .hasCauseInstanceOf(GeneralApplicationException.class);
     }
 }

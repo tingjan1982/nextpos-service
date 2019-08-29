@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/shifts")
@@ -20,6 +21,19 @@ public class ShiftController {
     @Autowired
     public ShiftController(final ShiftService shiftService) {
         this.shiftService = shiftService;
+    }
+
+    @GetMapping("/active")
+    public ShiftResponse getActiveShift(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        final Shift shift = shiftService.getActiveShift(client.getId()).orElseGet(() -> {
+            final Shift s = new Shift(client.getId(), null, null, null);
+            s.setShiftStatus(Shift.ShiftStatus.INACTIVE);
+
+            return s;
+        });
+
+        return toShiftResponse(shift);
     }
 
     @PostMapping("/open")
@@ -39,10 +53,17 @@ public class ShiftController {
     }
 
     private ShiftResponse toShiftResponse(final Shift shift) {
+        BigDecimal difference = null;
+
+        if (shift.getShiftStatus() == Shift.ShiftStatus.UNBALANCED) {
+            difference = shift.getEnd().getBalance().subtract(shift.getStart().getBalance());
+        }
+
         return new ShiftResponse(shift.getId(),
+                shift.getClientId(),
                 shift.getShiftStatus(),
-                shift.getStart().getTimestamp(),
-                shift.getStart().getWho(),
-                shift.getStart().getBalance());
+                new ShiftResponse.ShiftDetailsResponse(shift.getStart().getTimestamp(), shift.getStart().getWho(), shift.getStart().getBalance()),
+                new ShiftResponse.ShiftDetailsResponse(shift.getEnd().getTimestamp(), shift.getEnd().getWho(), shift.getEnd().getBalance()),
+                difference);
     }
 }

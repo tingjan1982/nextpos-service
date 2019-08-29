@@ -9,7 +9,6 @@ import io.nextpos.product.web.model.ProductOptionResponse;
 import io.nextpos.product.web.model.ProductOptionValueModel;
 import io.nextpos.product.web.model.ProductRequest;
 import io.nextpos.product.web.model.ProductResponse;
-import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,8 +55,12 @@ public class ProductController {
                 productRequest.getDescription(),
                 productRequest.getPrice());
         final Product product = new Product(client, productVersion);
-        product.setProductLabel(resolveProductLabel(productRequest.getProductLabelId()));
-        product.setWorkingArea(resolveWorkingArea(client, productRequest.getWorkingAreaId()));
+
+        final ProductLabel resolvedLabel = resolveProductLabel(client, productRequest.getProductLabelId());
+        product.setProductLabel(resolvedLabel);
+
+        final WorkingArea resolvedWorkingArea = resolveWorkingArea(client, productRequest.getWorkingAreaId());
+        product.setWorkingArea(resolvedWorkingArea);
 
         return product;
     }
@@ -85,6 +88,20 @@ public class ProductController {
         return toResponse(product, Version.DESIGN);
     }
 
+    private void updateProductFromRequest(final Client client, final Product product, final ProductRequest productRequest) {
+        final ProductVersion designVersion = product.getDesignVersion();
+        designVersion.setProductName(productRequest.getName());
+        designVersion.setSku(productRequest.getSku());
+        designVersion.setDescription(productRequest.getDescription());
+        designVersion.setPrice(productRequest.getPrice());
+
+        final ProductLabel resolvedLabel = resolveProductLabel(client, productRequest.getProductLabelId());
+        product.setProductLabel(resolvedLabel);
+
+        final WorkingArea resolvedWorkingArea = resolveWorkingArea(client, productRequest.getWorkingAreaId());
+        product.setWorkingArea(resolvedWorkingArea);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteProduct(@PathVariable final String id,
@@ -95,17 +112,6 @@ public class ProductController {
         productService.deleteProduct(product);
     }
 
-    private void updateProductFromRequest(final Client client, final Product product, final ProductRequest productRequest) {
-        final ProductVersion designVersion = product.getDesignVersion();
-        designVersion.setProductName(productRequest.getName());
-        designVersion.setSku(productRequest.getSku());
-        designVersion.setDescription(productRequest.getDescription());
-        designVersion.setPrice(productRequest.getPrice());
-
-        product.setProductLabel(resolveProductLabel(productRequest.getProductLabelId()));
-        product.setWorkingArea(resolveWorkingArea(client, productRequest.getWorkingAreaId()));
-    }
-
 
     @PostMapping("/{id}/deploy")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -114,12 +120,9 @@ public class ProductController {
         productService.deployProduct(id);
     }
 
-    // todo: check ownership
-    private ProductLabel resolveProductLabel(String labelId) {
+    private ProductLabel resolveProductLabel(final Client client, String labelId) {
         if (labelId != null) {
-            return productLabelService.getProductLabel(labelId).orElseThrow(() -> {
-                throw new ObjectNotFoundException(labelId, ProductLabel.class);
-            });
+            return clientObjectOwnershipService.checkOwnership(client, () -> productLabelService.getProductLabelOrThrows(labelId));
         }
 
         return null;

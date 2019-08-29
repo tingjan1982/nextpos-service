@@ -7,6 +7,8 @@ import io.nextpos.settings.service.SettingsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
 import org.springframework.stereotype.Component;
 
@@ -60,5 +62,17 @@ public class BootstrapConfig {
 
             LOGGER.info("Created default country settings: {}", defaultCountrySettings);
         }
+    }
+
+    @Bean
+    @Lazy
+    public Client defaultClient() {
+        return clientService.getDefaultClient();
+    }
+
+    @Bean
+    @Lazy
+    public CountrySettings defaultCountrySettings() {
+        return settingsService.getCountrySettings(DEFAULT_COUNTRY_CODE);
     }
 }

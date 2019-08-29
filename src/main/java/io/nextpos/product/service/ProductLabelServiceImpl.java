@@ -3,6 +3,7 @@ package io.nextpos.product.service;
 import io.nextpos.client.data.Client;
 import io.nextpos.product.data.ProductLabel;
 import io.nextpos.product.data.ProductLabelRepository;
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,14 @@ public class ProductLabelServiceImpl implements ProductLabelService {
     public Optional<ProductLabel> getProductLabel(final String id) {
         return productLabelRepository.findById(id);
     }
+
+    @Override
+    public ProductLabel getProductLabelOrThrows(final String id) {
+        return this.getProductLabel(id).orElseThrow(() -> {
+            throw new ObjectNotFoundException(id, ProductLabel.class);
+        });
+    }
+
 
     @Override
     public Optional<ProductLabel> getProductLabelByName(final String name, final Client client) {

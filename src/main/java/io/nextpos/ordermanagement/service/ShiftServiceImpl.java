@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -32,7 +33,7 @@ public class ShiftServiceImpl implements ShiftService {
     @Override
     public Shift openShift(final String clientId, BigDecimal openingBalance) {
 
-        final Optional<Shift> activeShift = shiftRepository.findByClientIdAndShiftStatus(clientId, Shift.ShiftStatus.ACTIVE);
+        final Optional<Shift> activeShift = this.getActiveShift(clientId);
 
         if (activeShift.isPresent()) {
             LOGGER.warn("There is already an active shift. Returning active shift directly: {}", activeShift.get());
@@ -40,7 +41,7 @@ public class ShiftServiceImpl implements ShiftService {
         }
 
         final String currentUser = oAuth2Helper.getCurrentPrincipal();
-        final Shift shift = new Shift(clientId, currentUser, openingBalance);
+        final Shift shift = new Shift(clientId, new Date(), currentUser, openingBalance);
 
         return shiftRepository.save(shift);
     }
@@ -48,7 +49,8 @@ public class ShiftServiceImpl implements ShiftService {
     @Override
     public Shift closeShift(final String clientId, BigDecimal closingBalance) {
 
-        final Shift shift = getActiveShift(clientId);
+        final Shift shift = getActiveShiftOrThrows(clientId);
+
         final String currentUser = oAuth2Helper.getCurrentPrincipal();
         shift.closeShift(currentUser, closingBalance);
 
@@ -56,8 +58,14 @@ public class ShiftServiceImpl implements ShiftService {
     }
 
     @Override
-    public Shift getActiveShift(final String clientId) {
-        return shiftRepository.findByClientIdAndShiftStatus(clientId, Shift.ShiftStatus.ACTIVE).orElseThrow(() -> {
+    public Optional<Shift> getActiveShift(final String clientId) {
+        return shiftRepository.findByClientIdAndShiftStatus(clientId, Shift.ShiftStatus.ACTIVE);
+    }
+
+    @Override
+    public Shift getActiveShiftOrThrows(final String clientId) {
+
+        return this.getActiveShift(clientId).orElseThrow(() -> {
             throw new ShiftException(clientId);
         });
     }

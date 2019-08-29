@@ -12,6 +12,8 @@ public interface ProductLabelService {
 
     Optional<ProductLabel> getProductLabel(String id);
 
+    ProductLabel getProductLabelOrThrows(String id);
+
     Optional<ProductLabel> getProductLabelByName(String name, final Client client);
 
     List<ProductLabel> getProductLabels(Client client);
