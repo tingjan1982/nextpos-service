@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Lookup;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.http.HttpMethod;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -39,7 +39,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static org.springframework.http.HttpMethod.*;
+
 /**
+ * The order of these Security components are:
+ * Authorization Server -> Resource Server -> SecurityConfig
+ * <p>
  * https://www.baeldung.com/spring-boot-security-autoconfiguration
  * <p>
  * https://www.baeldung.com/spring-security-oauth-jwt
@@ -47,24 +52,36 @@ import java.util.Map;
  * Contains core security configuration and shared beans that are needed by the authorization server and resource server.
  * <p>
  * https://projects.spring.io/spring-security-oauth/docs/oauth2.html
- *
+ * <p>
  * https://docs.spring.io/spring-security-oauth2-boot/docs/current/reference/htmlsingle/
  */
 @EnableWebSecurity(debug = false)
+@Order(2)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-//    @Override
-//    protected void configure(HttpSecurity http) throws Exception {
-//
-//        http.csrf().disable()
-//                .authorizeRequests()
-//                .antMatchers("/**").permitAll();
-//    }
+    /**
+     * Use basic auth only to authenticate /actuator requests.
+     *
+     * Reference to configuring multiple HttpSecurity with @Order:
+     * https://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#multiple-httpsecurity
+     */
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+
+        http.csrf().disable()
+                .antMatcher("/actuator/**")
+                .authorizeRequests()
+                .antMatchers("/actuator/health").permitAll()
+                .anyRequest().authenticated().and().httpBasic();
+    }
 
     @Override
     protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
-
         auth.userDetailsService(clientService()).passwordEncoder(passwordEncoder());
+
+        // todo: external this.
+        final String encodedPassword = passwordEncoder().encode("nextpos");
+        auth.inMemoryAuthentication().withUser("admin").password(encodedPassword).roles("ADMIN");
     }
 
     /**
@@ -263,13 +280,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         @Override
         public void configure(ResourceServerSecurityConfigurer config) {
             config.tokenServices(tokenServices)
-                    .resourceId(OAuthSettings.RESOURCE_ID);
-            //.stateless(false);
+                    .resourceId(OAuthSettings.RESOURCE_ID)
+                    .stateless(true);
         }
 
         /**
          * For more supported expression based access control, see: OAuth2SecurityExpressionMethods
-         *
+         * <p>
          * For adding filter in the security filter chain, see:
          * https://www.baeldung.com/spring-security-registered-filters
          * https://www.baeldung.com/spring-security-custom-filter
@@ -286,13 +303,73 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .cors().and()
                     .addFilterBefore(requestIdContextFilter, WebAsyncManagerIntegrationFilter.class)
                     .authorizeRequests()
-                    .antMatchers("/actuator/**", "/clients/default", "/activateaccount", "/error", "/favicon.ico").permitAll()
-                    .antMatchers(HttpMethod.DELETE, "/clients/**").access("hasAuthority('MASTER')")
-                    .antMatchers(HttpMethod.POST, "/clients").permitAll()
-                    .antMatchers(HttpMethod.POST, "/clients/me/users").access("hasAuthority('ADMIN') and #oauth2.hasScopeMatching('client:write')")
-                    .antMatchers(HttpMethod.GET, "/products/**", "/productoptions/**").access("hasAnyAuthority('USER') and #oauth2.hasScopeMatching('product:.*')")
-                    .antMatchers(HttpMethod.POST, "/products/**", "/productoptions/**").access("hasAuthority('USER') and #oauth2.hasScopeMatching('product:.*')")
-                    .anyRequest().authenticated();
+                    .antMatchers(DELETE, "/clients/**").access("hasAuthority('MASTER')")
+                    .antMatchers(POST, "/clients").permitAll()
+                    .antMatchers("/clients/default", "/activateaccount", "/error", "/favicon.ico").permitAll();
+
+            this.authorizeClientRequests(http);
+            this.authorizeTimeCardRequests(http);
+            this.authorizeTablesAndWorkingAreaRequests(http);
+            this.authorizeProductRequests(http);
+            this.authorizeShiftAndOrderRequests(http);
+            this.authorizeReportingRequests(http);
+
+            http.authorizeRequests().anyRequest().authenticated();
+
+//                    .antMatchers(HttpMethod.POST, "/clients/me/users").access("hasAuthority('ADMIN') and #oauth2.hasScopeMatching('client:write')")
+//                    .antMatchers(HttpMethod.GET, "/products/**", "/productoptions/**").access("hasAnyAuthority('USER') and #oauth2.hasScopeMatching('product:.*')")
+//                    .antMatchers(HttpMethod.POST, "/products/**", "/productoptions/**").access("hasAuthority('USER') and #oauth2.hasScopeMatching('product:.*')")
+        }
+
+        private void authorizeClientRequests(final HttpSecurity http) throws Exception {
+
+            http.authorizeRequests()
+                    .antMatchers(DELETE, "/clients/**").access("hasAuthority('MASTER')")
+                    .antMatchers(POST, "/clients").permitAll()
+                    .antMatchers(GET, "/clients/default").permitAll()
+                    .antMatchers(GET, "/clients/me", "/clients/*").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(POST, "/clients/me/users").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(GET, "/clients/me/users").hasAuthority(Role.USER_ROLE);
+        }
+
+        private void authorizeTimeCardRequests(final HttpSecurity http) throws Exception {
+
+            http.authorizeRequests()
+                    .antMatchers("/timecards/**").hasAuthority(Role.USER_ROLE);
+        }
+
+        private void authorizeTablesAndWorkingAreaRequests(final HttpSecurity http) throws Exception {
+
+            http.authorizeRequests()
+                    .antMatchers("/tablelayouts/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers("/workingareas/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers("/printers/**").hasAuthority(Role.MANAGER_ROLE);
+        }
+
+        private void authorizeProductRequests(final HttpSecurity http) throws Exception {
+
+            http.authorizeRequests()
+                    .antMatchers(DELETE, "/products/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(POST, "/products/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(GET, "/products/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(POST, "/productoptions/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(GET, "/productoptions/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(POST, "/labels/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(GET, "/labels/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers("/searches/**").hasAuthority(Role.USER_ROLE);
+        }
+
+        private void authorizeShiftAndOrderRequests(final HttpSecurity http) throws Exception {
+
+            http.authorizeRequests()
+                    .antMatchers("/shifts/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers("/orders/**").hasAuthority(Role.USER_ROLE);
+        }
+
+        private void authorizeReportingRequests(final HttpSecurity http) throws Exception {
+
+            http.authorizeRequests()
+                    .antMatchers("/reporting/**").hasAuthority(Role.ADMIN_ROLE);
         }
     }
 
@@ -301,6 +378,22 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         public static final String RESOURCE_ID = "nextpos-service";
 
         private static final String SIGNING_KEY = "1qaz2wsx";
+    }
+
+    // todo: revisit this concept later
+    public interface Group {
+        String[] DEFAULT_ADMIN_ROLES = new String[]{Role.ADMIN_ROLE, Role.MANAGER_ROLE, Role.USER_ROLE};
+    }
+
+    public interface Role {
+
+        String MASTER_ROLE = "MASTER";
+
+        String ADMIN_ROLE = "ADMIN";
+
+        String MANAGER_ROLE = "MANAGER";
+
+        String USER_ROLE = "USER";
     }
 
     public static class OAuthScopes {

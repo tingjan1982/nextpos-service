@@ -4,11 +4,9 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.shared.config.SecurityConfig;
 import io.nextpos.shared.exception.ClientNotFoundException;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
@@ -41,20 +39,6 @@ public class ClientResolver extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response, final FilterChain filterChain) throws ServletException, IOException {
 
-//        final String clientId = request.getHeader(CLIENT_ID);
-//
-//        if (StringUtils.isBlank(clientId)) {
-//            throw new ClientNotFoundException("Client id is missing in the header: x-client-id");
-//        }
-//
-//        final Optional<Client> clientOptional = clientService.getClient(clientId);
-//
-//        final Client client = clientOptional.orElseThrow(() -> {
-//            throw new ClientNotFoundException("Client cannot be found: " + clientId);
-//        });
-
-        //checkClientCredentials(client);
-
         request.setAttribute(REQ_ATTR_CLIENT, resolveClient());
 
         filterChain.doFilter(request, response);
@@ -70,19 +54,5 @@ public class ClientResolver extends OncePerRequestFilter {
         return clientService.getClient(clientId).orElseThrow(() -> {
             throw new ClientNotFoundException("Client cannot be found: " + clientId);
         });
-    }
-
-    private void checkClientCredentials(Client client) {
-
-        final OAuth2Authentication authentication = (OAuth2Authentication) SecurityContextHolder.getContext().getAuthentication();
-        final OAuth2AuthenticationDetails oAuth2AuthenticationDetails = (OAuth2AuthenticationDetails) authentication.getDetails();
-        final SecurityConfig.ExtraClaims extraClaims = (SecurityConfig.ExtraClaims) oAuth2AuthenticationDetails.getDecodedDetails();
-
-        final boolean accessCheck = StringUtils.equals(client.getId(), extraClaims.getApplicationClientId());
-        LOGGER.info("Access control check on client access token against header: {}", accessCheck);
-
-        if (!accessCheck) {
-            throw new AccessDeniedException(String.format("Value in header %s does not match client id in the token", CLIENT_ID));
-        }
     }
 }

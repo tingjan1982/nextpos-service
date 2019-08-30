@@ -1,5 +1,6 @@
 package io.nextpos.shared.model.validator;
 
+import io.nextpos.shared.config.SecurityConfig;
 import org.springframework.util.CollectionUtils;
 
 import javax.validation.ConstraintValidator;
@@ -8,7 +9,7 @@ import java.util.List;
 
 public class RolesValidator implements ConstraintValidator<ValidRoles, List<String>> {
 
-    private static final List<String> VALID_ROLES = List.of("ADMIN", "USER");
+    private static final List<String> VALID_ROLES = List.of(SecurityConfig.Role.ADMIN_ROLE, SecurityConfig.Role.MANAGER_ROLE, SecurityConfig.Role.USER_ROLE);
 
     @Override
     public void initialize(final ValidRoles constraintAnnotation) {
@@ -32,6 +33,7 @@ public class RolesValidator implements ConstraintValidator<ValidRoles, List<Stri
         }
 
         if (errorMessage != null) {
+            context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate(errorMessage).addConstraintViolation();
         }
 

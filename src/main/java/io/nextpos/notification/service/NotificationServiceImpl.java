@@ -70,7 +70,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     private NotificationDetails determineSendStrategyAndSend(NotificationDetails notificationDetails) {
-        LOGGER.info("Preparing to send notification: {}", notificationDetails);
+        LOGGER.info("Preparing to send notification: {}", notificationDetails.getId());
 
         // todo: try out the Rest API implementation
         if (notificationDetails instanceof EmailDetails) {

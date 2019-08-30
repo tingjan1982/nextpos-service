@@ -46,7 +46,7 @@ public class BootstrapConfig {
 
         if (clientService.getDefaultClient() == null) {
             final Client defaultClient = new Client(MASTER_CLIENT, MASTER_CLIENT, "1qaz2wsx3edc", DEFAULT_COUNTRY_CODE);
-            defaultClient.setRoles("MASTER");
+            defaultClient.setRoles(SecurityConfig.Role.MASTER_ROLE);
             final Client client = clientService.createClient(defaultClient);
 
             final String secret = new RandomValueStringGenerator(32).generate();
