@@ -3,6 +3,7 @@ language: ruby
 services:
   - docker
 
+## reference on file encryption in travis: https://docs.travis-ci.com/user/encrypting-files/
 before_install:
   - docker pull amazoncorretto:11
   - docker pull google/cloud-sdk:249.0.0-alpine

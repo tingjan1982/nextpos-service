@@ -23,3 +23,16 @@ https://docs.travis-ci.com/user/docker/
 ## Portal
                                                     
 https://travis-ci.org/tingjan1982/nextpos-service
+
+
+Administration
+
+Connect to Cloud SQL:
+
+sudo docker run -it --rm --entrypoint=/bin/bash -v `pwd`:/a postgres:alpine
+
+psql "sslmode=verify-ca sslrootcert=server-ca.pem sslcert=client-cert.pem sslkey=client-key.pem hostaddr=<hostname> user=<username> dbname=<db name>"
+
+Connect to MongoDB Atlas
+
+mongo "mongodb+srv://nextpos-mongo-cluster-odlrm.gcp.mongodb.net/test" --username <username>
