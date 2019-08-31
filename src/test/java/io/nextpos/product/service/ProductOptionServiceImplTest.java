@@ -182,7 +182,7 @@ class ProductOptionServiceImplTest {
         productOptionService.createProductOption(productOption);
 
         final ProductLabel drinks = new ProductLabel("drinks", client);
-        productLabelService.createProductLabel(drinks);
+        productLabelService.saveProductLabel(drinks);
 
         final List<ProductOptionRelation> productOptionRelations = productOptionService.addProductOptionToProductLabel(productOption, Collections.singletonList(drinks));
 

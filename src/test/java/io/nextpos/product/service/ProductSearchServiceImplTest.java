@@ -45,9 +45,9 @@ class ProductSearchServiceImplTest {
         final ProductLabel pastaLabel = foodLabel.addChildProductLabel("pasta");
         final ProductLabel labelWithoutProduct = new ProductLabel("not used", client);
 
-        productLabelService.createProductLabel(drinkLabel);
-        productLabelService.createProductLabel(foodLabel);
-        productLabelService.createProductLabel(labelWithoutProduct);
+        productLabelService.saveProductLabel(drinkLabel);
+        productLabelService.saveProductLabel(foodLabel);
+        productLabelService.saveProductLabel(labelWithoutProduct);
 
         final Product coffee = new Product(client, DummyObjects.dummyProductVersion("black coffee"));
         coffee.setProductLabel(drinkLabel);

@@ -4,6 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.product.data.*;
 import io.nextpos.product.service.ProductLabelService;
+import io.nextpos.product.service.ProductOptionService;
 import io.nextpos.product.service.ProductService;
 import io.nextpos.product.web.model.ProductOptionResponse;
 import io.nextpos.product.web.model.ProductOptionValueModel;
@@ -13,6 +14,7 @@ import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -27,14 +29,17 @@ public class ProductController {
 
     private final ProductLabelService productLabelService;
 
+    private final ProductOptionService productOptionService;
+
     private final WorkingAreaService workingAreaService;
 
     private final ClientObjectOwnershipService clientObjectOwnershipService;
 
     @Autowired
-    public ProductController(final ProductService productService, final ProductLabelService productLabelService, final WorkingAreaService workingAreaService, final ClientObjectOwnershipService clientObjectOwnershipService) {
+    public ProductController(final ProductService productService, final ProductLabelService productLabelService, final ProductOptionService productOptionService, final WorkingAreaService workingAreaService, final ClientObjectOwnershipService clientObjectOwnershipService) {
         this.productService = productService;
         this.productLabelService = productLabelService;
+        this.productOptionService = productOptionService;
         this.workingAreaService = workingAreaService;
         this.clientObjectOwnershipService = clientObjectOwnershipService;
     }
@@ -61,6 +66,8 @@ public class ProductController {
 
         final WorkingArea resolvedWorkingArea = resolveWorkingArea(client, productRequest.getWorkingAreaId());
         product.setWorkingArea(resolvedWorkingArea);
+
+        this.replaceProductOptions(productRequest, product);
 
         return product;
     }
@@ -89,6 +96,7 @@ public class ProductController {
     }
 
     private void updateProductFromRequest(final Client client, final Product product, final ProductRequest productRequest) {
+
         final ProductVersion designVersion = product.getDesignVersion();
         designVersion.setProductName(productRequest.getName());
         designVersion.setSku(productRequest.getSku());
@@ -100,6 +108,37 @@ public class ProductController {
 
         final WorkingArea resolvedWorkingArea = resolveWorkingArea(client, productRequest.getWorkingAreaId());
         product.setWorkingArea(resolvedWorkingArea);
+
+        this.replaceProductOptions(productRequest, product);
+    }
+
+    private ProductLabel resolveProductLabel(final Client client, String labelId) {
+        if (labelId != null) {
+            return clientObjectOwnershipService.checkOwnership(client, () -> productLabelService.getProductLabelOrThrows(labelId));
+        }
+
+        return null;
+    }
+
+    private WorkingArea resolveWorkingArea(Client client, String workingAreaId) {
+        if (workingAreaId != null) {
+            return clientObjectOwnershipService.checkOwnership(client, () -> workingAreaService.getWorkingArea(workingAreaId));
+        }
+
+        return null;
+    }
+
+    // todo: refactor this and one in ProductLabelController as they are similar
+    private void replaceProductOptions(final ProductRequest productRequest, final Product product) {
+
+        if (!CollectionUtils.isEmpty(productRequest.getProductOptionIds())) {
+            final ProductOption[] resolvedProductOptions = productRequest.getProductOptionIds().stream()
+                    .map(productOptionService::getProductOption).toArray(ProductOption[]::new);
+
+            product.replaceProductOptions(resolvedProductOptions);
+        } else {
+            product.replaceProductOptions();
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -120,22 +159,6 @@ public class ProductController {
         productService.deployProduct(id);
     }
 
-    private ProductLabel resolveProductLabel(final Client client, String labelId) {
-        if (labelId != null) {
-            return clientObjectOwnershipService.checkOwnership(client, () -> productLabelService.getProductLabelOrThrows(labelId));
-        }
-
-        return null;
-    }
-
-    private WorkingArea resolveWorkingArea(Client client, String workingAreaId) {
-        if (workingAreaId != null) {
-            return clientObjectOwnershipService.checkOwnership(client, () -> workingAreaService.getWorkingArea(workingAreaId));
-        }
-
-        return null;
-    }
-
     private ProductResponse toResponse(Product product, final Version version) {
 
         ProductVersion productVersion = product.getObjectByVersionThrows(version);
@@ -144,6 +167,7 @@ public class ProductController {
         final WorkingArea workingArea = product.getWorkingArea();
 
         final List<ProductOptionResponse> productOptions = product.getProductOptionOfProducts().stream()
+                .filter(pop -> pop.getProduct() != null)
                 .map(po -> toProductOptionResponse(version, po))
                 .collect(Collectors.toList());
 

@@ -14,7 +14,7 @@ import javax.transaction.Transactional;
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
@@ -25,6 +25,9 @@ class ProductServiceImplTest {
 
     @Autowired
     private ProductLabelService productLabelService;
+
+    @Autowired
+    private ProductOptionService productOptionService;
 
     @Autowired
     private ProductVersionRepository productVersionRepository;
@@ -44,11 +47,18 @@ class ProductServiceImplTest {
     void crudProduct() {
 
         final ProductLabel label = new ProductLabel("label", createdClient);
-        productLabelService.createProductLabel(label);
+        productLabelService.saveProductLabel(label);
 
-        final ProductVersion productVersion = new ProductVersion("Gin Topic", "sku-001", "signature drink", BigDecimal.valueOf(350));
+        final ProductOption ice = new ProductOption(createdClient, new ProductOptionVersion("ice", ProductOptionVersion.OptionType.ONE_CHOICE, true));
+        productOptionService.createProductOption(ice);
+
+        final ProductOption sugar = new ProductOption(createdClient, new ProductOptionVersion("ice", ProductOptionVersion.OptionType.ONE_CHOICE, true));
+        productOptionService.createProductOption(ice);
+
+        final ProductVersion productVersion = new ProductVersion("Gin & Tonic", "sku-001", "signature drink", BigDecimal.valueOf(350));
         final Product product = new Product(createdClient, productVersion);
         product.setProductLabel(label);
+        product.replaceProductOptions(ice);
 
         final Product createdProduct = productService.saveProduct(product);
 
@@ -56,19 +66,24 @@ class ProductServiceImplTest {
 
         final Product existingProduct = productService.getProduct(createdProduct.getId());
         assertProduct(existingProduct, product);
+        assertThat(existingProduct.getProductOptionOfProducts()).hasSize(1);
 
         existingProduct.setProductLabel(null);
         existingProduct.getDesignVersion().setProductName("updated");
+        existingProduct.replaceProductOptions(ice, sugar);
+
         productService.saveProduct(existingProduct);
 
         final Product updatedProduct = productService.getProduct(existingProduct.getId());
+
         assertThat(updatedProduct.getId()).isEqualTo(createdProduct.getId());
         assertThat(updatedProduct.getProductLabel()).isNull();
+        assertThat(updatedProduct.getProductOptionOfProducts()).hasSize(2);
         assertThat(updatedProduct.getDesignVersion().getProductName()).isEqualTo("updated");
 
         productService.deleteProduct(updatedProduct);
 
-        assertThrows(ObjectNotFoundException.class, () -> productService.getProduct(updatedProduct.getId()));
+        assertThatThrownBy(() -> productService.getProduct(updatedProduct.getId())).isInstanceOf(ObjectNotFoundException.class);
     }
 
     private void assertProduct(Product actual, Product expected) {

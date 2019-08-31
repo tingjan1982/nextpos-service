@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -26,4 +27,6 @@ public class ProductRequest {
     private String productLabelId;
 
     private String workingAreaId;
+
+    private List<String> productOptionIds;
 }

@@ -53,7 +53,7 @@ public class ProductOptionServiceImpl implements ProductOptionService {
     public List<ProductOptionRelation> addProductOptionToProduct(final ProductOption productOption, final List<Product> products) {
 
         return products.stream()
-                .map(p -> new ProductOptionRelation.ProductOptionOfProduct(productOption, p))
+                .map(p -> p.addProductOption(productOption))
                 .map(productOptionRelationRepository::save).collect(Collectors.toList());
     }
 
@@ -70,7 +70,7 @@ public class ProductOptionServiceImpl implements ProductOptionService {
     public List<ProductOptionRelation> addProductOptionToProductLabel(final ProductOption productOption, final List<ProductLabel> productLabels) {
 
         return productLabels.stream()
-                .map(l -> new ProductOptionRelation.ProductOptionOfLabel(productOption, l))
+                .map(l -> l.addProductOption(productOption))
                 .map(productOptionRelationRepository::save).collect(Collectors.toList());
     }
 }

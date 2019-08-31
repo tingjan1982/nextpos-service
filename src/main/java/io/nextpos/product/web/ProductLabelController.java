@@ -1,11 +1,14 @@
 package io.nextpos.product.web;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.service.ClientObjectOwnershipService;
+import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
+import io.nextpos.product.data.ProductOption;
+import io.nextpos.product.data.ProductOptionRelation;
 import io.nextpos.product.service.ProductLabelService;
-import io.nextpos.product.web.model.ProductLabelRequest;
-import io.nextpos.product.web.model.ProductLabelResponse;
-import io.nextpos.product.web.model.ProductLabelsResponse;
+import io.nextpos.product.service.ProductOptionService;
+import io.nextpos.product.web.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
@@ -22,24 +25,31 @@ public class ProductLabelController {
 
     private final ProductLabelService productLabelService;
 
+    private final ProductOptionService productOptionService;
+
+    private final ClientObjectOwnershipService clientObjectOwnershipService;
+
     @Autowired
-    public ProductLabelController(final ProductLabelService productLabelService) {
+    public ProductLabelController(final ProductLabelService productLabelService, final ProductOptionService productOptionService, final ClientObjectOwnershipService clientObjectOwnershipService) {
         this.productLabelService = productLabelService;
+        this.productOptionService = productOptionService;
+        this.clientObjectOwnershipService = clientObjectOwnershipService;
     }
 
     @PostMapping
     public ProductLabelResponse createProductLabel(@RequestAttribute(REQ_ATTR_CLIENT) Client client, @Valid @RequestBody ProductLabelRequest productLabelRequest) {
 
         ProductLabel productLabel = fromProductLabelRequest(productLabelRequest, client);
-        final ProductLabel createdProductLabel = productLabelService.createProductLabel(productLabel);
+        final ProductLabel createdProductLabel = productLabelService.saveProductLabel(productLabel);
 
         return toProductLabelResponse(createdProductLabel);
     }
 
     @GetMapping("/{id}")
-    public ProductLabelResponse getProductLabel(@PathVariable String id) {
+    public ProductLabelResponse getProductLabel(@RequestAttribute(REQ_ATTR_CLIENT) Client client,
+                                                @PathVariable String id) {
 
-        final ProductLabel productLabel = productLabelService.getProductLabelOrThrows(id);
+        final ProductLabel productLabel = clientObjectOwnershipService.checkOwnership(client, () -> productLabelService.getProductLabelOrThrows(id));
         return toProductLabelResponse(productLabel);
     }
 
@@ -49,6 +59,20 @@ public class ProductLabelController {
         final List<ProductLabel> productLabels = productLabelService.getProductLabels(client);
         return toProductLabelsResponse(productLabels);
 
+    }
+
+    @PostMapping("/{id}/applyOptions")
+    public AppliedProductsResponse applyProductOptionsToProducts(@RequestAttribute(REQ_ATTR_CLIENT) Client client,
+                                                                 @PathVariable final String id) {
+
+        final ProductLabel productLabel = clientObjectOwnershipService.checkOwnership(client, () -> productLabelService.getProductLabelOrThrows(id));
+        final List<Product> appliedProducts = productLabelService.applyProductOptionsToProducts(productLabel);
+
+        final List<SimpleObjectResponse> appliedProductResponses = appliedProducts.stream()
+                .map(p -> new SimpleObjectResponse(p.getId(), p.getDesignVersion().getProductName()))
+                .collect(Collectors.toList());
+
+        return new AppliedProductsResponse(appliedProductResponses);
     }
 
     private ProductLabelsResponse toProductLabelsResponse(final List<ProductLabel> productLabels) {
@@ -61,6 +85,13 @@ public class ProductLabelController {
     private ProductLabel fromProductLabelRequest(final ProductLabelRequest productLabelRequest, final Client client) {
 
         final ProductLabel productLabel = new ProductLabel(productLabelRequest.getLabel(), client);
+
+        if (!CollectionUtils.isEmpty(productLabelRequest.getProductOptionIds())) {
+            final ProductOption[] resolvedProductOptions = productLabelRequest.getProductOptionIds().stream()
+                    .map(productOptionService::getProductOption).toArray(ProductOption[]::new);
+
+            productLabel.replaceProductOptions(resolvedProductOptions);
+        }
 
         if (!CollectionUtils.isEmpty(productLabelRequest.getSubLabels())) {
             productLabelRequest.getSubLabels().forEach(subLabel -> this.addSubLabelsRecursively(subLabel, productLabel));
@@ -84,6 +115,14 @@ public class ProductLabelController {
     private ProductLabelResponse toProductLabelResponse(final ProductLabel productLabel) {
 
         final ProductLabelResponse productLabelResponse = new ProductLabelResponse(productLabel.getId(), productLabel.getName());
+
+        if (!CollectionUtils.isEmpty(productLabel.getProductOptionOfLabels())) {
+            final List<SimpleObjectResponse> productOptions = productLabel.getProductOptionOfLabels().stream()
+                    .map(ProductOptionRelation::getProductOption)
+                    .map(po -> new SimpleObjectResponse(po.getId(), po.getDesignVersion().getOptionName())).collect(Collectors.toList());
+
+            productLabelResponse.setProductOptions(productOptions);
+        }
 
         if (!CollectionUtils.isEmpty(productLabel.getChildLabels())) {
             productLabel.getChildLabels().forEach(childLabel -> addSubLabelsRecursively(childLabel, productLabelResponse));

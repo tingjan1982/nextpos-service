@@ -15,7 +15,9 @@ public interface ProductOptionService {
 
     ProductOption deployProductOption(String id);
 
+    @Deprecated
     List<ProductOptionRelation> addProductOptionToProduct(ProductOption productOption, List<Product> products);
 
+    @Deprecated
     List<ProductOptionRelation> addProductOptionToProductLabel(ProductOption productOption, List<ProductLabel> productLabels);
 }

@@ -47,8 +47,6 @@ public abstract class ProductOptionRelation {
         public ProductOptionOfProduct(final ProductOption productOption, final Product product) {
             super(productOption);
             this.product = product;
-
-            this.product.getProductOptionOfProducts().add(this);
         }
     }
 
@@ -67,8 +65,6 @@ public abstract class ProductOptionRelation {
         public ProductOptionOfLabel(final ProductOption productOption, final ProductLabel productLabel) {
             super(productOption);
             this.productLabel = productLabel;
-            
-            this.productLabel.getProductOptionOfLabels().add(this);
         }
     }
 }

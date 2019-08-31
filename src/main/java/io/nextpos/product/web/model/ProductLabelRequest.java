@@ -15,5 +15,7 @@ public class ProductLabelRequest {
     @NotBlank
     private String label;
 
+    private List<String> productOptionIds;
+
     private List<ProductLabelRequest> subLabels;
 }

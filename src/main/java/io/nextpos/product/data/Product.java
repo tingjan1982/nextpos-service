@@ -11,6 +11,7 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * Information on mapping a a one-to-many relationship with a Map.
@@ -71,6 +72,34 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
     @Override
     public Optional<ProductVersion> getObjectByVersion(final Version version) {
         return Optional.ofNullable(versions.get(version));
+    }
+
+    /**
+     * Clears all existing product option relation and re-add those passed through as parameter.
+     *
+     * Remove existing product options by setting parent to null in ProductOptionOfProduct.
+     */
+    public void replaceProductOptions(ProductOption... productOptions) {
+
+        productOptionOfProducts.forEach(pop -> pop.setProduct(null));
+
+        if (productOptions != null) {
+            Stream.of(productOptions).forEach(this::addProductOption);
+        }
+    }
+
+    /**
+     * Add ProductOption to this product is not already added.
+     *
+     * @param productOption
+     * @return
+     */
+    public ProductOptionRelation.ProductOptionOfProduct addProductOption(ProductOption productOption) {
+
+        final ProductOptionRelation.ProductOptionOfProduct productOptionRelation = new ProductOptionRelation.ProductOptionOfProduct(productOption, this);
+        productOptionOfProducts.add(productOptionRelation);
+
+        return productOptionRelation;
     }
 
     @Override

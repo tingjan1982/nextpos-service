@@ -19,6 +19,8 @@ public class ProductLabelResponse {
 
     private String label;
 
+    private List<SimpleObjectResponse> productOptions;
+
     private List<ProductLabelResponse> subLabels = new ArrayList<>();
 
     public ProductLabelResponse(final String id, final String label) {

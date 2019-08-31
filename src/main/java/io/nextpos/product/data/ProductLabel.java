@@ -11,6 +11,7 @@ import org.hibernate.annotations.GenericGenerator;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Entity(name = "client_product_label")
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "clientId"})})
@@ -62,5 +63,26 @@ public class ProductLabel extends BaseObject implements ClientObject {
         childLabels.add(childLabel);
 
         return childLabel;
+    }
+
+    // todo: refactor this and one in Product class as they are similar.
+    /**
+     * Remove existing product options by setting parent to null in ProductOptionOfLabel.
+     */
+    public void replaceProductOptions(ProductOption... productOptions) {
+
+        productOptionOfLabels.forEach(pol -> pol.setProductLabel(null));
+
+        if (productOptions != null) {
+            Stream.of(productOptions).forEach(this::addProductOption);
+        }
+    }
+
+    public ProductOptionRelation.ProductOptionOfLabel addProductOption(ProductOption productOption) {
+
+        final ProductOptionRelation.ProductOptionOfLabel productOptionRelation = new ProductOptionRelation.ProductOptionOfLabel(productOption, this);
+        productOptionOfLabels.add(productOptionRelation);
+
+        return productOptionRelation;
     }
 }

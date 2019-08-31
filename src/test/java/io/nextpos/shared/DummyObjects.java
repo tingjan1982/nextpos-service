@@ -3,6 +3,7 @@ package io.nextpos.shared;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
+import io.nextpos.product.data.ProductOptionVersion;
 import io.nextpos.product.data.ProductVersion;
 
 import java.math.BigDecimal;
@@ -28,5 +29,9 @@ public class DummyObjects {
 
     public static ProductSnapshot productSnapshot() {
         return new ProductSnapshot("pid", "coffee", "sku", BigDecimal.valueOf(100), Collections.emptyList());
+    }
+
+    public static ProductOptionVersion dummyProductOptionVersion() {
+        return new ProductOptionVersion("option", ProductOptionVersion.OptionType.ONE_CHOICE, true);
     }
 }
