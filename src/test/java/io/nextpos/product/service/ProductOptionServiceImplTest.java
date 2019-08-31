@@ -1,10 +1,12 @@
 package io.nextpos.product.service;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.client.service.ClientService;
+import io.nextpos.client.data.ClientRepository;
 import io.nextpos.product.data.*;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import org.assertj.core.data.Index;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,14 +34,23 @@ class ProductOptionServiceImplTest {
     private ProductService productService;
 
     @Autowired
-    private ClientService clientService;
+    private ProductLabelService productLabelService;
+
+    @Autowired
+    private ClientRepository clientRepository;
+
+    private Client client;
+
+    @BeforeEach
+    void prepare() {
+        client = DummyObjects.dummyClient();
+        clientRepository.save(client);
+    }
 
     @Test
     void createAndGetProductOption_OneChoice() {
 
-        final Client client = createClient();
-
-        final ProductOptionVersion stagingProductOption = new ProductOptionVersion("ice level", ProductOptionVersion.OptionType.ONE_CHOICE);
+        final ProductOptionVersion stagingProductOption = new ProductOptionVersion("ice level", ProductOptionVersion.OptionType.ONE_CHOICE, true);
         stagingProductOption.addOptionValue("full");
         stagingProductOption.addOptionValue("3/4");
         stagingProductOption.addOptionValue("half");
@@ -50,7 +61,6 @@ class ProductOptionServiceImplTest {
 
         final ProductOption createdProductOption = productOptionService.createProductOption(productOption);
 
-        verifyProductOption(createdProductOption);
         verifyProductOption(productOptionService.getProductOption(createdProductOption.getId()));
     }
 
@@ -71,9 +81,7 @@ class ProductOptionServiceImplTest {
     @Test
     void createAndGetProductOption_MultipleChoice() {
 
-        final Client client = createClient();
-
-        final ProductOptionVersion stagingProductOption = new ProductOptionVersion("extras", ProductOptionVersion.OptionType.MULTIPLE_CHOICE);
+        final ProductOptionVersion stagingProductOption = new ProductOptionVersion("extras", ProductOptionVersion.OptionType.MULTIPLE_CHOICE, true);
         stagingProductOption.addOptionValue("cheese");
         stagingProductOption.addOptionValue("egg");
 
@@ -91,9 +99,7 @@ class ProductOptionServiceImplTest {
     @Test
     void createAndGetProductOption_FreeText() {
 
-        final Client client = createClient();
-
-        final ProductOptionVersion stagingProductOption = new ProductOptionVersion("extras", ProductOptionVersion.OptionType.FREE_TEXT);
+        final ProductOptionVersion stagingProductOption = new ProductOptionVersion("extras", ProductOptionVersion.OptionType.FREE_TEXT, true);
         stagingProductOption.addOptionValue("this shouldn't have any effect", BigDecimal.valueOf(50));
 
         final ProductOption productOption = new ProductOption(client, stagingProductOption);
@@ -110,9 +116,7 @@ class ProductOptionServiceImplTest {
     @Test
     public void deployProductOption() {
 
-        final Client client = createClient();
-
-        final ProductOptionVersion stagingProductOption = new ProductOptionVersion("extras", ProductOptionVersion.OptionType.MULTIPLE_CHOICE);
+        final ProductOptionVersion stagingProductOption = new ProductOptionVersion("extras", ProductOptionVersion.OptionType.MULTIPLE_CHOICE, true);
         stagingProductOption.addOptionValue("cheese");
         stagingProductOption.addOptionValue("egg");
 
@@ -147,9 +151,7 @@ class ProductOptionServiceImplTest {
     @Test
     public void addProductOptionToProduct() {
 
-        final Client client = createClient();
-
-        final ProductOptionVersion stagingProductOption = new ProductOptionVersion("extras", ProductOptionVersion.OptionType.FREE_TEXT);
+        final ProductOptionVersion stagingProductOption = new ProductOptionVersion("extras", ProductOptionVersion.OptionType.FREE_TEXT, true);
         final ProductOption productOption = new ProductOption(client, stagingProductOption);
 
         productOptionService.createProductOption(productOption);
@@ -159,22 +161,40 @@ class ProductOptionServiceImplTest {
         productService.saveProduct(product);
 
         final List<ProductOptionRelation> productOptionRelations = productOptionService.addProductOptionToProduct(productOption, Collections.singletonList(product));
-        final ProductOptionRelation productOptionRelation = productOptionRelations.get(0);
-        
-        assertThat(productOptionRelation).isInstanceOf(ProductOptionRelation.ProductOptionOfProduct.class);
-        assertThat(productOptionRelation).satisfies(r -> {
-            assertThat(r.getId()).isNotNull();
-            assertThat(r.getProductOption()).isEqualTo(productOption);
-            assertThat(((ProductOptionRelation.ProductOptionOfProduct) r).getProduct()).isEqualTo(product);
-        });
+
+        assertThat(productOptionRelations).satisfies(por -> {
+            assertThat(por).isInstanceOf(ProductOptionRelation.ProductOptionOfProduct.class);
+            assertThat(por.getId()).isNotNull();
+            assertThat(por.getProductOption()).isEqualTo(productOption);
+            assertThat(((ProductOptionRelation.ProductOptionOfProduct) por).getProduct()).isEqualTo(product);
+
+        }, Index.atIndex(0));
 
         final Product retrievedProduct = productService.getProduct(product.getId());
         assertThat(retrievedProduct.getProductOptionOfProducts()).hasSize(1);
     }
 
-    private Client createClient() {
-        final Client client = DummyObjects.dummyClient();
-        clientService.createClient(client);
-        return client;
+    @Test
+    public void addProductOptionToProductLabel() {
+
+        final ProductOptionVersion stagingProductOption = new ProductOptionVersion("extras", ProductOptionVersion.OptionType.FREE_TEXT, true);
+        final ProductOption productOption = new ProductOption(client, stagingProductOption);
+        productOptionService.createProductOption(productOption);
+
+        final ProductLabel drinks = new ProductLabel("drinks", client);
+        productLabelService.createProductLabel(drinks);
+
+        final List<ProductOptionRelation> productOptionRelations = productOptionService.addProductOptionToProductLabel(productOption, Collections.singletonList(drinks));
+
+        assertThat(productOptionRelations).satisfies(por -> {
+            assertThat(por).isInstanceOf(ProductOptionRelation.ProductOptionOfLabel.class);
+            assertThat(por.getId()).isNotNull();
+            assertThat(por.getProductOption()).isEqualTo(productOption);
+            assertThat(((ProductOptionRelation.ProductOptionOfLabel) por).getProductLabel()).isEqualTo(drinks);
+
+        }, Index.atIndex(0));
+
+        final ProductLabel productLabel = productLabelService.getProductLabelOrThrows(drinks.getId());
+        assertThat(productLabel.getProductOptionOfLabels()).hasSize(1);
     }
 }

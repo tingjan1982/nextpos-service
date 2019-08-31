@@ -14,6 +14,7 @@ import javax.persistence.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * The 1 to many associations here are declared in case of a force deletion of client that
@@ -48,6 +49,11 @@ public class Client extends BaseObject {
     @Column(name = "attribute_value")
     @CollectionTable(name = "client_attributes", joinColumns = @JoinColumn(name = "client_id"))
     private Map<String, String> attributes = new HashMap<>();
+
+    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @MapKeyEnumerated(EnumType.STRING)
+    private Map<ClientSetting.SettingName, ClientSetting> clientSettings = new HashMap<>();
+
 
     /**
      * The following associations exist so when client is deleted, all associated client objects are also removed via cascade operation.
@@ -98,6 +104,25 @@ public class Client extends BaseObject {
 
     public String getAttribute(String key) {
         return attributes.get(key);
+    }
+
+    public void saveClientSettings(ClientSetting.SettingName settingName, String value, ClientSetting.ValueType valueType, boolean enabled) {
+
+        ClientSetting clientSetting = clientSettings.get(settingName);
+
+        if (clientSetting == null) {
+            clientSetting = new ClientSetting(this, settingName, value, valueType, enabled);
+            clientSettings.put(settingName, clientSetting);
+
+        } else {
+            clientSetting.setStoredValue(value);
+            clientSetting.setEnabled(enabled);
+            clientSetting.setValueType(valueType);
+        }
+    }
+
+    public Optional<ClientSetting> getClientSettings(ClientSetting.SettingName settingName) {
+        return Optional.ofNullable(clientSettings.get(settingName));
     }
 
     public enum Status {

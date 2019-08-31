@@ -1,6 +1,7 @@
 package io.nextpos.client.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.data.ClientSetting;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.shared.DummyObjects;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,7 +12,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import javax.transaction.Transactional;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,17 +32,24 @@ class ClientServiceImplTest {
     @Test
     void createAndGetClient() {
 
-        client.getAttributes().put(Client.ClientAttributes.UBN.name(), "22640971");
+        client.addAttribute(Client.ClientAttributes.UBN.name(), "22640971");
+        client.saveClientSettings(ClientSetting.SettingName.SERVICE_CHARGE, "0.1", ClientSetting.ValueType.BIG_DECIMAL, false);
 
         final Client createdClient = clientService.createClient(client);
 
         assertThat(createdClient.getId()).isNotNull();
         assertThat(createdClient.getMasterPassword()).startsWith("{bcrypt}");
 
-        final Optional<Client> retrievedClient = clientService.getClient(createdClient.getId());
+        final Client retrievedClient = clientService.getClient(createdClient.getId()).orElseThrow();
 
-        assertThat(retrievedClient.isPresent()).isTrue();
-        assertThat(retrievedClient.orElseThrow().getAttributes()).hasSize(1);
+        assertThat(retrievedClient.getAttributes()).hasSize(1);
+        assertThat(retrievedClient.getClientSettings()).hasSize(1);
+        assertThat(retrievedClient.getClientSettings(ClientSetting.SettingName.SERVICE_CHARGE).orElseThrow()).satisfies(s -> {
+            assertThat(s.getId()).isNotNull();
+            assertThat(s.getName()).isEqualTo(ClientSetting.SettingName.SERVICE_CHARGE);
+            assertThat(s.getValueType()).isEqualTo(ClientSetting.ValueType.BIG_DECIMAL);
+            assertThat(s.isEnabled()).isFalse();
+        });
     }
 
     @Test

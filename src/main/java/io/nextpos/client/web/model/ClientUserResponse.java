@@ -11,6 +11,8 @@ import java.util.List;
 @AllArgsConstructor
 public class ClientUserResponse {
 
+    private String nickname;
+
     private String username;
 
     private String encryptedPassword;

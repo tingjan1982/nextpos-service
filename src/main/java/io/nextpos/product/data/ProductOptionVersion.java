@@ -36,13 +36,16 @@ public class ProductOptionVersion extends BaseObject implements ObjectVersioning
 
     private OptionType optionType;
 
+    private boolean required;
+
     @OneToMany(mappedBy = "productOption", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<ProductOptionValue> optionValues = new ArrayList<>();
 
 
-    public ProductOptionVersion(final String optionName, final OptionType optionType) {
+    public ProductOptionVersion(final String optionName, final OptionType optionType, final boolean required) {
         this.optionName = optionName;
         this.optionType = optionType;
+        this.required = required;
     }
 
     public void addOptionValue(String optionValue) {
@@ -61,7 +64,7 @@ public class ProductOptionVersion extends BaseObject implements ObjectVersioning
 
     ProductOptionVersion copy() {
 
-        final ProductOptionVersion productOptionCopy = new ProductOptionVersion(optionName, optionType);
+        final ProductOptionVersion productOptionCopy = new ProductOptionVersion(optionName, optionType, required);
         productOptionCopy.setVersion(Version.DESIGN);
         productOptionCopy.setVersionNumber(versionNumber + 1);
 

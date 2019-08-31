@@ -57,7 +57,7 @@ public class ClientActivationServiceImpl implements ClientActivationService {
             final long timestamp = System.currentTimeMillis();
             String activationToken = String.format("%s=%s", client.getId(), timestamp);
             final String encodedToken = Base64.getEncoder().encodeToString(activationToken.getBytes());
-            final String activationLink = String.format("http://%s:8080/activateaccount?activationToken=%s", resolveHostName(), encodedToken);
+            final String activationLink = String.format("%s/activateaccount?activationToken=%s", resolveHostName(), encodedToken);
 
             final Template template = freeMarkerCfg.getTemplate("/emailActivation.ftl");
             final StringWriter writer = new StringWriter();
@@ -79,7 +79,7 @@ public class ClientActivationServiceImpl implements ClientActivationService {
         }
         
         final InetAddress ip = InetAddress.getLocalHost();
-        return ip.getHostAddress();
+        return String.format("http://%s:%d", ip.getHostAddress(), 8080);
     }
 
     @Override

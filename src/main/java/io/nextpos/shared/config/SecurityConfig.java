@@ -7,6 +7,7 @@ import io.nextpos.shared.exception.ConfigurationException;
 import io.nextpos.shared.web.RequestIdContextFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Lookup;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
@@ -59,6 +60,12 @@ import static org.springframework.http.HttpMethod.*;
 @Order(2)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+    @Value("${actuator.username}")
+    private String actuatorUsername;
+
+    @Value("${actuator.password}")
+    private String actuatorPassword;
+
     /**
      * Use basic auth only to authenticate /actuator requests.
      *
@@ -79,9 +86,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(clientService()).passwordEncoder(passwordEncoder());
 
-        // todo: external this.
-        final String encodedPassword = passwordEncoder().encode("nextpos");
-        auth.inMemoryAuthentication().withUser("admin").password(encodedPassword).roles("ADMIN");
+        final String encodedPassword = passwordEncoder().encode(actuatorPassword);
+        auth.inMemoryAuthentication().withUser(actuatorUsername).password(encodedPassword).roles("ADMIN");
     }
 
     /**

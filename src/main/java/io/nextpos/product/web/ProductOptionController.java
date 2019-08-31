@@ -82,7 +82,7 @@ public class ProductOptionController {
     private ProductOption fromProductOptionRequest(Client client, ProductOptionRequest productOptionRequest) {
 
         final ProductOptionVersion.OptionType optionType = ProductOptionVersion.OptionType.valueOf(productOptionRequest.getOptionType());
-        final ProductOptionVersion stagingProductOption = new ProductOptionVersion(productOptionRequest.getOptionName(), optionType);
+        final ProductOptionVersion stagingProductOption = new ProductOptionVersion(productOptionRequest.getOptionName(), optionType, productOptionRequest.isRequired());
 
         if (!CollectionUtils.isEmpty(productOptionRequest.getOptionValues())) {
             productOptionRequest.getOptionValues().forEach(value -> stagingProductOption.addOptionValue(value.getValue(), value.getPrice()));

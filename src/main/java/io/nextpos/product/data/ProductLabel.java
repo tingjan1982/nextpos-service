@@ -44,6 +44,10 @@ public class ProductLabel extends BaseObject implements ClientObject {
     @Fetch(value = FetchMode.SUBSELECT)
     private List<ProductLabel> childLabels = new ArrayList<>();
 
+    @OneToMany(mappedBy = "productLabel", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Fetch(value = FetchMode.SUBSELECT)
+    private List<ProductOptionRelation.ProductOptionOfLabel> productOptionOfLabels = new ArrayList<>();
+
 
     public ProductLabel(final String name, final Client client) {
         this.name = name;

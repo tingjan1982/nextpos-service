@@ -56,4 +56,21 @@ public class ProductOptionServiceImpl implements ProductOptionService {
                 .map(p -> new ProductOptionRelation.ProductOptionOfProduct(productOption, p))
                 .map(productOptionRelationRepository::save).collect(Collectors.toList());
     }
+
+    // todo: revise add product option to product and label as the actual scenario would be many options to 1.
+    /**
+     * Creates a relationship between ProductOption and ProductLabel.
+     * Also will apply all ProductOptions to all products that are associated with the ProductLabel.
+     *
+     * @param productOption
+     * @param productLabels
+     * @return
+     */
+    @Override
+    public List<ProductOptionRelation> addProductOptionToProductLabel(final ProductOption productOption, final List<ProductLabel> productLabels) {
+
+        return productLabels.stream()
+                .map(l -> new ProductOptionRelation.ProductOptionOfLabel(productOption, l))
+                .map(productOptionRelationRepository::save).collect(Collectors.toList());
+    }
 }

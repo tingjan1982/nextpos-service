@@ -15,6 +15,8 @@ import java.util.List;
 @AllArgsConstructor
 public class ClientUserRequest {
 
+    private String nickname;
+
     @NotBlank
     private String username;
 

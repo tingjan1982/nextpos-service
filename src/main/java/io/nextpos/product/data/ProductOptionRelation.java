@@ -51,4 +51,24 @@ public abstract class ProductOptionRelation {
             this.product.getProductOptionOfProducts().add(this);
         }
     }
+
+    @Entity
+    @DiscriminatorValue("productLabel")
+    @Data
+    @EqualsAndHashCode(callSuper = true)
+    @NoArgsConstructor
+    public static class ProductOptionOfLabel extends ProductOptionRelation {
+
+        @ManyToOne
+        @EqualsAndHashCode.Exclude
+        @ToString.Exclude
+        private ProductLabel productLabel;
+
+        public ProductOptionOfLabel(final ProductOption productOption, final ProductLabel productLabel) {
+            super(productOption);
+            this.productLabel = productLabel;
+            
+            this.productLabel.getProductOptionOfLabels().add(this);
+        }
+    }
 }

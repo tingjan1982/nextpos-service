@@ -127,12 +127,15 @@ public class ClientController {
 
         final String roles = String.join(",", clientUserRequest.getRoles());
         final ClientUser.ClientUserId id = new ClientUser.ClientUserId(clientUserRequest.getUsername(), client.getUsername());
-        return new ClientUser(id, clientUserRequest.getPassword(), roles);
+        final ClientUser clientUser = new ClientUser(id, clientUserRequest.getPassword(), roles);
+        clientUser.setNickname(clientUserRequest.getNickname());
+
+        return clientUser;
     }
 
     private ClientUserResponse toClientUserResponse(ClientUser clientUser) {
 
         final List<String> roles = Arrays.asList(clientUser.getRoles().split(","));
-        return new ClientUserResponse(clientUser.getId().getUsername(), clientUser.getPassword(), roles);
+        return new ClientUserResponse(clientUser.getNickname(), clientUser.getId().getUsername(), clientUser.getPassword(), roles);
     }
 }
