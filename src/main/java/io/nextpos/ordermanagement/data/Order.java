@@ -46,6 +46,8 @@ public class Order extends MongoBaseObject {
 
     private String tableId;
 
+    private DemographicData demographicData;
+
     /**
      * this represents the id suffix of line item id.
      */
@@ -198,4 +200,20 @@ public class Order extends MongoBaseObject {
         }
     }
 
+    @Data
+    @NoArgsConstructor(access = AccessLevel.PACKAGE)
+    public static class DemographicData {
+
+        private int customerCount;
+
+        private int male;
+
+        private int female;
+
+        private int kid;
+
+        private String ageGroup;
+
+        private String location;
+    }
 }

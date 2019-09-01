@@ -6,8 +6,10 @@ import io.nextpos.client.service.ClientActivationService;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.client.web.model.*;
 import io.nextpos.shared.config.BootstrapConfig;
+import io.nextpos.shared.exception.ClientAccountException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.web.ClientResolver;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
@@ -66,12 +68,48 @@ public class ClientController {
         return toClientResponse(clientService.getDefaultClient());
     }
 
-    @DeleteMapping("/{id}")
-    @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public void deleteClient(@PathVariable String id) {
-        clientService.markClientAsDeleted(id);
+    @PostMapping("/me")
+    public ClientResponse updateClient(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                       @Valid @RequestBody UpdateClientRequest updateClientRequest) {
+
+        updateClientFromRequest(client, updateClientRequest);
+        clientService.saveClient(client);
+
+        return toClientResponse(client);
     }
 
+    private void updateClientFromRequest(final Client client, final UpdateClientRequest updateClientRequest) {
+        client.setClientName(updateClientRequest.getClientName());
+        client.setAttributes(updateClientRequest.getAttributes());
+    }
+
+    @PostMapping("/{id}/deactivate")
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    public void deactivateClient(@PathVariable String id) {
+
+        final Client client = clientService.getClient(id).orElseThrow(() -> {
+            throw new ClientAccountException("Specified client account is not active.", id);
+        });
+        
+        clientService.updateClientStatus(client, Client.Status.INACTIVE);
+    }
+
+    /**
+     * Client can choose to terminate account by themselves.
+     *
+     * @param client
+     */
+    @DeleteMapping("/me")
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    public void markClientAsDeleted(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                    @RequestBody String clientName) {
+
+        if (!StringUtils.equals(clientName, client.getClientName())) {
+            throw new ClientAccountException("Delete client failed due to client name mismatch", client);
+        }
+
+        clientService.updateClientStatus(client, Client.Status.DELETED);
+    }
 
     @DeleteMapping("/{id}/hard")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)

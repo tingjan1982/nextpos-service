@@ -8,7 +8,7 @@ import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.service.OrderTransactionService;
 import io.nextpos.ordertransaction.web.model.OrderTransactionRequest;
 import io.nextpos.ordertransaction.web.model.OrderTransactionResponse;
-import io.nextpos.shared.exception.ClientNotFoundException;
+import io.nextpos.shared.exception.ClientOwnershipViolationException;
 import io.nextpos.shared.web.ClientResolver;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +61,7 @@ public class OrderTransactionController {
             final String errorMsg = String.format("Order client id and authenticated client id does not match, order cid=%s, auth cid=%s",
                     order.getClientId(), client.getId());
 
-            throw new ClientNotFoundException(errorMsg);
+            throw new ClientOwnershipViolationException(errorMsg);
         }
 
 

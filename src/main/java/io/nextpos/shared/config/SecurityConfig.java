@@ -309,8 +309,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .cors().and()
                     .addFilterBefore(requestIdContextFilter, WebAsyncManagerIntegrationFilter.class)
                     .authorizeRequests()
-                    .antMatchers(DELETE, "/clients/**").access("hasAuthority('MASTER')")
-                    .antMatchers(POST, "/clients").permitAll()
                     .antMatchers("/clients/default", "/activateaccount", "/error", "/favicon.ico").permitAll();
 
             this.authorizeClientRequests(http);
@@ -330,12 +328,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         private void authorizeClientRequests(final HttpSecurity http) throws Exception {
 
             http.authorizeRequests()
-                    .antMatchers(DELETE, "/clients/**").access("hasAuthority('MASTER')")
+                    .antMatchers(POST, "/clients/*/deactivate").access("hasAuthority('MASTER')")
+                    .antMatchers(DELETE, "/clients/*/hard").access("hasAuthority('MASTER')")
                     .antMatchers(POST, "/clients").permitAll()
                     .antMatchers(GET, "/clients/default").permitAll()
                     .antMatchers(GET, "/clients/me", "/clients/*").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/clients/me/users").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(GET, "/clients/me/users").hasAuthority(Role.USER_ROLE);
+                    .antMatchers(POST, "/clients/me").hasAuthority(Role.ADMIN_ROLE)
+                    .antMatchers(DELETE, "/clients/me").hasAuthority(Role.ADMIN_ROLE)
+                    .antMatchers(GET, "/clients/me/users").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(POST, "/clients/me/users").hasAuthority(Role.MANAGER_ROLE);
         }
 
         private void authorizeTimeCardRequests(final HttpSecurity http) throws Exception {

@@ -1,9 +1,6 @@
 package io.nextpos.shared.web;
 
-import io.nextpos.shared.exception.ConfigurationException;
-import io.nextpos.shared.exception.GeneralApplicationException;
-import io.nextpos.shared.exception.ObjectAlreadyExistsException;
-import io.nextpos.shared.exception.ObjectNotFoundException;
+import io.nextpos.shared.exception.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.hibernate.exception.ConstraintViolationException;
@@ -50,9 +47,9 @@ public class ExceptionResolver {
         return ErrorResponse.simpleErrorResponse(exception.getMessage());
     }
 
-    @ExceptionHandler(GeneralApplicationException.class)
+    @ExceptionHandler({GeneralApplicationException.class, ClientAccountException.class, ClientOwnershipViolationException.class})
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleGeneralApplicationException(GeneralApplicationException exception) {
+    public ErrorResponse handleGeneralApplicationException(Exception exception) {
 
         return ErrorResponse.simpleErrorResponse(exception.getMessage());
     }

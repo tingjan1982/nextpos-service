@@ -106,8 +106,10 @@ public class ClientActivationServiceImpl implements ClientActivationService {
 
         if (clientOptional.isPresent()) {
             final Client client = clientOptional.get();
-            client.setStatus(Client.Status.ACTIVE);
-            clientService.saveClient(client);
+
+            if (client.getStatus() != Client.Status.ACTIVE) {
+                clientService.updateClientStatus(client, Client.Status.ACTIVE);
+            }
 
             return ActivationStatus.ACTIVATED;
         }

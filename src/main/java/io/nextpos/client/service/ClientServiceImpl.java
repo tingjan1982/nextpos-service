@@ -117,6 +117,11 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
         return clientRepository.findByIdAndStatusIn(clientId, Client.Status.ACTIVE, Client.Status.PENDING_ACTIVE);
     }
 
+    @Override
+    public Optional<Client> getClientByStatuses(final String clientId, final Client.Status... status) {
+        return clientRepository.findByIdAndStatusIn(clientId, status);
+    }
+
     /**
      * In OAuth2, clientId is the username in Authorization header.
      * Client object is created with clientId and username.
@@ -148,8 +153,10 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
     }
 
     @Override
-    public void markClientAsDeleted(final String clientId) {
-        clientRepository.findById(clientId).ifPresent(client -> client.setStatus(Client.Status.DELETED));
+    public void updateClientStatus(final Client client, final Client.Status status) {
+
+        client.setStatus(status);
+        clientRepository.save(client);
     }
 
     @Override

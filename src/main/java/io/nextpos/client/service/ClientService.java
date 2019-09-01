@@ -12,13 +12,15 @@ public interface ClientService {
 
     Client saveClient(Client client);
 
-    Optional<Client> getClient(final String clientId);
+    Optional<Client> getClient(String clientId);
 
-    Optional<Client> getClientByUsername(final String username);
+    Optional<Client> getClientByStatuses(String clientId, Client.Status... status);
+
+    Optional<Client> getClientByUsername(String username);
 
     Client getDefaultClient();
 
-    void markClientAsDeleted(String clientId);
+    void updateClientStatus(Client client, Client.Status status);
 
     void deleteClient(String id);
 
