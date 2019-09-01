@@ -10,11 +10,11 @@ import io.nextpos.product.web.model.ProductOptionResponse;
 import io.nextpos.product.web.model.ProductOptionValueModel;
 import io.nextpos.product.web.model.ProductRequest;
 import io.nextpos.product.web.model.ProductResponse;
+import io.nextpos.product.web.util.ObjectWithProductOptionVisitorWrapper;
 import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -35,13 +35,16 @@ public class ProductController {
 
     private final ClientObjectOwnershipService clientObjectOwnershipService;
 
+    private final ObjectWithProductOptionVisitorWrapper productOptionVisitorWrapper;
+
     @Autowired
-    public ProductController(final ProductService productService, final ProductLabelService productLabelService, final ProductOptionService productOptionService, final WorkingAreaService workingAreaService, final ClientObjectOwnershipService clientObjectOwnershipService) {
+    public ProductController(final ProductService productService, final ProductLabelService productLabelService, final ProductOptionService productOptionService, final WorkingAreaService workingAreaService, final ClientObjectOwnershipService clientObjectOwnershipService, final ObjectWithProductOptionVisitorWrapper productOptionVisitorWrapper) {
         this.productService = productService;
         this.productLabelService = productLabelService;
         this.productOptionService = productOptionService;
         this.workingAreaService = workingAreaService;
         this.clientObjectOwnershipService = clientObjectOwnershipService;
+        this.productOptionVisitorWrapper = productOptionVisitorWrapper;
     }
 
     @PostMapping
@@ -67,7 +70,7 @@ public class ProductController {
         final WorkingArea resolvedWorkingArea = resolveWorkingArea(client, productRequest.getWorkingAreaId());
         product.setWorkingArea(resolvedWorkingArea);
 
-        this.replaceProductOptions(productRequest, product);
+        productOptionVisitorWrapper.accept(product, productRequest.getProductOptionIds());
 
         return product;
     }
@@ -109,7 +112,7 @@ public class ProductController {
         final WorkingArea resolvedWorkingArea = resolveWorkingArea(client, productRequest.getWorkingAreaId());
         product.setWorkingArea(resolvedWorkingArea);
 
-        this.replaceProductOptions(productRequest, product);
+        productOptionVisitorWrapper.accept(product, productRequest.getProductOptionIds());
     }
 
     private ProductLabel resolveProductLabel(final Client client, String labelId) {
@@ -126,19 +129,6 @@ public class ProductController {
         }
 
         return null;
-    }
-
-    // todo: refactor this and one in ProductLabelController as they are similar
-    private void replaceProductOptions(final ProductRequest productRequest, final Product product) {
-
-        if (!CollectionUtils.isEmpty(productRequest.getProductOptionIds())) {
-            final ProductOption[] resolvedProductOptions = productRequest.getProductOptionIds().stream()
-                    .map(productOptionService::getProductOption).toArray(ProductOption[]::new);
-
-            product.replaceProductOptions(resolvedProductOptions);
-        } else {
-            product.replaceProductOptions();
-        }
     }
 
     @DeleteMapping("/{id}")

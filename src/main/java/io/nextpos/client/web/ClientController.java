@@ -88,7 +88,7 @@ public class ClientController {
     public void deactivateClient(@PathVariable String id) {
 
         final Client client = clientService.getClient(id).orElseThrow(() -> {
-            throw new ClientAccountException("Specified client account is not active.", id);
+            throw new ClientAccountException("Specified client account is not active", id);
         });
         
         clientService.updateClientStatus(client, Client.Status.INACTIVE);

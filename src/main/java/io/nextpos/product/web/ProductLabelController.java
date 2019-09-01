@@ -4,11 +4,10 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
-import io.nextpos.product.data.ProductOption;
 import io.nextpos.product.data.ProductOptionRelation;
 import io.nextpos.product.service.ProductLabelService;
-import io.nextpos.product.service.ProductOptionService;
 import io.nextpos.product.web.model.*;
+import io.nextpos.product.web.util.ObjectWithProductOptionVisitorWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
@@ -25,15 +24,15 @@ public class ProductLabelController {
 
     private final ProductLabelService productLabelService;
 
-    private final ProductOptionService productOptionService;
-
     private final ClientObjectOwnershipService clientObjectOwnershipService;
 
+    private final ObjectWithProductOptionVisitorWrapper productOptionVisitorWrapper;
+
     @Autowired
-    public ProductLabelController(final ProductLabelService productLabelService, final ProductOptionService productOptionService, final ClientObjectOwnershipService clientObjectOwnershipService) {
+    public ProductLabelController(final ProductLabelService productLabelService, final ClientObjectOwnershipService clientObjectOwnershipService, final ObjectWithProductOptionVisitorWrapper productOptionVisitorWrapper) {
         this.productLabelService = productLabelService;
-        this.productOptionService = productOptionService;
         this.clientObjectOwnershipService = clientObjectOwnershipService;
+        this.productOptionVisitorWrapper = productOptionVisitorWrapper;
     }
 
     @PostMapping
@@ -61,6 +60,20 @@ public class ProductLabelController {
 
     }
 
+    @PostMapping("/{id}")
+    public ProductLabelResponse updateProductLabel(@RequestAttribute(REQ_ATTR_CLIENT) Client client,
+                                                   @PathVariable final String id,
+                                                   @Valid @RequestBody UpdateProductLabelRequest updateProductLabelRequest) {
+
+        final ProductLabel productLabel = clientObjectOwnershipService.checkOwnership(client, () -> productLabelService.getProductLabelOrThrows(id));
+        productLabel.setName(updateProductLabelRequest.getLabel());
+        productOptionVisitorWrapper.accept(productLabel, updateProductLabelRequest.getProductOptionIds());
+
+        final ProductLabel savedProductLabel = productLabelService.saveProductLabel(productLabel);
+
+        return toProductLabelResponse(savedProductLabel);
+    }
+
     @PostMapping("/{id}/applyOptions")
     public AppliedProductsResponse applyProductOptionsToProducts(@RequestAttribute(REQ_ATTR_CLIENT) Client client,
                                                                  @PathVariable final String id) {
@@ -86,12 +99,7 @@ public class ProductLabelController {
 
         final ProductLabel productLabel = new ProductLabel(productLabelRequest.getLabel(), client);
 
-        if (!CollectionUtils.isEmpty(productLabelRequest.getProductOptionIds())) {
-            final ProductOption[] resolvedProductOptions = productLabelRequest.getProductOptionIds().stream()
-                    .map(productOptionService::getProductOption).toArray(ProductOption[]::new);
-
-            productLabel.replaceProductOptions(resolvedProductOptions);
-        }
+        productOptionVisitorWrapper.accept(productLabel, productLabelRequest.getProductOptionIds());
 
         if (!CollectionUtils.isEmpty(productLabelRequest.getSubLabels())) {
             productLabelRequest.getSubLabels().forEach(subLabel -> this.addSubLabelsRecursively(subLabel, productLabel));
@@ -116,13 +124,12 @@ public class ProductLabelController {
 
         final ProductLabelResponse productLabelResponse = new ProductLabelResponse(productLabel.getId(), productLabel.getName());
 
-        if (!CollectionUtils.isEmpty(productLabel.getProductOptionOfLabels())) {
-            final List<SimpleObjectResponse> productOptions = productLabel.getProductOptionOfLabels().stream()
-                    .map(ProductOptionRelation::getProductOption)
-                    .map(po -> new SimpleObjectResponse(po.getId(), po.getDesignVersion().getOptionName())).collect(Collectors.toList());
+        final List<SimpleObjectResponse> productOptions = productLabel.getProductOptionOfLabels().stream()
+                .filter(pol -> pol.getProductLabel() != null)
+                .map(ProductOptionRelation::getProductOption)
+                .map(po -> new SimpleObjectResponse(po.getId(), po.getDesignVersion().getOptionName())).collect(Collectors.toList());
 
-            productLabelResponse.setProductOptions(productOptions);
-        }
+        productLabelResponse.setProductOptions(productOptions);
 
         if (!CollectionUtils.isEmpty(productLabel.getChildLabels())) {
             productLabel.getChildLabels().forEach(childLabel -> addSubLabelsRecursively(childLabel, productLabelResponse));
