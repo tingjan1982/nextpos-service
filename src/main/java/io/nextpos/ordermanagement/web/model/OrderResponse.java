@@ -28,6 +28,10 @@ public class OrderResponse {
 
     private TaxableAmount total;
 
+    private BigDecimal serviceCharge;
+
+    private BigDecimal orderTotal;
+
     private Currency currency;
 
     private List<OrderLineItemResponse> lineItems;

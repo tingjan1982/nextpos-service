@@ -42,6 +42,8 @@ public class Order extends MongoBaseObject {
 
     private TaxableAmount total;
 
+    private BigDecimal serviceCharge  = BigDecimal.ZERO;
+
     private Currency currency;
 
     private String tableId;
@@ -73,6 +75,23 @@ public class Order extends MongoBaseObject {
     @Override
     public boolean isNew() {
         return version == null;
+    }
+
+    /**
+     * total + service charge
+     *
+     * @return
+     */
+    public BigDecimal getOrderTotal() {
+
+        BigDecimal serviceChargeAmount = BigDecimal.ZERO;
+
+        if (serviceCharge.compareTo(BigDecimal.ZERO) > 0) {
+            serviceChargeAmount = total.getAmountWithTax().multiply(serviceCharge);
+        }
+
+        return total.getAmountWithTax().add(serviceChargeAmount);
+
     }
 
     public Order addOrderLineItem(OrderLineItem orderLineItem) {

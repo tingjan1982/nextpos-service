@@ -36,12 +36,24 @@ public class ShiftServiceImpl implements ShiftService {
         final Optional<Shift> activeShift = this.getActiveShift(clientId);
 
         if (activeShift.isPresent()) {
-            LOGGER.warn("There is already an active shift. Returning active shift directly: {}", activeShift.get());
+            LOGGER.info("There is already an active shift. Returning active shift directly: {}", activeShift.get());
             return activeShift.get();
         }
 
         final String currentUser = oAuth2Helper.getCurrentPrincipal();
         final Shift shift = new Shift(clientId, new Date(), currentUser, openingBalance);
+
+        return shiftRepository.save(shift);
+    }
+
+    @Override
+    public Shift createInterimBalance(final String clientId, BigDecimal interimBalanceAmount) {
+
+        final Shift shift = getActiveShiftOrThrows(clientId);
+        final String currentUser = oAuth2Helper.getCurrentPrincipal();
+
+        final Shift.ShiftDetails interimBalance = new Shift.ShiftDetails(new Date(), currentUser, interimBalanceAmount);
+        shift.addInterimBalance(interimBalance);
 
         return shiftRepository.save(shift);
     }

@@ -9,7 +9,9 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Document
 @Data
@@ -21,10 +23,14 @@ public class Shift extends MongoBaseObject {
     private String id;
 
     private String clientId;
-
+                                   
     private ShiftDetails start;
 
+    private List<ShiftDetails> interimBalances = new ArrayList<>();
+
     private ShiftDetails end;
+
+    private String unbalanceReason;
 
     private ShiftStatus shiftStatus;
 
@@ -34,6 +40,10 @@ public class Shift extends MongoBaseObject {
         start = new ShiftDetails(startTimestamp, shiftStartBy, openingBalance);
         end = new ShiftDetails();
         shiftStatus = ShiftStatus.ACTIVE;
+    }
+
+    public void addInterimBalance(ShiftDetails shiftDetails) {
+        interimBalances.add(shiftDetails);
     }
 
     public void closeShift(String closedBy, BigDecimal closingBalance) {

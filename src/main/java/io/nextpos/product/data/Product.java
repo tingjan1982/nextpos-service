@@ -30,6 +30,8 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
     private String id;
 
     @ManyToOne
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Client client;
 
     @ManyToOne

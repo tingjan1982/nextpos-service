@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -20,6 +21,8 @@ public class ShiftResponse {
     private Shift.ShiftStatus shiftStatus;
 
     private ShiftDetailsResponse open;
+
+    private List<ShiftDetailsResponse> interimBalances;
 
     private ShiftDetailsResponse close;
 

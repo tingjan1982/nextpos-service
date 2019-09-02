@@ -9,6 +9,8 @@ public interface ShiftService {
 
     Shift openShift(String clientId, BigDecimal openingBalance);
 
+    Shift createInterimBalance(String clientId, BigDecimal interimBalance);
+
     Shift closeShift(String clientId, BigDecimal closingBalance);
 
     Optional<Shift> getActiveShift(String clientId);

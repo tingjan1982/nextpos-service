@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/shifts")
@@ -44,6 +46,14 @@ public class ShiftController {
         return toShiftResponse(shift);
     }
 
+    @PostMapping("/interim")
+    public ShiftResponse interimBalance(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                        @Valid @RequestBody ShiftRequest shiftRequest) {
+
+        final Shift shift = shiftService.createInterimBalance(client.getId(), shiftRequest.getBalance());
+        return toShiftResponse(shift);
+    }
+
     @PostMapping("/close")
     public ShiftResponse closeShift(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                     @Valid @RequestBody ShiftRequest shiftRequest) {
@@ -59,10 +69,15 @@ public class ShiftController {
             difference = shift.getEnd().getBalance().subtract(shift.getStart().getBalance());
         }
 
+        final List<ShiftResponse.ShiftDetailsResponse> interimBalances = shift.getInterimBalances().stream()
+                .map(sd -> new ShiftResponse.ShiftDetailsResponse(sd.getTimestamp(), sd.getWho(), sd.getBalance()))
+                .collect(Collectors.toList());
+
         return new ShiftResponse(shift.getId(),
                 shift.getClientId(),
                 shift.getShiftStatus(),
                 new ShiftResponse.ShiftDetailsResponse(shift.getStart().getTimestamp(), shift.getStart().getWho(), shift.getStart().getBalance()),
+                interimBalances,
                 new ShiftResponse.ShiftDetailsResponse(shift.getEnd().getTimestamp(), shift.getEnd().getWho(), shift.getEnd().getBalance()),
                 difference);
     }

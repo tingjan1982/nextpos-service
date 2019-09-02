@@ -50,6 +50,9 @@ public class Client extends BaseObject {
     @CollectionTable(name = "client_attributes", joinColumns = @JoinColumn(name = "client_id"))
     private Map<String, String> attributes = new HashMap<>();
 
+    /**
+     * ClientSetting differs from attributes in that setting has typed value and enabled flag to control is the value is used.
+     */
     @OneToMany(mappedBy = "client", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @MapKeyEnumerated(EnumType.STRING)
     private Map<ClientSetting.SettingName, ClientSetting> clientSettings = new HashMap<>();

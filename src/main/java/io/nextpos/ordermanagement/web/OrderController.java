@@ -1,6 +1,8 @@
 package io.nextpos.ordermanagement.web;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.data.ClientSetting;
+import io.nextpos.client.service.ClientSettingsService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderStateChange;
@@ -24,6 +26,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -44,13 +47,16 @@ public class OrderController {
 
     private final SettingsService settingsService;
 
+    private final ClientSettingsService clientSettingsService;
+
     private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
-    public OrderController(final OrderService orderService, final ProductService productService, final SettingsService settingsService, final ApplicationEventPublisher eventPublisher) {
+    public OrderController(final OrderService orderService, final ProductService productService, final SettingsService settingsService, final ClientSettingsService clientSettingsService, final ApplicationEventPublisher eventPublisher) {
         this.orderService = orderService;
         this.productService = productService;
         this.settingsService = settingsService;
+        this.clientSettingsService = clientSettingsService;
         this.eventPublisher = eventPublisher;
     }
 
@@ -165,6 +171,13 @@ public class OrderController {
 
         }
 
+        client.getClientSettings(ClientSetting.SettingName.SERVICE_CHARGE).ifPresent(sc -> {
+            if (sc.isEnabled()) {
+                final BigDecimal serviceCharge = clientSettingsService.getActualStoredValue(sc, BigDecimal.class);
+                order.setServiceCharge(serviceCharge);
+            }
+        });
+
         LOGGER.info("Transformed to order object: {}", order);
 
         return order;
@@ -211,6 +224,8 @@ public class OrderController {
                 order.getModifiedDate(),
                 order.getState(),
                 order.getTotal(),
+                order.getServiceCharge(),
+                order.getOrderTotal(),
                 order.getCurrency(),
                 orderLineItems);
     }
