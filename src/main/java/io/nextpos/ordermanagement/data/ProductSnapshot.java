@@ -20,6 +20,12 @@ public class ProductSnapshot {
 
     private BigDecimal price;
 
+    private BigDecimal discountedPrice;
+
+    private String labelId;
+
+    private String label;
+
     private List<ProductOptionSnapshot> productOptions = new ArrayList<>();
 
     public ProductSnapshot(final String id, final String name, final String sku, final BigDecimal price, final List<ProductOptionSnapshot> productOptions) {
@@ -31,6 +37,27 @@ public class ProductSnapshot {
         if (!CollectionUtils.isEmpty(productOptions)) {
             this.productOptions = productOptions;
         }
+    }
+
+    /**
+     * Optionally set label information if product belongs to one.
+     *
+     * @param labelId
+     * @param label
+     */
+    public void setLabelInformation(String labelId, String label) {
+        this.labelId = labelId;
+        this.label = label;
+    }
+
+    public BigDecimal getProductPriceWithOptions() {
+
+        final BigDecimal optionPriceTotal = this.getProductOptions().stream()
+                .filter(po -> BigDecimal.ZERO.compareTo(po.getOptionPrice()) < 0)
+                .map(ProductSnapshot.ProductOptionSnapshot::getOptionPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        return this.price.add(optionPriceTotal);
     }
 
     @Data

@@ -42,6 +42,8 @@ public class Order extends MongoBaseObject {
 
     private TaxableAmount total;
 
+    private TaxableAmount discountedTotal;
+
     private BigDecimal serviceCharge  = BigDecimal.ZERO;
 
     private Currency currency;
@@ -132,12 +134,32 @@ public class Order extends MongoBaseObject {
                 });
     }
 
-    private void computeTotal() {
+    public void computeTotal() {
         final BigDecimal lineItemsTotal = orderLineItems.stream()
                 .map(li -> li.getSubTotal().getAmountWithoutTax())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         total.calculate(lineItemsTotal);
+
+        this.computeDiscountedTotal();
+    }
+
+    private void computeDiscountedTotal() {
+
+        final BigDecimal lineItemsTotal = orderLineItems.stream()
+                .map(li -> li.getDiscountedSubTotal() != null ? li.getDiscountedSubTotal() : li.getSubTotal())
+                .map(TaxableAmount::getAmountWithoutTax)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        this.applyDiscountedTotal(lineItemsTotal);
+    }
+
+    public void applyDiscountedTotal(BigDecimal discountedTotalAmount) {
+
+        if (discountedTotalAmount.compareTo(BigDecimal.ZERO) > 0) {
+            discountedTotal = new TaxableAmount(total.getTaxRate());
+            discountedTotal.calculate(discountedTotalAmount);
+        }
     }
 
     public enum OrderState {
@@ -188,11 +210,19 @@ public class Order extends MongoBaseObject {
     public enum OrderAction {
 
         DELETE(OPEN, DELETED),
-        SUBMIT(OPEN, IN_PROCESS),
+
+        /**
+         * This includes scenarios of submitting the initial order, customer adding more orders during and after delivery.
+         */
+        SUBMIT(EnumSet.of(OPEN, IN_PROCESS, DELIVERED), IN_PROCESS),
         CANCEL(IN_PROCESS, CANCELLED),
         DELIVER(IN_PROCESS, DELIVERED),
         SETTLE(DELIVERED, SETTLED),
         REFUND(SETTLED, REFUNDED),
+
+        /**
+         * This state exists to filter out completed orders. todo: consider renaming to COMPLETED.
+         */
         CLOSE(EnumSet.of(SETTLED, REFUNDED), CLOSED);
 
         private final EnumSet<OrderState> validFromState;

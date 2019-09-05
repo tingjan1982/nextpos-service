@@ -76,7 +76,7 @@ class OrderServiceImplTest {
 
         assertThat(createdOrder.getOrderLineItems()).hasSize(2);
         assertThat(createdOrder.getOrderLineItems()).satisfies(li -> {
-            assertThat(li.getState()).isEqualTo(OrderLineItem.OrderLineItemState.OPEN);
+            assertThat(li.getState()).isEqualTo(Order.OrderState.OPEN);
             assertThat(li.getQuantity()).isEqualTo(2);
             assertThat(li.getProductSnapshot()).satisfies(p -> {
                 assertThat(p.getName()).isEqualTo(product.getName());

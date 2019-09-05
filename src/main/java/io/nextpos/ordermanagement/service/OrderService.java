@@ -11,6 +11,8 @@ public interface OrderService {
 
     Order createOrder(Order order);
 
+    Order saveOrder(Order order);
+
     Order getOrder(String id);
 
     /**

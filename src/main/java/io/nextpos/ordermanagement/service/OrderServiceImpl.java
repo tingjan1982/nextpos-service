@@ -39,6 +39,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public Order saveOrder(final Order order) {
+        return orderRepository.save(order);
+    }
+
+    @Override
     public Order getOrder(final String id) {
         return orderRepository.findById(id).orElseThrow(() -> {
             throw new ObjectNotFoundException(id, Order.class);
@@ -95,6 +100,11 @@ public class OrderServiceImpl implements OrderService {
         orderStateChangeRepository.save(orderStateChange);
 
         order.setState(orderState);
+
+        // todo: need to revisit setting line item state correctly as they can be mixed state in multiple order SUBMIT scenario.
+//        order.getOrderLineItems().forEach(li -> {
+//            li.setState(orderState);
+//        });
 
         orderRepository.save(order);
 

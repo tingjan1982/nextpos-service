@@ -203,6 +203,10 @@ public class OrderController {
                 productVersion.getPrice(),
                 productOptionSnapshots);
 
+        if (product.getProductLabel() != null) {
+            productSnapshot.setLabelInformation(product.getProductLabel().getId(), product.getProductLabel().getName());
+        }
+
         return new OrderLineItem(productSnapshot, li.getQuantity(), countrySettings.getTaxRate());
     }
 

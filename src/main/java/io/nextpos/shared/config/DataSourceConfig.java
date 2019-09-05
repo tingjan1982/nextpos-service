@@ -1,6 +1,7 @@
 package io.nextpos.shared.config;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.merchandising.data.Offer;
 import io.nextpos.notification.data.NotificationDetails;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordertransaction.data.OrderTransaction;
@@ -33,7 +34,7 @@ import java.util.List;
  *  in Order Mongo Document.
  */
 @Configuration
-@EnableJpaRepositories(basePackageClasses = {Client.class, Product.class, CountrySettings.class, WorkingArea.class, TableLayout.class})
+@EnableJpaRepositories(basePackageClasses = {Client.class, Product.class, Offer.class, CountrySettings.class, WorkingArea.class, TableLayout.class})
 @EnableMongoRepositories(basePackageClasses = {Order.class, OrderTransaction.class, NotificationDetails.class, UserTimeCard.class})
 @EnableMongoAuditing
 public class DataSourceConfig {

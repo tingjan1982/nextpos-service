@@ -14,18 +14,20 @@ public class OrderLineItem {
 
     private ProductSnapshot productSnapshot;
 
-    private OrderLineItemState state;
+    private Order.OrderState state;
 
     private int quantity;
 
     private TaxableAmount subTotal;
+
+    private TaxableAmount discountedSubTotal;
 
 
     public OrderLineItem(final ProductSnapshot productSnapshot, final int quantity, BigDecimal taxRate) {
         this.productSnapshot = productSnapshot;
         this.quantity = quantity;
 
-        state = OrderLineItemState.OPEN;
+        state = Order.OrderState.OPEN;
         subTotal = new TaxableAmount(taxRate);
 
         computeSubTotal();
@@ -33,24 +35,29 @@ public class OrderLineItem {
 
     void updateQuantity(int quantity) {
         this.quantity = quantity;
+        
         computeSubTotal();
     }
 
+    /**
+     * This method should be called whether line item is changed in the following ways:
+     * > new line item is added.
+     * > quantity is updated.
+     */
     private void computeSubTotal() {
 
-        final BigDecimal optionPriceTotal = productSnapshot.getProductOptions().stream()
-                .filter(po -> BigDecimal.ZERO.compareTo(po.getOptionPrice()) < 0)
-                .map(ProductSnapshot.ProductOptionSnapshot::getOptionPrice)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        final BigDecimal productTotal = productSnapshot.getProductPriceWithOptions();
+        final BigDecimal lineItemTotal = productTotal.multiply(BigDecimal.valueOf(quantity));
 
-        final BigDecimal lineItemTotal = productSnapshot.getPrice().add(optionPriceTotal).multiply(BigDecimal.valueOf(quantity));
         subTotal.calculate(lineItemTotal);
     }
 
-    public enum OrderLineItemState {
+    public void computeDiscountedSubTotal(BigDecimal discountedProductPrice) {
 
-        OPEN,
-        IN_PROCESS,
-        DELIVERED
+        productSnapshot.setDiscountedPrice(discountedProductPrice);
+        final BigDecimal discountedLineItemTotal = discountedProductPrice.multiply(BigDecimal.valueOf(quantity));
+
+        discountedSubTotal = new TaxableAmount(subTotal.getTaxRate());
+        discountedSubTotal.calculate(discountedLineItemTotal);
     }
 }
