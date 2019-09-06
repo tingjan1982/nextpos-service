@@ -1,5 +1,7 @@
-package io.nextpos.merchandising.data;
+package io.nextpos.merchandising.service;
 
+import io.nextpos.merchandising.data.OrderLevelOffer;
+import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.ordermanagement.data.Order;
 import lombok.Data;
 
@@ -7,15 +9,19 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class is meant to used by MerchandisingService which is a public facing service to properly orchestrate
+ * merchandising behavior. Hence, this class is designed to have package access.
+ */
 @Data
-public class GroupedOffers {
+class GroupedOffers {
 
     private List<OrderLevelOffer> orderLevelOffers = new ArrayList<>();
 
     private List<ProductLevelOffer> productLevelOffers = new ArrayList<>();
 
 
-    public void arbitrateBestProductLevelOffer(Order order) {
+    void arbitrateBestProductLevelOffer(Order order) {
 
         order.getOrderLineItems()
                 .forEach(li -> productLevelOffers.stream()
@@ -26,7 +32,7 @@ public class GroupedOffers {
         order.computeTotal();
     }
 
-    public void arbitrateBestOrderLevelOffer(Order order) {
+    void arbitrateBestOrderLevelOffer(Order order) {
 
         orderLevelOffers.stream()
                 .map(o -> o.calculateDiscount(order))

@@ -96,6 +96,15 @@ public class Order extends MongoBaseObject {
 
     }
 
+    /**
+     * Convenience method to add OrderLineItem.
+     */
+    public Order addOrderLineItem(ProductSnapshot productSnapshot, int quantity) {
+
+        final OrderLineItem orderLineItem = new OrderLineItem(productSnapshot, quantity, total.getTaxRate());
+        return this.addOrderLineItem(orderLineItem);
+    }
+
     public Order addOrderLineItem(OrderLineItem orderLineItem) {
 
         final String orderLineItemId = this.id + "-" + internalCounter.getAndIncrement();
@@ -202,9 +211,9 @@ public class Order extends MongoBaseObject {
         DELETED,
 
         /**
-         * When order is marked as closed to indicate it can be filtered out when trying to display current orders.
+         * When order is marked as completed to indicate it can be filtered out when trying to display current orders.
          */
-        CLOSED;
+        COMPLETED;
     }
 
     public enum OrderAction {
@@ -221,9 +230,9 @@ public class Order extends MongoBaseObject {
         REFUND(SETTLED, REFUNDED),
 
         /**
-         * This state exists to filter out completed orders. todo: consider renaming to COMPLETED.
+         * This state exists to filter out completed orders.
          */
-        CLOSE(EnumSet.of(SETTLED, REFUNDED), CLOSED);
+        COMPLETE(EnumSet.of(SETTLED, REFUNDED), COMPLETED);
 
         private final EnumSet<OrderState> validFromState;
 

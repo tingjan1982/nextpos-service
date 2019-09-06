@@ -2,10 +2,12 @@ package io.nextpos.product.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientRepository;
-import io.nextpos.product.data.*;
+import io.nextpos.product.data.ProductOption;
+import io.nextpos.product.data.ProductOptionVersion;
+import io.nextpos.product.data.ProductOptionVersionRepository;
+import io.nextpos.product.data.Version;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.ObjectNotFoundException;
-import org.assertj.core.data.Index;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +15,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -29,12 +29,6 @@ class ProductOptionServiceImplTest {
 
     @Autowired
     private ProductOptionVersionRepository productOptionVersionRepository;
-
-    @Autowired
-    private ProductService productService;
-
-    @Autowired
-    private ProductLabelService productLabelService;
 
     @Autowired
     private ClientRepository clientRepository;
@@ -146,55 +140,5 @@ class ProductOptionServiceImplTest {
         productOptionService.deployProductOption(createdProductOption.getId());
 
         assertThat(productOptionVersionRepository.findAll()).hasSize(2);
-    }
-
-    @Test
-    public void addProductOptionToProduct() {
-
-        final ProductOptionVersion stagingProductOption = new ProductOptionVersion("extras", ProductOptionVersion.OptionType.FREE_TEXT, true);
-        final ProductOption productOption = new ProductOption(client, stagingProductOption);
-
-        productOptionService.createProductOption(productOption);
-
-        final Product product = new Product(client, DummyObjects.dummyProductVersion());
-
-        productService.saveProduct(product);
-
-        final List<ProductOptionRelation> productOptionRelations = productOptionService.addProductOptionToProduct(productOption, Collections.singletonList(product));
-
-        assertThat(productOptionRelations).satisfies(por -> {
-            assertThat(por).isInstanceOf(ProductOptionRelation.ProductOptionOfProduct.class);
-            assertThat(por.getId()).isNotNull();
-            assertThat(por.getProductOption()).isEqualTo(productOption);
-            assertThat(((ProductOptionRelation.ProductOptionOfProduct) por).getProduct()).isEqualTo(product);
-
-        }, Index.atIndex(0));
-
-        final Product retrievedProduct = productService.getProduct(product.getId());
-        assertThat(retrievedProduct.getProductOptionOfProducts()).hasSize(1);
-    }
-
-    @Test
-    public void addProductOptionToProductLabel() {
-
-        final ProductOptionVersion stagingProductOption = new ProductOptionVersion("extras", ProductOptionVersion.OptionType.FREE_TEXT, true);
-        final ProductOption productOption = new ProductOption(client, stagingProductOption);
-        productOptionService.createProductOption(productOption);
-
-        final ProductLabel drinks = new ProductLabel("drinks", client);
-        productLabelService.saveProductLabel(drinks);
-
-        final List<ProductOptionRelation> productOptionRelations = productOptionService.addProductOptionToProductLabel(productOption, Collections.singletonList(drinks));
-
-        assertThat(productOptionRelations).satisfies(por -> {
-            assertThat(por).isInstanceOf(ProductOptionRelation.ProductOptionOfLabel.class);
-            assertThat(por.getId()).isNotNull();
-            assertThat(por.getProductOption()).isEqualTo(productOption);
-            assertThat(((ProductOptionRelation.ProductOptionOfLabel) por).getProductLabel()).isEqualTo(drinks);
-
-        }, Index.atIndex(0));
-
-        final ProductLabel productLabel = productLabelService.getProductLabelOrThrows(drinks.getId());
-        assertThat(productLabel.getProductOptionOfLabels()).hasSize(1);
     }
 }

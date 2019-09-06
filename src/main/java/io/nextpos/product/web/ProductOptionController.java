@@ -1,10 +1,13 @@
 package io.nextpos.product.web;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.product.data.*;
+import io.nextpos.product.data.ProductOption;
+import io.nextpos.product.data.ProductOptionVersion;
+import io.nextpos.product.data.Version;
 import io.nextpos.product.service.ProductOptionService;
-import io.nextpos.product.service.ProductService;
-import io.nextpos.product.web.model.*;
+import io.nextpos.product.web.model.ProductOptionRequest;
+import io.nextpos.product.web.model.ProductOptionResponse;
+import io.nextpos.product.web.model.ProductOptionValueModel;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,12 +24,9 @@ public class ProductOptionController {
 
     private final ProductOptionService productOptionService;
 
-    private final ProductService productService;
-
     @Autowired
-    public ProductOptionController(final ProductOptionService productOptionService, final ProductService productService) {
+    public ProductOptionController(final ProductOptionService productOptionService) {
         this.productOptionService = productOptionService;
-        this.productService = productService;
     }
 
 
@@ -52,31 +52,6 @@ public class ProductOptionController {
     public void deployProductOption(@PathVariable String id) {
 
         productOptionService.deployProductOption(id);
-    }
-
-    @PostMapping("/{id}/relations")
-    public ProductOptionRelationResponse linkToProduct(@PathVariable String id, @Valid @RequestBody ProductOptionRelationRequest productOptionRelationRequest) {
-
-        final ProductOption productOption = productOptionService.getProductOption(id);
-        final List<Product> products = fromProductOptionRelationRequest(productOptionRelationRequest);
-
-        final List<ProductOptionRelation> productOptionRelations = productOptionService.addProductOptionToProduct(productOption, products);
-
-        return toProductOptionRelationResponse(productOptionRelations);
-    }
-
-    private List<Product> fromProductOptionRelationRequest(ProductOptionRelationRequest productOptionRelationRequest) {
-
-        return productOptionRelationRequest.getProducts().stream()
-                .map(productService::getProduct).collect(Collectors.toList());
-    }
-
-    private ProductOptionRelationResponse toProductOptionRelationResponse(final List<ProductOptionRelation> productOptionRelations) {
-
-        final List<String> productIds = productOptionRelations.stream().map(p -> (ProductOptionRelation.ProductOptionOfProduct) p)
-                .map(p -> p.getProduct().getId()).collect(Collectors.toList());
-
-        return new ProductOptionRelationResponse(productIds);
     }
 
     private ProductOption fromProductOptionRequest(Client client, ProductOptionRequest productOptionRequest) {

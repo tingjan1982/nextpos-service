@@ -1,15 +1,12 @@
 package io.nextpos.merchandising.service;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.merchandising.data.GroupedOffers;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-
-// todo: implement integration test
 
 @Service
 @Transactional

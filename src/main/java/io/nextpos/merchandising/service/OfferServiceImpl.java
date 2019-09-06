@@ -1,7 +1,10 @@
 package io.nextpos.merchandising.service;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.merchandising.data.*;
+import io.nextpos.merchandising.data.Offer;
+import io.nextpos.merchandising.data.OfferRepository;
+import io.nextpos.merchandising.data.OrderLevelOffer;
+import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,18 +50,16 @@ public class OfferServiceImpl implements OfferService {
 
     @Override
     public GroupedOffers findActiveOffers(Client client) {
-        final GroupedOffers groupedOffers = new GroupedOffers();
 
+        final GroupedOffers groupedOffers = new GroupedOffers();
         final Stream<Offer> offersStream = offerRepository.findActiveOffers(client, Offer.TriggerType.ALWAYS, new Date());
 
         offersStream.forEach(o -> {
-
             if (o instanceof OrderLevelOffer) {
                 groupedOffers.addOrderLevelOffer((OrderLevelOffer) o);
 
             } else if (o instanceof ProductLevelOffer) {
                 groupedOffers.addProductLevelOffer((ProductLevelOffer) o);
-
             }
         });
 

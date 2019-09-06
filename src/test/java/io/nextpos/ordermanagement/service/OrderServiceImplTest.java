@@ -59,9 +59,8 @@ class OrderServiceImplTest {
         );
 
         final ProductSnapshot product = new ProductSnapshot(UUID.randomUUID().toString(), "coffee", "tw01", BigDecimal.valueOf(100), options);
-        final OrderLineItem lineItem = new OrderLineItem(product, 1, taxRate);
-        final OrderLineItem lineItem2 = new OrderLineItem(product, 2, taxRate);
-        order.addOrderLineItem(lineItem).addOrderLineItem(lineItem2);
+        order.addOrderLineItem(product, 1)
+                .addOrderLineItem(product, 2);
 
         final Order createdOrder = orderService.createOrder(order);
 

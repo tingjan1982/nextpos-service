@@ -2,7 +2,6 @@ package io.nextpos.reporting.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderStateChange;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.ordermanagement.service.OrderService;
@@ -96,8 +95,7 @@ class ReportingServiceImplTest {
         final BigDecimal taxRate = BigDecimal.ZERO;
         final Order order = new Order(clientId, taxRate, Currency.getInstance("TWD"));
         final ProductSnapshot product = DummyObjects.productSnapshot();
-        final OrderLineItem orderLineItem = new OrderLineItem(product, 5, taxRate);
-        order.addOrderLineItem(orderLineItem);
+        order.addOrderLineItem(product, 5);
 
         return orderService.createOrder(order);
     }

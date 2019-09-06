@@ -3,6 +3,8 @@ package io.nextpos.product.service;
 import io.nextpos.client.data.Client;
 import io.nextpos.product.data.*;
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -16,6 +18,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class ProductLabelServiceImpl implements ProductLabelService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProductLabelServiceImpl.class);
     private final ProductLabelRepository productLabelRepository;
 
     private final ProductRepository productRepository;
@@ -55,8 +58,6 @@ public class ProductLabelServiceImpl implements ProductLabelService {
 
 
     /**
-     * todo: add more logs here
-     *
      * @param productLabel
      * @return list of product that has got its product options replaced with ones in ProductLabel.
      */
@@ -69,6 +70,8 @@ public class ProductLabelServiceImpl implements ProductLabelService {
             if (!products.isEmpty()) {
                 final ProductOption[] productOptions = productLabel.getProductOptionOfLabels().stream()
                         .map(ProductOptionRelation.ProductOptionOfLabel::getProductOption).toArray(ProductOption[]::new);
+
+                LOGGER.info("Applying {} product options to products belong to product label: {}", productOptions.length, productLabel.getName());
 
                 return products.stream()
                         .map(p -> {

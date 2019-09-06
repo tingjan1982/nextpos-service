@@ -1,13 +1,13 @@
 package io.nextpos.product.service;
 
-import io.nextpos.product.data.*;
+import io.nextpos.product.data.ProductOption;
+import io.nextpos.product.data.ProductOptionRepository;
+import io.nextpos.product.data.ProductOptionVersionRepository;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -17,13 +17,10 @@ public class ProductOptionServiceImpl implements ProductOptionService {
 
     private final ProductOptionVersionRepository productOptionVersionRepository;
 
-    private final ProductOptionRelationRepository productOptionRelationRepository;
-
     @Autowired
-    public ProductOptionServiceImpl(final ProductOptionRepository productOptionRepository, final ProductOptionVersionRepository productOptionVersionRepository, final ProductOptionRelationRepository productOptionRelationRepository) {
+    public ProductOptionServiceImpl(final ProductOptionRepository productOptionRepository, final ProductOptionVersionRepository productOptionVersionRepository) {
         this.productOptionRepository = productOptionRepository;
         this.productOptionVersionRepository = productOptionVersionRepository;
-        this.productOptionRelationRepository = productOptionRelationRepository;
     }
 
     @Override
@@ -47,30 +44,5 @@ public class ProductOptionServiceImpl implements ProductOptionService {
         productOptionVersionRepository.deleteRetiredProductOptionVersions(productOption);
 
         return productOptionRepository.save(productOption);
-    }
-
-    @Override
-    public List<ProductOptionRelation> addProductOptionToProduct(final ProductOption productOption, final List<Product> products) {
-
-        return products.stream()
-                .map(p -> p.addProductOption(productOption))
-                .map(productOptionRelationRepository::save).collect(Collectors.toList());
-    }
-
-    // todo: revise add product option to product and label as the actual scenario would be many options to 1.
-    /**
-     * Creates a relationship between ProductOption and ProductLabel.
-     * Also will apply all ProductOptions to all products that are associated with the ProductLabel.
-     *
-     * @param productOption
-     * @param productLabels
-     * @return
-     */
-    @Override
-    public List<ProductOptionRelation> addProductOptionToProductLabel(final ProductOption productOption, final List<ProductLabel> productLabels) {
-
-        return productLabels.stream()
-                .map(l -> l.addProductOption(productOption))
-                .map(productOptionRelationRepository::save).collect(Collectors.toList());
     }
 }

@@ -2,7 +2,6 @@ package io.nextpos.merchandising.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientRepository;
-import io.nextpos.merchandising.data.GroupedOffers;
 import io.nextpos.merchandising.data.Offer;
 import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.merchandising.data.ProductLevelOffer;

@@ -1,8 +1,10 @@
-package io.nextpos.merchandising.data;
+package io.nextpos.merchandising.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.merchandising.data.Offer;
+import io.nextpos.merchandising.data.OrderLevelOffer;
+import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
@@ -31,17 +33,14 @@ class GroupedOffersTest {
         order = new Order(client.getId(), taxRate, Currency.getInstance("TWD"));
 
         final ProductSnapshot item1Product = new ProductSnapshot("item1product", "coffee", "sku", BigDecimal.valueOf(100), null);
-        final OrderLineItem item1 = new OrderLineItem(item1Product, 2, taxRate);
-        order.addOrderLineItem(item1);
+        order.addOrderLineItem(item1Product, 2);
 
         final ProductSnapshot item2Product = new ProductSnapshot("item2product", "tea", "sku", BigDecimal.valueOf(75), null);
-        final OrderLineItem item2 = new OrderLineItem(item2Product, 1, taxRate);
-        order.addOrderLineItem(item2);
+        order.addOrderLineItem(item2Product, 1);
 
         final ProductSnapshot item3Product = new ProductSnapshot("item3product", "coke", "sku", BigDecimal.valueOf(30), null);
         item3Product.setLabelInformation("label-id", "soft drink");
-        final OrderLineItem item3 = new OrderLineItem(item3Product, 1, taxRate);
-        order.addOrderLineItem(item3);
+        order.addOrderLineItem(item3Product, 1);
     }
 
     @Test

@@ -108,13 +108,13 @@ class OrderStateChangeListenerTest {
         eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.SUBMIT, new CompletableFuture<>()));
         eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.DELIVER, new CompletableFuture<>()));
         eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.SETTLE, new CompletableFuture<>()));
-        eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.CLOSE, future));
+        eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.COMPLETE, future));
 
         final OrderStateChange orderStateChange = future.get();
 
         assertThat(orderStateChange.getOrderId()).isEqualTo(order.getId());
         assertThat(orderStateChange.getStateChanges()).hasSize(4);
-        assertThat(orderStateChange.getStateChanges()).satisfies(entry -> assertThat(entry.getToState()).isEqualTo(Order.OrderState.CLOSED), Index.atIndex(3));
+        assertThat(orderStateChange.getStateChanges()).satisfies(entry -> assertThat(entry.getToState()).isEqualTo(Order.OrderState.COMPLETED), Index.atIndex(3));
     }
 
     /**
