@@ -53,7 +53,7 @@ class ProductServiceImplTest {
         productOptionService.createProductOption(ice);
 
         final ProductOption sugar = new ProductOption(createdClient, new ProductOptionVersion("ice", ProductOptionVersion.OptionType.ONE_CHOICE, true));
-        productOptionService.createProductOption(ice);
+        productOptionService.createProductOption(sugar);
 
         final ProductVersion productVersion = new ProductVersion("Gin & Tonic", "sku-001", "signature drink", BigDecimal.valueOf(350));
         final Product product = new Product(createdClient, productVersion);

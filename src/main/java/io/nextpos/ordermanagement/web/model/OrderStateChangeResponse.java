@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -19,4 +20,18 @@ public class OrderStateChangeResponse {
     private Order.OrderState toState;
 
     private Instant timestamp;
+
+    private List<PrinterInstructionResponse> printerInstructions;
+
+
+    @Data
+    @AllArgsConstructor
+    public static class PrinterInstructionResponse {
+
+        private List<String> ipAddresses;
+
+        private int noOfPrintCopies;
+
+        private String printInstruction;
+    }
 }

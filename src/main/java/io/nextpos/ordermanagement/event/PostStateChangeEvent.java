@@ -6,19 +6,19 @@ import org.springframework.context.ApplicationEvent;
 
 import java.util.concurrent.CompletableFuture;
 
-public class OrderStateChangeEvent extends ApplicationEvent {
+public class PostStateChangeEvent extends ApplicationEvent {
 
     private final Order order;
 
-    private final Order.OrderAction orderAction;
+    private final OrderStateChangeBean orderStateChangeBean;
 
     private final CompletableFuture<OrderStateChangeBean> future;
 
-    public OrderStateChangeEvent(final Object source, final Order order, final Order.OrderAction orderAction, final CompletableFuture<OrderStateChangeBean> future) {
+    public PostStateChangeEvent(final Object source, final Order order, final OrderStateChangeBean orderStateChangeBean, final CompletableFuture<OrderStateChangeBean> future) {
         super(source);
 
         this.order = order;
-        this.orderAction = orderAction;
+        this.orderStateChangeBean = orderStateChangeBean;
         this.future = future;
     }
 
@@ -26,11 +26,11 @@ public class OrderStateChangeEvent extends ApplicationEvent {
         return order;
     }
 
-    Order.OrderAction getOrderAction() {
-        return orderAction;
+    public OrderStateChangeBean getOrderStateChangeBean() {
+        return orderStateChangeBean;
     }
 
-    CompletableFuture<OrderStateChangeBean> getFuture() {
+    public CompletableFuture<OrderStateChangeBean> getFuture() {
         return future;
     }
 }

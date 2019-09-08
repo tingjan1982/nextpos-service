@@ -16,5 +16,6 @@ public class WorkingAreaRequest {
 
     private int noOfPrintCopies;
 
+    // todo: make this a list of printer ids and update postman to create printer and working area and link them together.
     private String printerId;
 }

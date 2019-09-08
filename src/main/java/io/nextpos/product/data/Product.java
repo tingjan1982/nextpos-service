@@ -48,7 +48,7 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
     @MapKeyEnumerated(EnumType.STRING)
     private Map<Version, ProductVersion> versions = new HashMap<>();
 
-    @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(value = FetchMode.SUBSELECT)
     private List<ProductOptionRelation.ProductOptionOfProduct> productOptionOfProducts = new ArrayList<>();
 
@@ -84,6 +84,8 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
     public void replaceProductOptions(ProductOption... productOptions) {
 
         productOptionOfProducts.forEach(pop -> pop.setProduct(null));
+
+        productOptionOfProducts.clear();
 
         if (productOptions != null) {
             Stream.of(productOptions).forEach(this::addProductOption);

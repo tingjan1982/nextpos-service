@@ -42,6 +42,7 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         return orderTransactionRepository.save(orderTransaction);
     }
 
+    // todo: should refactor this to PrinterService
     @Override
     public String createOrderDetailsPrintInstruction(Client client, OrderTransaction orderTransaction) {
 

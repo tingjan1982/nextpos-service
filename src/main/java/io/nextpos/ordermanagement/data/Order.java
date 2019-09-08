@@ -176,12 +176,12 @@ public class Order extends MongoBaseObject {
         /**
          * Initial state
          */
-        OPEN,
+        OPEN(true),
 
         /**
          * When order is submitted.
          */
-        IN_PROCESS,
+        IN_PROCESS(true),
 
         PARTIALLY_DELIVERED,
 
@@ -214,6 +214,20 @@ public class Order extends MongoBaseObject {
          * When order is marked as completed to indicate it can be filtered out when trying to display current orders.
          */
         COMPLETED;
+        
+        private boolean overwritable;
+
+        OrderState() {
+            overwritable = false;
+        }
+        
+        OrderState(final boolean overwritable) {
+            this.overwritable = overwritable;
+        }
+
+        public boolean isOverwritable() {
+            return overwritable;
+        }
     }
 
     public enum OrderAction {

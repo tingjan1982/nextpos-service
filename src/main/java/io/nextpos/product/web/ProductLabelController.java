@@ -125,7 +125,6 @@ public class ProductLabelController {
         final ProductLabelResponse productLabelResponse = new ProductLabelResponse(productLabel.getId(), productLabel.getName());
 
         final List<SimpleObjectResponse> productOptions = productLabel.getProductOptionOfLabels().stream()
-                .filter(pol -> pol.getProductLabel() != null)
                 .map(ProductOptionRelation::getProductOption)
                 .map(po -> new SimpleObjectResponse(po.getId(), po.getDesignVersion().getOptionName())).collect(Collectors.toList());
 

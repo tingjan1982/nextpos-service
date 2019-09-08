@@ -4,7 +4,6 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.product.data.*;
 import io.nextpos.product.service.ProductLabelService;
-import io.nextpos.product.service.ProductOptionService;
 import io.nextpos.product.service.ProductService;
 import io.nextpos.product.web.model.ProductOptionResponse;
 import io.nextpos.product.web.model.ProductOptionValueModel;
@@ -29,8 +28,6 @@ public class ProductController {
 
     private final ProductLabelService productLabelService;
 
-    private final ProductOptionService productOptionService;
-
     private final WorkingAreaService workingAreaService;
 
     private final ClientObjectOwnershipService clientObjectOwnershipService;
@@ -38,10 +35,9 @@ public class ProductController {
     private final ObjectWithProductOptionVisitorWrapper productOptionVisitorWrapper;
 
     @Autowired
-    public ProductController(final ProductService productService, final ProductLabelService productLabelService, final ProductOptionService productOptionService, final WorkingAreaService workingAreaService, final ClientObjectOwnershipService clientObjectOwnershipService, final ObjectWithProductOptionVisitorWrapper productOptionVisitorWrapper) {
+    public ProductController(final ProductService productService, final ProductLabelService productLabelService, final WorkingAreaService workingAreaService, final ClientObjectOwnershipService clientObjectOwnershipService, final ObjectWithProductOptionVisitorWrapper productOptionVisitorWrapper) {
         this.productService = productService;
         this.productLabelService = productLabelService;
-        this.productOptionService = productOptionService;
         this.workingAreaService = workingAreaService;
         this.clientObjectOwnershipService = clientObjectOwnershipService;
         this.productOptionVisitorWrapper = productOptionVisitorWrapper;
@@ -157,7 +153,6 @@ public class ProductController {
         final WorkingArea workingArea = product.getWorkingArea();
 
         final List<ProductOptionResponse> productOptions = product.getProductOptionOfProducts().stream()
-                .filter(pop -> pop.getProduct() != null)
                 .map(po -> toProductOptionResponse(version, po))
                 .collect(Collectors.toList());
 

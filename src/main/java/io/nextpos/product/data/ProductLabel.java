@@ -45,7 +45,7 @@ public class ProductLabel extends BaseObject implements ClientObject {
     @Fetch(value = FetchMode.SUBSELECT)
     private List<ProductLabel> childLabels = new ArrayList<>();
 
-    @OneToMany(mappedBy = "productLabel", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "productLabel", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(value = FetchMode.SUBSELECT)
     private List<ProductOptionRelation.ProductOptionOfLabel> productOptionOfLabels = new ArrayList<>();
 
@@ -72,6 +72,8 @@ public class ProductLabel extends BaseObject implements ClientObject {
     public void replaceProductOptions(ProductOption... productOptions) {
 
         productOptionOfLabels.forEach(pol -> pol.setProductLabel(null));
+
+        productOptionOfLabels.clear();
 
         if (productOptions != null) {
             Stream.of(productOptions).forEach(this::addProductOption);

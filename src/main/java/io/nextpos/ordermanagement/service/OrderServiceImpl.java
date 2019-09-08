@@ -101,10 +101,11 @@ public class OrderServiceImpl implements OrderService {
 
         order.setState(orderState);
 
-        // todo: need to revisit setting line item state correctly as they can be mixed state in multiple order SUBMIT scenario.
-//        order.getOrderLineItems().forEach(li -> {
-//            li.setState(orderState);
-//        });
+        order.getOrderLineItems().forEach(li -> {
+            if (li.getState().isOverwritable()) {
+                li.setState(orderState);
+            }
+        });
 
         orderRepository.save(order);
 

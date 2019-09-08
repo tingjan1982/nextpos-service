@@ -14,6 +14,8 @@ public class OrderLineItem {
 
     private ProductSnapshot productSnapshot;
 
+    private String workingAreaId;
+
     private Order.OrderState state;
 
     private int quantity;

@@ -3,10 +3,7 @@ package io.nextpos.ordermanagement.web;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientSetting;
 import io.nextpos.client.service.ClientSettingsService;
-import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.OrderLineItem;
-import io.nextpos.ordermanagement.data.OrderStateChange;
-import io.nextpos.ordermanagement.data.ProductSnapshot;
+import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.event.OrderStateChangeEvent;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordermanagement.web.model.*;
@@ -130,12 +127,13 @@ public class OrderController {
     public OrderStateChangeResponse stateChange(@PathVariable String id, @RequestParam("action") Order.OrderAction orderAction) {
 
         final Order order = orderService.getOrder(id);
-        final CompletableFuture<OrderStateChange> future = new CompletableFuture<>();
+        final CompletableFuture<OrderStateChangeBean> future = new CompletableFuture<>();
         eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, orderAction, future));
 
         try {
-            final OrderStateChange orderStateChange = future.get(30, TimeUnit.SECONDS);
-            return toOrderStateChangeResponse(orderStateChange);
+            final OrderStateChangeBean orderStateChangeBean = future.get(15, TimeUnit.SECONDS);
+
+            return toOrderStateChangeResponse(orderStateChangeBean);
 
         } catch (GeneralApplicationException e) {
             throw e;
@@ -144,14 +142,25 @@ public class OrderController {
         }
     }
 
-    private OrderStateChangeResponse toOrderStateChangeResponse(final OrderStateChange orderStateChange) {
+    private OrderStateChangeResponse toOrderStateChangeResponse(final OrderStateChangeBean orderStateChangeBean) {
 
+        final OrderStateChange orderStateChange = orderStateChangeBean.getOrderStateChange();
         final OrderStateChange.OrderStateChangeEntry orderStateChangeEntry = orderStateChange.getLastEntry();
+
+        List<OrderStateChangeResponse.PrinterInstructionResponse> printerInstructions = List.of();
+
+        if (orderStateChangeBean.getPrinterInstructions().isPresent()) {
+            printerInstructions = orderStateChangeBean.getPrinterInstructions().get().getPrinterInstructions().values().stream()
+                    .map(pi -> new OrderStateChangeResponse.PrinterInstructionResponse(pi.getPrinterIpAddresses(),
+                            pi.getNoOfPrintCopies(),
+                            pi.getPrintInstruction())).collect(Collectors.toList());
+        }
 
         return new OrderStateChangeResponse(orderStateChange.getOrderId(),
                 orderStateChangeEntry.getFromState(),
                 orderStateChangeEntry.getToState(),
-                orderStateChangeEntry.getTimestamp());
+                orderStateChangeEntry.getTimestamp(),
+                printerInstructions);
     }
 
     private Order fromOrderRequest(final Client client, final OrderRequest orderRequest) {
@@ -168,7 +177,6 @@ public class OrderController {
                 final OrderLineItem orderLineItem = fromOrderLineItemRequest(client, li);
                 order.addOrderLineItem(orderLineItem);
             });
-
         }
 
         client.getClientSettings(ClientSetting.SettingName.SERVICE_CHARGE).ifPresent(sc -> {
@@ -207,7 +215,13 @@ public class OrderController {
             productSnapshot.setLabelInformation(product.getProductLabel().getId(), product.getProductLabel().getName());
         }
 
-        return new OrderLineItem(productSnapshot, li.getQuantity(), countrySettings.getTaxRate());
+        final OrderLineItem orderLineItem = new OrderLineItem(productSnapshot, li.getQuantity(), countrySettings.getTaxRate());
+
+        if (product.getWorkingArea() != null) {
+            orderLineItem.setWorkingAreaId(product.getWorkingArea().getId());
+        }
+
+        return orderLineItem;
     }
 
 
