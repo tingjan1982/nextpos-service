@@ -2,13 +2,11 @@ package io.nextpos.tablelayout.web;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
+import io.nextpos.product.web.model.SimpleObjectResponse;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
-import io.nextpos.tablelayout.web.model.TableDetailsRequest;
-import io.nextpos.tablelayout.web.model.TableDetailsResponse;
-import io.nextpos.tablelayout.web.model.TableLayoutRequest;
-import io.nextpos.tablelayout.web.model.TableLayoutResponse;
+import io.nextpos.tablelayout.web.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,6 +43,17 @@ public class TableLayoutController {
 
         final TableLayout tableLayout = clientObjectOwnershipService.checkOwnership(client, () -> tableLayoutService.getTableLayout(id));
         return toTableLayoutResponse(tableLayout);
+    }
+
+    @GetMapping
+    public TableLayoutsResponse getTableLayouts(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        final List<TableLayout> tableLayouts = tableLayoutService.getTableLayouts(client);
+
+        final List<SimpleObjectResponse> layoutsResponse = tableLayouts.stream()
+                .map(tl -> new SimpleObjectResponse(tl.getId(), tl.getLayoutName())).collect(Collectors.toList());
+
+        return new TableLayoutsResponse(layoutsResponse);
     }
 
     @PostMapping("/{id}/tables")
