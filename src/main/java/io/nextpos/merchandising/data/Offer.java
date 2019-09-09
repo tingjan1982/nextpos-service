@@ -3,6 +3,7 @@
 import io.nextpos.client.data.Client;
 import io.nextpos.shared.exception.ConfigurationException;
 import io.nextpos.shared.model.BaseObject;
+import io.nextpos.shared.model.ClientObject;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 import org.slf4j.Logger;
@@ -18,7 +19,7 @@ import java.util.EnumSet;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public abstract class Offer extends BaseObject {
+public abstract class Offer extends BaseObject implements ClientObject {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Offer.class);
 

@@ -61,6 +61,7 @@ public class Order extends MongoBaseObject {
     private Long version;
 
     public Order(final String clientId, BigDecimal taxRate, final Currency currency) {
+        // todo: think of new id generation strategy
         this.id = new ObjectId().toString();
         this.clientId = clientId;
         this.state = OPEN;

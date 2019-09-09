@@ -8,6 +8,7 @@ import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
 import io.nextpos.workingarea.web.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -54,6 +55,29 @@ public class WorkingAreaController {
         return new WorkingAreasResponse(workingAreaResponses);
     }
 
+    @PostMapping("/workingareas/{id}")
+    public WorkingAreaResponse updateWorkingArea(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                 @PathVariable final String id,
+                                                 @Valid @RequestBody WorkingAreaRequest workingAreaRequest) {
+
+        final WorkingArea workingAreaToUpdate = clientObjectOwnershipService.checkOwnership(client, () -> workingAreaService.getWorkingArea(id));
+        updateWorkingAreaFromRequest(workingAreaToUpdate, workingAreaRequest);
+
+        return toWorkingAreaResponse(workingAreaService.saveWorkingArea(workingAreaToUpdate));
+    }
+
+    private void updateWorkingAreaFromRequest(final WorkingArea workingArea, final WorkingAreaRequest workingAreaRequest) {
+
+        workingArea.setName(workingAreaRequest.getName());
+        workingArea.setNoOfPrintCopies(workingAreaRequest.getNoOfPrintCopies());
+
+        if (!CollectionUtils.isEmpty(workingAreaRequest.getPrinterIds())) {
+            workingAreaRequest.getPrinterIds().stream()
+                    .map(id -> clientObjectOwnershipService.checkOwnership(workingArea.getClient(), () -> workingAreaService.getPrinter(id)))
+                    .forEach(workingArea::addPrinter);
+        }
+    }
+
     private WorkingArea fromWorkingAreaRequest(final Client client, final WorkingAreaRequest workingAreaRequest) {
         final WorkingArea workingArea = new WorkingArea(client, workingAreaRequest.getName());
         workingArea.setNoOfPrintCopies(workingAreaRequest.getNoOfPrintCopies());
@@ -62,7 +86,13 @@ public class WorkingAreaController {
     }
 
     private WorkingAreaResponse toWorkingAreaResponse(final WorkingArea savedWorkingArea) {
-        return new WorkingAreaResponse(savedWorkingArea.getId(), savedWorkingArea.getName(), savedWorkingArea.getNoOfPrintCopies());
+
+        final PrintersResponse printersResponse = toPrintersResponse(savedWorkingArea.getPrinters());
+
+        return new WorkingAreaResponse(savedWorkingArea.getId(),
+                savedWorkingArea.getName(),
+                savedWorkingArea.getNoOfPrintCopies(),
+                printersResponse);
     }
 
     @PostMapping("/printers")
@@ -73,6 +103,15 @@ public class WorkingAreaController {
         final Printer savedPrinter = workingAreaService.savePrinter(printer);
 
         return toPrinterResponse(savedPrinter);
+    }
+
+    private Printer fromPrinterRequest(final Client client, final PrinterRequest printerRequest) {
+
+        final Printer.ServiceType serviceType = Printer.ServiceType.valueOf(printerRequest.getServiceType());
+        return new Printer(client,
+                printerRequest.getName(),
+                printerRequest.getIpAddress(),
+                serviceType);
     }
 
     @GetMapping("/printers/{id}")
@@ -87,19 +126,34 @@ public class WorkingAreaController {
 
         List<Printer> printers = workingAreaService.getPrinters(client);
 
+        return toPrintersResponse(printers);
+    }
+
+    private PrintersResponse toPrintersResponse(final List<Printer> printers) {
         final List<PrinterResponse> printerResponses = printers.stream()
                 .map(this::toPrinterResponse).collect(Collectors.toList());
 
         return new PrintersResponse(printerResponses);
     }
 
-    private Printer fromPrinterRequest(final Client client, final PrinterRequest printerRequest) {
+    @PostMapping("/printers/{id}")
+    public PrinterResponse updatePrinter(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                         @PathVariable final String id,
+                                         @Valid @RequestBody PrinterRequest printerRequest) {
+
+        final Printer printerToUpdate = clientObjectOwnershipService.checkOwnership(client, () -> workingAreaService.getPrinter(id));
+        updatePrinterFromRequest(printerToUpdate, printerRequest);
+
+        return toPrinterResponse(workingAreaService.savePrinter(printerToUpdate));
+    }
+
+    private void updatePrinterFromRequest(final Printer printer, final PrinterRequest printerRequest) {
+
+        printer.setName(printerRequest.getName());
+        printer.setIpAddress(printerRequest.getIpAddress());
 
         final Printer.ServiceType serviceType = Printer.ServiceType.valueOf(printerRequest.getServiceType());
-        return new Printer(client,
-                printerRequest.getName(),
-                printerRequest.getIpAddress(),
-                serviceType);
+        printer.setServiceType(serviceType);
     }
 
     private PrinterResponse toPrinterResponse(final Printer savedPrinter) {

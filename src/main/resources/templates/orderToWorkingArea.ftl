@@ -20,6 +20,9 @@
             <text linespc="65"/>
             <#list lineItems as li>
                 <text>${li.productSnapshot.name}</text><text x="250">${li.quantity}&#10;</text>
+                <#list li.productSnapshot.productOptions as option>
+                    <text>${option.optionName}: ${option.optionValue}&#10;</text>
+                </#list>
             </#list>
             <text linespc="35"/>
             <cut type="feed"/>

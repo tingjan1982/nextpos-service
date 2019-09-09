@@ -14,4 +14,6 @@ public class WorkingAreaResponse {
     private String name;
 
     private int noOfPrintCopies;
+
+    private PrintersResponse printers;
 }

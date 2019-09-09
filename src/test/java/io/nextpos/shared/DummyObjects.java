@@ -8,6 +8,7 @@ import io.nextpos.product.data.ProductVersion;
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.List;
 
 public class DummyObjects {
 
@@ -28,7 +29,8 @@ public class DummyObjects {
     }
 
     public static ProductSnapshot productSnapshot() {
-        return new ProductSnapshot("pid", "coffee", "sku", BigDecimal.valueOf(100), Collections.emptyList());
+        final List<ProductSnapshot.ProductOptionSnapshot> productOptions = Collections.singletonList(new ProductSnapshot.ProductOptionSnapshot("ice", "half"));
+        return new ProductSnapshot("pid", "coffee", "sku", BigDecimal.valueOf(100), productOptions);
     }
 
     public static ProductOptionVersion dummyProductOptionVersion() {

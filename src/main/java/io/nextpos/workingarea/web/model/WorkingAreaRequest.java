@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Positive;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -14,8 +16,8 @@ public class WorkingAreaRequest {
     @NotEmpty
     private String name;
 
+    @Positive
     private int noOfPrintCopies;
 
-    // todo: make this a list of printer ids and update postman to create printer and working area and link them together.
-    private String printerId;
+    private List<String> printerIds;
 }

@@ -42,6 +42,7 @@ public class Client extends BaseObject {
 
     private String countryCode;
 
+    @Enumerated(EnumType.STRING)
     private Status status = Status.PENDING_ACTIVE;
 
     @ElementCollection(fetch = FetchType.EAGER)
