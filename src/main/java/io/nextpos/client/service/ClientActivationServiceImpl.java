@@ -6,12 +6,12 @@ import io.nextpos.client.data.Client;
 import io.nextpos.notification.data.EmailDetails;
 import io.nextpos.notification.data.NotificationDetails;
 import io.nextpos.notification.service.NotificationService;
+import io.nextpos.shared.config.ApplicationProperties;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -38,16 +38,31 @@ public class ClientActivationServiceImpl implements ClientActivationService {
 
     private final NotificationService notificationService;
 
+    private final ApplicationProperties applicationProperties;
+
     private final Configuration freeMarkerCfg;
 
-    @Value("${app.hostname}")
-    private String hostname;
-
     @Autowired
-    public ClientActivationServiceImpl(final ClientService clientService, final NotificationService notificationService, final Configuration freeMarkerCfg) {
+    public ClientActivationServiceImpl(final ClientService clientService, final NotificationService notificationService, final ApplicationProperties applicationProperties, final Configuration freeMarkerCfg) {
         this.clientService = clientService;
         this.notificationService = notificationService;
+        this.applicationProperties = applicationProperties;
         this.freeMarkerCfg = freeMarkerCfg;
+    }
+
+    @Override
+    public void initiateClientActivation(Client client) {
+
+        if (applicationProperties.isAutoActivateClient()) {
+            LOGGER.info("Client has been activated automatically: {}={}", client.getId(), client.getClientName());
+
+            client.setStatus(Client.Status.ACTIVE);
+            clientService.saveClient(client);
+        } else {
+            LOGGER.info("Sending activation notification to client: {}={}", client.getId(), client.getClientName());
+
+            sendActivationNotification(client);
+        }
     }
 
     @Override
@@ -73,6 +88,8 @@ public class ClientActivationServiceImpl implements ClientActivationService {
     }
 
     String resolveHostName() throws UnknownHostException {
+
+        final String hostname = applicationProperties.getHostname();
 
         if (StringUtils.isNotEmpty(hostname)) {
             return hostname;

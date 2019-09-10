@@ -10,6 +10,11 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+/**
+ * Reference on Mongo compound index:
+ * https://www.baeldung.com/spring-data-mongodb-index-annotations-converter*
+ * https://docs.mongodb.com/manual/indexes/#unique-indexes
+ */
 @Document
 @CompoundIndexes({@CompoundIndex(name = "unique_per_client_index", def = "{'clientId': 1, 'mobileNumber': 1}")})
 @Data

@@ -57,7 +57,6 @@ public class ProductLabelController {
 
         final List<ProductLabel> productLabels = productLabelService.getProductLabels(client);
         return toProductLabelsResponse(productLabels);
-
     }
 
     @PostMapping("/{id}")
@@ -74,6 +73,7 @@ public class ProductLabelController {
         return toProductLabelResponse(savedProductLabel);
     }
 
+    // todo: also apply working area to all products under the label.
     @PostMapping("/{id}/applyOptions")
     public AppliedProductsResponse applyProductOptionsToProducts(@RequestAttribute(REQ_ATTR_CLIENT) Client client,
                                                                  @PathVariable final String id) {

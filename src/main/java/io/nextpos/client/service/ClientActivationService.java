@@ -7,6 +7,8 @@ import java.util.concurrent.CompletableFuture;
 
 public interface ClientActivationService {
 
+    void initiateClientActivation(Client client);
+
     CompletableFuture<NotificationDetails> sendActivationNotification(Client client);
 
     ClientActivationServiceImpl.ActivationStatus activateClient(String encodedToken);

@@ -40,7 +40,7 @@ public class ClientController {
         final Client client = fromClientRequest(clientRequest);
         final Client createdClient = clientService.createClient(client);
 
-        clientActivationService.sendActivationNotification(createdClient);
+        clientActivationService.initiateClientActivation(createdClient);
 
         return toClientResponse(createdClient);
 
