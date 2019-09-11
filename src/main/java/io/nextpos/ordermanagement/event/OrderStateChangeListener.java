@@ -12,10 +12,12 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 /**
  * How to use event:
  * https://www.baeldung.com/spring-events
- *
+ * <p>
  * How to use CompletableFuture:
  * https://www.baeldung.com/java-completablefuture
  */
@@ -41,16 +43,14 @@ public class OrderStateChangeListener {
         final Order.OrderAction orderAction = event.getOrderAction();
         final Order.OrderState orderState = order.getState();
 
-        LOGGER.info("Order state: {}, Order Action: {}", orderState, orderAction);
+        LOGGER.info("Order[{}] in the state[{}] received action[{}]", order.getId(), orderState, orderAction);
 
         if (orderAction.getValidFromState().contains(orderState)) {
-            final Order.OrderState transitionState = orderAction.getValidNextState();
-            LOGGER.info("Order in valid state, proceed with order transition: {}", transitionState);
+            final Optional<LineItemStateChangeEvent> lineItemStateChangeEvent = Optional.of(
+                    new LineItemStateChangeEvent(this, order, orderAction, order.getOrderLineItems())
+            );
 
-            final OrderStateChange orderStateChange = orderService.transitionOrderState(order, transitionState);
-
-            LOGGER.info("Updated order state change: {}", orderStateChange);
-
+            final OrderStateChange orderStateChange = orderService.transitionOrderState(order, orderAction, lineItemStateChangeEvent);
             final OrderStateChangeBean orderStateChangeBean = new OrderStateChangeBean(orderStateChange);
 
             // dispatch a post state change event.

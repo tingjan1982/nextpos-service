@@ -39,7 +39,7 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
     public PrinterInstructions createOrderToWorkingArea(final Order order) {
 
         final Map<String, List<OrderLineItem>> lineItemsGroupedByWorkingArea = order.getOrderLineItems().stream()
-                .filter(oli -> oli.getState() == Order.OrderState.IN_PROCESS)
+                .filter(oli -> oli.getState() == OrderLineItem.LineItemState.IN_PROCESS)
                 .filter(oli -> oli.getWorkingAreaId() != null)
                 .collect(Collectors.groupingBy(OrderLineItem::getWorkingAreaId, Collectors.toList()
                 ));

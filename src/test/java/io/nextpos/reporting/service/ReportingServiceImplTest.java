@@ -22,6 +22,7 @@ import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -84,8 +85,8 @@ class ReportingServiceImplTest {
     private Order createAndTransitionOrderToDelivered(String clientId) {
 
         final Order order = this.createOrder(clientId);
-        orderService.transitionOrderState(order, Order.OrderState.IN_PROCESS);
-        orderService.transitionOrderState(order, Order.OrderState.DELIVERED);
+        orderService.transitionOrderState(order, Order.OrderAction.SUBMIT, Optional.empty());
+        orderService.transitionOrderState(order, Order.OrderAction.DELIVER, Optional.empty());
 
         return order;
     }

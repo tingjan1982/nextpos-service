@@ -1,6 +1,7 @@
 package io.nextpos.ordermanagement.web.model;
 
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.TaxableAmount;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -50,6 +51,8 @@ public class OrderResponse {
         private int quantity;
 
         private TaxableAmount subTotal;
+
+        private OrderLineItem.LineItemState state;
 
         private String options;
     }

@@ -10,10 +10,12 @@ import io.nextpos.ordermanagement.web.model.*;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductVersion;
 import io.nextpos.product.service.ProductService;
+import io.nextpos.product.web.model.SimpleObjectResponse;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.settings.service.SettingsService;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.web.ClientResolver;
+import io.nextpos.shared.web.model.SimpleObjectsResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,10 +71,10 @@ public class OrderController {
     /**
      * The merge function is to circumvent the following potential error:
      * java.lang.IllegalStateException: Duplicate key A1 (attempted merging values OrdersResponse.LightOrderResponse(orderId=5d65f8587d6ffa3008fc2023, state=OPEN, total=TaxableAmount(taxRate=0.05, amountWithoutTax=155.00, amountWithTax=162.7500, tax=7.7500)) and OrdersResponse.LightOrderResponse(orderId=5d65f90a7d6ffa3008fc2024, state=OPEN, total=TaxableAmount(taxRate=0.05, amountWithoutTax=155.00, amountWithTax=162.7500, tax=7.7500)))
-     *
+     * <p>
      * toMap reference:
      * https://www.geeksforgeeks.org/collectors-tomap-method-in-java-with-examples/
-     * 
+     *
      * @param client
      * @return
      */
@@ -115,6 +117,17 @@ public class OrderController {
         return toOrderResponse(order);
     }
 
+    @PostMapping("/{id}/lineitems/deliver")
+    public SimpleObjectsResponse deliverLineItems(@PathVariable final String id, @Valid @RequestBody UpdateLineItemsRequest updateLineItemsRequest) {
+
+        final List<OrderLineItem> updatedOrderLineItems = orderService.deliverLineItems(id, updateLineItemsRequest.getLineItemIds());
+        final List<SimpleObjectResponse> simpleObjects = updatedOrderLineItems.stream()
+                .map(li -> new SimpleObjectResponse(li.getId(), li.getProductSnapshot().getName()))
+                .collect(Collectors.toList());
+
+        return new SimpleObjectsResponse(simpleObjects);
+    }
+
     @PatchMapping("/{id}/lineitems/{lineItemId}")
     public OrderResponse updateOrderLineItem(@PathVariable String id, @PathVariable String lineItemId, @RequestBody UpdateOrderLineItemRequest updateOrderLineItemRequest) {
 
@@ -130,10 +143,15 @@ public class OrderController {
         final CompletableFuture<OrderStateChangeBean> future = new CompletableFuture<>();
         eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, orderAction, future));
 
-        try {
-            final OrderStateChangeBean orderStateChangeBean = future.get(15, TimeUnit.SECONDS);
+        final OrderStateChangeBean orderStateChangeBean = this.getOrderStateChangeBeanFromFuture(future);
 
-            return toOrderStateChangeResponse(orderStateChangeBean);
+        return toOrderStateChangeResponse(orderStateChangeBean);
+    }
+
+    private OrderStateChangeBean getOrderStateChangeBeanFromFuture(CompletableFuture<OrderStateChangeBean> future) throws GeneralApplicationException {
+
+        try {
+            return future.get(15, TimeUnit.SECONDS);
 
         } catch (GeneralApplicationException e) {
             throw e;
@@ -233,7 +251,14 @@ public class OrderController {
                             .map(po -> String.format("%s: %s => %s", po.getOptionName(), po.getOptionValue(), po.getOptionPrice()))
                             .collect(Collectors.joining(", "));
 
-                    return new OrderResponse.OrderLineItemResponse(li.getId(), li.getProductSnapshot().getName(), li.getProductSnapshot().getPrice(), li.getQuantity(), li.getSubTotal(), options);
+                    return new OrderResponse.OrderLineItemResponse(li.getId(),
+                            li.getProductSnapshot().getName(),
+                            li.getProductSnapshot().getPrice(),
+                            li.getQuantity(),
+                            li.getSubTotal(),
+                            li.getState(),
+                            options);
+
                 }).collect(Collectors.toList());
 
         return new OrderResponse(order.getId(),

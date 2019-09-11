@@ -7,6 +7,7 @@ import io.nextpos.shared.exception.ClientAccountException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
@@ -27,6 +28,8 @@ public class ClientResolver extends OncePerRequestFilter {
 
     public static final String REQ_ATTR_CLIENT = "req-client";
 
+    private static final String MDC_CLIENT_ID = "client.id";
+
     private final ClientService clientService;
 
 
@@ -38,9 +41,16 @@ public class ClientResolver extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response, final FilterChain filterChain) throws ServletException, IOException {
 
-        request.setAttribute(REQ_ATTR_CLIENT, resolveClient());
+        final Client client = resolveClient();
+        request.setAttribute(REQ_ATTR_CLIENT, client);
 
-        filterChain.doFilter(request, response);
+        try {
+            MDC.put(MDC_CLIENT_ID, client.getId());
+            filterChain.doFilter(request, response);
+
+        } finally {
+            MDC.remove(MDC_CLIENT_ID);
+        }
 
     }
 

@@ -16,7 +16,7 @@ public class OrderLineItem {
 
     private String workingAreaId;
 
-    private Order.OrderState state;
+    private LineItemState state;
 
     private int quantity;
 
@@ -29,7 +29,7 @@ public class OrderLineItem {
         this.productSnapshot = productSnapshot;
         this.quantity = quantity;
 
-        state = Order.OrderState.OPEN;
+        state = LineItemState.OPEN;
         subTotal = new TaxableAmount(taxRate);
 
         computeSubTotal();
@@ -61,5 +61,16 @@ public class OrderLineItem {
 
         discountedSubTotal = new TaxableAmount(subTotal.getTaxRate());
         discountedSubTotal.calculate(discountedLineItemTotal);
+    }
+
+    public enum LineItemState {
+
+        OPEN,
+
+        IN_PROCESS,
+
+        ALREADY_IN_PROCESS,
+
+        DELIVERED
     }
 }

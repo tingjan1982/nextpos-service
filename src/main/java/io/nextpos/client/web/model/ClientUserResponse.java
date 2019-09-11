@@ -18,4 +18,6 @@ public class ClientUserResponse {
     private String encryptedPassword;
 
     private List<String> roles;
+
+    private boolean defaultUser;
 }

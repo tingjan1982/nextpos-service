@@ -54,7 +54,7 @@ class PrinterInstructionsServiceImplTest {
         final Order order = new Order(client.getId(), countrySettings.getTaxRate(), countrySettings.getCurrency());
 
         final OrderLineItem item1 = new OrderLineItem(DummyObjects.productSnapshot(), 2, countrySettings.getTaxRate());
-        item1.setState(Order.OrderState.IN_PROCESS);
+        item1.setState(OrderLineItem.LineItemState.IN_PROCESS);
         item1.setWorkingAreaId(workingArea.getId());
         order.addOrderLineItem(item1);
 

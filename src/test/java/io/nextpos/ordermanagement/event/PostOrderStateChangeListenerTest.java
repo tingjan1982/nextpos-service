@@ -57,7 +57,7 @@ class PostOrderStateChangeListenerTest {
 
         final OrderLineItem item1 = new OrderLineItem(DummyObjects.productSnapshot(), 2, defaultCountrySettings.getTaxRate());
         item1.setWorkingAreaId(workingArea.getId());
-        item1.setState(Order.OrderState.IN_PROCESS);
+        item1.setState(OrderLineItem.LineItemState.IN_PROCESS);
 
         order.addOrderLineItem(item1);
         orderService.saveOrder(order);

@@ -1,5 +1,6 @@
 package io.nextpos.client.data;
 
+import io.nextpos.merchandising.data.Offer;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
 import io.nextpos.product.data.ProductOption;
@@ -77,6 +78,11 @@ public class Client extends BaseObject {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<ProductLabel> productLabels;
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Offer> offers;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
     @ToString.Exclude

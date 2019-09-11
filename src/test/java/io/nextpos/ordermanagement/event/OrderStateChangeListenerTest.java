@@ -1,6 +1,7 @@
 package io.nextpos.ordermanagement.event;
 
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderStateChange;
 import io.nextpos.ordermanagement.data.OrderStateChangeBean;
 import io.nextpos.ordermanagement.service.OrderService;
@@ -53,7 +54,7 @@ class OrderStateChangeListenerTest {
         future.get();
 
         assertThat(order.getState()).isEqualTo(Order.OrderState.DELIVERED);
-        assertThat(order.getOrderLineItems()).satisfies(li -> assertThat(li.getState()).isEqualTo(Order.OrderState.DELIVERED), Index.atIndex(0));
+        assertThat(order.getOrderLineItems()).satisfies(li -> assertThat(li.getState()).isEqualTo(OrderLineItem.LineItemState.DELIVERED), Index.atIndex(0));
 
         order.addOrderLineItem(DummyObjects.productSnapshot(), 2);
         orderService.saveOrder(order);
@@ -62,8 +63,8 @@ class OrderStateChangeListenerTest {
         eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.SUBMIT, resubmittedFuture));
 
         assertThat(order.getState()).isEqualTo(Order.OrderState.IN_PROCESS);
-        assertThat(order.getOrderLineItems()).satisfies(li -> assertThat(li.getState()).isEqualTo(Order.OrderState.DELIVERED), Index.atIndex(0));
-        assertThat(order.getOrderLineItems()).satisfies(li -> assertThat(li.getState()).isEqualTo(Order.OrderState.IN_PROCESS), Index.atIndex(1));
+        assertThat(order.getOrderLineItems()).satisfies(li -> assertThat(li.getState()).isEqualTo(OrderLineItem.LineItemState.DELIVERED), Index.atIndex(0));
+        assertThat(order.getOrderLineItems()).satisfies(li -> assertThat(li.getState()).isEqualTo(OrderLineItem.LineItemState.IN_PROCESS), Index.atIndex(1));
 
         eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.DELIVER, new CompletableFuture<>()));
 

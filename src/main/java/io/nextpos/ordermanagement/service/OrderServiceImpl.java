@@ -1,18 +1,26 @@
 package io.nextpos.ordermanagement.service;
 
 import io.nextpos.ordermanagement.data.*;
+import io.nextpos.ordermanagement.event.LineItemStateChangeEvent;
 import io.nextpos.ordermanagement.web.model.UpdateOrderLineItemRequest;
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class OrderServiceImpl implements OrderService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(OrderServiceImpl.class);
 
     private final ShiftService shiftService;
 
@@ -20,14 +28,14 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderStateChangeRepository orderStateChangeRepository;
 
-    private final MongoTemplate mongoTemplate;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
-    public OrderServiceImpl(final ShiftService shiftService, final OrderRepository orderRepository, final OrderStateChangeRepository orderStateChangeRepository, final MongoTemplate mongoTemplate) {
+    public OrderServiceImpl(final ShiftService shiftService, final OrderRepository orderRepository, final OrderStateChangeRepository orderStateChangeRepository, final ApplicationEventPublisher applicationEventPublisher) {
         this.shiftService = shiftService;
         this.orderRepository = orderRepository;
         this.orderStateChangeRepository = orderStateChangeRepository;
-        this.mongoTemplate = mongoTemplate;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
 
@@ -69,6 +77,7 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.delete(order);
     }
 
+    // todo: extract request object out of service layer.
     @Override
     public Order updateOrderLineItem(final String id, final String lineItemId, final UpdateOrderLineItemRequest updateOrderLineItemRequest) {
 
@@ -91,7 +100,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderStateChange transitionOrderState(final Order order, final Order.OrderState orderState) {
+    public OrderStateChange transitionOrderState(final Order order, final Order.OrderAction orderAction, Optional<LineItemStateChangeEvent> lineItemStateChangeEvent) {
+
+        final Order.OrderState orderState = orderAction.getValidNextState();
 
         final OrderStateChange orderStateChange = orderStateChangeRepository.findById(order.getId())
                 .orElse(new OrderStateChange(order.getId(), order.getClientId()));
@@ -101,15 +112,32 @@ public class OrderServiceImpl implements OrderService {
 
         order.setState(orderState);
 
-        order.getOrderLineItems().forEach(li -> {
-            if (li.getState().isOverwritable()) {
-                li.setState(orderState);
-            }
-        });
+        lineItemStateChangeEvent.ifPresent(applicationEventPublisher::publishEvent);
 
         orderRepository.save(order);
 
         return orderStateChange;
     }
 
+    @Override
+    public List<OrderLineItem> deliverLineItems(String orderId, List<String> lineItemIds) {
+
+        if (!CollectionUtils.isEmpty(lineItemIds)) {
+            final Order order = this.getOrder(orderId);
+            final List<OrderLineItem> orderLineItems = order.getOrderLineItems().stream()
+                    .filter(li -> lineItemIds.contains(li.getId()))
+                    .collect(Collectors.toList());
+
+            if (!orderLineItems.isEmpty()) {
+                LOGGER.info("Marking line items as delivered: {}", orderLineItems);
+                applicationEventPublisher.publishEvent(new LineItemStateChangeEvent(this, order, Order.OrderAction.PARTIAL_DELIVER, orderLineItems));
+
+                this.saveOrder(order);
+
+                return orderLineItems;
+            }
+        }
+
+        return List.of();
+    }
 }

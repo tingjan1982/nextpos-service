@@ -1,5 +1,6 @@
 package io.nextpos.client.data;
 
+import io.nextpos.shared.config.SecurityConfig;
 import io.nextpos.shared.model.BaseObject;
 import lombok.*;
 
@@ -27,6 +28,10 @@ public class ClientUser extends BaseObject {
         this.id = id;
         this.password = password;
         this.roles = roles;
+    }
+
+    public boolean isDefaultUser() {
+        return roles.contains(SecurityConfig.Role.ADMIN_ROLE);
     }
 
     /**

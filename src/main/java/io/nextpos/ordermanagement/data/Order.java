@@ -44,7 +44,7 @@ public class Order extends MongoBaseObject {
 
     private TaxableAmount discountedTotal;
 
-    private BigDecimal serviceCharge  = BigDecimal.ZERO;
+    private BigDecimal serviceCharge = BigDecimal.ZERO;
 
     private Currency currency;
 
@@ -172,19 +172,18 @@ public class Order extends MongoBaseObject {
         }
     }
 
+    // todo: move to upper level
     public enum OrderState {
 
         /**
          * Initial state
          */
-        OPEN(true),
+        OPEN,
 
         /**
          * When order is submitted.
          */
-        IN_PROCESS(true),
-
-        PARTIALLY_DELIVERED,
+        IN_PROCESS,
 
         /**
          * When order is fulfilled.
@@ -214,23 +213,13 @@ public class Order extends MongoBaseObject {
         /**
          * When order is marked as completed to indicate it can be filtered out when trying to display current orders.
          */
-        COMPLETED;
-        
-        private boolean overwritable;
-
-        OrderState() {
-            overwritable = false;
-        }
-        
-        OrderState(final boolean overwritable) {
-            this.overwritable = overwritable;
-        }
-
-        public boolean isOverwritable() {
-            return overwritable;
-        }
+        COMPLETED
     }
 
+    /**
+     * State machine reference:
+     * https://statecharts.github.io/what-is-a-state-machine.html
+     */
     public enum OrderAction {
 
         DELETE(OPEN, DELETED),
@@ -240,6 +229,7 @@ public class Order extends MongoBaseObject {
          */
         SUBMIT(EnumSet.of(OPEN, IN_PROCESS, DELIVERED), IN_PROCESS),
         CANCEL(IN_PROCESS, CANCELLED),
+        PARTIAL_DELIVER(IN_PROCESS, DELIVERED),
         DELIVER(IN_PROCESS, DELIVERED),
         SETTLE(DELIVERED, SETTLED),
         REFUND(SETTLED, REFUNDED),

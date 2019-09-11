@@ -24,14 +24,14 @@ public class LoggingAspect {
 
         try {
             final String method = proceedingJoinPoint.getSignature().toString();
-            LOGGER.debug("Service method call: {}, args: {}", method, Arrays.toString(proceedingJoinPoint.getArgs()));
+            LOGGER.debug("Service method: {}, args: {}", method, Arrays.toString(proceedingJoinPoint.getArgs()));
 
             final Object result = proceedingJoinPoint.proceed();
             LOGGER.debug("Returns: {}", result);
 
             return result;
         } catch (Throwable e) {
-            LOGGER.debug("Caught an issue: {}", e.getMessage(), e);
+            LOGGER.debug("Caught an exception: {}", e.getMessage(), e);
 
             throw e;
         }
