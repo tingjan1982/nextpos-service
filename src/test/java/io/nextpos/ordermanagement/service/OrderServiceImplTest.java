@@ -4,6 +4,7 @@ import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.ordermanagement.web.model.UpdateOrderLineItemRequest;
+import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.AfterEach;
@@ -15,7 +16,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
-import java.util.Currency;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,6 +33,8 @@ class OrderServiceImplTest {
     @Autowired
     private ShiftService shiftService;
 
+    @Autowired
+    private CountrySettings countrySettings;
 
     @BeforeEach
     void prepare() {
@@ -48,9 +50,7 @@ class OrderServiceImplTest {
     @WithMockUser("dummyUser")
     void createAndGetOrder() {
 
-        BigDecimal taxRate = new BigDecimal("0.05");
-
-        final Order order = new Order(CLIENT_ID, taxRate, Currency.getInstance("TWD"));
+        final Order order = new Order(CLIENT_ID, countrySettings.getTaxRate(), countrySettings.getCurrency());
         order.setTableId("table 1");
 
         final List<ProductSnapshot.ProductOptionSnapshot> options = List.of(
@@ -101,15 +101,14 @@ class OrderServiceImplTest {
 
     @Test
     @WithMockUser("dummyUser")
-    public void addAndUpdateOrderLineItem() {
+    void addAndUpdateOrderLineItem() {
 
-        final BigDecimal taxRate = BigDecimal.valueOf(0.05);
-        final Order order = new Order(CLIENT_ID, taxRate, Currency.getInstance("TWD"));
+        final Order order = new Order(CLIENT_ID, countrySettings.getTaxRate(), countrySettings.getCurrency());
         final Order createdOrder = orderService.createOrder(order);
 
 
         final ProductSnapshot product = DummyObjects.productSnapshot();
-        final OrderLineItem orderLineItem = new OrderLineItem(product, 1, taxRate);
+        final OrderLineItem orderLineItem = new OrderLineItem(product, 1, countrySettings.getTaxRate());
 
         orderService.addOrderLineItem(createdOrder, orderLineItem);
 
@@ -121,5 +120,28 @@ class OrderServiceImplTest {
         assertThat(updatedOrder.getOrderLineItems()).satisfies(li -> {
             assertThat(li.getQuantity()).isEqualTo(5);
         }, Index.atIndex(0));
+    }
+
+    @Test
+    void copyOrder() {
+
+        final Order order = new Order(CLIENT_ID, countrySettings.getTaxRate(), countrySettings.getCurrency());
+        order.addOrderLineItem(DummyObjects.productSnapshot(), 5);
+
+        final ProductSnapshot productWithOption = new ProductSnapshot("pid",
+                "custom",
+                null,
+                BigDecimal.valueOf(200),
+                List.of(new ProductSnapshot.ProductOptionSnapshot("ice", "normal", BigDecimal.valueOf(5))));
+        final OrderLineItem lineItem = new OrderLineItem(productWithOption, 2, countrySettings.getTaxRate());
+        order.addOrderLineItem(lineItem);
+
+        orderService.createOrder(order);
+
+        final Order copiedOrder = orderService.copyOrder(order.getId());
+
+        assertThat(copiedOrder.getMetadata(Order.COPY_FROM_ORDER)).isEqualTo(order.getId());
+        assertThat(copiedOrder).isEqualToIgnoringGivenFields(order, "id", "orderLineItems", "metadata", "internalCounter", "createdDate", "modifiedDate");
+        assertThat(copiedOrder.getOrderLineItems()).usingElementComparatorIgnoringFields("id").isEqualTo(order.getOrderLineItems());
     }
 }

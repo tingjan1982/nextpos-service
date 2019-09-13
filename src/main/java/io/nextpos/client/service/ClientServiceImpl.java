@@ -196,6 +196,22 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
     }
 
     @Override
+    public ClientUser saveClientUser(final ClientUser clientUser) {
+
+        final String encryptedPassword = passwordEncoder.encode(clientUser.getPassword());
+        clientUser.setPassword(encryptedPassword);
+
+        return clientUserRepository.save(clientUser);
+    }
+
+    @Override
+    public void deleteClientUser(final Client client, final String username) {
+
+        final ClientUser clientUser = this.getClientUser(client, username);
+        clientUserRepository.delete(clientUser);
+    }
+
+    @Override
     public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
 
         final String clientUsername = findCurrentClientUsername();

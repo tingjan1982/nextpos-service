@@ -7,6 +7,7 @@ import org.springframework.util.CollectionUtils;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -60,6 +61,21 @@ public class ProductSnapshot {
         return this.price.add(optionPriceTotal);
     }
 
+    public ProductSnapshot copy() {
+        final ProductSnapshot copy = new ProductSnapshot();
+        copy.id = id;
+        copy.name = name;
+        copy.sku = sku;
+        copy.price = price;
+        copy.discountedPrice = discountedPrice;
+        copy.labelId = labelId;
+        copy.label = label;
+
+        copy.productOptions = productOptions.stream().map(ProductOptionSnapshot::copy).collect(Collectors.toList());
+
+        return copy;
+    }
+
     @Data
     @NoArgsConstructor
     public static class ProductOptionSnapshot {
@@ -78,6 +94,10 @@ public class ProductSnapshot {
             this.optionName = optionName;
             this.optionValue = optionValue;
             this.optionPrice = optionPrice != null ? optionPrice : BigDecimal.ZERO;
+        }
+
+        public ProductOptionSnapshot copy() {
+            return new ProductOptionSnapshot(optionName, optionValue, optionPrice);
         }
     }
 

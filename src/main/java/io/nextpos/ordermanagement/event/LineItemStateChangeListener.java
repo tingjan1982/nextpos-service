@@ -68,6 +68,6 @@ public class LineItemStateChangeListener {
                 break;
         }
 
-        LOGGER.info("Line item state changes were completed: {}", lineItems);
+        LOGGER.info("Line item state changes are completed: {}", lineItems);
     }
 }

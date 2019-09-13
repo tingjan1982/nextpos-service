@@ -1,6 +1,7 @@
 package io.nextpos.ordermanagement.event;
 
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
@@ -39,6 +40,7 @@ class LineItemStateChangeListenerTest {
 
         eventPublisher.publishEvent(new LineItemStateChangeEvent(this, order, Order.OrderAction.PARTIAL_DELIVER, order.getOrderLineItems()));
 
+        assertThat(order.getOrderLineItems()).allMatch(li -> li.getState() == OrderLineItem.LineItemState.DELIVERED);
         assertThat(order.getState()).isEqualTo(Order.OrderState.DELIVERED);
     }
 }

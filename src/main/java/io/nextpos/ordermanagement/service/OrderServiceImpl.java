@@ -140,4 +140,13 @@ public class OrderServiceImpl implements OrderService {
 
         return List.of();
     }
+
+    @Override
+    public Order copyOrder(final String id) {
+
+        final Order order = this.getOrder(id);
+        Order copiedOrder = order.copy();
+
+        return this.saveOrder(copiedOrder);
+    }
 }

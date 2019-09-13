@@ -336,7 +336,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers(POST, "/clients/me").hasAuthority(Role.ADMIN_ROLE)
                     .antMatchers(DELETE, "/clients/me").hasAuthority(Role.ADMIN_ROLE)
                     .antMatchers(GET, "/clients/me/users").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/clients/me/users").hasAuthority(Role.MANAGER_ROLE);
+                    .antMatchers(GET, "/clients/me/users/*").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(POST, "/clients/me/users/*").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(DELETE, "/clients/me/users/*").hasAuthority(Role.MANAGER_ROLE);
         }
 
         private void authorizeTimeCardRequests(final HttpSecurity http) throws Exception {

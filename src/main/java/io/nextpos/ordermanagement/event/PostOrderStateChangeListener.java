@@ -25,9 +25,10 @@ public class PostOrderStateChangeListener {
     @EventListener
     public void postOrderStateChange(PostStateChangeEvent postStateChangeEvent) {
 
-        LOGGER.info("Post order state change: {}", postStateChangeEvent);
-
         final Order order = postStateChangeEvent.getOrder();
+
+        LOGGER.info("Post order state change {} for order[{}]", order.getState(), order.getId());
+
         final OrderStateChangeBean orderStateChangeBean = postStateChangeEvent.getOrderStateChangeBean();
 
         if (order.getState() == Order.OrderState.IN_PROCESS) {

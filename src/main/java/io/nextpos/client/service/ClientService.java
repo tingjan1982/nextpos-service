@@ -29,4 +29,8 @@ public interface ClientService {
     ClientUser getClientUser(Client client, String username);
 
     List<ClientUser> getClientUsers(Client client);
+
+    ClientUser saveClientUser(ClientUser clientUser);
+
+    void deleteClientUser(final Client client, String username);
 }

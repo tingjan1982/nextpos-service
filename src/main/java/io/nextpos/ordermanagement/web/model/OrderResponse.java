@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.util.Currency;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @NoArgsConstructor
@@ -36,6 +37,8 @@ public class OrderResponse {
     private Currency currency;
 
     private List<OrderLineItemResponse> lineItems;
+
+    private Map<String, Object> metadata;
 
     @Data
     @NoArgsConstructor

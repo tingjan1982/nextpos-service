@@ -34,4 +34,6 @@ public interface OrderService {
     Order addOrderLineItem(Order order, OrderLineItem orderLineItem);
 
     List<OrderLineItem> deliverLineItems(String orderId, List<String> lineItemIds);
+
+    Order copyOrder(String id);
 }

@@ -4,16 +4,19 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientSetting;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.shared.DummyObjects;
+import io.nextpos.shared.config.SecurityConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import javax.transaction.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
@@ -54,10 +57,10 @@ class ClientServiceImplTest {
 
     @Test
     @WithMockUser("admin@nextpos.io")
-    void createAndGetClientUser() {
+    void crudClientUser() {
 
         final String username = "user@nextpos.io";
-        final ClientUser clientUser = new ClientUser(new ClientUser.ClientUserId(username, client.getUsername()), "admin", "ADMIN");
+        final ClientUser clientUser = new ClientUser(new ClientUser.ClientUserId(username, client.getUsername()), "admin", SecurityConfig.Role.ADMIN_ROLE);
 
         final ClientUser createdUser = clientService.createClientUser(clientUser);
 
@@ -69,6 +72,22 @@ class ClientServiceImplTest {
         assertThat(userDetails).isNotNull();
 
         assertThat(clientService.getClientUsers(client)).hasSize(1);
+
+        createdUser.setNickname("tom");
+        createdUser.setPassword("password");
+        createdUser.setRoles(SecurityConfig.Role.USER_ROLE);
+
+        final ClientUser updatedUser = clientService.saveClientUser(createdUser);
+
+        assertThat(updatedUser.getNickname()).isEqualTo("tom");
+        assertThat(updatedUser.getId()).isEqualTo(clientUser.getId());
+        assertThat(updatedUser.getRoles()).contains(SecurityConfig.Role.USER_ROLE);
+
+        clientService.deleteClientUser(client, username);
+
+        assertThat(clientService.getClientUsers(client)).isEmpty();
+
+        assertThatThrownBy(() -> clientService.loadUserByUsername(username)).isInstanceOf(UsernameNotFoundException.class);
     }
 
     @Test

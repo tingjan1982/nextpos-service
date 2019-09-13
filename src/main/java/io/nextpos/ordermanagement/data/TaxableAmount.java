@@ -32,4 +32,13 @@ public class TaxableAmount {
             amountWithTax = amountWithoutTax.add(tax);
         }
     }
+
+    public TaxableAmount copy() {
+        final TaxableAmount copy = new TaxableAmount(taxRate);
+        copy.amountWithoutTax = amountWithoutTax;
+        copy.amountWithTax = amountWithTax;
+        copy.tax = tax;
+
+        return copy;
+    }
 }

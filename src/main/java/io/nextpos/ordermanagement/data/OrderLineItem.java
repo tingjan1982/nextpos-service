@@ -63,6 +63,18 @@ public class OrderLineItem {
         discountedSubTotal.calculate(discountedLineItemTotal);
     }
 
+    public OrderLineItem copy() {
+        final OrderLineItem copy = new OrderLineItem();
+        copy.productSnapshot = productSnapshot.copy();
+        copy.workingAreaId = workingAreaId;
+        copy.state = state;
+        copy.quantity = quantity;
+        copy.subTotal = subTotal.copy();
+        copy.discountedSubTotal = discountedSubTotal != null ? discountedSubTotal.copy() : null;
+
+        return copy;
+    }
+
     public enum LineItemState {
 
         OPEN,

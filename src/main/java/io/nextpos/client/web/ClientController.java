@@ -151,6 +151,14 @@ public class ClientController {
         return toClientUserResponse(createdClientUser);
     }
 
+    @GetMapping("/me/users/{username}")
+    public ClientUserResponse getClientUser(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                            @PathVariable final String username) {
+
+        final ClientUser clientUser = clientService.getClientUser(client, username);
+        return toClientUserResponse(clientUser);
+    }
+
     @GetMapping("/me/users")
     public ClientUsersResponse getClientUsers(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
@@ -159,6 +167,34 @@ public class ClientController {
                 .map(this::toClientUserResponse).collect(Collectors.toList());
 
         return new ClientUsersResponse(clientUsersResponse);
+    }
+
+    @PostMapping("/me/users/{username}")
+    public ClientUserResponse updateClientUser(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                               @PathVariable final String username,
+                                               @Valid @RequestBody UpdateClientUserRequest updateClientUserRequest) {
+
+        final ClientUser clientUser = clientService.getClientUser(client, username);
+        updateClientUserFromRequest(clientUser, updateClientUserRequest);
+
+        clientService.saveClientUser(clientUser);
+        return toClientUserResponse(clientUser);
+    }
+
+    @DeleteMapping("/me/users/{username}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteClientUser(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                 @PathVariable final String username) {
+
+        clientService.deleteClientUser(client, username);
+    }
+
+    private void updateClientUserFromRequest(final ClientUser clientUser, final UpdateClientUserRequest updateClientUserRequest) {
+
+        clientUser.setNickname(updateClientUserRequest.getNickname());
+        clientUser.setPassword(updateClientUserRequest.getPassword());
+        final String roles = String.join(",", updateClientUserRequest.getRoles());
+        clientUser.setRoles(roles);
     }
 
     private ClientUser fromClientUserRequest(Client client, ClientUserRequest clientUserRequest) {

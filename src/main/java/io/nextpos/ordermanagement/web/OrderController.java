@@ -100,6 +100,13 @@ public class OrderController {
         return toOrderResponse(order);
     }
 
+    @PostMapping("/{id}/copy")
+    public OrderResponse copyOrder(@PathVariable final String id) {
+
+        Order copiedOrder = orderService.copyOrder(id);
+        return toOrderResponse(copiedOrder);
+    }
+
     @DeleteMapping("/{id}")
     public void deleteOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @PathVariable final String id) {
         // todo: implement delete order.
@@ -270,7 +277,8 @@ public class OrderController {
                 order.getServiceCharge(),
                 order.getOrderTotal(),
                 order.getCurrency(),
-                orderLineItems);
+                orderLineItems,
+                order.getMetadata());
     }
 
 }

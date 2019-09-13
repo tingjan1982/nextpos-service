@@ -13,11 +13,9 @@ import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Currency;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static io.nextpos.ordermanagement.data.Order.OrderState.*;
 
@@ -30,6 +28,8 @@ import static io.nextpos.ordermanagement.data.Order.OrderState.*;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class Order extends MongoBaseObject {
+
+    public static final String COPY_FROM_ORDER = "copyFromOrder";
 
     @Id
     private String id;
@@ -51,6 +51,8 @@ public class Order extends MongoBaseObject {
     private String tableId;
 
     private DemographicData demographicData;
+
+    private Map<String, Object> metadata = new HashMap<>();
 
     /**
      * this represents the id suffix of line item id.
@@ -81,6 +83,8 @@ public class Order extends MongoBaseObject {
     }
 
     /**
+     * todo: revisit this as it doesn't consider discounted total.
+     *
      * total + service charge
      *
      * @return
@@ -172,6 +176,39 @@ public class Order extends MongoBaseObject {
         }
     }
 
+    public void addMetadata(String key, Object value) {
+        metadata.put(key, value);
+    }
+
+    public Object getMetadata(final String key) {
+        return metadata.get(key);
+    }
+
+    public Order copy() {
+
+        final Order copy = new Order();
+        copy.id = new ObjectId().toString();
+        copy.clientId = clientId;
+        copy.state = state;
+        copy.total = total.copy();
+        copy.discountedTotal = discountedTotal != null ? discountedTotal.copy() : null;
+        copy.serviceCharge = serviceCharge;
+        copy.currency = currency;
+        copy.tableId = tableId;
+        copy.internalCounter = new AtomicInteger(1);
+        copy.demographicData = demographicData != null ? demographicData.copy() : null;
+
+        copy.orderLineItems = orderLineItems.stream()
+                .map(OrderLineItem::copy)
+                .peek(li -> li.setId(copy.id + "-" + copy.internalCounter.getAndIncrement()))
+                .collect(Collectors.toList());
+
+        copy.addMetadata(COPY_FROM_ORDER, id);
+
+        return copy;
+    }
+
+
     // todo: move to upper level
     public enum OrderState {
 
@@ -229,6 +266,10 @@ public class Order extends MongoBaseObject {
          */
         SUBMIT(EnumSet.of(OPEN, IN_PROCESS, DELIVERED), IN_PROCESS),
         CANCEL(IN_PROCESS, CANCELLED),
+
+        /**
+         * Used to mark line item as delivered.
+         */
         PARTIAL_DELIVER(IN_PROCESS, DELIVERED),
         DELIVER(IN_PROCESS, DELIVERED),
         SETTLE(DELIVERED, SETTLED),
@@ -278,5 +319,16 @@ public class Order extends MongoBaseObject {
         private String ageGroup;
 
         private String location;
+
+        DemographicData copy() {
+            final DemographicData demographicData = new DemographicData();
+            demographicData.customerCount = customerCount;
+            demographicData.male = male;
+            demographicData.female =female;
+            demographicData.ageGroup = ageGroup;
+            demographicData.location = location;
+
+            return demographicData;
+        }
     }
 }
