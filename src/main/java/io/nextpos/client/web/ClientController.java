@@ -7,6 +7,7 @@ import io.nextpos.client.service.ClientService;
 import io.nextpos.client.web.model.*;
 import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.shared.exception.ClientAccountException;
+import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.web.ClientResolver;
 import org.apache.commons.lang3.StringUtils;
@@ -175,6 +176,11 @@ public class ClientController {
                                                @Valid @RequestBody UpdateClientUserRequest updateClientUserRequest) {
 
         final ClientUser clientUser = clientService.getClientUser(client, username);
+
+        if (clientUser.isDefaultUser()) {
+            throw new GeneralApplicationException("Default client user cannot be updated.");
+        }
+        
         updateClientUserFromRequest(clientUser, updateClientUserRequest);
 
         clientService.saveClientUser(clientUser);
