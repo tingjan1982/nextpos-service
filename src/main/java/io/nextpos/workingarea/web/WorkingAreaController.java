@@ -87,12 +87,12 @@ public class WorkingAreaController {
 
     private WorkingAreaResponse toWorkingAreaResponse(final WorkingArea savedWorkingArea) {
 
-        final PrintersResponse printersResponse = toPrintersResponse(savedWorkingArea.getPrinters());
+        final List<PrinterResponse> printerResponses = toPrintersResponse(savedWorkingArea.getPrinters());
 
         return new WorkingAreaResponse(savedWorkingArea.getId(),
                 savedWorkingArea.getName(),
                 savedWorkingArea.getNoOfPrintCopies(),
-                printersResponse);
+                printerResponses);
     }
 
     @PostMapping("/printers")
@@ -126,14 +126,12 @@ public class WorkingAreaController {
 
         List<Printer> printers = workingAreaService.getPrinters(client);
 
-        return toPrintersResponse(printers);
+        return new PrintersResponse(toPrintersResponse(printers));
     }
 
-    private PrintersResponse toPrintersResponse(final List<Printer> printers) {
-        final List<PrinterResponse> printerResponses = printers.stream()
-                .map(this::toPrinterResponse).collect(Collectors.toList());
+    private List<PrinterResponse> toPrintersResponse(final List<Printer> printers) {
 
-        return new PrintersResponse(printerResponses);
+        return printers.stream().map(this::toPrinterResponse).collect(Collectors.toList());
     }
 
     @PostMapping("/printers/{id}")
