@@ -8,6 +8,7 @@ import io.nextpos.product.data.ProductOptionRelation;
 import io.nextpos.product.service.ProductLabelService;
 import io.nextpos.product.web.model.*;
 import io.nextpos.product.web.util.ObjectWithProductOptionVisitorWrapper;
+import io.nextpos.shared.web.model.SimpleObjectResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;

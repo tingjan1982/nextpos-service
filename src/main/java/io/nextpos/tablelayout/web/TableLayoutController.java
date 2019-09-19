@@ -2,8 +2,8 @@ package io.nextpos.tablelayout.web;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
-import io.nextpos.product.web.model.SimpleObjectResponse;
 import io.nextpos.shared.web.ClientResolver;
+import io.nextpos.shared.web.model.SimpleObjectResponse;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
 import io.nextpos.tablelayout.web.model.*;

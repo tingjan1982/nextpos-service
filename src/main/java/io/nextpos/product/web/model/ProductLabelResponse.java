@@ -1,6 +1,7 @@
 package io.nextpos.product.web.model;
 
 import io.nextpos.product.data.ProductLabel;
+import io.nextpos.shared.web.model.SimpleObjectResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

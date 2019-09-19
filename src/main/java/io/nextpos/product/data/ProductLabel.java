@@ -64,7 +64,6 @@ public class ProductLabel extends BaseObject implements ClientObject {
         return childLabel;
     }
 
-    // todo: refactor this and one in Product class as they are similar.
     /**
      * Remove existing product options by setting parent to null in ProductOptionOfLabel.
      */
