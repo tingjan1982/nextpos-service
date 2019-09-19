@@ -35,8 +35,12 @@ public class UserTimeCard extends MongoBaseObject {
         this.clientId = clientId;
         this.username = username;
         this.nickname = nickname;
-        this.clockIn = new Date();
 
+        timeCardStatus = TimeCardStatus.INACTIVE;
+    }
+
+    public void clockIn() {
+        this.clockIn = new Date();
         timeCardStatus = TimeCardStatus.ACTIVE;
     }
 

@@ -37,6 +37,8 @@ public class UserTimeCardServiceImpl implements UserTimeCardService {
 
         final ClientUser clientUser = oAuth2Helper.resolveCurrentClientUser(client);
         final UserTimeCard userTimeCard = new UserTimeCard(client.getId(), clientUser.getId().getUsername(), clientUser.getNickname());
+        userTimeCard.clockIn();
+        
         return userTimeCardRepository.save(userTimeCard);
     }
 

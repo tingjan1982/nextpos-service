@@ -211,7 +211,7 @@ public class OrderController {
             }
         });
 
-        LOGGER.info("Transformed to order object: {}", order);
+        LOGGER.info("Created order: {}", order);
 
         return order;
     }

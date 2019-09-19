@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,5 +17,5 @@ public class WorkingAreaResponse {
 
     private int noOfPrintCopies;
 
-    private PrintersResponse printers;
+    private List<PrinterResponse> printers;
 }
