@@ -5,8 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 import java.util.List;
 
 @Data
@@ -15,10 +13,6 @@ import java.util.List;
 public class UpdateClientUserRequest {
 
     private String nickname;
-
-    @Size(min = 4, max = 8)
-    @Pattern(regexp="^([0-9]*)$")
-    private String password;
 
     @ValidRoles
     private List<String> roles;

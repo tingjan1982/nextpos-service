@@ -3,6 +3,8 @@ package io.nextpos.product.data;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.ObjectVersioning;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -39,6 +41,7 @@ public class ProductOptionVersion extends BaseObject implements ObjectVersioning
     private boolean required;
 
     @OneToMany(mappedBy = "productOption", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Fetch(FetchMode.SUBSELECT)
     private List<ProductOptionValue> optionValues = new ArrayList<>();
 
 

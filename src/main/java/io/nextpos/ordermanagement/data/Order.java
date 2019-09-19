@@ -83,21 +83,20 @@ public class Order extends MongoBaseObject {
     }
 
     /**
-     * todo: revisit this as it doesn't consider discounted total.
-     *
-     * total + service charge
+     * total or discounted total + service charge
      *
      * @return
      */
     public BigDecimal getOrderTotal() {
 
         BigDecimal serviceChargeAmount = BigDecimal.ZERO;
+        final BigDecimal totalBeforeServiceCharge = discountedTotal != null ? discountedTotal.getAmountWithTax() : total.getAmountWithTax();
 
         if (serviceCharge.compareTo(BigDecimal.ZERO) > 0) {
-            serviceChargeAmount = total.getAmountWithTax().multiply(serviceCharge);
+            serviceChargeAmount = totalBeforeServiceCharge.multiply(serviceCharge);
         }
 
-        return total.getAmountWithTax().add(serviceChargeAmount);
+        return totalBeforeServiceCharge.add(serviceChargeAmount);
 
     }
 

@@ -195,11 +195,19 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
         return clientUserRepository.findAllByClientId(client.getUsername());
     }
 
+    /**
+     * The password check avoids encrypting an already encrypted password.
+     *
+     * @param clientUser
+     * @return
+     */
     @Override
     public ClientUser saveClientUser(final ClientUser clientUser) {
 
-        final String encryptedPassword = passwordEncoder.encode(clientUser.getPassword());
-        clientUser.setPassword(encryptedPassword);
+        if (!clientUser.getPassword().startsWith("{bcrypt}")) {
+            final String encryptedPassword = passwordEncoder.encode(clientUser.getPassword());
+            clientUser.setPassword(encryptedPassword);
+        }
 
         return clientUserRepository.save(clientUser);
     }

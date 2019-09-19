@@ -187,6 +187,22 @@ public class ClientController {
         return toClientUserResponse(clientUser);
     }
 
+    @PatchMapping("/me/users/{username}/password")
+    public ClientUserResponse updateClientUserPassword(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                       @PathVariable final String username,
+                                                       @Valid @RequestBody UpdateClientUserPasswordRequest request) {
+
+        final ClientUser clientUser = clientService.getClientUser(client, username);
+
+        if (clientUser.isDefaultUser()) {
+            throw new GeneralApplicationException("Default client user cannot be updated.");
+        }
+
+        clientUser.setPassword(request.getPassword());
+
+        return toClientUserResponse(clientService.saveClientUser(clientUser));
+    }
+
     @DeleteMapping("/me/users/{username}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteClientUser(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
@@ -198,7 +214,6 @@ public class ClientController {
     private void updateClientUserFromRequest(final ClientUser clientUser, final UpdateClientUserRequest updateClientUserRequest) {
 
         clientUser.setNickname(updateClientUserRequest.getNickname());
-        clientUser.setPassword(updateClientUserRequest.getPassword());
         final String roles = String.join(",", updateClientUserRequest.getRoles());
         clientUser.setRoles(roles);
     }

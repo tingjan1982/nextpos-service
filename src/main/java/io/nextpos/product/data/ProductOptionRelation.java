@@ -30,6 +30,7 @@ public abstract class ProductOptionRelation {
         this.productOption = productOption;
     }
 
+    abstract void unlinkAssociation();
 
     @Entity
     @DiscriminatorValue("product")
@@ -48,6 +49,11 @@ public abstract class ProductOptionRelation {
             super(productOption);
             this.product = product;
         }
+
+        @Override
+        void unlinkAssociation() {
+            this.product = null;
+        }
     }
 
     @Entity
@@ -65,6 +71,11 @@ public abstract class ProductOptionRelation {
         public ProductOptionOfLabel(final ProductOption productOption, final ProductLabel productLabel) {
             super(productOption);
             this.productLabel = productLabel;
+        }
+
+        @Override
+        void unlinkAssociation() {
+            productLabel = null;
         }
     }
 }

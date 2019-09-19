@@ -136,7 +136,7 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}/lineitems/{lineItemId}")
-    public OrderResponse updateOrderLineItem(@PathVariable String id, @PathVariable String lineItemId, @RequestBody UpdateOrderLineItemRequest updateOrderLineItemRequest) {
+    public OrderResponse updateOrderLineItem(@PathVariable String id, @PathVariable String lineItemId, @Valid @RequestBody UpdateOrderLineItemRequest updateOrderLineItemRequest) {
 
         final Order order = orderService.updateOrderLineItem(id, lineItemId, updateOrderLineItemRequest);
 

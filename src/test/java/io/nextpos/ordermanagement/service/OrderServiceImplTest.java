@@ -62,16 +62,19 @@ class OrderServiceImplTest {
         order.addOrderLineItem(product, 1)
                 .addOrderLineItem(product, 2);
 
+        order.setServiceCharge(BigDecimal.valueOf(0.1));
         final Order createdOrder = orderService.createOrder(order);
+
 
         assertThat(createdOrder.getId()).isNotNull();
         assertThat(createdOrder.getClientId()).isEqualTo(CLIENT_ID);
         assertThat(createdOrder.getState()).isEqualTo(Order.OrderState.OPEN);
         assertThat(createdOrder.getTotal()).satisfies(total -> {
-            assertThat(total.getAmountWithoutTax()).isEqualByComparingTo(new BigDecimal("330"));
-            assertThat(total.getAmountWithTax()).isEqualByComparingTo(new BigDecimal("346.5"));
-            assertThat(total.getTax()).isEqualByComparingTo(new BigDecimal("16.5"));
+            assertThat(total.getAmountWithoutTax()).isEqualByComparingTo("330");
+            assertThat(total.getAmountWithTax()).isEqualByComparingTo("346.5");
+            assertThat(total.getTax()).isEqualByComparingTo("16.5");
         });
+        assertThat(createdOrder.getOrderTotal()).isEqualByComparingTo("381.15");
 
         assertThat(createdOrder.getOrderLineItems()).hasSize(2);
         assertThat(createdOrder.getOrderLineItems()).satisfies(li -> {

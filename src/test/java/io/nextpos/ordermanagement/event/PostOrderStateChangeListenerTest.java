@@ -17,11 +17,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
 
+import javax.transaction.Transactional;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@Transactional
 class PostOrderStateChangeListenerTest {
 
     @Autowired
@@ -53,7 +55,6 @@ class PostOrderStateChangeListenerTest {
         workingAreaService.saveWorkingArea(workingArea);
 
         order = new Order(client.getId(), defaultCountrySettings.getTaxRate(), defaultCountrySettings.getCurrency());
-        order.setState(Order.OrderState.IN_PROCESS);
 
         final OrderLineItem item1 = new OrderLineItem(DummyObjects.productSnapshot(), 2, defaultCountrySettings.getTaxRate());
         item1.setWorkingAreaId(workingArea.getId());
@@ -63,10 +64,10 @@ class PostOrderStateChangeListenerTest {
         orderService.saveOrder(order);
     }
 
-    // todo: add one more test to test order not in process.
     @Test
     void postOrderStateChange() throws Exception {
 
+        order.setState(Order.OrderState.IN_PROCESS);
         final OrderStateChange orderStateChange = new OrderStateChange(order.getId(), client.getId());
         final OrderStateChangeBean orderStateChangeBean = new OrderStateChangeBean(orderStateChange);
         final CompletableFuture<OrderStateChangeBean> future = new CompletableFuture<>();
@@ -76,5 +77,20 @@ class PostOrderStateChangeListenerTest {
         final OrderStateChangeBean result = future.get();
 
         assertThat(result.getPrinterInstructions()).isNotNull();
+    }
+
+    @Test
+    void postOrderStateChange_NotInProcess() throws Exception {
+
+        order.setState(Order.OrderState.DELIVERED);
+        final OrderStateChange orderStateChange = new OrderStateChange(order.getId(), client.getId());
+        final OrderStateChangeBean orderStateChangeBean = new OrderStateChangeBean(orderStateChange);
+        final CompletableFuture<OrderStateChangeBean> future = new CompletableFuture<>();
+
+        eventPublisher.publishEvent(new PostStateChangeEvent(this, order, orderStateChangeBean, future));
+
+        final OrderStateChangeBean result = future.get();
+
+        assertThat(result.getPrinterInstructions().isPresent()).isFalse();
     }
 }
