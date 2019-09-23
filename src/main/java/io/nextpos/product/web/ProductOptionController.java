@@ -9,6 +9,8 @@ import io.nextpos.product.web.model.ProductOptionRequest;
 import io.nextpos.product.web.model.ProductOptionResponse;
 import io.nextpos.product.web.model.ProductOptionValueModel;
 import io.nextpos.shared.web.ClientResolver;
+import io.nextpos.shared.web.model.SimpleObjectResponse;
+import io.nextpos.shared.web.model.SimpleObjectsResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
@@ -45,6 +47,17 @@ public class ProductOptionController {
         final ProductOption productOption = productOptionService.getProductOption(id);
 
         return toProductOptionResponse(productOption, version);
+    }
+
+    @GetMapping
+    public SimpleObjectsResponse getProductOptions(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        List<ProductOption> productOptions = productOptionService.getProductOptions(client);
+        final List<SimpleObjectResponse> results = productOptions.stream()
+                .map(po -> new SimpleObjectResponse(po.getId(), po.getDesignVersion().getOptionName()))
+                .collect(Collectors.toList());
+
+        return new SimpleObjectsResponse(results);
     }
 
     @PostMapping("/{id}/deploy")

@@ -3,6 +3,7 @@ package io.nextpos.product.data;
 import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.ClientObject;
+import io.nextpos.workingarea.data.WorkingArea;
 import lombok.*;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -36,6 +37,11 @@ public class ProductLabel extends BaseObject implements ClientObject {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private ProductLabel parentLabel;
+
+    @ManyToOne
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private WorkingArea workingArea;
 
     /**
      * https://stackoverflow.com/questions/4334970/hibernate-cannot-simultaneously-fetch-multiple-bags

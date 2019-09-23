@@ -15,5 +15,7 @@ public class UpdateProductLabelRequest {
     @NotBlank
     private String label;
 
+    private String workingAreaId;
+
     private List<String> productOptionIds;
 }

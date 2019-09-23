@@ -1,5 +1,6 @@
 package io.nextpos.product.service;
 
+import io.nextpos.client.data.Client;
 import io.nextpos.product.data.ProductOption;
 import io.nextpos.product.data.ProductOptionRepository;
 import io.nextpos.product.data.ProductOptionVersionRepository;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.List;
 
 @Service
 @Transactional
@@ -33,6 +35,11 @@ public class ProductOptionServiceImpl implements ProductOptionService {
         return productOptionRepository.findById(id).orElseThrow(() -> {
             throw new ObjectNotFoundException(id, ProductOption.class);
         });
+    }
+
+    @Override
+    public List<ProductOption> getProductOptions(final Client client) {
+        return productOptionRepository.findAllByClient(client);
     }
 
     @Override

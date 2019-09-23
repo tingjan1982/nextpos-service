@@ -15,6 +15,8 @@ public class ProductLabelRequest {
     @NotBlank
     private String label;
 
+    private String workingAreaId;
+    
     private List<String> productOptionIds;
 
     private List<ProductLabelRequest> subLabels;

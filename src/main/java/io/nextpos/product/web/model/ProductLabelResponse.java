@@ -20,6 +20,8 @@ public class ProductLabelResponse {
 
     private String label;
 
+    private SimpleObjectResponse workingArea;
+
     private List<SimpleObjectResponse> productOptions;
 
     private List<ProductLabelResponse> subLabels = new ArrayList<>();

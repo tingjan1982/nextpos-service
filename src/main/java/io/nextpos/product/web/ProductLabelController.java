@@ -9,6 +9,8 @@ import io.nextpos.product.service.ProductLabelService;
 import io.nextpos.product.web.model.*;
 import io.nextpos.product.web.util.ObjectWithProductOptionVisitorWrapper;
 import io.nextpos.shared.web.model.SimpleObjectResponse;
+import io.nextpos.workingarea.data.WorkingArea;
+import io.nextpos.workingarea.service.WorkingAreaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
@@ -25,13 +27,16 @@ public class ProductLabelController {
 
     private final ProductLabelService productLabelService;
 
+    private final WorkingAreaService workingAreaService;
+
     private final ClientObjectOwnershipService clientObjectOwnershipService;
 
     private final ObjectWithProductOptionVisitorWrapper productOptionVisitorWrapper;
 
     @Autowired
-    public ProductLabelController(final ProductLabelService productLabelService, final ClientObjectOwnershipService clientObjectOwnershipService, final ObjectWithProductOptionVisitorWrapper productOptionVisitorWrapper) {
+    public ProductLabelController(final ProductLabelService productLabelService, final WorkingAreaService workingAreaService, final ClientObjectOwnershipService clientObjectOwnershipService, final ObjectWithProductOptionVisitorWrapper productOptionVisitorWrapper) {
         this.productLabelService = productLabelService;
+        this.workingAreaService = workingAreaService;
         this.clientObjectOwnershipService = clientObjectOwnershipService;
         this.productOptionVisitorWrapper = productOptionVisitorWrapper;
     }
@@ -43,6 +48,21 @@ public class ProductLabelController {
         final ProductLabel createdProductLabel = productLabelService.saveProductLabel(productLabel);
 
         return toProductLabelResponse(createdProductLabel);
+    }
+
+    private ProductLabel fromProductLabelRequest(final ProductLabelRequest productLabelRequest, final Client client) {
+
+        final ProductLabel productLabel = new ProductLabel(productLabelRequest.getLabel(), client);
+
+        resolveWorkingArea(client, productLabel, productLabelRequest.getWorkingAreaId());
+
+        productOptionVisitorWrapper.accept(productLabel, productLabelRequest.getProductOptionIds());
+
+        if (!CollectionUtils.isEmpty(productLabelRequest.getSubLabels())) {
+            productLabelRequest.getSubLabels().forEach(subLabel -> this.addSubLabelsRecursively(subLabel, productLabel));
+        }
+
+        return productLabel;
     }
 
     @GetMapping("/{id}")
@@ -66,12 +86,30 @@ public class ProductLabelController {
                                                    @Valid @RequestBody UpdateProductLabelRequest updateProductLabelRequest) {
 
         final ProductLabel productLabel = clientObjectOwnershipService.checkOwnership(client, () -> productLabelService.getProductLabelOrThrows(id));
-        productLabel.setName(updateProductLabelRequest.getLabel());
-        productOptionVisitorWrapper.accept(productLabel, updateProductLabelRequest.getProductOptionIds());
+        updateProductLabelFromRequest(client, productLabel, updateProductLabelRequest);
 
         final ProductLabel savedProductLabel = productLabelService.saveProductLabel(productLabel);
 
         return toProductLabelResponse(savedProductLabel);
+    }
+
+    private void updateProductLabelFromRequest(@RequestAttribute(REQ_ATTR_CLIENT) Client client, ProductLabel productLabel, UpdateProductLabelRequest updateProductLabelRequest) {
+
+        productLabel.setName(updateProductLabelRequest.getLabel());
+
+        resolveWorkingArea(client, productLabel, updateProductLabelRequest.getWorkingAreaId());
+
+        productOptionVisitorWrapper.accept(productLabel, updateProductLabelRequest.getProductOptionIds());
+    }
+
+    private void resolveWorkingArea(final Client client, final ProductLabel productLabel, final String workingAreaId) {
+
+        if (workingAreaId != null) {
+            final WorkingArea workingArea = clientObjectOwnershipService.checkOwnership(client, () -> workingAreaService.getWorkingArea(workingAreaId));
+            productLabel.setWorkingArea(workingArea);
+        } else {
+            productLabel.setWorkingArea(null);
+        }
     }
 
     // todo: also apply working area to all products under the label.
@@ -96,20 +134,6 @@ public class ProductLabelController {
         return new ProductLabelsResponse(labelNames);
     }
 
-    private ProductLabel fromProductLabelRequest(final ProductLabelRequest productLabelRequest, final Client client) {
-
-        final ProductLabel productLabel = new ProductLabel(productLabelRequest.getLabel(), client);
-
-        productOptionVisitorWrapper.accept(productLabel, productLabelRequest.getProductOptionIds());
-
-        if (!CollectionUtils.isEmpty(productLabelRequest.getSubLabels())) {
-            productLabelRequest.getSubLabels().forEach(subLabel -> this.addSubLabelsRecursively(subLabel, productLabel));
-        }
-
-        return productLabel;
-
-    }
-
     private void addSubLabelsRecursively(ProductLabelRequest productLabelRequest, ProductLabel parentProductLabel) {
 
         final ProductLabel childLabel = parentProductLabel.addChildProductLabel(productLabelRequest.getLabel());
@@ -124,6 +148,13 @@ public class ProductLabelController {
     private ProductLabelResponse toProductLabelResponse(final ProductLabel productLabel) {
 
         final ProductLabelResponse productLabelResponse = new ProductLabelResponse(productLabel.getId(), productLabel.getName());
+
+        final WorkingArea workingArea = productLabel.getWorkingArea();
+
+        if (workingArea != null) {
+            final SimpleObjectResponse workingAreaResponse = new SimpleObjectResponse(workingArea.getId(), workingArea.getName());
+            productLabelResponse.setWorkingArea(workingAreaResponse);
+        }
 
         final List<SimpleObjectResponse> productOptions = productLabel.getProductOptionOfLabels().stream()
                 .map(ProductOptionRelation::getProductOption)
