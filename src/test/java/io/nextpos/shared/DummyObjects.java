@@ -5,6 +5,7 @@ import io.nextpos.client.data.ClientUser;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.product.data.ProductOptionVersion;
 import io.nextpos.product.data.ProductVersion;
+import io.nextpos.workingarea.data.WorkingArea;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -35,5 +36,9 @@ public class DummyObjects {
 
     public static ProductOptionVersion dummyProductOptionVersion() {
         return new ProductOptionVersion("option", ProductOptionVersion.OptionType.ONE_CHOICE, true);
+    }
+
+    public static WorkingArea dummyWorkingArea(Client client) {
+        return new WorkingArea(client, "bar");
     }
 }

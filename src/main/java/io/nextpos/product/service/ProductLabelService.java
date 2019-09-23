@@ -19,5 +19,5 @@ public interface ProductLabelService {
 
     List<ProductLabel> getProductLabels(Client client);
 
-    List<Product> applyProductOptionsToProducts(ProductLabel productLabel);
+    List<Product> applyProductLabelChangesToProducts(ProductLabel productLabel);
 }

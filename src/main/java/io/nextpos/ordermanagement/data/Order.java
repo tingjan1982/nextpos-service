@@ -115,6 +115,7 @@ public class Order extends MongoBaseObject {
         orderLineItem.setId(orderLineItemId);
         orderLineItems.add(orderLineItem);
 
+        // todo: perhaps do compute once after adding all line items to be more efficient.
         computeTotal();
 
         return this;

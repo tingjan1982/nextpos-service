@@ -62,26 +62,29 @@ public class ProductLabelServiceImpl implements ProductLabelService {
      * @return list of product that has got its product options replaced with ones in ProductLabel.
      */
     @Override
-    public List<Product> applyProductOptionsToProducts(final ProductLabel productLabel) {
+    public List<Product> applyProductLabelChangesToProducts(final ProductLabel productLabel) {
 
-        if (!CollectionUtils.isEmpty(productLabel.getProductOptionOfLabels())) {
-            final List<Product> products = productRepository.findAllByClientAndProductLabel(productLabel.getClient(), productLabel);
+        final List<Product> products = productRepository.findAllByClientAndProductLabel(productLabel.getClient(), productLabel);
 
-            if (!products.isEmpty()) {
-                final ProductOption[] productOptions = productLabel.getProductOptionOfLabels().stream()
-                        .map(ProductOptionRelation.ProductOptionOfLabel::getProductOption).toArray(ProductOption[]::new);
-
-                LOGGER.info("Applying {} product options to products belong to product label: {}", productOptions.length, productLabel.getName());
-
-                return products.stream()
-                        .map(p -> {
-                            p.replaceProductOptions(productOptions);
-                            return productRepository.save(p);
-
-                        }).collect(Collectors.toList());
-            }
+        if (products.isEmpty()) {
+            return List.of();
         }
 
-        return List.of();
+        final List<Product> productsToUpdate = products.stream()
+                .peek(p -> p.setWorkingArea(productLabel.getWorkingArea()))
+                .collect(Collectors.toList());
+
+        if (!CollectionUtils.isEmpty(productLabel.getProductOptionOfLabels())) {
+            final ProductOption[] productOptions = productLabel.getProductOptionOfLabels().stream()
+                    .map(ProductOptionRelation.ProductOptionOfLabel::getProductOption).toArray(ProductOption[]::new);
+
+            LOGGER.info("Applying {} product options to {} products belong to product label: {}", productOptions.length, productsToUpdate.size(), productLabel.getName());
+
+            productsToUpdate.forEach(p -> p.replaceProductOptions(productOptions));
+        }
+
+        LOGGER.info("Saving {} product changes after applying product label changes.", productsToUpdate.size());
+
+        return productsToUpdate.stream().map(productRepository::save).collect(Collectors.toList());
     }
 }

@@ -112,13 +112,12 @@ public class ProductLabelController {
         }
     }
 
-    // todo: also apply working area to all products under the label.
     @PostMapping("/{id}/applyOptions")
-    public AppliedProductsResponse applyProductOptionsToProducts(@RequestAttribute(REQ_ATTR_CLIENT) Client client,
-                                                                 @PathVariable final String id) {
+    public AppliedProductsResponse applyProductLabelChangesToProducts(@RequestAttribute(REQ_ATTR_CLIENT) Client client,
+                                                               @PathVariable final String id) {
 
         final ProductLabel productLabel = clientObjectOwnershipService.checkOwnership(client, () -> productLabelService.getProductLabelOrThrows(id));
-        final List<Product> appliedProducts = productLabelService.applyProductOptionsToProducts(productLabel);
+        final List<Product> appliedProducts = productLabelService.applyProductLabelChangesToProducts(productLabel);
 
         final List<SimpleObjectResponse> appliedProductResponses = appliedProducts.stream()
                 .map(p -> new SimpleObjectResponse(p.getId(), p.getDesignVersion().getProductName()))

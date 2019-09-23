@@ -83,8 +83,13 @@ class ProductLabelServiceImplTest {
         final ProductOption option2 = new ProductOption(client, DummyObjects.dummyProductOptionVersion());
         productOptionService.createProductOption(option2);
 
+        final WorkingArea workingArea = DummyObjects.dummyWorkingArea(client);
+        workingAreaService.saveWorkingArea(workingArea);
+
         final ProductLabel drink = new ProductLabel("drink", client);
         drink.replaceProductOptions(option1, option2);
+        drink.setWorkingArea(workingArea);
+
         productLabelService.saveProductLabel(drink);
 
         assertThat(drink.getProductOptionOfLabels()).hasSize(2);
@@ -95,11 +100,13 @@ class ProductLabelServiceImplTest {
         productService.saveProduct(product);
 
         assertThat(product.getProductOptionOfProducts()).isEmpty();
+        assertThat(product.getWorkingArea()).isNull();
 
-        final List<Product> appliedProducts = productLabelService.applyProductOptionsToProducts(drink);
+        final List<Product> appliedProducts = productLabelService.applyProductLabelChangesToProducts(drink);
 
         assertThat(appliedProducts).hasSize(1);
         assertThat(product.getProductOptionOfProducts()).hasSize(2);
+        assertThat(product.getWorkingArea()).isEqualTo(workingArea);
     }
 
     @Test
