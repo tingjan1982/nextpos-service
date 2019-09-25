@@ -3,9 +3,7 @@ package io.nextpos.client.data;
 import io.nextpos.client.service.ClientSettingsService;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.ClientObject;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.Entity;
@@ -25,6 +23,7 @@ import java.util.Date;
 @Entity(name = "client_settings")
 @Data
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class ClientSetting extends BaseObject implements ClientObject {
 
     @Id

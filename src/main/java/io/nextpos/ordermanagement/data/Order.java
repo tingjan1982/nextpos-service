@@ -34,6 +34,11 @@ public class Order extends MongoBaseObject {
     @Id
     private String id;
 
+    /**
+     * This is a human-identifiable id that can be used to call out to customers.
+     */
+    private String serialId;
+
     private String clientId;
 
     private OrderState state;
@@ -63,7 +68,6 @@ public class Order extends MongoBaseObject {
     private Long version;
 
     public Order(final String clientId, BigDecimal taxRate, final Currency currency) {
-        // todo: think of new id generation strategy
         this.id = new ObjectId().toString();
         this.clientId = clientId;
         this.state = OPEN;

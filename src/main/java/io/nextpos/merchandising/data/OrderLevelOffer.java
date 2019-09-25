@@ -3,8 +3,10 @@ package io.nextpos.merchandising.data;
 import io.nextpos.client.data.Client;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.TaxableAmount;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Entity;
 import java.math.BigDecimal;
@@ -13,6 +15,7 @@ import java.util.EnumSet;
 @Entity(name = "client_order_offer")
 @Data
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class OrderLevelOffer extends Offer implements DiscountCalculator<Order> {
 
     public OrderLevelOffer(final Client client, final String name, final TriggerType triggerType, final DiscountType discountType, final BigDecimal discountValue) {

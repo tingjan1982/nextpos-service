@@ -5,8 +5,10 @@ import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -20,6 +22,7 @@ import java.util.List;
 @Entity(name = "client_product_level_offer")
 @Data
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class ProductLevelOffer extends Offer implements DiscountCalculator<OrderLineItem> {
 
     private boolean appliesToAllProducts;

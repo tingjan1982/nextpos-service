@@ -20,6 +20,8 @@ public class OrderResponse {
 
     private String orderId;
 
+    private String serialId;
+
     private String tableId;
 
     private Date createdDate;

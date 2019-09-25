@@ -67,16 +67,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private String actuatorPassword;
 
     /**
-     * Use basic auth only to authenticate /actuator requests.
+     * Use basic auth only to authenticate /actuator and /counter requests.
      *
      * Reference to configuring multiple HttpSecurity with @Order:
      * https://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#multiple-httpsecurity
+     *
+     * Regex online:
+     * https://regex101.com/
      */
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
         http.csrf().disable()
-                .antMatcher("/actuator/**")
+                .regexMatcher("^\\/(actuator|counters)\\/\\w+[\\/\\w+]*$")
                 .authorizeRequests()
                 .antMatchers("/actuator/health").permitAll()
                 .anyRequest().authenticated().and().httpBasic();

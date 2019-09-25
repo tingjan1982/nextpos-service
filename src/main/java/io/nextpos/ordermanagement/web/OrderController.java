@@ -16,6 +16,7 @@ import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.shared.web.model.SimpleObjectResponse;
 import io.nextpos.shared.web.model.SimpleObjectsResponse;
+import io.nextpos.storage.service.DistributedCounterService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -47,14 +50,17 @@ public class OrderController {
 
     private final ClientSettingsService clientSettingsService;
 
+    private final DistributedCounterService distributedCounterService;
+
     private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
-    public OrderController(final OrderService orderService, final ProductService productService, final SettingsService settingsService, final ClientSettingsService clientSettingsService, final ApplicationEventPublisher eventPublisher) {
+    public OrderController(final OrderService orderService, final ProductService productService, final SettingsService settingsService, final ClientSettingsService clientSettingsService, final DistributedCounterService distributedCounterService, final ApplicationEventPublisher eventPublisher) {
         this.orderService = orderService;
         this.productService = productService;
         this.settingsService = settingsService;
         this.clientSettingsService = clientSettingsService;
+        this.distributedCounterService = distributedCounterService;
         this.eventPublisher = eventPublisher;
     }
 
@@ -191,6 +197,8 @@ public class OrderController {
 
         final CountrySettings countrySettings = settingsService.getCountrySettings(client.getCountryCode());
         final Order order = new Order(client.getId(), countrySettings.getTaxRate(), countrySettings.getCurrency());
+        String serialId = generateSerialId();
+        order.setSerialId(serialId);
 
         if (StringUtils.isNotEmpty(orderRequest.getTableId())) {
             order.setTableId(orderRequest.getTableId());
@@ -213,6 +221,11 @@ public class OrderController {
         LOGGER.info("Created order: {}", order);
 
         return order;
+    }
+
+    private String generateSerialId() {
+        final int counter = distributedCounterService.getNextRotatingCounter("order");
+        return LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "-" + counter;
     }
 
     private OrderLineItem fromOrderLineItemRequest(final Client client, final OrderLineItemRequest li) {
@@ -268,6 +281,7 @@ public class OrderController {
                 }).collect(Collectors.toList());
 
         return new OrderResponse(order.getId(),
+                order.getSerialId(),
                 order.getTableId(),
                 order.getCreatedDate(),
                 order.getModifiedDate(),
