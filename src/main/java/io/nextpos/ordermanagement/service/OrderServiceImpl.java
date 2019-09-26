@@ -2,7 +2,8 @@ package io.nextpos.ordermanagement.service;
 
 import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.event.LineItemStateChangeEvent;
-import io.nextpos.ordermanagement.web.model.UpdateOrderLineItemRequest;
+import io.nextpos.ordermanagement.event.OrderStateChangeEvent;
+import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +15,8 @@ import org.springframework.util.CollectionUtils;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,12 +80,11 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.delete(order);
     }
 
-    // todo: extract request object out of service layer.
     @Override
-    public Order updateOrderLineItem(final String id, final String lineItemId, final UpdateOrderLineItemRequest updateOrderLineItemRequest) {
+    public Order updateOrderLineItem(final String id, final String lineItemId, final int quantity) {
 
         final Order order = this.getOrder(id);
-        order.updateOrderLineItem(lineItemId, updateOrderLineItemRequest.getQuantity());
+        order.updateOrderLineItem(lineItemId, quantity);
 
 //        final Query query = new Query(where("orderLineItems.id").is(lineItemId));
 //        final Update update = new Update().set("orderLineItems.$.quantity", updateOrderLineItemRequest.getQuantity());
@@ -97,6 +99,28 @@ public class OrderServiceImpl implements OrderService {
         order.addOrderLineItem(orderLineItem);
 
         return orderRepository.save(order);
+    }
+
+    @Override
+    public OrderStateChangeBean performOrderAction(final String id, final Order.OrderAction orderAction) {
+
+        final CompletableFuture<OrderStateChangeBean> future = new CompletableFuture<>();
+        final Order order = this.getOrder(id);
+        applicationEventPublisher.publishEvent(new OrderStateChangeEvent(this, order, orderAction, future));
+
+        return this.getOrderStateChangeBeanFromFuture(future);
+    }
+
+    private OrderStateChangeBean getOrderStateChangeBeanFromFuture(CompletableFuture<OrderStateChangeBean> future) {
+
+        try {
+            return future.get(15, TimeUnit.SECONDS);
+
+        } catch (GeneralApplicationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new GeneralApplicationException(e.getMessage());
+        }
     }
 
     @Override

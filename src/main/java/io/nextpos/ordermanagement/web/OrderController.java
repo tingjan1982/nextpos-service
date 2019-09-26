@@ -1,39 +1,24 @@
 package io.nextpos.ordermanagement.web;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.client.data.ClientSetting;
-import io.nextpos.client.service.ClientSettingsService;
-import io.nextpos.ordermanagement.data.*;
-import io.nextpos.ordermanagement.event.OrderStateChangeEvent;
+import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderLineItem;
+import io.nextpos.ordermanagement.data.OrderStateChange;
+import io.nextpos.ordermanagement.data.OrderStateChangeBean;
 import io.nextpos.ordermanagement.service.OrderService;
+import io.nextpos.ordermanagement.web.factory.OrderCreationFactory;
 import io.nextpos.ordermanagement.web.model.*;
-import io.nextpos.product.data.Product;
-import io.nextpos.product.data.ProductVersion;
-import io.nextpos.product.service.ProductService;
-import io.nextpos.settings.data.CountrySettings;
-import io.nextpos.settings.service.SettingsService;
-import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.shared.web.model.SimpleObjectResponse;
 import io.nextpos.shared.web.model.SimpleObjectsResponse;
-import io.nextpos.storage.service.DistributedCounterService;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @RestController
@@ -44,30 +29,18 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    private final ProductService productService;
-
-    private final SettingsService settingsService;
-
-    private final ClientSettingsService clientSettingsService;
-
-    private final DistributedCounterService distributedCounterService;
-
-    private final ApplicationEventPublisher eventPublisher;
+    private final OrderCreationFactory orderCreationFactory;
 
     @Autowired
-    public OrderController(final OrderService orderService, final ProductService productService, final SettingsService settingsService, final ClientSettingsService clientSettingsService, final DistributedCounterService distributedCounterService, final ApplicationEventPublisher eventPublisher) {
+    public OrderController(final OrderService orderService, final OrderCreationFactory orderCreationFactory) {
         this.orderService = orderService;
-        this.productService = productService;
-        this.settingsService = settingsService;
-        this.clientSettingsService = clientSettingsService;
-        this.distributedCounterService = distributedCounterService;
-        this.eventPublisher = eventPublisher;
+        this.orderCreationFactory = orderCreationFactory;
     }
 
     @PostMapping
     public OrderResponse createOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @RequestBody OrderRequest orderRequest) {
 
-        Order order = fromOrderRequest(client, orderRequest);
+        Order order = orderCreationFactory.newOrder(client, orderRequest);
         final Order createdOrder = orderService.createOrder(order);
 
         return toOrderResponse(createdOrder);
@@ -122,7 +95,7 @@ public class OrderController {
     public OrderResponse AddOrderLineItem(@PathVariable String id, @RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @Valid @RequestBody OrderLineItemRequest orderLineItemRequest) {
 
         final Order order = orderService.getOrder(id);
-        final OrderLineItem orderLineItem = fromOrderLineItemRequest(client, orderLineItemRequest);
+        final OrderLineItem orderLineItem = orderCreationFactory.newOrderLineItem(client, orderLineItemRequest);
 
         orderService.addOrderLineItem(order, orderLineItem);
 
@@ -143,7 +116,7 @@ public class OrderController {
     @PatchMapping("/{id}/lineitems/{lineItemId}")
     public OrderResponse updateOrderLineItem(@PathVariable String id, @PathVariable String lineItemId, @Valid @RequestBody UpdateOrderLineItemRequest updateOrderLineItemRequest) {
 
-        final Order order = orderService.updateOrderLineItem(id, lineItemId, updateOrderLineItemRequest);
+        final Order order = orderService.updateOrderLineItem(id, lineItemId, updateOrderLineItemRequest.getQuantity());
 
         return toOrderResponse(order);
     }
@@ -151,25 +124,9 @@ public class OrderController {
     @PostMapping("/{id}/process")
     public OrderStateChangeResponse stateChange(@PathVariable String id, @RequestParam("action") Order.OrderAction orderAction) {
 
-        final Order order = orderService.getOrder(id);
-        final CompletableFuture<OrderStateChangeBean> future = new CompletableFuture<>();
-        eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, orderAction, future));
-
-        final OrderStateChangeBean orderStateChangeBean = this.getOrderStateChangeBeanFromFuture(future);
+        OrderStateChangeBean orderStateChangeBean = orderService.performOrderAction(id, orderAction);
 
         return toOrderStateChangeResponse(orderStateChangeBean);
-    }
-
-    private OrderStateChangeBean getOrderStateChangeBeanFromFuture(CompletableFuture<OrderStateChangeBean> future) throws GeneralApplicationException {
-
-        try {
-            return future.get(15, TimeUnit.SECONDS);
-
-        } catch (GeneralApplicationException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new GeneralApplicationException(e.getMessage());
-        }
     }
 
     private OrderStateChangeResponse toOrderStateChangeResponse(final OrderStateChangeBean orderStateChangeBean) {
@@ -192,75 +149,6 @@ public class OrderController {
                 orderStateChangeEntry.getTimestamp(),
                 printerInstructions);
     }
-
-    private Order fromOrderRequest(final Client client, final OrderRequest orderRequest) {
-
-        final CountrySettings countrySettings = settingsService.getCountrySettings(client.getCountryCode());
-        final Order order = new Order(client.getId(), countrySettings.getTaxRate(), countrySettings.getCurrency());
-        String serialId = generateSerialId();
-        order.setSerialId(serialId);
-
-        if (StringUtils.isNotEmpty(orderRequest.getTableId())) {
-            order.setTableId(orderRequest.getTableId());
-        }
-
-        if (!CollectionUtils.isEmpty(orderRequest.getLineItems())) {
-            orderRequest.getLineItems().forEach(li -> {
-                final OrderLineItem orderLineItem = fromOrderLineItemRequest(client, li);
-                order.addOrderLineItem(orderLineItem);
-            });
-        }
-
-        client.getClientSettings(ClientSetting.SettingName.SERVICE_CHARGE).ifPresent(sc -> {
-            if (sc.isEnabled()) {
-                final BigDecimal serviceCharge = clientSettingsService.getActualStoredValue(sc, BigDecimal.class);
-                order.setServiceCharge(serviceCharge);
-            }
-        });
-
-        LOGGER.info("Created order: {}", order);
-
-        return order;
-    }
-
-    private String generateSerialId() {
-        final int counter = distributedCounterService.getNextRotatingCounter("order");
-        return LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "-" + counter;
-    }
-
-    private OrderLineItem fromOrderLineItemRequest(final Client client, final OrderLineItemRequest li) {
-
-        final CountrySettings countrySettings = settingsService.getCountrySettings(client.getCountryCode());
-
-        final Product product = productService.getProduct(li.getProductId());
-        final ProductVersion productVersion = product.getLiveVersion();
-        List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots = Collections.emptyList();
-
-        if (!CollectionUtils.isEmpty(li.getProductOptions())) {
-            productOptionSnapshots = li.getProductOptions().stream()
-                    .map(po -> new ProductSnapshot.ProductOptionSnapshot(po.getOptionName(), po.getOptionValue(), po.getOptionPrice()))
-                    .collect(Collectors.toList());
-        }
-
-        final ProductSnapshot productSnapshot = new ProductSnapshot(product.getId(),
-                productVersion.getProductName(),
-                productVersion.getSku(),
-                productVersion.getPrice(),
-                productOptionSnapshots);
-
-        if (product.getProductLabel() != null) {
-            productSnapshot.setLabelInformation(product.getProductLabel().getId(), product.getProductLabel().getName());
-        }
-
-        final OrderLineItem orderLineItem = new OrderLineItem(productSnapshot, li.getQuantity(), countrySettings.getTaxRate());
-
-        if (product.getWorkingArea() != null) {
-            orderLineItem.setWorkingAreaId(product.getWorkingArea().getId());
-        }
-
-        return orderLineItem;
-    }
-
 
     private OrderResponse toOrderResponse(final Order order) {
 

@@ -107,22 +107,31 @@ public class Order extends MongoBaseObject {
     /**
      * Convenience method to add OrderLineItem.
      */
-    public Order addOrderLineItem(ProductSnapshot productSnapshot, int quantity) {
+    public void addOrderLineItem(ProductSnapshot productSnapshot, int quantity) {
 
         final OrderLineItem orderLineItem = new OrderLineItem(productSnapshot, quantity, total.getTaxRate());
-        return this.addOrderLineItem(orderLineItem);
+        this.addOrderLineItem(orderLineItem);
     }
 
-    public Order addOrderLineItem(OrderLineItem orderLineItem) {
+    public void addOrderLineItems(List<OrderLineItem> orderLineItems) {
+
+        orderLineItems.forEach(this::addLineItemToOrder);
+
+        computeTotal();
+    }
+
+    public void addOrderLineItem(OrderLineItem orderLineItem) {
+
+        addLineItemToOrder(orderLineItem);
+
+        computeTotal();
+    }
+
+    private void addLineItemToOrder(final OrderLineItem orderLineItem) {
 
         final String orderLineItemId = this.id + "-" + internalCounter.getAndIncrement();
         orderLineItem.setId(orderLineItemId);
         orderLineItems.add(orderLineItem);
-
-        // todo: perhaps do compute once after adding all line items to be more efficient.
-        computeTotal();
-
-        return this;
     }
 
     /**
@@ -192,6 +201,7 @@ public class Order extends MongoBaseObject {
 
         final Order copy = new Order();
         copy.id = new ObjectId().toString();
+        copy.serialId = serialId;
         copy.clientId = clientId;
         copy.state = state;
         copy.total = total.copy();
@@ -213,7 +223,6 @@ public class Order extends MongoBaseObject {
     }
 
 
-    // todo: move to upper level
     public enum OrderState {
 
         /**

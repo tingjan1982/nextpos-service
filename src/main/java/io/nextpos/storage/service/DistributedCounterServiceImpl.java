@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Reference
  *
- * Spring Boot with Hazelcast
+ * Spring Boot with Hazelcast:
  * https://medium.com/@ihorkosandiak/spring-boot-with-hazelcast-b04d13927745
  *
  * Hazelcast Client:

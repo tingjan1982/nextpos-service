@@ -3,7 +3,6 @@ package io.nextpos.ordermanagement.service;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
-import io.nextpos.ordermanagement.web.model.UpdateOrderLineItemRequest;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
 import org.assertj.core.data.Index;
@@ -59,8 +58,8 @@ class OrderServiceImplTest {
         );
 
         final ProductSnapshot product = new ProductSnapshot(UUID.randomUUID().toString(), "coffee", "tw01", BigDecimal.valueOf(100), options);
-        order.addOrderLineItem(product, 1)
-                .addOrderLineItem(product, 2);
+        order.addOrderLineItem(product, 1);
+        order.addOrderLineItem(product, 2);
 
         order.setServiceCharge(BigDecimal.valueOf(0.1));
         final Order createdOrder = orderService.createOrder(order);
@@ -117,8 +116,7 @@ class OrderServiceImplTest {
 
         assertThat(createdOrder.getOrderLineItems()).hasSize(1);
 
-        final UpdateOrderLineItemRequest updateRequest = new UpdateOrderLineItemRequest(5, List.of());
-        final Order updatedOrder = orderService.updateOrderLineItem(createdOrder.getId(), createdOrder.getOrderLineItems().get(0).getId(), updateRequest);
+        final Order updatedOrder = orderService.updateOrderLineItem(createdOrder.getId(), createdOrder.getOrderLineItems().get(0).getId(), 5);
 
         assertThat(updatedOrder.getOrderLineItems()).satisfies(li -> {
             assertThat(li.getQuantity()).isEqualTo(5);
