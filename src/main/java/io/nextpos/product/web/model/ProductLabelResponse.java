@@ -26,6 +26,9 @@ public class ProductLabelResponse {
 
     private List<ProductLabelResponse> subLabels = new ArrayList<>();
 
+    private List<SimpleObjectResponse> appliedProducts = new ArrayList<>();
+
+
     public ProductLabelResponse(final String id, final String label) {
         this.id = id;
         this.value = id;

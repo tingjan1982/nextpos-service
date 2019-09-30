@@ -90,7 +90,17 @@ public class ProductLabelController {
 
         final ProductLabel savedProductLabel = productLabelService.saveProductLabel(productLabel);
 
-        return toProductLabelResponse(savedProductLabel);
+        final ProductLabelResponse productLabelResponse = toProductLabelResponse(savedProductLabel);
+
+        if (updateProductLabelRequest.isAppliesToProducts()) {
+            final List<Product> products = productLabelService.applyProductLabelChangesToProducts(savedProductLabel);
+            final List<SimpleObjectResponse> simpleProducts = products.stream()
+                    .map(p -> new SimpleObjectResponse(p.getId(), p.getDesignVersion().getProductName())).collect(Collectors.toList());
+            
+            productLabelResponse.setAppliedProducts(simpleProducts);
+        }
+
+        return productLabelResponse;
     }
 
     private void updateProductLabelFromRequest(@RequestAttribute(REQ_ATTR_CLIENT) Client client, ProductLabel productLabel, UpdateProductLabelRequest updateProductLabelRequest) {
@@ -114,7 +124,7 @@ public class ProductLabelController {
 
     @PostMapping("/{id}/applyOptions")
     public AppliedProductsResponse applyProductLabelChangesToProducts(@RequestAttribute(REQ_ATTR_CLIENT) Client client,
-                                                               @PathVariable final String id) {
+                                                                      @PathVariable final String id) {
 
         final ProductLabel productLabel = clientObjectOwnershipService.checkOwnership(client, () -> productLabelService.getProductLabelOrThrows(id));
         final List<Product> appliedProducts = productLabelService.applyProductLabelChangesToProducts(productLabel);

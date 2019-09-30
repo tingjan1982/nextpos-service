@@ -18,4 +18,6 @@ public class UpdateProductLabelRequest {
     private String workingAreaId;
 
     private List<String> productOptionIds;
+
+    private boolean appliesToProducts;
 }
