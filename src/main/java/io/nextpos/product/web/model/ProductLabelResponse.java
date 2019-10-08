@@ -22,10 +22,14 @@ public class ProductLabelResponse {
 
     private SimpleObjectResponse workingArea;
 
+    private String workingAreaId;
+
     private List<SimpleObjectResponse> productOptions;
 
-    private List<ProductLabelResponse> subLabels = new ArrayList<>();
+    private List<String> productOptionIds;
 
+    private List<ProductLabelResponse> subLabels = new ArrayList<>();
+                                                                    
     private List<SimpleObjectResponse> appliedProducts = new ArrayList<>();
 
 

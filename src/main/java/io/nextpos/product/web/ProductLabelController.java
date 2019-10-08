@@ -4,6 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
+import io.nextpos.product.data.ProductOption;
 import io.nextpos.product.data.ProductOptionRelation;
 import io.nextpos.product.service.ProductLabelService;
 import io.nextpos.product.web.model.*;
@@ -163,6 +164,7 @@ public class ProductLabelController {
         if (workingArea != null) {
             final SimpleObjectResponse workingAreaResponse = new SimpleObjectResponse(workingArea.getId(), workingArea.getName());
             productLabelResponse.setWorkingArea(workingAreaResponse);
+            productLabelResponse.setWorkingAreaId(workingArea.getId());
         }
 
         final List<SimpleObjectResponse> productOptions = productLabel.getProductOptionOfLabels().stream()
@@ -170,6 +172,12 @@ public class ProductLabelController {
                 .map(po -> new SimpleObjectResponse(po.getId(), po.getDesignVersion().getOptionName())).collect(Collectors.toList());
 
         productLabelResponse.setProductOptions(productOptions);
+
+        final List<String> productOptionIds = productLabel.getProductOptionOfLabels().stream()
+                .map(ProductOptionRelation::getProductOption)
+                .map(ProductOption::getId).collect(Collectors.toList());
+
+        productLabelResponse.setProductOptionIds(productOptionIds);
 
         if (!CollectionUtils.isEmpty(productLabel.getChildLabels())) {
             productLabel.getChildLabels().forEach(childLabel -> addSubLabelsRecursively(childLabel, productLabelResponse));
