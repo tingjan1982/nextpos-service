@@ -31,7 +31,10 @@ public class ProductResponse {
 
     private String productLabel;
 
-    private String workingArea;
+    // todo: consolidate working area id and product option ids in product and product label.
+    private String workingAreaId;
+
+    private List<String> productOptionIds;
 
     private List<ProductOptionResponse> productOptions;
 }

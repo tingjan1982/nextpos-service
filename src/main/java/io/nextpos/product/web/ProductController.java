@@ -152,6 +152,9 @@ public class ProductController {
         final ProductLabel productLabel = product.getProductLabel();
         final WorkingArea workingArea = product.getWorkingArea();
 
+        final List<String> productOptionIds = product.getProductOptionOfProducts().stream()
+                .map(po -> po.getProductOption().getId()).collect(Collectors.toList());
+
         final List<ProductOptionResponse> productOptions = product.getProductOptionOfProducts().stream()
                 .map(po -> toProductOptionResponse(version, po))
                 .collect(Collectors.toList());
@@ -165,7 +168,8 @@ public class ProductController {
                 productVersion.getPrice(),
                 productLabel != null? productLabel.getId() : null,
                 productLabel != null ? productLabel.getName() : null,
-                workingArea != null ? workingArea.getName() : null,
+                workingArea != null ? workingArea.getId() : null,
+                productOptionIds,
                 productOptions);
     }
 
