@@ -61,6 +61,8 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
             order.setTableId(orderRequest.getTableId());
         }
 
+        order.setDemographicData(orderRequest.getDemographicData());
+
         if (!CollectionUtils.isEmpty(orderRequest.getLineItems())) {
             final List<OrderLineItem> orderLineItems = orderRequest.getLineItems().stream()
                     .map(li -> newOrderLineItem(client, li))

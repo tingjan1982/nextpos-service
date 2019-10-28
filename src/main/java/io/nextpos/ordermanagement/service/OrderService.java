@@ -18,6 +18,7 @@ public interface OrderService {
     Order getOrder(String id);
 
     /**
+     * todo: more unit tests
      * Inflight orders are orders that are still not closed in the current active shift.
      *
      * @param clientId

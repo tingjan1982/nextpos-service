@@ -9,10 +9,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.transaction.Transactional;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -63,16 +65,17 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<Order> getInflightOrders(final String clientId) {
-        final Order.OrderState[] states = new Order.OrderState[] {
+        final List<Order.OrderState> states = Arrays.asList(
                 Order.OrderState.OPEN,
                 Order.OrderState.IN_PROCESS,
                 Order.OrderState.DELIVERED,
                 Order.OrderState.SETTLED,
-                Order.OrderState.REFUNDED
-        };
+                Order.OrderState.REFUNDED);
+
         final Shift activeShift = shiftService.getActiveShiftOrThrows(clientId);
 
-        return orderRepository.findAllByClientIdAndTableIdIsNotNullAndCreatedDateGreaterThanEqualAndStateIsIn(clientId, activeShift.getStart().getTimestamp(), states);
+        final Sort sort = Sort.by(Sort.Order.by("state"), Sort.Order.asc("createdDate"));
+        return orderRepository.findAllByClientIdAndTableIdIsNotNullAndCreatedDateGreaterThanEqualAndStateIsIn(clientId, activeShift.getStart().getTimestamp(), states, sort);
     }
 
     @Override

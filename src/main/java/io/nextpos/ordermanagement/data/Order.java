@@ -189,6 +189,15 @@ public class Order extends MongoBaseObject {
         }
     }
 
+    public int getCustomerCount() {
+
+        if (demographicData != null) {
+            return demographicData.male + demographicData.female + demographicData.kid;
+        }
+
+        return 0;
+    }
+
     public void addMetadata(String key, Object value) {
         metadata.put(key, value);
     }
@@ -321,27 +330,32 @@ public class Order extends MongoBaseObject {
     @NoArgsConstructor(access = AccessLevel.PACKAGE)
     public static class DemographicData {
 
-        private int customerCount;
-
         private int male;
 
         private int female;
 
         private int kid;
 
-        private String ageGroup;
+        private AgeGroup ageGroup;
 
-        private String location;
+        private VisitFrequency visitFrequency;
 
         DemographicData copy() {
             final DemographicData demographicData = new DemographicData();
-            demographicData.customerCount = customerCount;
             demographicData.male = male;
             demographicData.female =female;
             demographicData.ageGroup = ageGroup;
-            demographicData.location = location;
+            demographicData.visitFrequency = visitFrequency;
 
             return demographicData;
+        }
+
+        public enum AgeGroup {
+            TWENTIES, THIRTIES, FORTIES, FIFTIES_AND_ABOVE
+        }
+
+        public enum VisitFrequency {
+            FIRST_TIME, TWO_TO_THREE, MORE_THAN_THREE
         }
     }
 }

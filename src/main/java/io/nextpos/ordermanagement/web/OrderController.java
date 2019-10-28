@@ -11,6 +11,8 @@ import io.nextpos.ordermanagement.web.model.*;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.shared.web.model.SimpleObjectResponse;
 import io.nextpos.shared.web.model.SimpleObjectsResponse;
+import io.nextpos.tablelayout.data.TableLayout;
+import io.nextpos.tablelayout.service.TableLayoutService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,11 +31,14 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    private final TableLayoutService tableLayoutService;
+
     private final OrderCreationFactory orderCreationFactory;
 
     @Autowired
-    public OrderController(final OrderService orderService, final OrderCreationFactory orderCreationFactory) {
+    public OrderController(final OrderService orderService, final TableLayoutService tableLayoutService, final OrderCreationFactory orderCreationFactory) {
         this.orderService = orderService;
+        this.tableLayoutService = tableLayoutService;
         this.orderCreationFactory = orderCreationFactory;
     }
 
@@ -60,13 +65,25 @@ public class OrderController {
     public OrdersResponse getOrders(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
         List<Order> orders = orderService.getInflightOrders(client.getId());
-        final Map<String, OrdersResponse.LightOrderResponse> orderResponses = orders.stream()
-                .collect(Collectors.toMap(Order::getTableId,
-                        o -> new OrdersResponse.LightOrderResponse(o.getId(), o.getState(), o.getTotal()),
-                        (o1, o2) -> {
-                            LOGGER.warn("Found orders with same table, replacing with the latter one: o1={}, o2={}", o1.getOrderId(), o2.getOrderId());
-                            return o2;
-                        }));
+        final Map<String, List<OrdersResponse.LightOrderResponse>> orderResponses = orders.stream()
+                .map(o -> {
+                    final String tableId = o.getTableId();
+                    final TableLayout.TableDetails table = tableLayoutService.getTableDetails(tableId).orElseGet(() -> {
+                        final TableLayout.TableDetails tableDetails = new TableLayout.TableDetails(tableId, -1, -1);
+                        tableDetails.setTableLayout(new TableLayout(null, "NO_LAYOUT", 0, 0));
+                        return tableDetails;
+                    });
+                    final TableLayout tableLayout = table.getTableLayout();
+
+                    return new OrdersResponse.LightOrderResponse(o.getId(),
+                            tableLayout.getLayoutName(),
+                            table.getTableName(),
+                            o.getCustomerCount(),
+                            o.getCreatedDate(),
+                            o.getState(),
+                            o.getDiscountedTotal());
+                })
+                .collect(Collectors.groupingBy(OrdersResponse.LightOrderResponse::getTableLayout, Collectors.toList()));
 
         return new OrdersResponse(orderResponses);
     }
@@ -179,7 +196,8 @@ public class OrderController {
                 order.getOrderTotal(),
                 order.getCurrency(),
                 orderLineItems,
-                order.getMetadata());
+                order.getMetadata(),
+                order.getDemographicData());
     }
 
 }
