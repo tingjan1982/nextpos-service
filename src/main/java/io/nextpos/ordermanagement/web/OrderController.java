@@ -13,6 +13,7 @@ import io.nextpos.shared.web.model.SimpleObjectResponse;
 import io.nextpos.shared.web.model.SimpleObjectsResponse;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -67,15 +69,17 @@ public class OrderController {
         List<Order> orders = orderService.getInflightOrders(client.getId());
         final Map<String, List<OrdersResponse.LightOrderResponse>> orderResponses = orders.stream()
                 .map(o -> {
-                    final String tableId = o.getTableId();
-                    final TableLayout.TableDetails table = tableLayoutService.getTableDetails(tableId).orElseGet(() -> {
-                        final TableLayout.TableDetails tableDetails = new TableLayout.TableDetails(tableId, -1, -1);
-                        tableDetails.setTableLayout(new TableLayout(null, "NO_LAYOUT", 0, 0));
-                        return tableDetails;
-                    });
+                    final Optional<TableLayout.TableDetails> tableDetails = tableLayoutService.getTableDetails(o.getTableId());
+                    return Pair.of(o, tableDetails);
+                })
+                .filter(pair -> pair.getRight().isPresent())
+                .map(pair -> {
+                    final Order o = pair.getLeft();
+                    final TableLayout.TableDetails table = pair.getRight().get();
                     final TableLayout tableLayout = table.getTableLayout();
 
                     return new OrdersResponse.LightOrderResponse(o.getId(),
+                            tableLayout.getId(),
                             tableLayout.getLayoutName(),
                             table.getTableName(),
                             o.getCustomerCount(),
@@ -83,7 +87,7 @@ public class OrderController {
                             o.getState(),
                             o.getDiscountedTotal());
                 })
-                .collect(Collectors.groupingBy(OrdersResponse.LightOrderResponse::getTableLayout, Collectors.toList()));
+                .collect(Collectors.groupingBy(OrdersResponse.LightOrderResponse::getTableLayoutId, Collectors.toList()));
 
         return new OrdersResponse(orderResponses);
     }

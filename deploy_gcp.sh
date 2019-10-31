@@ -7,7 +7,10 @@ gcloud config set project helpful-range-236813
 gcloud auth activate-service-account travis-ci-user@helpful-range-236813.iam.gserviceaccount.com --key-file helpful-range-236813-681ca732dc15.json
 gcloud config set compute/zone asia-east1-b
 
-# gcloud container clusters create nextpos-cluster --num-nodes=2 --enable-cloud-logging
+# enable stackdriver monitoring: https://cloud.google.com/monitoring/kubernetes-engine/installing
+# enable debugging: https://cloud.google.com/debugger/docs/setup/java
+
+# gcloud container clusters create nextpos-cluster --num-nodes=1 --enable-stackdriver-kubernetes --scopes=https://www.googleapis.com/auth/cloud_debugger (--enable-cloud-logging is for legacy cluster 1.14 and prior)
 # kubectl run nextpos-web --image=docker.io/joelin/nextpos-service:latest --port 8080
 # kubectl expose deployment nextpos-web --type=LoadBalancer --port 80 --target-port 8080
 

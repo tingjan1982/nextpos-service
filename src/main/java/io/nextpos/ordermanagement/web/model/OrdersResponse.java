@@ -24,6 +24,8 @@ public class OrdersResponse {
 
         private String orderId;
 
+        private String tableLayoutId;
+
         private String tableLayout;
 
         private String tableName;

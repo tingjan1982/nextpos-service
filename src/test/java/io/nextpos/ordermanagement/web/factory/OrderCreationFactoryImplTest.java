@@ -51,7 +51,7 @@ class OrderCreationFactoryImplTest {
 
         final OrderProductOptionRequest poRequest = new OrderProductOptionRequest("ice", "normal", BigDecimal.ZERO);
         final OrderLineItemRequest line1 = new OrderLineItemRequest(product.getId(), 1, List.of(poRequest));
-        final OrderRequest request = new OrderRequest("A1", List.of(line1));
+        final OrderRequest request = new OrderRequest("A1",  null, List.of(line1));
 
         final Order order = orderCreationFactory.newOrder(client, request);
 
