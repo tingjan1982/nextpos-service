@@ -3,7 +3,6 @@ package io.nextpos.tablelayout.web;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.shared.web.ClientResolver;
-import io.nextpos.shared.web.model.SimpleObjectResponse;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
 import io.nextpos.tablelayout.web.model.*;
@@ -50,8 +49,8 @@ public class TableLayoutController {
 
         final List<TableLayout> tableLayouts = tableLayoutService.getTableLayouts(client);
 
-        final List<SimpleObjectResponse> layoutsResponse = tableLayouts.stream()
-                .map(tl -> new SimpleObjectResponse(tl.getId(), tl.getLayoutName())).collect(Collectors.toList());
+        final List<TableLayoutResponse> layoutsResponse = tableLayouts.stream()
+                .map(this::toTableLayoutResponse).collect(Collectors.toList());
 
         return new TableLayoutsResponse(layoutsResponse);
     }

@@ -7,7 +7,6 @@ import io.nextpos.product.data.Version;
 import io.nextpos.product.service.ProductOptionService;
 import io.nextpos.product.web.model.ProductOptionRequest;
 import io.nextpos.product.web.model.ProductOptionResponse;
-import io.nextpos.product.web.model.ProductOptionValueModel;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.shared.web.model.SimpleObjectResponse;
 import io.nextpos.shared.web.model.SimpleObjectsResponse;
@@ -82,16 +81,6 @@ public class ProductOptionController {
     private ProductOptionResponse toProductOptionResponse(final ProductOption productOption, final Version version) {
 
         ProductOptionVersion productOptionVersion = productOption.getObjectByVersionThrows(version);
-
-        final List<ProductOptionValueModel> optionValues = productOptionVersion.getOptionValues().stream()
-                .map(v -> new ProductOptionValueModel(v.getOptionValue(), v.getOptionPrice()))
-                .collect(Collectors.toList());
-
-        return new ProductOptionResponse(productOption.getId(),
-                productOptionVersion.getId(),
-                productOptionVersion.getOptionName(),
-                version,
-                productOptionVersion.getOptionType(),
-                optionValues);
+        return ProductOptionResponse.fromProductOptionVersion(productOptionVersion);
     }
 }

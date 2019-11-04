@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -21,7 +22,28 @@ public class ProductOptionResponse {
 
     private Version version;
 
+    private boolean required;
+
+    private boolean multipleChoice;
+
     private ProductOptionVersion.OptionType optionType;
 
     private List<ProductOptionValueModel> optionValues;
+
+
+    public static ProductOptionResponse fromProductOptionVersion(ProductOptionVersion productOptionVersion) {
+
+        final List<ProductOptionValueModel> optionValues = productOptionVersion.getOptionValues().stream()
+                .map(pov -> new ProductOptionValueModel(pov.getOptionValue(), pov.getOptionPrice()))
+                .collect(Collectors.toList());
+
+        return new ProductOptionResponse(productOptionVersion.getProductOption().getId(),
+                productOptionVersion.getId(),
+                productOptionVersion.getOptionName(),
+                productOptionVersion.getVersion(),
+                productOptionVersion.isRequired(),
+                productOptionVersion.getOptionType() == ProductOptionVersion.OptionType.MULTIPLE_CHOICE,
+                productOptionVersion.getOptionType(),
+                optionValues);
+    }
 }

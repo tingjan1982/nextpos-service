@@ -94,7 +94,7 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
         final CountrySettings countrySettings = settingsService.getCountrySettings(client.getCountryCode());
 
         final Product product = productService.getProduct(li.getProductId());
-        final ProductVersion productVersion = product.getLiveVersion();
+        final ProductVersion productVersion = product.getDesignVersion();
         List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots = Collections.emptyList();
 
         if (!CollectionUtils.isEmpty(li.getProductOptions())) {

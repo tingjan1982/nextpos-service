@@ -6,7 +6,6 @@ import io.nextpos.product.data.*;
 import io.nextpos.product.service.ProductLabelService;
 import io.nextpos.product.service.ProductService;
 import io.nextpos.product.web.model.ProductOptionResponse;
-import io.nextpos.product.web.model.ProductOptionValueModel;
 import io.nextpos.product.web.model.ProductRequest;
 import io.nextpos.product.web.model.ProductResponse;
 import io.nextpos.product.web.util.ObjectWithProductOptionVisitorWrapper;
@@ -176,15 +175,6 @@ public class ProductController {
     private ProductOptionResponse toProductOptionResponse(final Version version, final ProductOptionRelation.ProductOptionOfProduct po) {
 
         final ProductOptionVersion productOptionVersion = po.getProductOption().getObjectByVersionThrows(version);
-        final List<ProductOptionValueModel> optionValues = productOptionVersion.getOptionValues().stream()
-                .map(pov -> new ProductOptionValueModel(pov.getOptionValue(), pov.getOptionPrice()))
-                .collect(Collectors.toList());
-
-        return new ProductOptionResponse(po.getProductOption().getId(),
-                productOptionVersion.getId(),
-                productOptionVersion.getOptionName(),
-                version,
-                productOptionVersion.getOptionType(),
-                optionValues);
+        return ProductOptionResponse.fromProductOptionVersion(productOptionVersion);
     }
 }

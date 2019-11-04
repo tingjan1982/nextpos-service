@@ -5,6 +5,8 @@ import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.ClientObject;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -35,6 +37,7 @@ public class TableLayout extends BaseObject implements ClientObject {
     private int gridSizeY;
 
     @OneToMany(mappedBy = "tableLayout", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Fetch(FetchMode.SUBSELECT)
     private List<TableDetails> tables = new ArrayList<>();
 
     public TableLayout(final Client client, final String layoutName, final int gridSizeX, final int gridSizeY) {
