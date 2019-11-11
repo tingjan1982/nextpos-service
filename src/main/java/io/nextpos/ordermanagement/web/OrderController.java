@@ -1,6 +1,7 @@
 package io.nextpos.ordermanagement.web;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderStateChange;
@@ -9,6 +10,7 @@ import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordermanagement.web.factory.OrderCreationFactory;
 import io.nextpos.ordermanagement.web.model.*;
 import io.nextpos.shared.web.ClientResolver;
+import io.nextpos.shared.web.model.DeleteObjectResponse;
 import io.nextpos.shared.web.model.SimpleObjectResponse;
 import io.nextpos.shared.web.model.SimpleObjectsResponse;
 import io.nextpos.tablelayout.data.TableLayout;
@@ -33,13 +35,16 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    private final ClientObjectOwnershipService clientObjectOwnershipService;
+
     private final TableLayoutService tableLayoutService;
 
     private final OrderCreationFactory orderCreationFactory;
 
     @Autowired
-    public OrderController(final OrderService orderService, final TableLayoutService tableLayoutService, final OrderCreationFactory orderCreationFactory) {
+    public OrderController(final OrderService orderService, final ClientObjectOwnershipService clientObjectOwnershipService, final TableLayoutService tableLayoutService, final OrderCreationFactory orderCreationFactory) {
         this.orderService = orderService;
+        this.clientObjectOwnershipService = clientObjectOwnershipService;
         this.tableLayoutService = tableLayoutService;
         this.orderCreationFactory = orderCreationFactory;
     }
@@ -108,8 +113,12 @@ public class OrderController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @PathVariable final String id) {
-        // todo: implement delete order.
+    public DeleteObjectResponse deleteOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @PathVariable final String id) {
+
+        final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
+        orderService.deleteOrder(order);
+
+        return new DeleteObjectResponse(id);
     }
 
 

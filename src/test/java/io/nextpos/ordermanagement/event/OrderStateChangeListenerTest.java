@@ -84,19 +84,6 @@ class OrderStateChangeListenerTest {
     }
 
     @Test
-    void orderStateChange_Delete() throws Exception {
-
-        final CompletableFuture<OrderStateChangeBean> future = new CompletableFuture<>();
-        eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.DELETE, future));
-
-        final OrderStateChange orderStateChange = future.get().getOrderStateChange();
-
-        assertThat(orderStateChange.getOrderId()).isEqualTo(order.getId());
-        assertThat(orderStateChange.getStateChanges()).hasSize(1);
-        assertThat(orderStateChange.getStateChanges()).satisfies(entry -> assertThat(entry.getToState()).isEqualTo(Order.OrderState.DELETED), Index.atIndex(0));
-    }
-
-    @Test
     void orderStateChange_Cancel() throws Exception {
 
         final CompletableFuture<OrderStateChangeBean> future = new CompletableFuture<>();

@@ -2,6 +2,7 @@ package io.nextpos.ordermanagement.data;
 
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.model.MongoBaseObject;
+import io.nextpos.shared.model.WithClientId;
 import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
@@ -24,7 +25,7 @@ import static io.nextpos.ordermanagement.data.Order.OrderState.*;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class Order extends MongoBaseObject {
+public class Order extends MongoBaseObject implements WithClientId {
 
     public static final String COPY_FROM_ORDER = "copyFromOrder";
 
@@ -285,13 +286,11 @@ public class Order extends MongoBaseObject {
      */
     public enum OrderAction {
 
-        DELETE(OPEN, DELETED),
-
         /**
          * This includes scenarios of submitting the initial order, customer adding more orders during and after delivery.
          */
         SUBMIT(EnumSet.of(OPEN, IN_PROCESS, DELIVERED), IN_PROCESS),
-        CANCEL(IN_PROCESS, CANCELLED),
+        CANCEL(EnumSet.of(OPEN, IN_PROCESS), CANCELLED),
 
         /**
          * Used to mark line item as delivered.
