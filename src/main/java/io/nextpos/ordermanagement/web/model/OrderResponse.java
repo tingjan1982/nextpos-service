@@ -5,7 +5,6 @@ import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.TaxableAmount;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.Currency;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class OrderResponse {
 
@@ -22,7 +20,9 @@ public class OrderResponse {
 
     private String serialId;
 
-    private String tableId;
+    private Order.TableInfo tableInfo;
+
+    private String servedBy;
 
     private Date createdDate;
 
@@ -45,7 +45,6 @@ public class OrderResponse {
     private Order.DemographicData demographicData;
 
     @Data
-    @NoArgsConstructor
     @AllArgsConstructor
     public static class OrderLineItemResponse {
 

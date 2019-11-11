@@ -9,6 +9,8 @@ import io.nextpos.ordermanagement.web.model.OrderRequest;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.service.ProductService;
 import io.nextpos.shared.DummyObjects;
+import io.nextpos.tablelayout.data.TableLayout;
+import io.nextpos.tablelayout.service.TableLayoutService;
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,12 +36,22 @@ class OrderCreationFactoryImplTest {
     @Autowired
     private ProductService productService;
 
+    @Autowired
+    private TableLayoutService tableLayoutService;
+
     private Client client;
+
+    private TableLayout.TableDetails tableDetails;
 
     @BeforeEach
     void prepare() {
         client = DummyObjects.dummyClient();
         clientService.saveClient(client);
+
+        final TableLayout tableLayout = DummyObjects.dummyTableLayout(client);
+        tableLayoutService.saveTableLayout(tableLayout);
+
+        tableDetails = tableLayout.getTables().get(0);
     }
 
     @Test
@@ -51,13 +63,16 @@ class OrderCreationFactoryImplTest {
 
         final OrderProductOptionRequest poRequest = new OrderProductOptionRequest("ice", "normal", BigDecimal.ZERO);
         final OrderLineItemRequest line1 = new OrderLineItemRequest(product.getId(), 1, List.of(poRequest));
-        final OrderRequest request = new OrderRequest("A1",  null, List.of(line1));
+        final OrderRequest request = new OrderRequest(tableDetails.getId(),  null, List.of(line1));
 
         final Order order = orderCreationFactory.newOrder(client, request);
 
         assertThat(order.getId()).isNotNull();
         assertThat(order.getSerialId()).isNotNull();
-        assertThat(order.getTableId()).isEqualTo("A1");
+        assertThat(order.getTableInfo()).satisfies(ti -> {
+            assertThat(ti).isNotNull();
+            assertThat(ti.getTableId()).isEqualTo(tableDetails.getId());
+        });
         assertThat(order.getOrderLineItems()).hasSize(1);
         assertThat(order.getOrderLineItems()).satisfies(li -> {
             assertThat(li.getId()).isEqualTo(order.getId() + "-1");

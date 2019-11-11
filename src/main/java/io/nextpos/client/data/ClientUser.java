@@ -1,5 +1,6 @@
 package io.nextpos.client.data;
 
+import io.micrometer.core.instrument.util.StringUtils;
 import io.nextpos.shared.config.SecurityConfig;
 import io.nextpos.shared.model.BaseObject;
 import lombok.*;
@@ -28,6 +29,13 @@ public class ClientUser extends BaseObject {
         this.id = id;
         this.password = password;
         this.roles = roles;
+    }
+
+    /**
+     * Represent a meaningful name. Nickname comes first.
+     */
+    public String getName() {
+        return StringUtils.isNotBlank(nickname) ? nickname : id.username;
     }
 
     public boolean isDefaultUser() {

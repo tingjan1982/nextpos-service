@@ -75,7 +75,7 @@ public class OrderServiceImpl implements OrderService {
         final Shift activeShift = shiftService.getActiveShiftOrThrows(clientId);
 
         final Sort sort = Sort.by(Sort.Order.by("state"), Sort.Order.asc("createdDate"));
-        return orderRepository.findAllByClientIdAndTableIdIsNotNullAndCreatedDateGreaterThanEqualAndStateIsIn(clientId, activeShift.getStart().getTimestamp(), states, sort);
+        return orderRepository.findAllByClientIdAndTableInfoIsNotNullAndCreatedDateGreaterThanEqualAndStateIsIn(clientId, activeShift.getStart().getTimestamp(), states, sort);
     }
 
     @Override

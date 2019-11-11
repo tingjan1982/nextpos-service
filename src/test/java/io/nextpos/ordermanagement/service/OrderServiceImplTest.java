@@ -1,10 +1,14 @@
 package io.nextpos.ordermanagement.service;
 
+import io.nextpos.client.data.Client;
+import io.nextpos.client.service.ClientService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
+import io.nextpos.tablelayout.data.TableLayout;
+import io.nextpos.tablelayout.service.TableLayoutService;
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +28,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Transactional
 class OrderServiceImplTest {
 
-    private static final String CLIENT_ID = "KING";
+    @Autowired
+    private ClientService clientService;
 
     @Autowired
     private OrderService orderService;
@@ -35,22 +40,38 @@ class OrderServiceImplTest {
     @Autowired
     private CountrySettings countrySettings;
 
+    @Autowired
+    private TableLayoutService tableLayoutService;
+
+    private Client client;
+
+    private TableLayout.TableDetails tableDetails;
+
+
     @BeforeEach
     void prepare() {
-        shiftService.openShift(CLIENT_ID, BigDecimal.ONE);
+        client = DummyObjects.dummyClient();
+        clientService.saveClient(client);
+
+        shiftService.openShift(client.getId(), BigDecimal.ONE);
+
+        final TableLayout tableLayout = DummyObjects.dummyTableLayout(this.client);
+        tableLayoutService.saveTableLayout(tableLayout);
+
+        tableDetails = tableLayout.getTables().get(0);
     }
 
     @AfterEach
     void teardown() {
-        shiftService.closeShift(CLIENT_ID, BigDecimal.ONE);
+        shiftService.closeShift(client.getId(), BigDecimal.ONE);
     }
 
     @Test
     @WithMockUser("dummyUser")
     void createAndGetOrder() {
 
-        final Order order = new Order(CLIENT_ID, countrySettings.getTaxRate(), countrySettings.getCurrency());
-        order.setTableId("table 1");
+        final Order order = new Order(client.getId(), countrySettings.getTaxRate(), countrySettings.getCurrency());
+        order.setTableInfo(new Order.TableInfo(tableDetails.getId(), tableDetails.getTableName()));
 
         final List<ProductSnapshot.ProductOptionSnapshot> options = List.of(
                 new ProductSnapshot.ProductOptionSnapshot("ice", "1/3"),
@@ -66,7 +87,7 @@ class OrderServiceImplTest {
 
 
         assertThat(createdOrder.getId()).isNotNull();
-        assertThat(createdOrder.getClientId()).isEqualTo(CLIENT_ID);
+        assertThat(createdOrder.getClientId()).isEqualTo(client.getId());
         assertThat(createdOrder.getState()).isEqualTo(Order.OrderState.OPEN);
         assertThat(createdOrder.getTotal()).satisfies(total -> {
             assertThat(total.getAmountWithoutTax()).isEqualByComparingTo("330");
@@ -96,7 +117,7 @@ class OrderServiceImplTest {
 
         assertThat(existingOrder).isEqualToIgnoringGivenFields(createdOrder, "internalCounter");
 
-        final List<Order> inflightOrders = orderService.getInflightOrders(CLIENT_ID);
+        final List<Order> inflightOrders = orderService.getInflightOrders(client.getId());
 
         assertThat(inflightOrders).hasSize(1);
     }
@@ -105,7 +126,7 @@ class OrderServiceImplTest {
     @WithMockUser("dummyUser")
     void addAndUpdateOrderLineItem() {
 
-        final Order order = new Order(CLIENT_ID, countrySettings.getTaxRate(), countrySettings.getCurrency());
+        final Order order = new Order(client.getId(), countrySettings.getTaxRate(), countrySettings.getCurrency());
         final Order createdOrder = orderService.createOrder(order);
 
 
@@ -126,7 +147,7 @@ class OrderServiceImplTest {
     @Test
     void copyOrder() {
 
-        final Order order = new Order(CLIENT_ID, countrySettings.getTaxRate(), countrySettings.getCurrency());
+        final Order order = new Order(client.getId(), countrySettings.getTaxRate(), countrySettings.getCurrency());
         order.addOrderLineItem(DummyObjects.productSnapshot(), 5);
 
         final ProductSnapshot productWithOption = new ProductSnapshot("pid",

@@ -68,8 +68,9 @@ public class OrderController {
 
         List<Order> orders = orderService.getInflightOrders(client.getId());
         final Map<String, List<OrdersResponse.LightOrderResponse>> orderResponses = orders.stream()
+                .filter(o -> o.getTableInfo() != null)
                 .map(o -> {
-                    final Optional<TableLayout.TableDetails> tableDetails = tableLayoutService.getTableDetails(o.getTableId());
+                    final Optional<TableLayout.TableDetails> tableDetails = tableLayoutService.getTableDetails(o.getTableInfo().getTableId());
                     return Pair.of(o, tableDetails);
                 })
                 .filter(pair -> pair.getRight().isPresent())
@@ -191,7 +192,8 @@ public class OrderController {
 
         return new OrderResponse(order.getId(),
                 order.getSerialId(),
-                order.getTableId(),
+                order.getTableInfo(),
+                order.getServedBy(),
                 order.getCreatedDate(),
                 order.getModifiedDate(),
                 order.getState(),

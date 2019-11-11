@@ -2,6 +2,7 @@ package io.nextpos.ordermanagement.web.factory;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientSetting;
+import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientSettingsService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
@@ -13,7 +14,9 @@ import io.nextpos.product.data.ProductVersion;
 import io.nextpos.product.service.ProductService;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.settings.service.SettingsService;
+import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.storage.service.DistributedCounterService;
+import io.nextpos.tablelayout.service.TableLayoutService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,16 +40,22 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
 
     private final SettingsService settingsService;
 
+    private final TableLayoutService tableLayoutService;
+
     private final ClientSettingsService clientSettingsService;
 
     private final DistributedCounterService distributedCounterService;
 
+    private final OAuth2Helper oAuth2Helper;
+
     @Autowired
-    public OrderCreationFactoryImpl(final ProductService productService, final SettingsService settingsService, final ClientSettingsService clientSettingsService, final DistributedCounterService distributedCounterService) {
+    public OrderCreationFactoryImpl(final ProductService productService, final SettingsService settingsService, final TableLayoutService tableLayoutService, final ClientSettingsService clientSettingsService, final DistributedCounterService distributedCounterService, final OAuth2Helper oAuth2Helper) {
         this.productService = productService;
         this.settingsService = settingsService;
+        this.tableLayoutService = tableLayoutService;
         this.clientSettingsService = clientSettingsService;
         this.distributedCounterService = distributedCounterService;
+        this.oAuth2Helper = oAuth2Helper;
     }
 
     @Override
@@ -58,8 +67,11 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
         order.setSerialId(serialId);
 
         if (StringUtils.isNotEmpty(orderRequest.getTableId())) {
-            order.setTableId(orderRequest.getTableId());
+            tableLayoutService.getTableDetails(orderRequest.getTableId()).ifPresent(t -> order.setTableInfo(new Order.TableInfo(t.getId(), t.getTableName())));
         }
+
+        final ClientUser clientUser = oAuth2Helper.resolveCurrentClientUser(client);
+        order.setServedBy(clientUser.getName());
 
         order.setDemographicData(orderRequest.getDemographicData());
 

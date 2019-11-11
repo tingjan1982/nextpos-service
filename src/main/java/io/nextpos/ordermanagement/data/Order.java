@@ -2,10 +2,7 @@ package io.nextpos.ordermanagement.data;
 
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.model.MongoBaseObject;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -53,10 +50,15 @@ public class Order extends MongoBaseObject {
 
     private Currency currency;
 
-    private String tableId;
+    private TableInfo tableInfo;
+
+    private String servedBy;
 
     private DemographicData demographicData;
 
+    /**
+     * Data that is not presented to the user and is not business information.
+     */
     private Map<String, Object> metadata = new HashMap<>();
 
     /**
@@ -217,7 +219,8 @@ public class Order extends MongoBaseObject {
         copy.discountedTotal = discountedTotal != null ? discountedTotal.copy() : null;
         copy.serviceCharge = serviceCharge;
         copy.currency = currency;
-        copy.tableId = tableId;
+        copy.tableInfo = tableInfo != null ? tableInfo.copy() : null;
+        copy.servedBy = servedBy;
         copy.internalCounter = new AtomicInteger(1);
         copy.demographicData = demographicData != null ? demographicData.copy() : null;
 
@@ -226,6 +229,7 @@ public class Order extends MongoBaseObject {
                 .peek(li -> li.setId(copy.id + "-" + copy.internalCounter.getAndIncrement()))
                 .collect(Collectors.toList());
 
+        copy.metadata = metadata;
         copy.addMetadata(COPY_FROM_ORDER, id);
 
         return copy;
@@ -323,6 +327,21 @@ public class Order extends MongoBaseObject {
 
         public OrderState getValidNextState() {
             return validNextState;
+        }
+    }
+
+    @Data
+    @NoArgsConstructor(access = AccessLevel.PACKAGE)
+    @AllArgsConstructor
+    public static class TableInfo {
+
+        private String tableId;
+
+        private String tableName;
+
+        public TableInfo copy() {
+
+            return new TableInfo(tableId, tableName);
         }
     }
 

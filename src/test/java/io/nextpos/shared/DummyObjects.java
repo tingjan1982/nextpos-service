@@ -5,6 +5,7 @@ import io.nextpos.client.data.ClientUser;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.product.data.ProductOptionVersion;
 import io.nextpos.product.data.ProductVersion;
+import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.workingarea.data.WorkingArea;
 
 import java.math.BigDecimal;
@@ -40,5 +41,14 @@ public class DummyObjects {
 
     public static WorkingArea dummyWorkingArea(Client client) {
         return new WorkingArea(client, "bar");
+    }
+
+    public static TableLayout dummyTableLayout(Client client) {
+
+        TableLayout.TableDetails tableDetails = new TableLayout.TableDetails("dummy-table", 0, 0);
+        final TableLayout tableLayout = new TableLayout(client, "dummy-table-layout", 5, 5);
+        tableLayout.addTableDetails(tableDetails);
+
+        return tableLayout;
     }
 }

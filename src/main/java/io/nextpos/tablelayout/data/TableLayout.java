@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity(name = "client_table_layout")
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"layoutName", "clientId"})})
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
@@ -70,6 +71,7 @@ public class TableLayout extends BaseObject implements ClientObject {
     }
 
     @Entity(name = "client_table_details")
+    @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"tableName", "tableLayoutId"})})
     @Data
     @EqualsAndHashCode(callSuper = true)
     @NoArgsConstructor(access = AccessLevel.PACKAGE)
@@ -81,6 +83,7 @@ public class TableLayout extends BaseObject implements ClientObject {
         private String id;
 
         @ManyToOne
+        @JoinColumn(name = "tableLayoutId")
         @EqualsAndHashCode.Exclude
         @ToString.Exclude
         private TableLayout tableLayout;

@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface OrderRepository extends PagingAndSortingRepository<Order, String> {
 
-    List<Order> findAllByClientIdAndTableIdIsNotNullAndCreatedDateGreaterThanEqualAndStateIsIn(String clientId, Date date, List<Order.OrderState> orderStates, Sort sort);
+    List<Order> findAllByClientIdAndTableInfoIsNotNullAndCreatedDateGreaterThanEqualAndStateIsIn(String clientId, Date date, List<Order.OrderState> orderStates, Sort sort);
 }
