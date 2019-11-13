@@ -64,9 +64,6 @@ public class OrderController {
      * <p>
      * toMap reference:
      * https://www.geeksforgeeks.org/collectors-tomap-method-in-java-with-examples/
-     *
-     * @param client
-     * @return
      */
     @GetMapping("/inflight")
     public OrdersResponse getOrders(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
@@ -96,6 +93,22 @@ public class OrderController {
                 .collect(Collectors.groupingBy(OrdersResponse.LightOrderResponse::getTableLayoutId, Collectors.toList()));
 
         return new OrdersResponse(orderResponses);
+    }
+
+    @GetMapping("/availableTables")
+    public TablesResponse getTables(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        final List<String> occupiedTableIds = orderService.getInflightOrders(client.getId()).stream()
+                .map(o -> o.getTableInfo().getTableId())
+                .collect(Collectors.toList());
+
+        final Map<String, List<SimpleObjectResponse>> availableTables = tableLayoutService.getTableLayouts(client).stream()
+                .flatMap(tl -> tl.getTables().stream())
+                .filter(t -> !occupiedTableIds.contains(t.getId()))
+                .collect(Collectors.groupingBy(t -> t.getTableLayout().getLayoutName(),
+                        Collectors.mapping(t -> new SimpleObjectResponse(t.getId(), t.getTableName()), Collectors.toList())));
+
+        return new TablesResponse(availableTables);
     }
 
     @GetMapping("/{id}")

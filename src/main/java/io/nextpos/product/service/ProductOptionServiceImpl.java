@@ -1,9 +1,7 @@
 package io.nextpos.product.service;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.product.data.ProductOption;
-import io.nextpos.product.data.ProductOptionRepository;
-import io.nextpos.product.data.ProductOptionVersionRepository;
+import io.nextpos.product.data.*;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,8 +36,15 @@ public class ProductOptionServiceImpl implements ProductOptionService {
     }
 
     @Override
-    public List<ProductOption> getProductOptions(final Client client) {
-        return productOptionRepository.findAllByClient(client);
+    public List<ProductOptionVersion> getProductOptions(final Client client, final Version version) {
+
+        return productOptionVersionRepository.findAllByProductOptionClientAndVersionOrderByOptionName(client, version);
+    }
+
+    @Override
+    public List<ProductOptionVersion> getProductOptionsByProductLabel(final Client client, final Version version, ProductLabel productLabel) {
+
+        return productOptionVersionRepository.findByProductLabel(client, version, productLabel);
     }
 
     @Override

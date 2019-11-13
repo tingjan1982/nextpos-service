@@ -2,10 +2,7 @@ package io.nextpos.product.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientRepository;
-import io.nextpos.product.data.ProductOption;
-import io.nextpos.product.data.ProductOptionVersion;
-import io.nextpos.product.data.ProductOptionVersionRepository;
-import io.nextpos.product.data.Version;
+import io.nextpos.product.data.*;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -29,6 +27,9 @@ class ProductOptionServiceImplTest {
 
     @Autowired
     private ProductOptionVersionRepository productOptionVersionRepository;
+
+    @Autowired
+    private ProductLabelService productlabelService;
 
     @Autowired
     private ClientRepository clientRepository;
@@ -108,7 +109,7 @@ class ProductOptionServiceImplTest {
     }
 
     @Test
-    public void deployProductOption() {
+    void deployProductOption() {
 
         final ProductOptionVersion stagingProductOption = new ProductOptionVersion("extras", ProductOptionVersion.OptionType.MULTIPLE_CHOICE, true);
         stagingProductOption.addOptionValue("cheese");
@@ -140,5 +141,31 @@ class ProductOptionServiceImplTest {
         productOptionService.deployProductOption(createdProductOption.getId());
 
         assertThat(productOptionVersionRepository.findAll()).hasSize(2);
+    }
+
+    @Test
+    void getProductOptions() {
+
+        final ProductOption productOption = new ProductOption(client, DummyObjects.dummyProductOptionVersion());
+        productOptionService.createProductOption(productOption);
+
+        final ProductOption productOption2 = new ProductOption(client, DummyObjects.dummyProductOptionVersion());
+        productOptionService.createProductOption(productOption2);
+
+        ProductLabel productLabel = new ProductLabel("test", client);
+        productLabel.replaceProductOptions(productOption);
+        productlabelService.saveProductLabel(productLabel);
+
+        final List<ProductOptionVersion> designOptions = productOptionService.getProductOptions(client, Version.DESIGN);
+
+        assertThat(designOptions).hasSize(2);
+
+        final List<ProductOptionVersion> liveOptions = productOptionService.getProductOptions(client, Version.LIVE);
+
+        assertThat(liveOptions).hasSize(0);
+
+        final List<ProductOptionVersion> productOptionsByLabel = productOptionService.getProductOptionsByProductLabel(client, Version.DESIGN, productLabel);
+
+        assertThat(productOptionsByLabel).hasSize(1);
     }
 }

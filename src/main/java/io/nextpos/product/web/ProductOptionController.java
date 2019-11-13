@@ -1,9 +1,13 @@
 package io.nextpos.product.web;
 
+import io.micrometer.core.instrument.util.StringUtils;
 import io.nextpos.client.data.Client;
+import io.nextpos.client.service.ClientObjectOwnershipService;
+import io.nextpos.product.data.ProductLabel;
 import io.nextpos.product.data.ProductOption;
 import io.nextpos.product.data.ProductOptionVersion;
 import io.nextpos.product.data.Version;
+import io.nextpos.product.service.ProductLabelService;
 import io.nextpos.product.service.ProductOptionService;
 import io.nextpos.product.web.model.ProductOptionRequest;
 import io.nextpos.product.web.model.ProductOptionResponse;
@@ -25,9 +29,15 @@ public class ProductOptionController {
 
     private final ProductOptionService productOptionService;
 
+    private final ProductLabelService productLabelService;
+
+    private final ClientObjectOwnershipService clientObjectOwnershipService;
+
     @Autowired
-    public ProductOptionController(final ProductOptionService productOptionService) {
+    public ProductOptionController(final ProductOptionService productOptionService, final ProductLabelService productLabelService, final ClientObjectOwnershipService clientObjectOwnershipService) {
         this.productOptionService = productOptionService;
+        this.productLabelService = productLabelService;
+        this.clientObjectOwnershipService = clientObjectOwnershipService;
     }
 
 
@@ -41,19 +51,31 @@ public class ProductOptionController {
     }
 
     @GetMapping("/{id}")
-    public ProductOptionResponse getProductOption(@PathVariable String id, @RequestParam(value = "version", required = false, defaultValue = "DESIGN") Version version) {
+    public ProductOptionResponse getProductOption(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                  @PathVariable String id,
+                                                  @RequestParam(value = "version", required = false, defaultValue = "DESIGN") Version version) {
 
-        final ProductOption productOption = productOptionService.getProductOption(id);
+        final ProductOption productOption = clientObjectOwnershipService.checkOwnership(client, () -> productOptionService.getProductOption(id));
 
         return toProductOptionResponse(productOption, version);
     }
 
     @GetMapping
-    public SimpleObjectsResponse getProductOptions(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+    public SimpleObjectsResponse getProductOptions(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                   @RequestParam(name = "productLabelId", required = false) String productLabelId) {
 
-        List<ProductOption> productOptions = productOptionService.getProductOptions(client);
+        List<ProductOptionVersion> productOptions;
+
+        if (StringUtils.isNotBlank(productLabelId)) {
+            final ProductLabel productLabel = clientObjectOwnershipService.checkOwnership(client, () -> productLabelService.getProductLabelOrThrows(productLabelId));
+            productOptions = productOptionService.getProductOptionsByProductLabel(client, Version.DESIGN, productLabel);
+
+        } else {
+            productOptions = productOptionService.getProductOptions(client, Version.DESIGN);
+        }
+
         final List<SimpleObjectResponse> results = productOptions.stream()
-                .map(po -> new SimpleObjectResponse(po.getId(), po.getDesignVersion().getOptionName()))
+                .map(po -> new SimpleObjectResponse(po.getId(), po.getOptionName()))
                 .collect(Collectors.toList());
 
         return new SimpleObjectsResponse(results);

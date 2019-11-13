@@ -1,7 +1,10 @@
 package io.nextpos.product.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.product.data.ProductLabel;
 import io.nextpos.product.data.ProductOption;
+import io.nextpos.product.data.ProductOptionVersion;
+import io.nextpos.product.data.Version;
 
 import java.util.List;
 
@@ -11,7 +14,9 @@ public interface ProductOptionService {
 
     ProductOption getProductOption(String id);
 
-    List<ProductOption> getProductOptions(Client client);
+    List<ProductOptionVersion> getProductOptions(Client client, final Version version);
+
+    List<ProductOptionVersion> getProductOptionsByProductLabel(Client client, Version version, ProductLabel productLabel);
 
     ProductOption deployProductOption(String id);
 }
