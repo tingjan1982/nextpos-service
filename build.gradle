@@ -2,6 +2,9 @@ plugins {
     id 'org.springframework.boot' version '2.1.5.RELEASE'
     id 'java'
     id 'com.palantir.docker' version '0.22.1'
+
+    // https://blog.jdriven.com/2017/01/spring-sweets-add-git-info-info-endpoint/
+    id "com.gorylenko.gradle-git-properties" version "2.2.0"
 }
 
 apply plugin: 'io.spring.dependency-management'

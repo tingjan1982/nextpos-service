@@ -75,7 +75,7 @@ public class ProductOptionController {
         }
 
         final List<SimpleObjectResponse> results = productOptions.stream()
-                .map(po -> new SimpleObjectResponse(po.getId(), po.getOptionName()))
+                .map(po -> new SimpleObjectResponse(po.getProductOption().getId(), po.getOptionName()))
                 .collect(Collectors.toList());
 
         return new SimpleObjectsResponse(results);
