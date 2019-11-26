@@ -26,6 +26,7 @@ public class WebConfig {
                 "/productoptions/*",
                 "/labels/*",
                 "/clients/me",
+                "/clients/me/settings/*",
                 "/clients/me/users/*",
                 "/orders/*",
                 "/shifts/*",

@@ -83,7 +83,7 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
             order.addOrderLineItems(orderLineItems);
         }
 
-        client.getClientSettings(ClientSetting.SettingName.SERVICE_CHARGE).ifPresent(sc -> {
+        clientSettingsService.getClientSettingByName(client, ClientSetting.SettingName.SERVICE_CHARGE).ifPresent(sc -> {
             if (sc.isEnabled()) {
                 final BigDecimal serviceCharge = clientSettingsService.getActualStoredValue(sc, BigDecimal.class);
                 order.setServiceCharge(serviceCharge);

@@ -1,7 +1,6 @@
 package io.nextpos.client.service;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.client.data.ClientSetting;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.config.SecurityConfig;
@@ -36,7 +35,6 @@ class ClientServiceImplTest {
     void createAndGetClient() {
 
         client.addAttribute(Client.ClientAttributes.UBN.name(), "22640971");
-        client.saveClientSettings(ClientSetting.SettingName.SERVICE_CHARGE, "0.1", ClientSetting.ValueType.BIG_DECIMAL, false);
 
         final Client createdClient = clientService.createClient(client);
 
@@ -46,13 +44,6 @@ class ClientServiceImplTest {
         final Client retrievedClient = clientService.getClient(createdClient.getId()).orElseThrow();
 
         assertThat(retrievedClient.getAttributes()).hasSize(1);
-        assertThat(retrievedClient.getClientSettings()).hasSize(1);
-        assertThat(retrievedClient.getClientSettings(ClientSetting.SettingName.SERVICE_CHARGE).orElseThrow()).satisfies(s -> {
-            assertThat(s.getId()).isNotNull();
-            assertThat(s.getName()).isEqualTo(ClientSetting.SettingName.SERVICE_CHARGE);
-            assertThat(s.getValueType()).isEqualTo(ClientSetting.ValueType.BIG_DECIMAL);
-            assertThat(s.isEnabled()).isFalse();
-        });
     }
 
     @Test

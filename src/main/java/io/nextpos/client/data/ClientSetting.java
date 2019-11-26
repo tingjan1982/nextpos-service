@@ -6,14 +6,13 @@ import io.nextpos.shared.model.ClientObject;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
 
 /**
+ * ClientSetting differs from attributes in that setting has typed value and enabled flag to control is the value is used.
+ *
  * Hibernate custom type:
  * https://www.baeldung.com/hibernate-custom-types
  *
@@ -21,6 +20,7 @@ import java.util.Date;
  * https://www.baeldung.com/jpa-attribute-converters
  */
 @Entity(name = "client_settings")
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "clientId"})})
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
@@ -32,6 +32,7 @@ public class ClientSetting extends BaseObject implements ClientObject {
     private String id;
 
     @ManyToOne
+    @JoinColumn(name = "clientId")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Client client;
@@ -62,17 +63,29 @@ public class ClientSetting extends BaseObject implements ClientObject {
 
     public enum SettingName {
 
-        SERVICE_CHARGE,
+        SERVICE_CHARGE(ValueType.BIG_DECIMAL),
 
         /**
          * This is a placeholder to customize offer application behavior, to determine whether offer discount can be stacked or is exclusive only.
          */
-        STACKABLE_OFFER
+        STACKABLE_OFFER(ValueType.BOOLEAN);
+
+        private ValueType valueType;
+
+        SettingName(final ValueType valueType) {
+            this.valueType = valueType;
+        }
+
+        public ValueType getValueType() {
+            return valueType;
+        }
     }
 
     public enum ValueType {
 
         STRING(String.class),
+
+        BOOLEAN(Boolean.class),
 
         BIG_DECIMAL(BigDecimal.class),
 

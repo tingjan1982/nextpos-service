@@ -1,5 +1,6 @@
 package io.nextpos.client.service;
 
+import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientSetting;
 import io.nextpos.client.data.ClientSettingsRepository;
 import io.nextpos.shared.exception.GeneralApplicationException;
@@ -9,6 +10,8 @@ import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -30,9 +33,19 @@ public class ClientSettingsServiceImpl implements ClientSettingsService {
     }
 
     @Override
-    public ClientSetting getClientSettings(final String id) {
-        return clientSettingsRepository.findById(id).orElseThrow(() -> {
-            throw new ObjectNotFoundException(id, ClientSetting.class);
+    public List<ClientSetting> getClientSettings(final Client client) {
+        return clientSettingsRepository.findAllByClient(client);
+    }
+
+    @Override
+    public Optional<ClientSetting> getClientSettingByName(final Client client, final ClientSetting.SettingName settingName) {
+        return clientSettingsRepository.findByClientAndName(client, settingName);
+    }
+
+    @Override
+    public ClientSetting getClientSettingByNameOrThrows(final Client client, final ClientSetting.SettingName settingName) {
+        return this.getClientSettingByName(client, settingName).orElseThrow(() -> {
+            throw new ObjectNotFoundException(settingName.name(), ClientSetting.class);
         });
     }
 
