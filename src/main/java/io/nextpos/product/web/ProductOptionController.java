@@ -45,7 +45,7 @@ public class ProductOptionController {
     public ProductOptionResponse createProductOption(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @Valid @RequestBody ProductOptionRequest productOptionRequest) {
 
         final ProductOption productOption = fromProductOptionRequest(client, productOptionRequest);
-        final ProductOption createdProductOption = productOptionService.createProductOption(productOption);
+        final ProductOption createdProductOption = productOptionService.saveProductOption(productOption);
 
         return toProductOptionResponse(createdProductOption, Version.DESIGN);
     }
@@ -79,6 +79,34 @@ public class ProductOptionController {
                 .collect(Collectors.toList());
 
         return new SimpleObjectsResponse(results);
+    }
+
+    @PostMapping("/{id}")
+    public ProductOptionResponse updateProductOption(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                     @PathVariable final String id,
+                                                     @Valid @RequestBody ProductOptionRequest productOptionRequest) {
+
+        final ProductOption productOption = clientObjectOwnershipService.checkOwnership(client, () -> productOptionService.getProductOption(id));
+        updateProductOptionFromRequest(productOption, productOptionRequest);
+        final ProductOption createdProductOption = productOptionService.saveProductOption(productOption);
+
+        return toProductOptionResponse(createdProductOption, Version.DESIGN);
+    }
+
+    private void updateProductOptionFromRequest(final ProductOption productOption, final ProductOptionRequest productOptionRequest) {
+
+        final ProductOptionVersion.OptionType optionType = ProductOptionVersion.OptionType.valueOf(productOptionRequest.getOptionType());
+
+        final ProductOptionVersion optionVersion = productOption.getDesignVersion();
+        optionVersion.setOptionName(productOptionRequest.getOptionName());
+        optionVersion.setOptionType(optionType);
+        optionVersion.setRequired(productOptionRequest.isRequired());
+
+        optionVersion.clearOptionValues();
+
+        if (!CollectionUtils.isEmpty(productOptionRequest.getOptionValues())) {
+            productOptionRequest.getOptionValues().forEach(value -> optionVersion.addOptionValue(value.getValue(), value.getPrice()));
+        }
     }
 
     @PostMapping("/{id}/deploy")

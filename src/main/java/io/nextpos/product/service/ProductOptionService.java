@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface ProductOptionService {
 
-    ProductOption createProductOption(ProductOption productOption);
+    ProductOption saveProductOption(ProductOption productOption);
 
     ProductOption getProductOption(String id);
 

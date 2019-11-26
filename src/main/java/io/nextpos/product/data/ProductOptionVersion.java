@@ -40,7 +40,7 @@ public class ProductOptionVersion extends BaseObject implements ObjectVersioning
 
     private boolean required;
 
-    @OneToMany(mappedBy = "productOption", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "productOption", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
     private List<ProductOptionValue> optionValues = new ArrayList<>();
 
@@ -49,6 +49,11 @@ public class ProductOptionVersion extends BaseObject implements ObjectVersioning
         this.optionName = optionName;
         this.optionType = optionType;
         this.required = required;
+    }
+
+    public void clearOptionValues() {
+        optionValues.forEach(pov -> pov.setProductOption(null));
+        optionValues.clear();
     }
 
     public void addOptionValue(String optionValue) {

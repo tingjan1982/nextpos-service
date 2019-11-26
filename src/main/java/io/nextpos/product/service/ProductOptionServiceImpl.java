@@ -24,7 +24,7 @@ public class ProductOptionServiceImpl implements ProductOptionService {
     }
 
     @Override
-    public ProductOption createProductOption(final ProductOption productOption) {
+    public ProductOption saveProductOption(final ProductOption productOption) {
         return productOptionRepository.save(productOption);
     }
 

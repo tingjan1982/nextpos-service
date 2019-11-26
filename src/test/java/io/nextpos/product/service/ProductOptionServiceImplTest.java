@@ -54,7 +54,7 @@ class ProductOptionServiceImplTest {
 
         final ProductOption productOption = new ProductOption(client, stagingProductOption);
 
-        final ProductOption createdProductOption = productOptionService.createProductOption(productOption);
+        final ProductOption createdProductOption = productOptionService.saveProductOption(productOption);
 
         verifyProductOption(productOptionService.getProductOption(createdProductOption.getId()));
     }
@@ -82,7 +82,7 @@ class ProductOptionServiceImplTest {
 
         final ProductOption productOption = new ProductOption(client, stagingProductOption);
 
-        final ProductOption createdProductOption = productOptionService.createProductOption(productOption);
+        final ProductOption createdProductOption = productOptionService.saveProductOption(productOption);
 
         assertThat(createdProductOption.getDesignVersion()).satisfies(staging -> {
             assertThat(staging.getId()).contains(productOption.getId());
@@ -99,7 +99,7 @@ class ProductOptionServiceImplTest {
 
         final ProductOption productOption = new ProductOption(client, stagingProductOption);
 
-        final ProductOption createdProductOption = productOptionService.createProductOption(productOption);
+        final ProductOption createdProductOption = productOptionService.saveProductOption(productOption);
 
         assertThat(createdProductOption.getDesignVersion()).satisfies(staging -> {
             assertThat(staging.getId()).contains(productOption.getId());
@@ -117,7 +117,7 @@ class ProductOptionServiceImplTest {
 
         final ProductOption productOption = new ProductOption(client, stagingProductOption);
 
-        final ProductOption createdProductOption = productOptionService.createProductOption(productOption);
+        final ProductOption createdProductOption = productOptionService.saveProductOption(productOption);
 
         assertThat(createdProductOption.getDesignVersion()).isNotNull();
         assertThrows(ObjectNotFoundException.class, createdProductOption::getLiveVersion);
@@ -147,10 +147,10 @@ class ProductOptionServiceImplTest {
     void getProductOptions() {
 
         final ProductOption productOption = new ProductOption(client, DummyObjects.dummyProductOptionVersion());
-        productOptionService.createProductOption(productOption);
+        productOptionService.saveProductOption(productOption);
 
         final ProductOption productOption2 = new ProductOption(client, DummyObjects.dummyProductOptionVersion());
-        productOptionService.createProductOption(productOption2);
+        productOptionService.saveProductOption(productOption2);
 
         ProductLabel productLabel = new ProductLabel("test", client);
         productLabel.replaceProductOptions(productOption);

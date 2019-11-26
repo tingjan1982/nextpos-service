@@ -78,10 +78,10 @@ class ProductLabelServiceImplTest {
     void applyProductOptionsToProducts() {
 
         final ProductOption option1 = new ProductOption(client, DummyObjects.dummyProductOptionVersion());
-        productOptionService.createProductOption(option1);
+        productOptionService.saveProductOption(option1);
 
         final ProductOption option2 = new ProductOption(client, DummyObjects.dummyProductOptionVersion());
-        productOptionService.createProductOption(option2);
+        productOptionService.saveProductOption(option2);
 
         final WorkingArea workingArea = DummyObjects.dummyWorkingArea(client);
         workingAreaService.saveWorkingArea(workingArea);
