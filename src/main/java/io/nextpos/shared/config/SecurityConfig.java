@@ -365,6 +365,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers(POST, "/products/**").hasAuthority(Role.MANAGER_ROLE)
                     .antMatchers(GET, "/products/**").hasAuthority(Role.USER_ROLE)
                     .antMatchers(POST, "/productoptions/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(DELETE, "/productoptions/**").hasAuthority(Role.MANAGER_ROLE)
                     .antMatchers(GET, "/productoptions/**").hasAuthority(Role.USER_ROLE)
                     .antMatchers(POST, "/labels/**").hasAuthority(Role.MANAGER_ROLE)
                     .antMatchers(GET, "/labels/**").hasAuthority(Role.USER_ROLE)
