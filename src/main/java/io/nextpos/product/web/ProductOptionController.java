@@ -116,6 +116,14 @@ public class ProductOptionController {
         productOptionService.deployProductOption(id);
     }
 
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProductOption(@PathVariable final String id) {
+
+        final ProductOption productOption = productOptionService.getProductOption(id);
+        productOptionService.deleteProductOption(productOption);
+    }
+
     private ProductOption fromProductOptionRequest(Client client, ProductOptionRequest productOptionRequest) {
 
         final ProductOptionVersion.OptionType optionType = ProductOptionVersion.OptionType.valueOf(productOptionRequest.getOptionType());

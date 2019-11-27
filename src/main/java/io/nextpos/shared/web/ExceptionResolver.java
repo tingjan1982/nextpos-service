@@ -34,7 +34,7 @@ public class ExceptionResolver {
     }
 
     @ExceptionHandler(ObjectAlreadyExistsException.class)
-    @ResponseStatus(code = HttpStatus.NOT_FOUND)
+    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ErrorResponse handleObjectAlreadyExist(ObjectAlreadyExistsException exception) {
 
         return ErrorResponse.simpleErrorResponse(exception.getMessage());
@@ -50,6 +50,13 @@ public class ExceptionResolver {
     @ExceptionHandler({GeneralApplicationException.class, ClientAccountException.class, ClientOwnershipViolationException.class})
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ErrorResponse handleGeneralApplicationException(Exception exception) {
+
+        return ErrorResponse.simpleErrorResponse(exception.getMessage());
+    }
+
+    @ExceptionHandler(BusinessLogicException.class)
+    @ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
+    public ErrorResponse handleBusinessLogicException(Exception exception) {
 
         return ErrorResponse.simpleErrorResponse(exception.getMessage());
     }

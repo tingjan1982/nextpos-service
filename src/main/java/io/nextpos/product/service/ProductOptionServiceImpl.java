@@ -2,6 +2,7 @@ package io.nextpos.product.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.product.data.*;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,10 +18,13 @@ public class ProductOptionServiceImpl implements ProductOptionService {
 
     private final ProductOptionVersionRepository productOptionVersionRepository;
 
+    private final ProductOptionRelationRepository productOptionRelationRepository;
+
     @Autowired
-    public ProductOptionServiceImpl(final ProductOptionRepository productOptionRepository, final ProductOptionVersionRepository productOptionVersionRepository) {
+    public ProductOptionServiceImpl(final ProductOptionRepository productOptionRepository, final ProductOptionVersionRepository productOptionVersionRepository, final ProductOptionRelationRepository productOptionRelationRepository) {
         this.productOptionRepository = productOptionRepository;
         this.productOptionVersionRepository = productOptionVersionRepository;
+        this.productOptionRelationRepository = productOptionRelationRepository;
     }
 
     @Override
@@ -46,6 +50,19 @@ public class ProductOptionServiceImpl implements ProductOptionService {
 
         return productOptionVersionRepository.findByProductLabel(client, version, productLabel);
     }
+
+    @Override
+    public void deleteProductOption(ProductOption productOption) {
+
+        final Long relationCount = productOptionRelationRepository.countByProductOption(productOption);
+
+        if (relationCount > 0) {
+            throw new BusinessLogicException("Product option is in use: " + productOption.getId());
+        }
+
+        productOptionRepository.delete(productOption);
+    }
+
 
     @Override
     public ProductOption deployProductOption(final String id) {

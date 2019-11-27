@@ -18,5 +18,7 @@ public interface ProductOptionService {
 
     List<ProductOptionVersion> getProductOptionsByProductLabel(Client client, Version version, ProductLabel productLabel);
 
+    void deleteProductOption(ProductOption productOption);
+
     ProductOption deployProductOption(String id);
 }
