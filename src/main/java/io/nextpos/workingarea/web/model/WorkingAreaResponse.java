@@ -17,5 +17,7 @@ public class WorkingAreaResponse {
 
     private int noOfPrintCopies;
 
+    private List<String> printerIds;
+
     private List<PrinterResponse> printers;
 }

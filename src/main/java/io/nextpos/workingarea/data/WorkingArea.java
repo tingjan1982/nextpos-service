@@ -4,6 +4,8 @@ import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.ClientObject;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -31,9 +33,11 @@ public class WorkingArea extends BaseObject implements ClientObject {
     private int noOfPrintCopies;
 
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @Fetch(FetchMode.SUBSELECT)
     private List<Printer> printers = new ArrayList<>();
 
-    public WorkingArea(final Client client, final String name) {
+    public WorkingArea(final Client
+                               client, final String name) {
         this.client = client;
         this.name = name;
     }

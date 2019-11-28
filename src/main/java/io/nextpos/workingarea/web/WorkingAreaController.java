@@ -87,11 +87,14 @@ public class WorkingAreaController {
 
     private WorkingAreaResponse toWorkingAreaResponse(final WorkingArea savedWorkingArea) {
 
+        final List<String> printerIds = savedWorkingArea.getPrinters().stream()
+                .map(Printer::getId).collect(Collectors.toList());
         final List<PrinterResponse> printerResponses = toPrintersResponse(savedWorkingArea.getPrinters());
 
         return new WorkingAreaResponse(savedWorkingArea.getId(),
                 savedWorkingArea.getName(),
                 savedWorkingArea.getNoOfPrintCopies(),
+                printerIds,
                 printerResponses);
     }
 
