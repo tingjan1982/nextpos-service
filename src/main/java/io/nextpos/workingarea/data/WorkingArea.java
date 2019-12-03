@@ -36,10 +36,13 @@ public class WorkingArea extends BaseObject implements ClientObject {
     @Fetch(FetchMode.SUBSELECT)
     private List<Printer> printers = new ArrayList<>();
 
-    public WorkingArea(final Client
-                               client, final String name) {
+    public WorkingArea(final Client client, final String name) {
         this.client = client;
         this.name = name;
+    }
+
+    public void clearPrinters() {
+        printers.clear();
     }
 
     public void addPrinter(Printer printer) {

@@ -72,6 +72,8 @@ public class WorkingAreaController {
         workingArea.setNoOfPrintCopies(workingAreaRequest.getNoOfPrintCopies());
 
         if (!CollectionUtils.isEmpty(workingAreaRequest.getPrinterIds())) {
+            workingArea.clearPrinters();
+
             workingAreaRequest.getPrinterIds().stream()
                     .map(id -> clientObjectOwnershipService.checkOwnership(workingArea.getClient(), () -> workingAreaService.getPrinter(id)))
                     .forEach(workingArea::addPrinter);
@@ -81,6 +83,12 @@ public class WorkingAreaController {
     private WorkingArea fromWorkingAreaRequest(final Client client, final WorkingAreaRequest workingAreaRequest) {
         final WorkingArea workingArea = new WorkingArea(client, workingAreaRequest.getName());
         workingArea.setNoOfPrintCopies(workingAreaRequest.getNoOfPrintCopies());
+
+        if (!CollectionUtils.isEmpty(workingAreaRequest.getPrinterIds())) {
+            workingAreaRequest.getPrinterIds().stream()
+                    .map(id -> clientObjectOwnershipService.checkOwnership(workingArea.getClient(), () -> workingAreaService.getPrinter(id)))
+                    .forEach(workingArea::addPrinter);
+        }
 
         return workingArea;
     }
