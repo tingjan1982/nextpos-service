@@ -32,7 +32,7 @@ public class WorkingArea extends BaseObject implements ClientObject {
 
     private int noOfPrintCopies;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @Fetch(FetchMode.SUBSELECT)
     private List<Printer> printers = new ArrayList<>();
 
