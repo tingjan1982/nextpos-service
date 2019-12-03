@@ -32,7 +32,8 @@ public class WorkingArea extends BaseObject implements ClientObject {
 
     private int noOfPrintCopies;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL)
+    @JoinTable(name = "working_area_printers", joinColumns = @JoinColumn(name = "working_area_id"), inverseJoinColumns = @JoinColumn(name = "printer_id"))
     @Fetch(FetchMode.SUBSELECT)
     private List<Printer> printers = new ArrayList<>();
 
