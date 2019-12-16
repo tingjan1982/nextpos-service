@@ -37,6 +37,10 @@ public class TableLayoutController {
         return toTableLayoutResponse(savedTableLayout);
     }
 
+    private TableLayout fromTableLayoutRequest(final Client client, final TableLayoutRequest tableLayoutRequest) {
+        return new TableLayout(client, tableLayoutRequest.getLayoutName(), tableLayoutRequest.getGridSizeX(), tableLayoutRequest.getGridSizeY());
+    }
+
     @GetMapping("/{id}")
     public TableLayoutResponse getTableLayout(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @PathVariable final String id) {
 
@@ -87,8 +91,38 @@ public class TableLayoutController {
         return toTableLayoutResponse(savedTableLayout);
     }
 
-    private TableLayout fromTableLayoutRequest(final Client client, final TableLayoutRequest tableLayoutRequest) {
-        return new TableLayout(client, tableLayoutRequest.getLayoutName(), tableLayoutRequest.getGridSizeX(), tableLayoutRequest.getGridSizeY());
+    private void addTableFromTableDetailsRequest(final TableLayout tableLayout, final TableDetailsRequest tableDetailsRequest) {
+
+        final TableLayout.TableDetails tableDetails = new TableLayout.TableDetails(tableDetailsRequest.getTableName(), tableDetailsRequest.getCoordinateX(), tableDetailsRequest.getCoordinateY());
+        tableDetails.setCapacity(tableDetailsRequest.getCapacity());
+
+        tableLayout.addTableDetails(tableDetails);
+    }
+
+    @PostMapping("/{id}/tables/{tableId}")
+    public TableDetailsResponse updateTableDetails(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                  @PathVariable final String id,
+                                                  @PathVariable final String tableId,
+                                                  @Valid @RequestBody UpdateTableDetailsRequest updateRequest) {
+
+        final TableLayout tableLayout = clientObjectOwnershipService.checkOwnership(client, () -> tableLayoutService.getTableLayout(id));
+        final TableLayout.TableDetails tableDetails = tableLayout.getTableDetails(tableId);
+
+        updateTableDetailsFromRequest(tableDetails, updateRequest);
+
+        tableLayoutService.saveTableLayout(tableLayout);
+
+        return new TableDetailsResponse(tableDetails.getId(),
+                tableDetails.getTableName(),
+                tableDetails.getXCoordinate(),
+                tableDetails.getYCoordinate(),
+                tableDetails.getCapacity());
+    }
+
+    private void updateTableDetailsFromRequest(final TableLayout.TableDetails tableDetails, final UpdateTableDetailsRequest updateRequest) {
+
+        tableDetails.setTableName(updateRequest.getTableName());
+        tableDetails.setCapacity(updateRequest.getCapacity());
     }
 
     private TableLayoutResponse toTableLayoutResponse(final TableLayout savedTableLayout) {
@@ -103,13 +137,5 @@ public class TableLayoutController {
                 tables.size(),
                 savedTableLayout.getTotalCapacity(),
                 tables);
-    }
-
-    private void addTableFromTableDetailsRequest(final TableLayout tableLayout, final TableDetailsRequest tableDetailsRequest) {
-
-        final TableLayout.TableDetails tableDetails = new TableLayout.TableDetails(tableDetailsRequest.getTableName(), tableDetailsRequest.getCoordinateX(), tableDetailsRequest.getCoordinateY());
-        tableDetails.setCapacity(tableDetailsRequest.getCapacity());
-
-        tableLayout.addTableDetails(tableDetails);
     }
 }

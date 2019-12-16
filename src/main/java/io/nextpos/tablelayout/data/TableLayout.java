@@ -2,6 +2,7 @@ package io.nextpos.tablelayout.data;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.shared.exception.GeneralApplicationException;
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.ClientObject;
 import lombok.*;
@@ -68,6 +69,13 @@ public class TableLayout extends BaseObject implements ClientObject {
         tables.add(tableDetails);
 
         return this;
+    }
+
+    public TableDetails getTableDetails(String tableId) {
+
+        return tables.stream().filter(t -> t.getId().equals(tableId)).findFirst().orElseThrow(() -> {
+            throw new ObjectNotFoundException(tableId, TableDetails.class);
+        });
     }
 
     @Entity(name = "client_table_details")
