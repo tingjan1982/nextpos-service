@@ -2,6 +2,7 @@ package io.nextpos.ordermanagement.web;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
+import io.nextpos.merchandising.service.MerchandisingService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderStateChange;
@@ -41,12 +42,15 @@ public class OrderController {
 
     private final OrderCreationFactory orderCreationFactory;
 
+    private final MerchandisingService merchandisingService;
+
     @Autowired
-    public OrderController(final OrderService orderService, final ClientObjectOwnershipService clientObjectOwnershipService, final TableLayoutService tableLayoutService, final OrderCreationFactory orderCreationFactory) {
+    public OrderController(final OrderService orderService, final ClientObjectOwnershipService clientObjectOwnershipService, final TableLayoutService tableLayoutService, final OrderCreationFactory orderCreationFactory, final MerchandisingService merchandisingService) {
         this.orderService = orderService;
         this.clientObjectOwnershipService = clientObjectOwnershipService;
         this.tableLayoutService = tableLayoutService;
         this.orderCreationFactory = orderCreationFactory;
+        this.merchandisingService = merchandisingService;
     }
 
     @PostMapping
@@ -116,6 +120,18 @@ public class OrderController {
 
         final Order order = orderService.getOrder(id);
         return toOrderResponse(order);
+    }
+
+    @PostMapping("/{id}/applyDiscount")
+    public OrderResponse applyOrderDiscount(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                            @PathVariable final String id,
+                                            @Valid @RequestBody DiscountRequest discountRequest) {
+
+        final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
+
+        final Order updatedOrder = merchandisingService.applyOrderDiscount(order, discountRequest.getDiscount());
+
+        return toOrderResponse(updatedOrder);
     }
 
     @PostMapping("/{id}/copy")

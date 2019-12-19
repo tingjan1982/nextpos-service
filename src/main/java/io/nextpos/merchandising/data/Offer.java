@@ -88,6 +88,8 @@ public abstract class Offer extends BaseObject implements ClientObject {
 
         ALWAYS,
         MEMBER,
+        // todo: implement at checkout offer to display in payment page mainly for order/product discount
+        AT_CHECKOUT,
 
         /**
          * Support in the future.

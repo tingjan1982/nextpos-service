@@ -2,11 +2,13 @@ package io.nextpos.merchandising.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.TaxableAmount;
 import io.nextpos.ordermanagement.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.math.BigDecimal;
 
 @Service
 @Transactional
@@ -37,6 +39,16 @@ public class MerchandisingServiceImpl implements MerchandisingService {
         final GroupedOffers activeOffers = offerService.findActiveOffers(client);
         activeOffers.arbitrateBestProductLevelOffer(order);
         activeOffers.arbitrateBestOrderLevelOffer(order);
+
+        return orderService.saveOrder(order);
+    }
+
+    @Override
+    public Order applyOrderDiscount(final Order order, BigDecimal discount) {
+
+        final TaxableAmount total = order.getTotal();
+        final BigDecimal discountAmount = total.getAmountWithoutTax().multiply(discount);
+        order.applyDiscountedTotal(total.getAmountWithoutTax().subtract(discountAmount));
 
         return orderService.saveOrder(order);
     }

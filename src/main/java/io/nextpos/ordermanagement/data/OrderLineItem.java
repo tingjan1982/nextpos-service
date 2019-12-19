@@ -63,6 +63,12 @@ public class OrderLineItem {
         discountedSubTotal.calculate(discountedLineItemTotal);
     }
 
+    // todo: return lineitem subtotal with tax taking discounted subtotal into consideration.
+    public BigDecimal getTotal() {
+
+        return null;
+    }
+
     public OrderLineItem copy() {
         final OrderLineItem copy = new OrderLineItem();
         copy.productSnapshot = productSnapshot.copy();

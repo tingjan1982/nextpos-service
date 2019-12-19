@@ -72,7 +72,7 @@ public class OrderTransactionController {
 
         return new OrderTransaction(order.getId(),
                 order.getClientId(),
-                order.getTotal().getAmountWithTax(),
+                order.getOrderTotal(),
                 settleAmount,
                 OrderTransaction.PaymentMethod.valueOf(orderTransactionRequest.getPaymentMethod()),
                 OrderTransaction.BillType.valueOf(orderTransactionRequest.getBillType()),
@@ -85,9 +85,7 @@ public class OrderTransactionController {
 
         switch(billType) {
             case SINGLE:
-                return order.getOrderLineItems().stream()
-                        .map(li -> new OrderTransaction.BillLineItem(li.getProductSnapshot().getName(), li.getQuantity(), li.getSubTotal().getAmountWithTax()))
-                        .collect(Collectors.toList());
+                return List.of(new OrderTransaction.BillLineItem("single", 1, order.getOrderTotal()));
 
             case CUSTOM:
                 return orderTransactionRequest.getBillLineItems().stream().map(liRequest -> {
