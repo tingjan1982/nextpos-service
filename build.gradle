@@ -63,7 +63,7 @@ dependencies {
     /**
      * https://www.baeldung.com/spring-boot-embedded-mongodb
      */
-    testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo'
+    testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:2.2.0'
 }
 
 dependencyManagement {
