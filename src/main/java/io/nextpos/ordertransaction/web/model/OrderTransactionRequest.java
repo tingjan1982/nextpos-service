@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -28,6 +30,12 @@ public class OrderTransactionRequest {
     private String billType;
 
     private Integer splitWith;
+
+    /**
+     * The amount of cash provided by the customer to settle this transaction.
+     */
+    @PositiveOrZero
+    private BigDecimal cash;
 
     @Valid
     private List<BillLineItemRequest> billLineItems;

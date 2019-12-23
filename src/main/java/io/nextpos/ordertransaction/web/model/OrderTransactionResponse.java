@@ -25,6 +25,8 @@ public class OrderTransactionResponse {
 
     private BigDecimal settleAmount;
 
+    private BigDecimal cashChange;
+
     private OrderTransaction.BillType billType;
 
     private List<BillLineItemResponse> billLineItems;

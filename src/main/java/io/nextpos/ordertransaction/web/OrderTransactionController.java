@@ -8,6 +8,7 @@ import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.service.OrderTransactionService;
 import io.nextpos.ordertransaction.web.model.OrderTransactionRequest;
 import io.nextpos.ordertransaction.web.model.OrderTransactionResponse;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ClientOwnershipViolationException;
 import io.nextpos.shared.web.ClientResolver;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +43,8 @@ public class OrderTransactionController {
         final OrderTransaction createdOrderTransaction = orderTransactionService.createOrderTransaction(orderTransaction);
         final String orderDetailsPrintInstruction = orderTransactionService.createOrderDetailsPrintInstruction(client, orderTransaction);
 
+        orderService.performOrderAction(orderTransaction.getOrderId(), Order.OrderAction.SETTLE);
+
         return toOrderTransactionResponse(client, createdOrderTransaction, orderDetailsPrintInstruction);
     }
 
@@ -64,19 +67,39 @@ public class OrderTransactionController {
             throw new ClientOwnershipViolationException(errorMsg);
         }
 
-
         final List<OrderTransaction.BillLineItem> billLineItems = populateBillLineItems(order, orderTransactionRequest);
         final BigDecimal settleAmount = billLineItems.stream()
                 .map(OrderTransaction.BillLineItem::getSubTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        return new OrderTransaction(order.getId(),
+        final OrderTransaction orderTransaction = new OrderTransaction(order.getId(),
                 order.getClientId(),
                 order.getOrderTotal(),
                 settleAmount,
                 OrderTransaction.PaymentMethod.valueOf(orderTransactionRequest.getPaymentMethod()),
                 OrderTransaction.BillType.valueOf(orderTransactionRequest.getBillType()),
                 billLineItems);
+
+        validateCashChange(orderTransactionRequest, orderTransaction);
+
+        return orderTransaction;
+    }
+
+    private void validateCashChange(final OrderTransactionRequest orderTransactionRequest, final OrderTransaction orderTransaction) {
+
+        if (orderTransaction.getPaymentMethod() == OrderTransaction.PaymentMethod.CASH) {
+            final BigDecimal cash = orderTransactionRequest.getCash();
+
+            if (cash != null) {
+                final BigDecimal settleAmount = orderTransaction.getSettleAmount();
+                if (cash.compareTo(settleAmount) < 0) {
+                    throw new BusinessLogicException("Entered cash amount is less than the settling amount: " + settleAmount);
+                }
+
+                final BigDecimal cashChange = cash.subtract(settleAmount);
+                orderTransaction.setCashChange(cashChange);
+            }
+        }
     }
 
     private List<OrderTransaction.BillLineItem> populateBillLineItems(final Order order, final OrderTransactionRequest orderTransactionRequest) {
@@ -121,6 +144,7 @@ public class OrderTransactionController {
                 client.getAttribute(Client.ClientAttributes.UBN.name()),
                 orderTransaction.getOrderTotal(),
                 orderTransaction.getSettleAmount(),
+                orderTransaction.getCashChange(),
                 orderTransaction.getBillDetails().getBillType(),
                 billLineItems,
                 orderDetailsPrintInstruction);

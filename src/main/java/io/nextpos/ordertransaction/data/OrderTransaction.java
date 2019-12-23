@@ -27,6 +27,8 @@ public class OrderTransaction extends MongoBaseObject {
 
     private BigDecimal settleAmount;
 
+    private BigDecimal cashChange;
+
     private PaymentMethodDetails paymentMethodDetails;
 
     private InvoiceDetails invoiceDetails;
@@ -48,6 +50,10 @@ public class OrderTransaction extends MongoBaseObject {
         this.invoiceDetails = new InvoiceDetails();
         this.billDetails = new BillDetails(billType);
         this.billDetails.getBillLineItems().addAll(billLineItems);
+    }
+
+    public PaymentMethod getPaymentMethod() {
+        return this.paymentMethodDetails.getPaymentMethod();
     }
 
     @Override
