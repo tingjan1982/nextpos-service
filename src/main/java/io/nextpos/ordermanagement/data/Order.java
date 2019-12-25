@@ -43,8 +43,14 @@ public class Order extends MongoBaseObject implements WithClientId {
 
     private List<OrderLineItem> orderLineItems = new ArrayList<>();
 
+    /**
+     * Stores total of all the line items taking into account of line item level discount.
+     */
     private TaxableAmount total;
 
+    /**
+     * Stores order level discounted total computed by order level offers.
+     */
     private TaxableAmount discountedTotal;
 
     private BigDecimal serviceCharge = BigDecimal.ZERO;
@@ -166,22 +172,10 @@ public class Order extends MongoBaseObject implements WithClientId {
 
     public void computeTotal() {
         final BigDecimal lineItemsTotal = orderLineItems.stream()
-                .map(li -> li.getSubTotal().getAmountWithoutTax())
+                .map(OrderLineItem::getLineItemSubTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         total.calculate(lineItemsTotal);
-
-        this.computeDiscountedTotal();
-    }
-
-    private void computeDiscountedTotal() {
-
-        final BigDecimal lineItemsTotal = orderLineItems.stream()
-                .map(li -> li.getDiscountedSubTotal() != null ? li.getDiscountedSubTotal() : li.getSubTotal())
-                .map(TaxableAmount::getAmountWithoutTax)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        this.applyDiscountedTotal(lineItemsTotal);
     }
 
     public void applyDiscountedTotal(BigDecimal discountedTotalAmount) {

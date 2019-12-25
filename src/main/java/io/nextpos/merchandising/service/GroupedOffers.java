@@ -27,7 +27,10 @@ class GroupedOffers {
                 .forEach(li -> productLevelOffers.stream()
                         .map(o -> o.calculateDiscount(li))
                         .filter(d -> d.compareTo(BigDecimal.ZERO) > 0)
-                        .min(BigDecimal::compareTo).ifPresent(li::computeDiscountedSubTotal));
+                        .min(BigDecimal::compareTo).ifPresent(discount -> {
+                            li.setDiscountedProductPrice(discount);
+                            li.computeDiscountedSubTotal();
+                        }));
 
         order.computeTotal();
     }

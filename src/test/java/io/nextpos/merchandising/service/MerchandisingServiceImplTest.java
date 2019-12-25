@@ -67,7 +67,7 @@ class MerchandisingServiceImplTest {
             assertThat(li.getDiscountedSubTotal().getAmountWithoutTax()).isEqualByComparingTo(BigDecimal.valueOf(95));
         }, Index.atIndex(0));
 
-        assertThat(order.getTotal().getAmountWithoutTax()).isEqualByComparingTo(BigDecimal.valueOf(100));
+        assertThat(order.getTotal().getAmountWithoutTax()).isEqualByComparingTo(BigDecimal.valueOf(95));
         assertThat(order.getDiscountedTotal().getAmountWithoutTax()).isEqualByComparingTo(BigDecimal.valueOf(85.5));
     }
 

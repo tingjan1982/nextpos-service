@@ -25,12 +25,9 @@ public class TaxableAmount {
     }
 
     public void calculate(BigDecimal amount) {
-
-        if (amount.compareTo(BigDecimal.ZERO) > 0) {
-            amountWithoutTax = amount;
-            tax = amountWithoutTax.multiply(taxRate);
-            amountWithTax = amountWithoutTax.add(tax);
-        }
+        amountWithoutTax = amount;
+        tax = amountWithoutTax.multiply(taxRate);
+        amountWithTax = amountWithoutTax.add(tax);
     }
 
     public TaxableAmount copy() {

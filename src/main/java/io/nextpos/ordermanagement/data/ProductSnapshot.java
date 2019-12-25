@@ -21,6 +21,9 @@ public class ProductSnapshot {
 
     private BigDecimal price;
 
+    /**
+     * Stores the discounted price with options after product level offer computation.
+     */
     private BigDecimal discountedPrice;
 
     private String labelId;

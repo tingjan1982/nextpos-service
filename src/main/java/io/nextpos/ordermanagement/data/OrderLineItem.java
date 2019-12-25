@@ -20,8 +20,14 @@ public class OrderLineItem {
 
     private int quantity;
 
+    /**
+     * SubTotal of product price x quantity.
+     */
     private TaxableAmount subTotal;
 
+    /**
+     * Subtotal of discounted product price x quantity.
+     */
     private TaxableAmount discountedSubTotal;
 
 
@@ -39,6 +45,11 @@ public class OrderLineItem {
         this.quantity = quantity;
         
         computeSubTotal();
+        computeDiscountedSubTotal();
+    }
+
+    public void setDiscountedProductPrice(BigDecimal discountedProductPrice) {
+        productSnapshot.setDiscountedPrice(discountedProductPrice);
     }
 
     /**
@@ -54,19 +65,22 @@ public class OrderLineItem {
         subTotal.calculate(lineItemTotal);
     }
 
-    public void computeDiscountedSubTotal(BigDecimal discountedProductPrice) {
+    public void computeDiscountedSubTotal() {
 
-        productSnapshot.setDiscountedPrice(discountedProductPrice);
-        final BigDecimal discountedLineItemTotal = discountedProductPrice.multiply(BigDecimal.valueOf(quantity));
+        final BigDecimal discountedProductPrice = productSnapshot.getDiscountedPrice();
 
-        discountedSubTotal = new TaxableAmount(subTotal.getTaxRate());
-        discountedSubTotal.calculate(discountedLineItemTotal);
+        if (discountedProductPrice != null) {
+            final BigDecimal discountedLineItemTotal = discountedProductPrice.multiply(BigDecimal.valueOf(quantity));
+
+            discountedSubTotal = new TaxableAmount(subTotal.getTaxRate());
+            discountedSubTotal.calculate(discountedLineItemTotal);
+        }
     }
 
-    // todo: return lineitem subtotal with tax taking discounted subtotal into consideration.
-    public BigDecimal getTotal() {
+    public BigDecimal getLineItemSubTotal() {
 
-        return null;
+        final TaxableAmount subTotal = discountedSubTotal != null ? discountedSubTotal : this.subTotal;
+        return subTotal.getAmountWithoutTax();
     }
 
     public OrderLineItem copy() {
