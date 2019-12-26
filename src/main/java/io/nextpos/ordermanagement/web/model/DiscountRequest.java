@@ -11,6 +11,9 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class DiscountRequest {
 
+    //@ValidEnum(enumType = OrderLevelOffer.GlobalOrderDiscount.class)
+    private String orderDiscount;
+
     @DecimalMin(value = "0.0", inclusive = false)
     @DecimalMax("1.0")
     private BigDecimal discount;

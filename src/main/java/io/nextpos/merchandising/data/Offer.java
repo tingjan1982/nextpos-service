@@ -66,6 +66,10 @@ public abstract class Offer extends BaseObject implements ClientObject {
         effectiveDetails.setEndDate(endDate);
     }
 
+    public boolean isZeroDiscount() {
+        return this.discountDetails.getDiscountValue().compareTo(BigDecimal.ZERO) == 0;
+    }
+
     public boolean isActive() {
 
         final Date now = new Date();

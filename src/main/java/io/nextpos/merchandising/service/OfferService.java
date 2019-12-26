@@ -2,6 +2,7 @@ package io.nextpos.merchandising.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.merchandising.data.Offer;
+import io.nextpos.merchandising.data.OrderLevelOffer;
 
 public interface OfferService {
 
@@ -14,4 +15,6 @@ public interface OfferService {
     Offer deactivateOffer(Offer offer);
 
     GroupedOffers findActiveOffers(Client client);
+
+    OrderLevelOffer getGlobalOfferByName(OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount);
 }

@@ -11,4 +11,6 @@ public interface DiscountCalculator<T> {
      * @return
      */
     BigDecimal calculateDiscount(T objectToDiscount);
+
+    BigDecimal calculateDiscount(T objectToDiscount, BigDecimal overrideDiscountValue);
 }

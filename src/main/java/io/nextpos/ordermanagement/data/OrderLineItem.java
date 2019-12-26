@@ -1,5 +1,6 @@
 package io.nextpos.ordermanagement.data;
 
+import io.nextpos.merchandising.data.OfferApplicableObject;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,7 +9,7 @@ import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class OrderLineItem {
+public class OrderLineItem implements OfferApplicableObject {
 
     private String id;
 
@@ -30,6 +31,8 @@ public class OrderLineItem {
      */
     private TaxableAmount discountedSubTotal;
 
+    private AppliedOfferInfo appliedOfferInfo;
+
 
     public OrderLineItem(final ProductSnapshot productSnapshot, final int quantity, BigDecimal taxRate) {
         this.productSnapshot = productSnapshot;
@@ -45,6 +48,13 @@ public class OrderLineItem {
         this.quantity = quantity;
         
         computeSubTotal();
+        computeDiscountedSubTotal();
+    }
+
+    @Override
+    public void applyOffer(final BigDecimal computedDiscount) {
+
+        setDiscountedProductPrice(computedDiscount);
         computeDiscountedSubTotal();
     }
 

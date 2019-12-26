@@ -2,8 +2,11 @@ package io.nextpos.shared.config;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
+import io.nextpos.merchandising.data.Offer;
+import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.settings.service.SettingsService;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +17,10 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Currency;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * https://www.baeldung.com/running-setup-logic-on-startup-in-spring
@@ -44,8 +50,10 @@ public class BootstrapConfig {
     @PostConstruct
     public void bootstrap() {
 
-        if (clientService.getDefaultClient() == null) {
-            final Client defaultClient = new Client(MASTER_CLIENT, MASTER_CLIENT, "1qaz2wsx3edc", DEFAULT_COUNTRY_CODE);
+        Client defaultClient = clientService.getDefaultClient();
+
+        if (defaultClient == null) {
+            defaultClient = new Client(MASTER_CLIENT, MASTER_CLIENT, "1qaz2wsx3edc", DEFAULT_COUNTRY_CODE);
             defaultClient.setRoles(SecurityConfig.Role.MASTER_ROLE);
             final Client client = clientService.createClient(defaultClient);
 
@@ -62,6 +70,19 @@ public class BootstrapConfig {
 
             LOGGER.info("Created default country settings: {}", defaultCountrySettings);
         }
+    }
+
+    @Bean
+    @Lazy
+    public Map<OrderLevelOffer.GlobalOrderDiscount, OrderLevelOffer> globalOrderLevelOffers(Client defaultClient) {
+
+        return Arrays.stream(OrderLevelOffer.GlobalOrderDiscount.values())
+                .map(d -> Pair.of(d, new OrderLevelOffer(defaultClient,
+                        d.name(),
+                        Offer.TriggerType.AT_CHECKOUT,
+                        Offer.DiscountType.PERCENT_OFF,
+                        d.getDiscount())))
+                .collect(Collectors.toUnmodifiableMap(Pair::getLeft, Pair::getRight));
     }
 
     @Bean

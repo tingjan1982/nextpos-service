@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.Date;
+import java.util.Map;
 import java.util.stream.Stream;
 
 @Service
@@ -19,9 +20,12 @@ public class OfferServiceImpl implements OfferService {
 
     private final OfferRepository offerRepository;
 
+    private final Map<OrderLevelOffer.GlobalOrderDiscount, OrderLevelOffer> globalOrderLevelOffers;
+
     @Autowired
-    public OfferServiceImpl(final OfferRepository offerRepository) {
+    public OfferServiceImpl(final OfferRepository offerRepository, final Map<OrderLevelOffer.GlobalOrderDiscount, OrderLevelOffer> globalOrderLevelOffers) {
         this.offerRepository = offerRepository;
+        this.globalOrderLevelOffers = globalOrderLevelOffers;
     }
 
     @Override
@@ -64,5 +68,11 @@ public class OfferServiceImpl implements OfferService {
         });
 
         return groupedOffers;
+    }
+
+    @Override
+    public OrderLevelOffer getGlobalOfferByName(OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount) {
+
+        return globalOrderLevelOffers.get(globalOrderDiscount);
     }
 }

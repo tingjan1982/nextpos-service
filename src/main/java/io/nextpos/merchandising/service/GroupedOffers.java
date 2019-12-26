@@ -4,9 +4,11 @@ import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.ordermanagement.data.Order;
 import lombok.Data;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -23,24 +25,33 @@ class GroupedOffers {
 
     void arbitrateBestProductLevelOffer(Order order) {
 
+        final Comparator<Pair<ProductLevelOffer, BigDecimal>> discountComparator = Comparator.comparing(Pair::getRight);
+
         order.getOrderLineItems()
                 .forEach(li -> productLevelOffers.stream()
-                        .map(o -> o.calculateDiscount(li))
-                        .filter(d -> d.compareTo(BigDecimal.ZERO) > 0)
-                        .min(BigDecimal::compareTo).ifPresent(discount -> {
-                            li.setDiscountedProductPrice(discount);
-                            li.computeDiscountedSubTotal();
-                        }));
+                        .map(o -> {
+                            final BigDecimal discount = o.calculateDiscount(li);
+                            return Pair.of(o, discount);
+                        })
+                        .filter(p -> p.getRight().compareTo(BigDecimal.ZERO) > 0)
+                        .min(discountComparator)
+                        .ifPresent(p -> li.applyAndRecordOffer(p.getLeft(), p.getRight())));
 
         order.computeTotal();
     }
 
     void arbitrateBestOrderLevelOffer(Order order) {
 
+        final Comparator<Pair<OrderLevelOffer, BigDecimal>> discountComparator = Comparator.comparing(Pair::getRight);
+
         orderLevelOffers.stream()
-                .map(o -> o.calculateDiscount(order))
-                .filter(d -> d.compareTo(BigDecimal.ZERO) > 0)
-                .min(BigDecimal::compareTo).ifPresent(order::applyDiscountedTotal);
+                .map(o -> {
+                    final BigDecimal discount = o.calculateDiscount(order);
+                    return Pair.of(o, discount);
+                })
+                .filter(p -> p.getRight().compareTo(BigDecimal.ZERO) > 0)
+                .min(discountComparator)
+                .ifPresent(p -> order.applyAndRecordOffer(p.getLeft(), p.getRight()));
     }
 
     public void addOrderLevelOffer(OrderLevelOffer orderLevelOffer) {

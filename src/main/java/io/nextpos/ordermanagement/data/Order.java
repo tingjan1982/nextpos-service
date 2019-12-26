@@ -1,5 +1,6 @@
 package io.nextpos.ordermanagement.data;
 
+import io.nextpos.merchandising.data.OfferApplicableObject;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.model.MongoBaseObject;
 import io.nextpos.shared.model.WithClientId;
@@ -25,7 +26,7 @@ import static io.nextpos.ordermanagement.data.Order.OrderState.*;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class Order extends MongoBaseObject implements WithClientId {
+public class Order extends MongoBaseObject implements WithClientId, OfferApplicableObject {
 
     public static final String COPY_FROM_ORDER = "copyFromOrder";
 
@@ -56,6 +57,8 @@ public class Order extends MongoBaseObject implements WithClientId {
     private BigDecimal serviceCharge = BigDecimal.ZERO;
 
     private Currency currency;
+
+    private OfferApplicableObject.AppliedOfferInfo appliedOfferInfo;
 
     private TableInfo tableInfo;
 
@@ -170,6 +173,13 @@ public class Order extends MongoBaseObject implements WithClientId {
                 });
     }
 
+    @Override
+    public void applyOffer(BigDecimal computedDiscount) {
+
+        this.applyDiscountedTotal(computedDiscount);
+    }
+
+    // todo: re-apply offer after line items or quantities are updated.
     public void computeTotal() {
         final BigDecimal lineItemsTotal = orderLineItems.stream()
                 .map(OrderLineItem::getLineItemSubTotal)
@@ -356,6 +366,7 @@ public class Order extends MongoBaseObject implements WithClientId {
             final DemographicData demographicData = new DemographicData();
             demographicData.male = male;
             demographicData.female =female;
+            demographicData.kid = kid;
             demographicData.ageGroup = ageGroup;
             demographicData.visitFrequency = visitFrequency;
 

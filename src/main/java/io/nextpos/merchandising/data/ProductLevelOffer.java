@@ -56,29 +56,23 @@ public class ProductLevelOffer extends Offer implements DiscountCalculator<Order
     }
 
     @Override
-    public BigDecimal calculateDiscount(OrderLineItem orderLineItem) {
+    public BigDecimal calculateDiscount(final OrderLineItem objectToDiscount) {
+
+        final DiscountDetails discountDetails = this.getDiscountDetails();
+        final BigDecimal discountValue = discountDetails.getDiscountValue();
+
+        return this.calculateDiscount(objectToDiscount, discountValue);
+    }
+
+    @Override
+    public BigDecimal calculateDiscount(OrderLineItem orderLineItem, final BigDecimal discountValue) {
 
         BigDecimal discountedPrice = BigDecimal.ZERO;
         final ProductSnapshot productSnapshot = orderLineItem.getProductSnapshot();
 
         if (isProductEligible(productSnapshot)) {
             final BigDecimal productPrice = productSnapshot.getProductPriceWithOptions();
-
-            final DiscountDetails discountDetails = this.getDiscountDetails();
-            final BigDecimal discountValue = discountDetails.getDiscountValue();
-
-            switch (discountDetails.getDiscountType()) {
-                case AMOUNT:
-                    discountedPrice = discountValue;
-                    break;
-                case AMOUNT_OFF:
-                    discountedPrice = productPrice.subtract(discountValue);
-                    break;
-                case PERCENT_OFF:
-                    final BigDecimal discount = productPrice.multiply(discountValue);
-                    discountedPrice = productPrice.subtract(discount);
-                    break;
-            }
+            return OfferDiscountUtils.calculateDiscount(productPrice, this.getDiscountDetails());
         }
 
         return discountedPrice;

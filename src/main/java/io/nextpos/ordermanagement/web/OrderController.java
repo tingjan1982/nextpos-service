@@ -2,6 +2,7 @@ package io.nextpos.ordermanagement.web;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
+import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.merchandising.service.MerchandisingService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
@@ -92,7 +93,7 @@ public class OrderController {
                             o.getCustomerCount(),
                             o.getCreatedDate(),
                             o.getState(),
-                            o.getDiscountedTotal());
+                            o.getTotal());
                 })
                 .collect(Collectors.groupingBy(OrdersResponse.LightOrderResponse::getTableLayoutId, Collectors.toList()));
 
@@ -128,8 +129,11 @@ public class OrderController {
                                             @Valid @RequestBody DiscountRequest discountRequest) {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
+        // todo: change this back after frontend implement changes
+        // final OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount = OrderLevelOffer.GlobalOrderDiscount.valueOf(discountRequest.getOrderDiscount());
+        final OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount = OrderLevelOffer.GlobalOrderDiscount.ENTER_DISCOUNT;
 
-        final Order updatedOrder = merchandisingService.applyOrderDiscount(order, discountRequest.getDiscount());
+        final Order updatedOrder = merchandisingService.applyGlobalOrderDiscount(order, globalOrderDiscount, discountRequest.getDiscount());
 
         return toOrderResponse(updatedOrder);
     }

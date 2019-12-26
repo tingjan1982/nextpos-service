@@ -1,8 +1,8 @@
 package io.nextpos.merchandising.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.TaxableAmount;
 import io.nextpos.ordermanagement.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,11 +44,19 @@ public class MerchandisingServiceImpl implements MerchandisingService {
     }
 
     @Override
-    public Order applyOrderDiscount(final Order order, BigDecimal discount) {
+    public Order applyGlobalOrderDiscount(final Order order, OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount, BigDecimal discount) {
 
-        final TaxableAmount total = order.getTotal();
-        final BigDecimal discountAmount = total.getAmountWithoutTax().multiply(discount);
-        order.applyDiscountedTotal(total.getAmountWithoutTax().subtract(discountAmount));
+        final OrderLevelOffer globalOffer = offerService.getGlobalOfferByName(globalOrderDiscount);
+
+        BigDecimal computedDiscount;
+        
+        if (globalOffer.isZeroDiscount()) {
+            computedDiscount = globalOffer.calculateDiscount(order, discount);
+        } else {
+            computedDiscount = globalOffer.calculateDiscount(order);
+        }
+
+        order.applyAndRecordOffer(globalOffer, computedDiscount);
 
         return orderService.saveOrder(order);
     }
