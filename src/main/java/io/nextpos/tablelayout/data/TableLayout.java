@@ -1,7 +1,6 @@
 package io.nextpos.tablelayout.data;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.ClientObject;
@@ -13,6 +12,7 @@ import org.hibernate.annotations.GenericGenerator;
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Entity(name = "client_table_layout")
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"layoutName", "clientId"})})
@@ -34,19 +34,17 @@ public class TableLayout extends BaseObject implements ClientObject {
 
     private String layoutName;
 
-    private int gridSizeX;
+    private AtomicInteger internalCounter;
 
-    private int gridSizeY;
 
     @OneToMany(mappedBy = "tableLayout", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @Fetch(FetchMode.SUBSELECT)
     private List<TableDetails> tables = new ArrayList<>();
 
-    public TableLayout(final Client client, final String layoutName, final int gridSizeX, final int gridSizeY) {
+    public TableLayout(final Client client, final String layoutName) {
         this.client = client;
         this.layoutName = layoutName;
-        this.gridSizeX = gridSizeX;
-        this.gridSizeY = gridSizeY;
+        this.internalCounter = new AtomicInteger(1);
     }
 
     public int getTotalCapacity() {
@@ -57,14 +55,7 @@ public class TableLayout extends BaseObject implements ClientObject {
 
     public TableLayout addTableDetails(TableDetails tableDetails) {
 
-        if (tableDetails.getXCoordinate() < 0 || tableDetails.getXCoordinate() >= this.gridSizeX) {
-            throw new GeneralApplicationException(String.format("Table's X coordinate needs to be within table layout's defined grid. x=%d, y=%d", this.gridSizeX, this.gridSizeY));
-        }
-
-        if (tableDetails.getYCoordinate() < 0 || tableDetails.getYCoordinate() >= this.gridSizeY) {
-            throw new GeneralApplicationException(String.format("Table's Y coordinate needs to be within table layout's defined grid. x=%d, y=%d", this.gridSizeX, this.gridSizeY));
-        }
-
+        tableDetails.setId(this.id + "-" + internalCounter.getAndIncrement());
         tableDetails.setTableLayout(this);
         tables.add(tableDetails);
 
@@ -86,8 +77,6 @@ public class TableLayout extends BaseObject implements ClientObject {
     public static class TableDetails extends BaseObject {
 
         @Id
-        @GenericGenerator(name = "tableDetailsId", strategy = "io.nextpos.shared.model.idgenerator.TableDetailsIdGenerator")
-        @GeneratedValue(generator = "tableDetailsId")
         private String id;
 
         @ManyToOne
@@ -98,16 +87,11 @@ public class TableLayout extends BaseObject implements ClientObject {
 
         private String tableName;
 
-        private int xCoordinate;
-
-        private int yCoordinate;
-
         private int capacity;
 
-        public TableDetails(final String tableName, final int xCoordinate, final int yCoordinate) {
+        public TableDetails(final String tableName, int capacity) {
             this.tableName = tableName;
-            this.xCoordinate = xCoordinate;
-            this.yCoordinate = yCoordinate;
+            this.capacity = capacity;
         }
     }
 }

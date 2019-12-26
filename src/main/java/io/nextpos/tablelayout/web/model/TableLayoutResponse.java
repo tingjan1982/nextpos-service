@@ -15,10 +15,6 @@ public class TableLayoutResponse {
 
     private String layoutName;
 
-    private int gridSizeX;
-
-    private int gridSizeY;
-
     private int totalTables;
 
     private int totalCapacity;

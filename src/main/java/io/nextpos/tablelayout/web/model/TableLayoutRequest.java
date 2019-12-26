@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.PositiveOrZero;
 
 @Data
 @NoArgsConstructor
@@ -14,10 +13,4 @@ public class TableLayoutRequest {
 
     @NotEmpty
     private String layoutName;
-
-    @PositiveOrZero
-    private int gridSizeX;
-
-    @PositiveOrZero
-    private int gridSizeY;
 }

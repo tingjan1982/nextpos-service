@@ -13,9 +13,5 @@ public class TableDetailsResponse {
 
     private String tableName;
 
-    private int xCoordinate;
-
-    private int yCoordinate;
-
     private int capacity;
 }

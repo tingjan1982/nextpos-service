@@ -1,6 +1,7 @@
 package io.nextpos.merchandising.data;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
@@ -27,13 +28,14 @@ public interface OfferApplicableObject {
 
 
     @Data
+    @NoArgsConstructor
     class AppliedOfferInfo {
 
         private String offerId;
 
         private String offerName;
 
-        private final String offerType;
+        private String offerType;
 
         private Offer.DiscountDetails discountDetails;
 

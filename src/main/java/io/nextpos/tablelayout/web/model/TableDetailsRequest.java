@@ -16,11 +16,5 @@ public class TableDetailsRequest {
     private String tableName;
 
     @PositiveOrZero
-    private int coordinateX;
-
-    @PositiveOrZero
-    private int coordinateY;
-
-    @PositiveOrZero
     private int capacity;
 }

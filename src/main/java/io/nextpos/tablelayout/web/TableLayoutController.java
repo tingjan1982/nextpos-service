@@ -38,7 +38,7 @@ public class TableLayoutController {
     }
 
     private TableLayout fromTableLayoutRequest(final Client client, final TableLayoutRequest tableLayoutRequest) {
-        return new TableLayout(client, tableLayoutRequest.getLayoutName(), tableLayoutRequest.getGridSizeX(), tableLayoutRequest.getGridSizeY());
+        return new TableLayout(client, tableLayoutRequest.getLayoutName());
     }
 
     @GetMapping("/{id}")
@@ -64,8 +64,6 @@ public class TableLayoutController {
     private void updateTableLayoutFromRequest(final TableLayout tableLayout, final TableLayoutRequest tableLayoutRequest) {
 
         tableLayout.setLayoutName(tableLayoutRequest.getLayoutName());
-        tableLayout.setGridSizeX(tableLayoutRequest.getGridSizeX());
-        tableLayout.setGridSizeY(tableLayoutRequest.getGridSizeY());
     }
 
     @GetMapping
@@ -93,8 +91,7 @@ public class TableLayoutController {
 
     private void addTableFromTableDetailsRequest(final TableLayout tableLayout, final TableDetailsRequest tableDetailsRequest) {
 
-        final TableLayout.TableDetails tableDetails = new TableLayout.TableDetails(tableDetailsRequest.getTableName(), tableDetailsRequest.getCoordinateX(), tableDetailsRequest.getCoordinateY());
-        tableDetails.setCapacity(tableDetailsRequest.getCapacity());
+        final TableLayout.TableDetails tableDetails = new TableLayout.TableDetails(tableDetailsRequest.getTableName(), tableDetailsRequest.getCapacity());
 
         tableLayout.addTableDetails(tableDetails);
     }
@@ -114,8 +111,6 @@ public class TableLayoutController {
 
         return new TableDetailsResponse(tableDetails.getId(),
                 tableDetails.getTableName(),
-                tableDetails.getXCoordinate(),
-                tableDetails.getYCoordinate(),
                 tableDetails.getCapacity());
     }
 
@@ -127,13 +122,11 @@ public class TableLayoutController {
 
     private TableLayoutResponse toTableLayoutResponse(final TableLayout savedTableLayout) {
         final List<TableDetailsResponse> tables = savedTableLayout.getTables().stream()
-                .map(t -> new TableDetailsResponse(t.getId(), t.getTableName(), t.getXCoordinate(), t.getYCoordinate(), t.getCapacity()))
+                .map(t -> new TableDetailsResponse(t.getId(), t.getTableName(), t.getCapacity()))
                 .collect(Collectors.toList());
 
         return new TableLayoutResponse(savedTableLayout.getId(),
                 savedTableLayout.getLayoutName(),
-                savedTableLayout.getGridSizeX(),
-                savedTableLayout.getGridSizeY(),
                 tables.size(),
                 savedTableLayout.getTotalCapacity(),
                 tables);
