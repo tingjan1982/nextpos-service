@@ -48,18 +48,6 @@ public class OrderLineItem implements OfferApplicableObject {
         this.quantity = quantity;
         
         computeSubTotal();
-        computeDiscountedSubTotal();
-    }
-
-    @Override
-    public void applyOffer(final BigDecimal computedDiscount) {
-
-        setDiscountedProductPrice(computedDiscount);
-        computeDiscountedSubTotal();
-    }
-
-    public void setDiscountedProductPrice(BigDecimal discountedProductPrice) {
-        productSnapshot.setDiscountedPrice(discountedProductPrice);
     }
 
     /**
@@ -73,23 +61,24 @@ public class OrderLineItem implements OfferApplicableObject {
         final BigDecimal lineItemTotal = productTotal.multiply(BigDecimal.valueOf(quantity));
 
         subTotal.calculate(lineItemTotal);
+
+        final BigDecimal computedDiscount = this.replayOfferIfExists(productTotal);
+        applyOffer(computedDiscount);
     }
 
-    public void computeDiscountedSubTotal() {
+    @Override
+    public void applyOffer(final BigDecimal computedDiscount) {
 
-        final BigDecimal discountedProductPrice = productSnapshot.getDiscountedPrice();
+        productSnapshot.setDiscountedPrice(computedDiscount);
+        final BigDecimal discountedLineItemTotal = computedDiscount.multiply(BigDecimal.valueOf(quantity));
 
-        if (discountedProductPrice != null) {
-            final BigDecimal discountedLineItemTotal = discountedProductPrice.multiply(BigDecimal.valueOf(quantity));
-
-            discountedSubTotal = new TaxableAmount(subTotal.getTaxRate());
-            discountedSubTotal.calculate(discountedLineItemTotal);
-        }
+        discountedSubTotal = new TaxableAmount(subTotal.getTaxRate());
+        discountedSubTotal.calculate(discountedLineItemTotal);
     }
 
     public BigDecimal getLineItemSubTotal() {
 
-        final TaxableAmount subTotal = discountedSubTotal != null ? discountedSubTotal : this.subTotal;
+        final TaxableAmount subTotal = !discountedSubTotal.isZero() ? discountedSubTotal : this.subTotal;
         return subTotal.getAmountWithoutTax();
     }
 

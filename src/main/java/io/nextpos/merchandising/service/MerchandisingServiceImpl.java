@@ -44,14 +44,14 @@ public class MerchandisingServiceImpl implements MerchandisingService {
     }
 
     @Override
-    public Order applyGlobalOrderDiscount(final Order order, OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount, BigDecimal discount) {
+    public Order applyGlobalOrderDiscount(final Order order, OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount, BigDecimal overrideDiscount) {
 
         final OrderLevelOffer globalOffer = offerService.getGlobalOfferByName(globalOrderDiscount);
 
         BigDecimal computedDiscount;
         
         if (globalOffer.isZeroDiscount()) {
-            computedDiscount = globalOffer.calculateDiscount(order, discount);
+            computedDiscount = globalOffer.calculateDiscount(order, overrideDiscount);
         } else {
             computedDiscount = globalOffer.calculateDiscount(order);
         }

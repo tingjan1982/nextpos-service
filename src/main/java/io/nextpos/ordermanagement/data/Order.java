@@ -90,7 +90,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     /**
      * https://jira.spring.io/browse/DATAMONGO-946
-     * 
+     *
      * @return
      */
     @Override
@@ -106,7 +106,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     public BigDecimal getOrderTotal() {
 
         BigDecimal serviceChargeAmount = BigDecimal.ZERO;
-        final BigDecimal totalBeforeServiceCharge = discountedTotal != null ? discountedTotal.getAmountWithTax() : total.getAmountWithTax();
+        final BigDecimal totalBeforeServiceCharge = !discountedTotal.isZero() ? discountedTotal.getAmountWithTax() : total.getAmountWithTax();
 
         if (serviceCharge.compareTo(BigDecimal.ZERO) > 0) {
             serviceChargeAmount = totalBeforeServiceCharge.multiply(serviceCharge);
@@ -159,6 +159,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         if (quantity == 0) {
             orderLineItems.remove(orderLineItem);
         } else {
+            // todo: test removing line item and verify discountTotal is reset.
             orderLineItem.updateQuantity(quantity);
         }
 
@@ -173,27 +174,22 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
                 });
     }
 
-    @Override
-    public void applyOffer(BigDecimal computedDiscount) {
-
-        this.applyDiscountedTotal(computedDiscount);
-    }
-
-    // todo: re-apply offer after line items or quantities are updated.
     public void computeTotal() {
         final BigDecimal lineItemsTotal = orderLineItems.stream()
                 .map(OrderLineItem::getLineItemSubTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         total.calculate(lineItemsTotal);
+
+        final BigDecimal discountedTotal = this.replayOfferIfExists(total.getAmountWithoutTax());
+        applyOffer(discountedTotal);
     }
 
-    public void applyDiscountedTotal(BigDecimal discountedTotalAmount) {
+    @Override
+    public void applyOffer(BigDecimal computedDiscount) {
 
-        if (discountedTotalAmount.compareTo(BigDecimal.ZERO) > 0) {
-            discountedTotal = new TaxableAmount(total.getTaxRate());
-            discountedTotal.calculate(discountedTotalAmount);
-        }
+        discountedTotal = new TaxableAmount(total.getTaxRate());
+        discountedTotal.calculate(computedDiscount);
     }
 
     public int getCustomerCount() {
@@ -365,7 +361,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         DemographicData copy() {
             final DemographicData demographicData = new DemographicData();
             demographicData.male = male;
-            demographicData.female =female;
+            demographicData.female = female;
             demographicData.kid = kid;
             demographicData.ageGroup = ageGroup;
             demographicData.visitFrequency = visitFrequency;

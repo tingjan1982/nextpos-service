@@ -85,7 +85,6 @@ class OrderServiceImplTest {
         order.setServiceCharge(BigDecimal.valueOf(0.1));
         final Order createdOrder = orderService.createOrder(order);
 
-
         assertThat(createdOrder.getId()).isNotNull();
         assertThat(createdOrder.getClientId()).isEqualTo(client.getId());
         assertThat(createdOrder.getState()).isEqualTo(Order.OrderState.OPEN);

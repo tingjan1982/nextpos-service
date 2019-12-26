@@ -82,7 +82,6 @@ class GroupedOffersTest {
 
         groupedOffers.arbitrateBestProductLevelOffer(order);
 
-
         assertThat(order.getOrderLineItems()).satisfies(li -> {
             assertThat(li.getSubTotal().getAmountWithoutTax()).isEqualByComparingTo(BigDecimal.valueOf(200));
             assertThat(li.getDiscountedSubTotal().getAmountWithoutTax()).isEqualByComparingTo(BigDecimal.valueOf(180));
@@ -103,7 +102,7 @@ class GroupedOffersTest {
             assertThat(ta.getAmountWithTax()).isEqualByComparingTo(BigDecimal.valueOf(278.25));
         });
 
-        assertThat(order.getDiscountedTotal()).isNull();
+        assertThat(order.getDiscountedTotal().isZero()).isTrue();
 
         groupedOffers.arbitrateBestOrderLevelOffer(order);
 

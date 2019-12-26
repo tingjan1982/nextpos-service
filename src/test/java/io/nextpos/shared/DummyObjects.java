@@ -45,8 +45,9 @@ public class DummyObjects {
 
     public static TableLayout dummyTableLayout(Client client) {
 
-        TableLayout.TableDetails tableDetails = new TableLayout.TableDetails("dummy-table", 0, 0);
-        final TableLayout tableLayout = new TableLayout(client, "dummy-table-layout", 5, 5);
+        final TableLayout tableLayout = new TableLayout(client, "dummy-table-layout");
+
+        TableLayout.TableDetails tableDetails = new TableLayout.TableDetails("dummy-table", 5);
         tableLayout.addTableDetails(tableDetails);
 
         return tableLayout;

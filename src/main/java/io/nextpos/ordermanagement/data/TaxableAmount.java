@@ -30,6 +30,10 @@ public class TaxableAmount {
         amountWithTax = amountWithoutTax.add(tax);
     }
 
+    public boolean isZero() {
+        return amountWithoutTax.compareTo(BigDecimal.ZERO) == 0;
+    }
+
     public TaxableAmount copy() {
         final TaxableAmount copy = new TaxableAmount(taxRate);
         copy.amountWithoutTax = amountWithoutTax;
