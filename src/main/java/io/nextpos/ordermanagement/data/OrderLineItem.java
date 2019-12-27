@@ -78,7 +78,7 @@ public class OrderLineItem implements OfferApplicableObject {
 
     public BigDecimal getLineItemSubTotal() {
 
-        final TaxableAmount subTotal = !discountedSubTotal.isZero() ? discountedSubTotal : this.subTotal;
+        final TaxableAmount subTotal = discountedSubTotal != null && !discountedSubTotal.isZero() ? discountedSubTotal : this.subTotal;
         return subTotal.getAmountWithoutTax();
     }
 

@@ -106,7 +106,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     public BigDecimal getOrderTotal() {
 
         BigDecimal serviceChargeAmount = BigDecimal.ZERO;
-        final BigDecimal totalBeforeServiceCharge = !discountedTotal.isZero() ? discountedTotal.getAmountWithTax() : total.getAmountWithTax();
+        final BigDecimal totalBeforeServiceCharge = discountedTotal != null && !discountedTotal.isZero() ? discountedTotal.getAmountWithTax() : total.getAmountWithTax();
 
         if (serviceCharge.compareTo(BigDecimal.ZERO) > 0) {
             serviceChargeAmount = totalBeforeServiceCharge.multiply(serviceCharge);
