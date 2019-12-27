@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -129,11 +130,10 @@ public class OrderController {
                                             @Valid @RequestBody DiscountRequest discountRequest) {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
-        // todo: change this back after frontend implement changes
-        // final OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount = OrderLevelOffer.GlobalOrderDiscount.valueOf(discountRequest.getOrderDiscount());
-        final OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount = OrderLevelOffer.GlobalOrderDiscount.ENTER_DISCOUNT;
+        final OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount = OrderLevelOffer.GlobalOrderDiscount.valueOf(discountRequest.getOrderDiscount());
 
-        final Order updatedOrder = merchandisingService.applyGlobalOrderDiscount(order, globalOrderDiscount, discountRequest.getDiscount());
+        BigDecimal discount = discountRequest.getDiscount().divide(BigDecimal.valueOf(100));
+        final Order updatedOrder = merchandisingService.applyGlobalOrderDiscount(order, globalOrderDiscount, discount);
 
         return toOrderResponse(updatedOrder);
     }
