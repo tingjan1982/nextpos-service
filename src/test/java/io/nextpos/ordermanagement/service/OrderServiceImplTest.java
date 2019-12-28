@@ -4,8 +4,8 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
+import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
-import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
@@ -38,7 +38,7 @@ class OrderServiceImplTest {
     private ShiftService shiftService;
 
     @Autowired
-    private CountrySettings countrySettings;
+    private OrderSettings orderSettings;
 
     @Autowired
     private TableLayoutService tableLayoutService;
@@ -70,7 +70,7 @@ class OrderServiceImplTest {
     @WithMockUser("dummyUser")
     void createAndGetOrder() {
 
-        final Order order = new Order(client.getId(), countrySettings.getTaxRate(), countrySettings.getCurrency());
+        final Order order = new Order(client.getId(), orderSettings);
         order.setTableInfo(new Order.TableInfo(tableDetails.getId(), tableDetails.getTableName()));
 
         final List<ProductSnapshot.ProductOptionSnapshot> options = List.of(
@@ -82,7 +82,6 @@ class OrderServiceImplTest {
         order.addOrderLineItem(product, 1);
         order.addOrderLineItem(product, 2);
 
-        order.setServiceCharge(BigDecimal.valueOf(0.1));
         final Order createdOrder = orderService.createOrder(order);
 
         assertThat(createdOrder.getId()).isNotNull();
@@ -125,12 +124,12 @@ class OrderServiceImplTest {
     @WithMockUser("dummyUser")
     void addAndUpdateOrderLineItem() {
 
-        final Order order = new Order(client.getId(), countrySettings.getTaxRate(), countrySettings.getCurrency());
+        final Order order = new Order(client.getId(), orderSettings);
         final Order createdOrder = orderService.createOrder(order);
 
 
         final ProductSnapshot product = DummyObjects.productSnapshot();
-        final OrderLineItem orderLineItem = new OrderLineItem(product, 1, countrySettings.getTaxRate());
+        final OrderLineItem orderLineItem = new OrderLineItem(product, 1, orderSettings);
 
         orderService.addOrderLineItem(createdOrder, orderLineItem);
 
@@ -146,7 +145,7 @@ class OrderServiceImplTest {
     @Test
     void copyOrder() {
 
-        final Order order = new Order(client.getId(), countrySettings.getTaxRate(), countrySettings.getCurrency());
+        final Order order = new Order(client.getId(), orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 5);
 
         final ProductSnapshot productWithOption = new ProductSnapshot("pid",
@@ -154,7 +153,7 @@ class OrderServiceImplTest {
                 null,
                 BigDecimal.valueOf(200),
                 List.of(new ProductSnapshot.ProductOptionSnapshot("ice", "normal", BigDecimal.valueOf(5))));
-        final OrderLineItem lineItem = new OrderLineItem(productWithOption, 2, countrySettings.getTaxRate());
+        final OrderLineItem lineItem = new OrderLineItem(productWithOption, 2, orderSettings);
         order.addOrderLineItem(lineItem);
 
         orderService.createOrder(order);

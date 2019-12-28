@@ -5,6 +5,7 @@ import io.nextpos.merchandising.data.Offer;
 import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
@@ -30,7 +31,7 @@ class GroupedOffersTest {
         client = DummyObjects.dummyClient();
 
         final BigDecimal taxRate = BigDecimal.valueOf(0.05);
-        order = new Order(client.getId(), taxRate, Currency.getInstance("TWD"));
+        order = new Order(client.getId(), new OrderSettings(taxRate, false, Currency.getInstance("TWD"), BigDecimal.ZERO));
 
         final ProductSnapshot item1Product = new ProductSnapshot("item1product", "coffee", "sku", BigDecimal.valueOf(100), null);
         order.addOrderLineItem(item1Product, 2);

@@ -240,6 +240,7 @@ public class OrderController {
                 order.getModifiedDate(),
                 order.getState(),
                 order.getTotal(),
+                order.getDiscountedTotal(),
                 order.getServiceCharge(),
                 order.getOrderTotal(),
                 order.getCurrency(),

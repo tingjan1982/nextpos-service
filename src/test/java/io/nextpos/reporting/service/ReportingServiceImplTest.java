@@ -2,6 +2,7 @@ package io.nextpos.reporting.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.OrderStateChange;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.ordermanagement.service.OrderService;
@@ -20,7 +21,6 @@ import org.springframework.data.mongodb.core.query.Query;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
-import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +38,9 @@ class ReportingServiceImplTest {
 
     @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private OrderSettings orderSettings;
 
     private Client client;
 
@@ -94,7 +97,7 @@ class ReportingServiceImplTest {
     private Order createOrder(final String clientId) {
 
         final BigDecimal taxRate = BigDecimal.ZERO;
-        final Order order = new Order(clientId, taxRate, Currency.getInstance("TWD"));
+        final Order order = new Order(clientId, orderSettings);
         final ProductSnapshot product = DummyObjects.productSnapshot();
         order.addOrderLineItem(product, 5);
 

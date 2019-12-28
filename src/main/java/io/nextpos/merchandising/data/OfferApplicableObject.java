@@ -1,5 +1,6 @@
 package io.nextpos.merchandising.data;
 
+import io.nextpos.ordermanagement.data.TaxableAmount;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -26,12 +27,12 @@ public interface OfferApplicableObject {
         this.setAppliedOfferInfo(appliedOfferInfo);
     }
 
-    default BigDecimal replayOfferIfExists(BigDecimal amountWithoutTaxToDiscountOn) {
+    default BigDecimal replayOfferIfExists(TaxableAmount amountToDiscountOn) {
 
         final AppliedOfferInfo appliedOfferInfo = getAppliedOfferInfo();
 
         if (appliedOfferInfo != null) {
-            return OfferDiscountUtils.calculateDiscount(amountWithoutTaxToDiscountOn, appliedOfferInfo.getDiscountDetails(), appliedOfferInfo.getOverrideDiscount());
+            return OfferDiscountUtils.calculateDiscount(amountToDiscountOn, appliedOfferInfo.getDiscountDetails(), appliedOfferInfo.getOverrideDiscount());
         }
 
         return BigDecimal.ZERO;

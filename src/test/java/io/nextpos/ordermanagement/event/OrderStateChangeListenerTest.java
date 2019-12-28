@@ -1,11 +1,7 @@
 package io.nextpos.ordermanagement.event;
 
-import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.OrderLineItem;
-import io.nextpos.ordermanagement.data.OrderStateChange;
-import io.nextpos.ordermanagement.data.OrderStateChangeBean;
+import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.service.OrderService;
-import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import org.assertj.core.data.Index;
@@ -33,13 +29,13 @@ class OrderStateChangeListenerTest {
     private OrderService orderService;
 
     @Autowired
-    private CountrySettings defaultCountrySettings;
+    private OrderSettings orderSettings;
 
     private Order order;
 
     @BeforeEach
     void prepare() {
-        order = new Order("client-id", defaultCountrySettings.getTaxRate(), defaultCountrySettings.getCurrency());
+        order = new Order("client-id", orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
         orderService.createOrder(order);
     }

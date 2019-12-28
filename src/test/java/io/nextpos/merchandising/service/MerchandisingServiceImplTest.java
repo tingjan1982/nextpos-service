@@ -6,7 +6,7 @@ import io.nextpos.merchandising.data.Offer;
 import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.settings.data.CountrySettings;
+import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.shared.DummyObjects;
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +33,7 @@ class MerchandisingServiceImplTest {
     private ClientRepository clientRepository;
 
     @Autowired
-    private CountrySettings countrySettings;
+    private OrderSettings orderSettings;
 
     private Client client;
 
@@ -53,7 +53,7 @@ class MerchandisingServiceImplTest {
     @Test
     void computeOffers() {
 
-        final Order order = new Order(client.getId(), countrySettings.getTaxRate(), countrySettings.getCurrency());
+        final Order order = new Order(client.getId(), orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
 
         merchandisingService.computeOffers(client, order);
@@ -74,7 +74,7 @@ class MerchandisingServiceImplTest {
     @Test
     void applyOrderDiscount() {
 
-        final Order order = new Order(client.getId(), countrySettings.getTaxRate(), countrySettings.getCurrency());
+        final Order order = new Order(client.getId(), orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
 
         final Order updatedOrder = merchandisingService.applyGlobalOrderDiscount(order, OrderLevelOffer.GlobalOrderDiscount.ENTER_DISCOUNT, BigDecimal.valueOf(0.2));

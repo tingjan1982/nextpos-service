@@ -4,8 +4,8 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientRepository;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
+import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.service.OrderService;
-import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.PrinterInstructions;
@@ -28,7 +28,7 @@ class PrinterInstructionsServiceImplTest {
     private WorkingAreaService workingAreaService;
 
     @Autowired
-    private CountrySettings countrySettings;
+    private OrderSettings orderSettings;
 
     @Autowired
     private ClientRepository clientRepository;
@@ -51,9 +51,9 @@ class PrinterInstructionsServiceImplTest {
     @Test
     void createOrderToWorkingArea() {
 
-        final Order order = new Order(client.getId(), countrySettings.getTaxRate(), countrySettings.getCurrency());
+        final Order order = new Order(client.getId(), orderSettings);
 
-        final OrderLineItem item1 = new OrderLineItem(DummyObjects.productSnapshot(), 2, countrySettings.getTaxRate());
+        final OrderLineItem item1 = new OrderLineItem(DummyObjects.productSnapshot(), 2, orderSettings);
         item1.setState(OrderLineItem.LineItemState.IN_PROCESS);
         item1.setWorkingAreaId(workingArea.getId());
         order.addOrderLineItem(item1);

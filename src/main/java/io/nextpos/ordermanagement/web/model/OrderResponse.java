@@ -32,6 +32,8 @@ public class OrderResponse {
 
     private TaxableAmount total;
 
+    private TaxableAmount discountedTotal;
+
     private BigDecimal serviceCharge;
 
     private BigDecimal orderTotal;

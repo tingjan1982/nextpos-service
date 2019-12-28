@@ -6,6 +6,7 @@ import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientSettingsService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
+import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.ordermanagement.web.model.OrderLineItemRequest;
 import io.nextpos.ordermanagement.web.model.OrderRequest;
@@ -61,8 +62,9 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
     @Override
     public Order newOrder(final Client client, final OrderRequest orderRequest) {
 
-        final CountrySettings countrySettings = settingsService.getCountrySettings(client.getCountryCode());
-        final Order order = new Order(client.getId(), countrySettings.getTaxRate(), countrySettings.getCurrency());
+        final OrderSettings orderSettings = createOrderSettings(client);
+
+        final Order order = new Order(client.getId(), orderSettings);
         String serialId = generateSerialId();
         order.setSerialId(serialId);
 
@@ -83,13 +85,6 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
             order.addOrderLineItems(orderLineItems);
         }
 
-        clientSettingsService.getClientSettingByName(client, ClientSetting.SettingName.SERVICE_CHARGE).ifPresent(sc -> {
-            if (sc.isEnabled()) {
-                final BigDecimal serviceCharge = clientSettingsService.getActualStoredValue(sc, BigDecimal.class);
-                order.setServiceCharge(serviceCharge);
-            }
-        });
-
         LOGGER.info("Created order: {}", order);
 
         return order;
@@ -102,8 +97,6 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
 
     @Override
     public OrderLineItem newOrderLineItem(final Client client, final OrderLineItemRequest li) {
-
-        final CountrySettings countrySettings = settingsService.getCountrySettings(client.getCountryCode());
 
         final Product product = productService.getProduct(li.getProductId());
         final ProductVersion productVersion = product.getDesignVersion();
@@ -125,12 +118,34 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
             productSnapshot.setLabelInformation(product.getProductLabel().getId(), product.getProductLabel().getName());
         }
 
-        final OrderLineItem orderLineItem = new OrderLineItem(productSnapshot, li.getQuantity(), countrySettings.getTaxRate());
+        final OrderSettings orderSettings = createOrderSettings(client);
+        final OrderLineItem orderLineItem = new OrderLineItem(productSnapshot, li.getQuantity(), orderSettings);
 
         if (product.getWorkingArea() != null) {
             orderLineItem.setWorkingAreaId(product.getWorkingArea().getId());
         }
 
         return orderLineItem;
+    }
+
+    private OrderSettings createOrderSettings(final Client client) {
+        final CountrySettings countrySettings = settingsService.getCountrySettings(client.getCountryCode());
+        final OrderSettings orderSettings = new OrderSettings(countrySettings.getTaxRate(), true, countrySettings.getCurrency(), BigDecimal.ZERO);
+
+        clientSettingsService.getClientSettingByName(client, ClientSetting.SettingName.TAX_INCLUSIVE).ifPresent(cs -> {
+            if (cs.isEnabled()) {
+                final Boolean taxInclusive = clientSettingsService.getActualStoredValue(cs, Boolean.class);
+                orderSettings.setTaxInclusive(taxInclusive);
+            }
+        });
+
+        clientSettingsService.getClientSettingByName(client, ClientSetting.SettingName.SERVICE_CHARGE).ifPresent(sc -> {
+            if (sc.isEnabled()) {
+                final BigDecimal serviceCharge = clientSettingsService.getActualStoredValue(sc, BigDecimal.class);
+                orderSettings.setServiceCharge(serviceCharge);
+            }
+        });
+
+        return orderSettings;
     }
 }

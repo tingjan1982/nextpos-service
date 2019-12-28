@@ -2,8 +2,8 @@ package io.nextpos.ordermanagement.event;
 
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
+import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.service.OrderService;
-import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +26,12 @@ class LineItemStateChangeListenerTest {
     private OrderService orderService;
 
     @Autowired
-    private CountrySettings countrySettings;
+    private OrderSettings orderSettings;
 
     @Test
     void lineItemStateChange() {
 
-        final Order order = new Order("client", countrySettings.getTaxRate(), countrySettings.getCurrency());
+        final Order order = new Order("client", orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 2);
         orderService.saveOrder(order);

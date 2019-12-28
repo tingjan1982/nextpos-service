@@ -32,7 +32,7 @@ public class OrderLevelOffer extends Offer implements DiscountCalculator<Order> 
 
     @Override
     public BigDecimal calculateDiscount(final Order objectToDiscount, final BigDecimal discountValue) {
-        return OfferDiscountUtils.calculateDiscount(objectToDiscount.getTotal().getAmountWithoutTax(), this.getDiscountDetails(), discountValue);
+        return OfferDiscountUtils.calculateDiscount(objectToDiscount.getTotal(), this.getDiscountDetails(), discountValue);
     }
 
     @Override

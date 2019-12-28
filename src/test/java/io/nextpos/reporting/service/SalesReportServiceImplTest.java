@@ -1,6 +1,7 @@
 package io.nextpos.reporting.service;
 
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.reporting.data.SalesDistribution;
 import io.nextpos.reporting.data.SalesProgress;
@@ -19,7 +20,6 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ValueRange;
-import java.util.Currency;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -33,6 +33,9 @@ class SalesReportServiceImplTest {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private OrderSettings orderSettings;
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -79,7 +82,7 @@ class SalesReportServiceImplTest {
     }
 
     private void createOrder(final LocalDate orderDate) {
-        final Order order = new Order("client", BigDecimal.ZERO, Currency.getInstance("TWD"));
+        final Order order = new Order("client", orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 5);
         orderService.createOrder(order);
 

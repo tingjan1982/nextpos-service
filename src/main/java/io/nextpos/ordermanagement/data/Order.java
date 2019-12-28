@@ -64,6 +64,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     private String servedBy;
 
+    private OrderSettings orderSettings;
+
     private DemographicData demographicData;
 
     /**
@@ -79,13 +81,15 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     @Version
     private Long version;
 
-    public Order(final String clientId, BigDecimal taxRate, final Currency currency) {
+
+    public Order(String clientId, OrderSettings orderSettings) {
         this.id = new ObjectId().toString();
         this.clientId = clientId;
         this.state = OPEN;
-        this.total = new TaxableAmount(taxRate);
-        this.currency = currency;
+        this.total = new TaxableAmount(orderSettings.getTaxRate(), orderSettings.isTaxInclusive());
+        this.currency = orderSettings.getCurrency();
         this.internalCounter = new AtomicInteger(1);
+        this.orderSettings = orderSettings;
     }
 
     /**
@@ -105,14 +109,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
      */
     public BigDecimal getOrderTotal() {
 
-        BigDecimal serviceChargeAmount = BigDecimal.ZERO;
         final BigDecimal totalBeforeServiceCharge = discountedTotal != null && !discountedTotal.isZero() ? discountedTotal.getAmountWithTax() : total.getAmountWithTax();
-
-        if (serviceCharge.compareTo(BigDecimal.ZERO) > 0) {
-            serviceChargeAmount = totalBeforeServiceCharge.multiply(serviceCharge);
-        }
-
-        return totalBeforeServiceCharge.add(serviceChargeAmount);
+        return totalBeforeServiceCharge.add(serviceCharge);
 
     }
 
@@ -121,7 +119,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
      */
     public void addOrderLineItem(ProductSnapshot productSnapshot, int quantity) {
 
-        final OrderLineItem orderLineItem = new OrderLineItem(productSnapshot, quantity, total.getTaxRate());
+        final OrderLineItem orderLineItem = new OrderLineItem(productSnapshot, quantity, orderSettings);
         this.addOrderLineItem(orderLineItem);
     }
 
@@ -181,14 +179,19 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
         total.calculate(lineItemsTotal);
 
-        final BigDecimal discountedTotal = this.replayOfferIfExists(total.getAmountWithoutTax());
-        applyOffer(discountedTotal);
+        final BigDecimal discount = this.replayOfferIfExists(total);
+        applyOffer(discount);
+
+        if (orderSettings.hasServiceCharge()) {
+            final BigDecimal totalBeforeServiceCharge = discountedTotal != null && !discountedTotal.isZero() ? discountedTotal.getAmountWithTax() : total.getAmountWithTax();
+            serviceCharge = totalBeforeServiceCharge.multiply(orderSettings.getServiceCharge());
+        }
     }
 
     @Override
     public void applyOffer(BigDecimal computedDiscount) {
 
-        discountedTotal = new TaxableAmount(total.getTaxRate());
+        discountedTotal = total.newInstance();
         discountedTotal.calculate(computedDiscount);
     }
 
@@ -229,6 +232,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
                 .map(OrderLineItem::copy)
                 .peek(li -> li.setId(copy.id + "-" + copy.internalCounter.getAndIncrement()))
                 .collect(Collectors.toList());
+
+        copy.orderSettings = orderSettings;
 
         copy.metadata = metadata;
         copy.addMetadata(COPY_FROM_ORDER, id);

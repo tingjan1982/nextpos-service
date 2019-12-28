@@ -2,12 +2,8 @@ package io.nextpos.ordermanagement.event;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientRepository;
-import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.OrderLineItem;
-import io.nextpos.ordermanagement.data.OrderStateChange;
-import io.nextpos.ordermanagement.data.OrderStateChangeBean;
+import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.service.OrderService;
-import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
@@ -39,7 +35,7 @@ class PostOrderStateChangeListenerTest {
     private ClientRepository clientRepository;
 
     @Autowired
-    private CountrySettings defaultCountrySettings;
+    private OrderSettings orderSettings;
 
     private Client client;
 
@@ -54,9 +50,9 @@ class PostOrderStateChangeListenerTest {
         final WorkingArea workingArea = new WorkingArea(client, "bar");
         workingAreaService.saveWorkingArea(workingArea);
 
-        order = new Order(client.getId(), defaultCountrySettings.getTaxRate(), defaultCountrySettings.getCurrency());
+        order = new Order(client.getId(), orderSettings);
 
-        final OrderLineItem item1 = new OrderLineItem(DummyObjects.productSnapshot(), 2, defaultCountrySettings.getTaxRate());
+        final OrderLineItem item1 = new OrderLineItem(DummyObjects.productSnapshot(), 2, orderSettings);
         item1.setWorkingAreaId(workingArea.getId());
         item1.setState(OrderLineItem.LineItemState.IN_PROCESS);
 

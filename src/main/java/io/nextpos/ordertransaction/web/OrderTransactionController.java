@@ -120,7 +120,7 @@ public class OrderTransactionController {
 
             case SPLIT:
                 // todo: figure out rounding problem.
-                final BigDecimal dividend = order.getTotal().getAmountWithTax();
+                final BigDecimal dividend = order.getOrderTotal();
                 final BigDecimal divisor = BigDecimal.valueOf(orderTransactionRequest.getSplitWith());
                 final BigDecimal splitSubTotal = dividend.divide(divisor, RoundingMode.DOWN);
 

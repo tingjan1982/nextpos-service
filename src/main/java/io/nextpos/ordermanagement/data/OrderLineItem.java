@@ -34,14 +34,23 @@ public class OrderLineItem implements OfferApplicableObject {
     private AppliedOfferInfo appliedOfferInfo;
 
 
-    public OrderLineItem(final ProductSnapshot productSnapshot, final int quantity, BigDecimal taxRate) {
+    public OrderLineItem(final ProductSnapshot productSnapshot, final int quantity, OrderSettings orderSettings) {
         this.productSnapshot = productSnapshot;
         this.quantity = quantity;
 
         state = LineItemState.OPEN;
-        subTotal = new TaxableAmount(taxRate);
+        this.subTotal = new TaxableAmount(orderSettings.getTaxRate(), orderSettings.isTaxInclusive());
 
         computeSubTotal();
+    }
+
+    public TaxableAmount getProductPriceWithOptions() {
+
+        final BigDecimal productTotal = productSnapshot.getProductPriceWithOptions();
+        final TaxableAmount taxableProductPrice = subTotal.newInstance();
+        taxableProductPrice.calculate(productTotal);
+
+        return taxableProductPrice;
     }
 
     void updateQuantity(int quantity) {
@@ -62,7 +71,7 @@ public class OrderLineItem implements OfferApplicableObject {
 
         subTotal.calculate(lineItemTotal);
 
-        final BigDecimal computedDiscount = this.replayOfferIfExists(productTotal);
+        final BigDecimal computedDiscount = this.replayOfferIfExists(this.getProductPriceWithOptions());
         applyOffer(computedDiscount);
     }
 
@@ -72,14 +81,19 @@ public class OrderLineItem implements OfferApplicableObject {
         productSnapshot.setDiscountedPrice(computedDiscount);
         final BigDecimal discountedLineItemTotal = computedDiscount.multiply(BigDecimal.valueOf(quantity));
 
-        discountedSubTotal = new TaxableAmount(subTotal.getTaxRate());
+        discountedSubTotal = subTotal.newInstance();
         discountedSubTotal.calculate(discountedLineItemTotal);
     }
 
+    /**
+     * For tax inclusive scenarios, return amountWithTax because tax will not be calculated again, whereas in tax exclusive scenarios,
+     * return amountWithoutTax so an Order will aggregate and calculate tax as a whole.
+     * @return
+     */
     public BigDecimal getLineItemSubTotal() {
 
         final TaxableAmount subTotal = discountedSubTotal != null && !discountedSubTotal.isZero() ? discountedSubTotal : this.subTotal;
-        return subTotal.getAmountWithoutTax();
+        return subTotal.getAmount();
     }
 
     public OrderLineItem copy() {
