@@ -5,6 +5,7 @@ import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientActivationService;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.client.web.model.*;
+import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.shared.exception.ClientAccountException;
 import io.nextpos.shared.exception.GeneralApplicationException;
@@ -29,10 +30,13 @@ public class ClientController {
 
     private final ClientActivationService clientActivationService;
 
+    private final OAuth2Helper oAuth2Helper;
+
     @Autowired
-    public ClientController(final ClientService clientService, final ClientActivationService clientActivationService) {
+    public ClientController(final ClientService clientService, final ClientActivationService clientActivationService, final OAuth2Helper oAuth2Helper) {
         this.clientService = clientService;
         this.clientActivationService = clientActivationService;
+        this.oAuth2Helper = oAuth2Helper;
     }
 
     @PostMapping
@@ -91,7 +95,7 @@ public class ClientController {
         final Client client = clientService.getClient(id).orElseThrow(() -> {
             throw new ClientAccountException("Specified client account is not active", id);
         });
-        
+
         clientService.updateClientStatus(client, Client.Status.INACTIVE);
     }
 
@@ -156,7 +160,14 @@ public class ClientController {
     public ClientUserResponse getClientUser(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                             @PathVariable final String username) {
 
-        final ClientUser clientUser = clientService.getClientUser(client, username);
+        final ClientUser clientUser;
+
+        if (username.equals("me")) {
+            clientUser = oAuth2Helper.resolveCurrentClientUser(client);
+        } else {
+            clientUser = clientService.getClientUser(client, username);
+        }
+
         return toClientUserResponse(clientUser);
     }
 
@@ -180,7 +191,7 @@ public class ClientController {
         if (clientUser.isDefaultUser()) {
             throw new GeneralApplicationException("Default client user cannot be updated.");
         }
-        
+
         updateClientUserFromRequest(clientUser, updateClientUserRequest);
 
         clientService.saveClientUser(clientUser);
