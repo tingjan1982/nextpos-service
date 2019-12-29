@@ -94,7 +94,7 @@ public class ClientController {
         client.setAttributes(updateClientRequest.getAttributes());
 
         if (updateClientRequest.getClientSettings() != null) {
-            updateClientRequest.getClientSettings().forEach((k, v) -> client.updateClientSettings(k, v.getValue(), v.isEnabled()));
+            updateClientRequest.getClientSettings().forEach((k, v) -> client.saveClientSettings(k, v.getValue(), v.isEnabled()));
         }
     }
 
