@@ -1,9 +1,11 @@
 package io.nextpos.client.web;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.data.ClientSetting;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientActivationService;
 import io.nextpos.client.service.ClientService;
+import io.nextpos.client.service.ClientSettingsService;
 import io.nextpos.client.web.model.*;
 import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.config.BootstrapConfig;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,13 +31,16 @@ public class ClientController {
 
     private final ClientService clientService;
 
+    private final ClientSettingsService clientSettingsService;
+
     private final ClientActivationService clientActivationService;
 
     private final OAuth2Helper oAuth2Helper;
 
     @Autowired
-    public ClientController(final ClientService clientService, final ClientActivationService clientActivationService, final OAuth2Helper oAuth2Helper) {
+    public ClientController(final ClientService clientService, final ClientSettingsService clientSettingsService, final ClientActivationService clientActivationService, final OAuth2Helper oAuth2Helper) {
         this.clientService = clientService;
+        this.clientSettingsService = clientSettingsService;
         this.clientActivationService = clientActivationService;
         this.oAuth2Helper = oAuth2Helper;
     }
@@ -86,6 +92,10 @@ public class ClientController {
     private void updateClientFromRequest(final Client client, final UpdateClientRequest updateClientRequest) {
         client.setClientName(updateClientRequest.getClientName());
         client.setAttributes(updateClientRequest.getAttributes());
+
+        if (updateClientRequest.getClientSettings() != null) {
+            updateClientRequest.getClientSettings().forEach((k, v) -> client.updateClientSettings(k, v.getValue(), v.isEnabled()));
+        }
     }
 
     @PostMapping("/{id}/deactivate")
@@ -138,13 +148,18 @@ public class ClientController {
 
     private ClientResponse toClientResponse(final Client client) {
 
+        final Map<ClientSetting.SettingName, ClientSettingResponse> clientSettings = client.getClientSettings().stream()
+                .map(s -> new ClientSettingResponse(s.getId(), s.getName(), s.getStoredValue(), s.getValueType(), s.isEnabled()))
+                .collect(Collectors.toMap(ClientSettingResponse::getSettingName, res -> res));
+
         return new ClientResponse(client.getId(),
                 client.getClientName(),
                 client.getUsername(),
                 client.getMasterPassword(),
                 client.getCountryCode(),
                 client.getStatus(),
-                client.getAttributes());
+                client.getAttributes(),
+                clientSettings);
     }
 
     @PostMapping("/me/users")

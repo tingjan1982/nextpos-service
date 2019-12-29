@@ -12,6 +12,7 @@ import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,15 +52,14 @@ public class Client extends BaseObject {
     @CollectionTable(name = "client_attributes", joinColumns = @JoinColumn(name = "client_id"))
     private Map<String, String> attributes = new HashMap<>();
 
+    @OneToMany(mappedBy = "client", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<ClientSetting> clientSettings = new ArrayList<>();
 
     /**
      * The following associations exist so when client is deleted, all associated client objects are also removed via cascade operation.
      */
-    @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private List<ClientSetting> clientSettings;
-
     @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
@@ -111,7 +111,18 @@ public class Client extends BaseObject {
     public String getAttribute(String key) {
         return attributes.get(key);
     }
-    
+
+    public void updateClientSettings(ClientSetting.SettingName settingName, String value, boolean enabled) {
+
+        clientSettings.stream()
+                .filter(cs -> cs.getName() == settingName)
+                .findFirst().ifPresent(cs -> {
+                    cs.setStoredValue(value);
+                    cs.setEnabled(enabled);
+        });
+
+    }
+
 
     public enum Status {
         /**

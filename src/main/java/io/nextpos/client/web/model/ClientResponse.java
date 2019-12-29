@@ -1,6 +1,7 @@
 package io.nextpos.client.web.model;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.data.ClientSetting;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,4 +26,6 @@ public class ClientResponse {
     private Client.Status status;
 
     private Map<String, String> attributes;
+
+    private Map<ClientSetting.SettingName, ClientSettingResponse> clientSettings;
 }

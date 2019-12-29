@@ -1,5 +1,6 @@
 package io.nextpos.client.web.model;
 
+import io.nextpos.client.data.ClientSetting;
 import io.nextpos.shared.model.validator.ValidAttribute;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,4 +19,6 @@ public class UpdateClientRequest {
 
     @ValidAttribute
     private Map<String, String> attributes;
+
+    private Map<ClientSetting.SettingName, ClientSettingRequest> clientSettings;
 }
