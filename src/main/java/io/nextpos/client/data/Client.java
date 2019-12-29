@@ -112,15 +112,18 @@ public class Client extends BaseObject {
         return attributes.get(key);
     }
 
-    public void updateClientSettings(ClientSetting.SettingName settingName, String value, boolean enabled) {
+    public void saveClientSettings(ClientSetting.SettingName settingName, String value, boolean enabled) {
 
         clientSettings.stream()
                 .filter(cs -> cs.getName() == settingName)
-                .findFirst().ifPresent(cs -> {
+                .findFirst()
+                .ifPresentOrElse(cs -> {
                     cs.setStoredValue(value);
                     cs.setEnabled(enabled);
-        });
-
+                }, () -> {
+                    final ClientSetting newClientSetting = new ClientSetting(this, settingName, value, settingName.getValueType(), enabled);
+                    clientSettings.add(newClientSetting);
+                });
     }
 
 
@@ -129,7 +132,7 @@ public class Client extends BaseObject {
          * New signed up client that hasn't been activated via email.
          */
         PENDING_ACTIVE,
-        
+
         /**
          * Indicate client is active and eligible to full service capability.
          */
