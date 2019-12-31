@@ -1,9 +1,12 @@
 package io.nextpos.reporting.service;
 
+import io.nextpos.reporting.data.RangedSalesReport;
 import io.nextpos.reporting.data.SalesDistribution;
 import io.nextpos.reporting.data.SalesProgress;
 
 public interface SalesReportService {
+
+    RangedSalesReport generateWeeklySalesReport(String clientId);
 
     SalesProgress generateSalesProgress(String clientId);
 

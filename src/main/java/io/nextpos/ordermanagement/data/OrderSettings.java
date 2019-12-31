@@ -23,4 +23,8 @@ public class OrderSettings {
         return serviceCharge != null && serviceCharge.compareTo(BigDecimal.ZERO) > 0;
     }
 
+    public OrderSettings copy() {
+        return new OrderSettings(taxRate, taxInclusive, currency, serviceCharge);
+    }
+
 }

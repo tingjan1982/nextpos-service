@@ -4,7 +4,9 @@ import io.nextpos.client.data.Client;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.reporting.data.*;
 import io.nextpos.reporting.service.ReportingService;
+import io.nextpos.reporting.service.SalesReportService;
 import io.nextpos.reporting.web.model.OrderStateAverageTimeReportResponse;
+import io.nextpos.reporting.web.model.RangedSalesReportResponse;
 import io.nextpos.reporting.web.model.SalesReportResponse;
 import io.nextpos.shared.web.ClientResolver;
 import org.apache.commons.lang3.tuple.Pair;
@@ -24,9 +26,22 @@ public class ReportingController {
 
     private final ReportingService reportingService;
 
+    private final SalesReportService salesReportService;
+
     @Autowired
-    public ReportingController(final ReportingService reportingService) {
+    public ReportingController(final ReportingService reportingService, final SalesReportService salesReportService) {
         this.reportingService = reportingService;
+        this.salesReportService = salesReportService;
+    }
+
+    @GetMapping("/rangedSalesReport")
+    public RangedSalesReportResponse getRangedSalesReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        final RangedSalesReport rangedSalesReport = salesReportService.generateWeeklySalesReport(client.getId());
+
+        return new RangedSalesReportResponse(rangedSalesReport.getTotalSales().getSalesTotal(),
+                rangedSalesReport.getSalesByRange(),
+                rangedSalesReport.getSalesByProduct());
     }
 
     @GetMapping("/salesreport")
