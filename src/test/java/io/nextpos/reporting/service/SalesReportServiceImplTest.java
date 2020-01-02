@@ -22,6 +22,7 @@ import java.sql.Date;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.ValueRange;
 import java.time.temporal.WeekFields;
 
@@ -51,7 +52,7 @@ class SalesReportServiceImplTest {
     }
 
     @Test
-    void generateWeeklySalesReport() {
+    void generateWeeklySalesReport_WeekRangeType() {
 
         final LocalDate today = LocalDate.now();
         final ValueRange range = today.range(ChronoField.DAY_OF_WEEK);
@@ -62,10 +63,37 @@ class SalesReportServiceImplTest {
             createOrder(date, "tea", BigDecimal.valueOf(35), 5);
         }
 
-        final RangedSalesReport results = salesReportService.generateWeeklySalesReport("client");
+        final RangedSalesReport results = salesReportService.generateWeeklySalesReport("client", RangedSalesReport.RangeType.WEEK);
 
         assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo(String.valueOf((50 + 35) * 5 * 7));
         assertThat(results.getSalesByRange()).hasSize(7);
+        assertThat(results.getSalesByProduct()).hasSize(2);
+
+        assertThat(results.getSalesByProduct()).allSatisfy(byProduct -> {
+            assertThat(byProduct.getProductName()).isNotNull();
+            assertThat(byProduct.getProductSales()).isNotZero();
+            assertThat(byProduct.getPercentage()).isNotZero();
+        });
+
+        System.out.println(results);
+    }
+
+    @Test
+    void generateWeeklySalesReport_MonthRangeType() {
+
+        final LocalDate today = LocalDate.now();
+        final LocalDate lastDayOfMonth = today.with(TemporalAdjusters.lastDayOfMonth());
+
+        for (int i = 1; i <= lastDayOfMonth.getDayOfMonth(); i++) {
+            final LocalDate date = today.withDayOfMonth(i);
+            createOrder(date, "coffee", BigDecimal.valueOf(50), 5);
+            createOrder(date, "tea", BigDecimal.valueOf(35), 5);
+        }
+
+        final RangedSalesReport results = salesReportService.generateWeeklySalesReport("client", RangedSalesReport.RangeType.MONTH);
+
+        assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo(String.valueOf((50 + 35) * 5 * lastDayOfMonth.getDayOfMonth()));
+        assertThat(results.getSalesByRange()).hasSize(lastDayOfMonth.getDayOfMonth());
         assertThat(results.getSalesByProduct()).hasSize(2);
 
         assertThat(results.getSalesByProduct()).allSatisfy(byProduct -> {
@@ -99,17 +127,17 @@ class SalesReportServiceImplTest {
     void generateSalesProgress() {
 
         final LocalDate today = LocalDate.now();
-        final ValueRange range = today.range(ChronoField.DAY_OF_MONTH);
+        final LocalDate lastDayOfMonth = today.with(TemporalAdjusters.lastDayOfMonth());
 
-        for (int i = 1; i <= range.getMaximum(); i++) {
+        for (int i = 1; i <= lastDayOfMonth.getDayOfMonth(); i++) {
             createOrder(today.withDayOfMonth(i));
         }
 
         final SalesProgress salesProgress = salesReportService.generateSalesProgress("client");
 
         assertThat(salesProgress.getDailySalesProgress()).isEqualByComparingTo(BigDecimal.valueOf(500));
-        assertThat(salesProgress.getWeeklySalesProgress()).isEqualByComparingTo(BigDecimal.valueOf(500 * 7));
-        assertThat(salesProgress.getMonthlySalesProgress()).isEqualByComparingTo(BigDecimal.valueOf(500 * range.getMaximum()));
+        assertThat(salesProgress.getWeeklySalesProgress()).isNotZero(); // for simplicity of not considering week spans across months, just check for non-zero.
+        assertThat(salesProgress.getMonthlySalesProgress()).isEqualByComparingTo(BigDecimal.valueOf(500 * lastDayOfMonth.getDayOfMonth()));
     }
 
     private void createOrder(final LocalDate orderDate, String productName, BigDecimal price, int quantity) {

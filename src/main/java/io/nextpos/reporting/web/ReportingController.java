@@ -35,9 +35,10 @@ public class ReportingController {
     }
 
     @GetMapping("/rangedSalesReport")
-    public RangedSalesReportResponse getRangedSalesReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+    public RangedSalesReportResponse getRangedSalesReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                          @RequestParam(value = "rangeType", defaultValue = "WEEK") RangedSalesReport.RangeType rangeType) {
 
-        final RangedSalesReport rangedSalesReport = salesReportService.generateWeeklySalesReport(client.getId());
+        final RangedSalesReport rangedSalesReport = salesReportService.generateWeeklySalesReport(client.getId(), rangeType);
 
         return new RangedSalesReportResponse(rangedSalesReport.getTotalSales().getSalesTotal(),
                 rangedSalesReport.getSalesByRange(),

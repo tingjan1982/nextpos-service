@@ -39,8 +39,6 @@ public class RangedSalesReport {
 
         private String id;
 
-        private String label;
-
         private LocalDate date;
 
         private String formattedDate;
@@ -64,6 +62,6 @@ public class RangedSalesReport {
 
 
     public enum RangeType {
-        WEEK
+        WEEK, MONTH;
     }
 }

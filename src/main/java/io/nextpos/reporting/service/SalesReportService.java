@@ -6,7 +6,7 @@ import io.nextpos.reporting.data.SalesProgress;
 
 public interface SalesReportService {
 
-    RangedSalesReport generateWeeklySalesReport(String clientId);
+    RangedSalesReport generateWeeklySalesReport(String clientId, final RangedSalesReport.RangeType rangeType);
 
     SalesProgress generateSalesProgress(String clientId);
 
