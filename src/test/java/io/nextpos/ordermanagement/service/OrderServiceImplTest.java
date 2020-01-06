@@ -13,12 +13,15 @@ import org.assertj.core.data.Index;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -27,6 +30,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @Transactional
 class OrderServiceImplTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(OrderServiceImplTest.class);
 
     @Autowired
     private ClientService clientService;
@@ -140,6 +145,25 @@ class OrderServiceImplTest {
         assertThat(updatedOrder.getOrderLineItems()).satisfies(li -> {
             assertThat(li.getQuantity()).isEqualTo(5);
         }, Index.atIndex(0));
+    }
+
+    @Test
+    void getOrders() {
+
+        final LocalDateTime fromDate = LocalDateTime.now();
+        final LocalDateTime toDate = fromDate.plusDays(1);
+        LOGGER.info("Date range: {}, {}", fromDate, toDate);
+
+        final Order order = new Order(client.getId(), orderSettings);
+        orderService.createOrder(order);
+
+        final List<Order> orders = orderService.getOrders(client, fromDate, toDate);
+
+        LOGGER.info("Orders: {}", orders);
+        assertThat(orders).isNotEmpty();
+
+        final List<Order> shouldBeEmpty = orderService.getOrders(client, toDate, toDate.plusDays(1));
+        assertThat(shouldBeEmpty).isEmpty();
     }
 
     @Test

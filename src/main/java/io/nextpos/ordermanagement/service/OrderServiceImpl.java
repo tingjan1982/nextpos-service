@@ -1,5 +1,6 @@
 package io.nextpos.ordermanagement.service;
 
+import io.nextpos.client.data.Client;
 import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.event.LineItemStateChangeEvent;
 import io.nextpos.ordermanagement.event.OrderStateChangeEvent;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -61,6 +63,14 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findById(id).orElseThrow(() -> {
             throw new ObjectNotFoundException(id, Order.class);
         });
+    }
+
+    @Override
+    public List<Order> getOrders(final Client client, LocalDateTime fromDate, LocalDateTime toDate) {
+
+        LOGGER.info("Date range used to get orders: {}, {}", fromDate, toDate);
+
+        return orderRepository.findAllByClientAndDateRange(client.getId(), fromDate, toDate);
     }
 
     @Override

@@ -10,6 +10,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -48,5 +49,9 @@ class ShiftServiceImplTest {
         });
 
         assertThatThrownBy(() -> shiftService.closeShift(clientId, BigDecimal.valueOf(1000))).isInstanceOf(GeneralApplicationException.class);
+
+        final Optional<Shift> mostRecentShift = shiftService.getMostRecentShift(clientId);
+        assertThat(mostRecentShift).isPresent();
+        assertThat(mostRecentShift).get().isEqualTo(closedShift);
     }
 }

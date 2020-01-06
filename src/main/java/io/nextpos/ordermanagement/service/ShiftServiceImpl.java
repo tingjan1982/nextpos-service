@@ -75,6 +75,11 @@ public class ShiftServiceImpl implements ShiftService {
     }
 
     @Override
+    public Optional<Shift> getMostRecentShift(final String clientId) {
+        return shiftRepository.findFirstByClientIdOrderByCreatedDateDesc(clientId);
+    }
+
+    @Override
     public Shift getActiveShiftOrThrows(final String clientId) {
 
         return this.getActiveShift(clientId).orElseThrow(() -> {

@@ -4,11 +4,9 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.merchandising.service.MerchandisingService;
-import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.OrderLineItem;
-import io.nextpos.ordermanagement.data.OrderStateChange;
-import io.nextpos.ordermanagement.data.OrderStateChangeBean;
+import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.service.OrderService;
+import io.nextpos.ordermanagement.service.ShiftService;
 import io.nextpos.ordermanagement.web.factory.OrderCreationFactory;
 import io.nextpos.ordermanagement.web.model.*;
 import io.nextpos.shared.web.ClientResolver;
@@ -25,6 +23,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,13 +47,16 @@ public class OrderController {
 
     private final MerchandisingService merchandisingService;
 
+    private final ShiftService shiftService;
+
     @Autowired
-    public OrderController(final OrderService orderService, final ClientObjectOwnershipService clientObjectOwnershipService, final TableLayoutService tableLayoutService, final OrderCreationFactory orderCreationFactory, final MerchandisingService merchandisingService) {
+    public OrderController(final OrderService orderService, final ClientObjectOwnershipService clientObjectOwnershipService, final TableLayoutService tableLayoutService, final OrderCreationFactory orderCreationFactory, final MerchandisingService merchandisingService, final ShiftService shiftService) {
         this.orderService = orderService;
         this.clientObjectOwnershipService = clientObjectOwnershipService;
         this.tableLayoutService = tableLayoutService;
         this.orderCreationFactory = orderCreationFactory;
         this.merchandisingService = merchandisingService;
+        this.shiftService = shiftService;
     }
 
     @PostMapping
@@ -62,6 +66,27 @@ public class OrderController {
         final Order createdOrder = orderService.createOrder(order);
 
         return toOrderResponse(createdOrder);
+    }
+
+    @GetMapping
+    public OrdersResponse getOrdersByDateRange(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        final Optional<Shift> mostRecentShift = shiftService.getMostRecentShift(client.getId());
+
+        if (mostRecentShift.isPresent()) {
+            final Shift shift = mostRecentShift.get();
+            final LocalDateTime fromDate = shift.getStart().getTimestamp().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            LocalDateTime toDate = LocalDateTime.now();
+
+            if (shift.getEnd().getTimestamp() != null) {
+                toDate = shift.getEnd().getTimestamp().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            }
+
+            final List<Order> orders = orderService.getOrders(client, fromDate, toDate);
+            return toOrdersResponse(orders);
+        }
+
+        return new OrdersResponse(Collections.emptyMap());
     }
 
     /**
@@ -75,6 +100,10 @@ public class OrderController {
     public OrdersResponse getOrders(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
         List<Order> orders = orderService.getInflightOrders(client.getId());
+        return toOrdersResponse(orders);
+    }
+
+    private OrdersResponse toOrdersResponse(final List<Order> orders) {
         final Map<String, List<OrdersResponse.LightOrderResponse>> orderResponses = orders.stream()
                 .filter(o -> o.getTableInfo() != null)
                 .map(o -> {

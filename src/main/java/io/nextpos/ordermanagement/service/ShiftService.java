@@ -15,5 +15,7 @@ public interface ShiftService {
 
     Optional<Shift> getActiveShift(String clientId);
 
+    Optional<Shift> getMostRecentShift(String clientId);
+
     Shift getActiveShiftOrThrows(String clientId);
 }
