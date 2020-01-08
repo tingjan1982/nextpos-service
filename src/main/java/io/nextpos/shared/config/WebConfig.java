@@ -22,7 +22,8 @@ public class WebConfig {
 
         FilterRegistrationBean<ClientResolver> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(clientResolver);
-        registrationBean.addUrlPatterns("/products/*",
+        registrationBean.addUrlPatterns(
+                "/products/*",
                 "/productoptions/*",
                 "/labels/*",
                 "/clients/me",
@@ -35,7 +36,8 @@ public class WebConfig {
                 "/searches/*",
                 "/workingareas/*",
                 "/printers/*",
-                "/tablelayouts/*");
+                "/tablelayouts/*",
+                "/announcements/*");
 
         return registrationBean;
     }
