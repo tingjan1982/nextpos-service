@@ -257,6 +257,6 @@ public class ClientController {
     private ClientUserResponse toClientUserResponse(ClientUser clientUser) {
 
         final List<String> roles = Arrays.asList(clientUser.getRoles().split(","));
-        return new ClientUserResponse(clientUser.getNickname(), clientUser.getId().getUsername(), clientUser.getPassword(), roles, clientUser.isDefaultUser());
+        return new ClientUserResponse(clientUser.getNickname(), clientUser.getId().getUsername(), clientUser.getName(), clientUser.getPassword(), roles, clientUser.isDefaultUser());
     }
 }

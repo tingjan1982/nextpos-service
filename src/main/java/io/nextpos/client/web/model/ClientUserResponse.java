@@ -15,6 +15,8 @@ public class ClientUserResponse {
 
     private String username;
 
+    private String displayName;
+
     private String encryptedPassword;
 
     private List<String> roles;
