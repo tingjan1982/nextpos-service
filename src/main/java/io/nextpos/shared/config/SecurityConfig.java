@@ -319,6 +319,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             this.authorizeTablesAndWorkingAreaRequests(http);
             this.authorizeProductRequests(http);
             this.authorizeShiftAndOrderRequests(http);
+            this.authorizeAnnouncementRequests(http);
             this.authorizeReportingRequests(http);
 
             http.authorizeRequests().anyRequest().authenticated();
@@ -377,6 +378,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             http.authorizeRequests()
                     .antMatchers("/shifts/**").hasAuthority(Role.USER_ROLE)
                     .antMatchers("/orders/**").hasAuthority(Role.USER_ROLE);
+        }
+
+        private void authorizeAnnouncementRequests(final HttpSecurity http) throws Exception {
+
+            http.authorizeRequests()
+                    .antMatchers(GET,"/announcements/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(POST,"/announcements/**").hasAuthority(Role.MANAGER_ROLE);
         }
 
         private void authorizeReportingRequests(final HttpSecurity http) throws Exception {

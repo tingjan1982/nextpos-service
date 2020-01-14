@@ -350,7 +350,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     }
 
     @Data
-    @NoArgsConstructor(access = AccessLevel.PACKAGE)
+    @NoArgsConstructor
     public static class DemographicData {
 
         private int male;

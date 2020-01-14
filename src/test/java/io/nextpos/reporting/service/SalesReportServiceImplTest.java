@@ -114,7 +114,7 @@ class SalesReportServiceImplTest {
             createOrder(today.with(ChronoField.ALIGNED_WEEK_OF_YEAR, i));
         }
 
-        final SalesDistribution salesDistribution = salesReportService.generateSalesDistribution("client");
+        final SalesDistribution salesDistribution = salesReportService.generateSalesDistribution("client", LocalDate.now());
 
         assertThat(salesDistribution.getSalesByMonth()).hasSize(12);
         final BigDecimal sumOfMonthlySales = salesDistribution.getSalesByMonth().stream().map(SalesDistribution.MonthlySales::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add);

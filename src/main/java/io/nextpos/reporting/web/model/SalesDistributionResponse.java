@@ -11,4 +11,6 @@ import java.util.List;
 public class SalesDistributionResponse {
 
     private List<SalesDistribution.MonthlySales> salesByMonth;
+
+    private List<SalesDistribution.MonthlySales> salesByMonthLastYear;
 }

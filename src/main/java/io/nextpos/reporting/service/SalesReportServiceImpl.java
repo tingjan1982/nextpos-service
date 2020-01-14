@@ -206,7 +206,7 @@ public class SalesReportServiceImpl implements SalesReportService {
     }
 
     @Override
-    public SalesDistribution generateSalesDistribution(final String clientId) {
+    public SalesDistribution generateSalesDistribution(final String clientId, final LocalDate dateFilter) {
 
         final ProjectionOperation projection = Aggregation.project("clientId")
                 .and(createToDecimal("total.amountWithTax")).as("total") // this is critical to make $sum work.
@@ -214,8 +214,8 @@ public class SalesReportServiceImpl implements SalesReportService {
                 .and("modifiedDate").extractWeek().as("week")
                 .and("modifiedDate").extractMonth().as("month");
 
-        final LocalDate firstDayOfYear = LocalDate.now().with(TemporalAdjusters.firstDayOfYear());
-        final LocalDate firstDayOfNextYear = LocalDate.now().with(TemporalAdjusters.firstDayOfNextYear());
+        final LocalDate firstDayOfYear = dateFilter.with(TemporalAdjusters.firstDayOfYear());
+        final LocalDate firstDayOfNextYear = dateFilter.with(TemporalAdjusters.firstDayOfNextYear());
 
         final MatchOperation filter = Aggregation.match(
                 Criteria.where("clientId").is(clientId)

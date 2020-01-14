@@ -5,10 +5,8 @@ import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.reporting.data.*;
 import io.nextpos.reporting.service.ReportingService;
 import io.nextpos.reporting.service.SalesReportService;
-import io.nextpos.reporting.web.model.OrderStateAverageTimeReportResponse;
-import io.nextpos.reporting.web.model.RangedSalesReportResponse;
-import io.nextpos.reporting.web.model.SalesDistributionResponse;
-import io.nextpos.reporting.web.model.SalesReportResponse;
+import io.nextpos.reporting.service.StatsReportService;
+import io.nextpos.reporting.web.model.*;
 import io.nextpos.shared.web.ClientResolver;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bson.types.Decimal128;
@@ -17,6 +15,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,10 +28,13 @@ public class ReportingController {
 
     private final SalesReportService salesReportService;
 
+    private final StatsReportService statsReportService;
+
     @Autowired
-    public ReportingController(final ReportingService reportingService, final SalesReportService salesReportService) {
+    public ReportingController(final ReportingService reportingService, final SalesReportService salesReportService, final StatsReportService statsReportService) {
         this.reportingService = reportingService;
         this.salesReportService = salesReportService;
+        this.statsReportService = statsReportService;
     }
 
     @GetMapping("/rangedSalesReport")
@@ -46,12 +48,26 @@ public class ReportingController {
                 rangedSalesReport.getSalesByProduct());
     }
 
+    @GetMapping("/customerCount")
+    public CustomerCountReportResponse getCustomerCountReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        final LocalDate today = LocalDate.now();
+        final CustomerCountReport customerCountOfThisMonth = statsReportService.generateCustomerCountReport(client.getId(), today);
+        final CustomerCountReport customerCountOfThisMonthLastYear = statsReportService.generateCustomerCountReport(client.getId(), today.minusYears(1));
+
+        return new CustomerCountReportResponse(customerCountOfThisMonth.getGroupedCustomerCount(),
+                customerCountOfThisMonthLastYear.getGroupedCustomerCount());
+    }
+
     @GetMapping("/salesDistribution")
     public SalesDistributionResponse getSalesDistributionReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
-        final SalesDistribution salesDistribution = salesReportService.generateSalesDistribution(client.getId());
+        final LocalDate today = LocalDate.now();
+        final SalesDistribution salesDistribution = salesReportService.generateSalesDistribution(client.getId(), today);
+        final SalesDistribution salesDistributionLastYear = salesReportService.generateSalesDistribution(client.getId(), today.minusYears(1));
 
-        return new SalesDistributionResponse(salesDistribution.getSalesByMonth());
+        return new SalesDistributionResponse(salesDistribution.getSalesByMonth(),
+                salesDistributionLastYear.getSalesByMonth());
     }
 
     @GetMapping("/salesreport")
