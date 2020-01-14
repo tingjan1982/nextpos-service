@@ -11,4 +11,6 @@ public interface AnnouncementService {
     Announcement getAnnouncement(String id);
 
     List<Announcement> getAnnouncements(String clientId);
+
+    void deleteAnnouncement(Announcement announcement);
 }

@@ -36,4 +36,9 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     public List<Announcement> getAnnouncements(String clientId) {
         return announcementRepository.findAllByClientIdOrderByOrder(clientId);
     }
+
+    @Override
+    public void deleteAnnouncement(final Announcement announcement) {
+        announcementRepository.delete(announcement);
+    }
 }

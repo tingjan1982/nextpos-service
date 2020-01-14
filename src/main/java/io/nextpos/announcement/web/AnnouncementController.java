@@ -9,6 +9,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -39,6 +40,18 @@ public class AnnouncementController {
         return toResponse(savedAnnouncement);
     }
 
+    private Announcement fromRequest(final Client client, final AnnouncementRequest announcementRequest) {
+
+        final Announcement announcement = new Announcement(client.getId(),
+                announcementRequest.getTitleIcon(),
+                announcementRequest.getTitle(),
+                announcementRequest.getMarkdownContent());
+
+        announcement.setOrder(announcementRequest.getOrder());
+
+        return announcement;
+    }
+
     @GetMapping("/{id}")
     public AnnouncementResponse getAnnouncement(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                 @PathVariable final String id) {
@@ -60,16 +73,33 @@ public class AnnouncementController {
         return new AnnouncementsResponse(results);
     }
 
-    private Announcement fromRequest(final Client client, final AnnouncementRequest announcementRequest) {
+    @PostMapping("/{id}")
+    public AnnouncementResponse updateAnnouncement(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                   @PathVariable final String id,
+                                                   @Valid @RequestBody AnnouncementRequest announcementRequest) {
 
-        final Announcement announcement = new Announcement(client.getId(),
-                announcementRequest.getTitleIcon(),
-                announcementRequest.getTitle(),
-                announcementRequest.getMarkdownContent());
+        final Announcement announcement = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> announcementService.getAnnouncement(id));
 
+        updateAnnouncementFromRequest(announcement, announcementRequest);
+
+        return toResponse(announcementService.saveAnnouncement(announcement));
+    }
+
+    private void updateAnnouncementFromRequest(final Announcement announcement, final @Valid AnnouncementRequest announcementRequest) {
+
+        announcement.setTitleIcon(announcementRequest.getTitleIcon());
+        announcement.setTitleText(announcementRequest.getTitle());
+        announcement.setMarkdownContent(announcementRequest.getMarkdownContent());
         announcement.setOrder(announcementRequest.getOrder());
+    }
 
-        return announcement;
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteAnnouncement(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                   @PathVariable final String id) {
+
+        final Announcement announcement = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> announcementService.getAnnouncement(id));
+        announcementService.deleteAnnouncement(announcement);
     }
 
     private AnnouncementResponse toResponse(final Announcement savedAnnouncement) {
