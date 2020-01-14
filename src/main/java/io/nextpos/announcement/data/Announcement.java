@@ -1,6 +1,7 @@
 package io.nextpos.announcement.data;
 
 import io.nextpos.shared.model.MongoBaseObject;
+import io.nextpos.shared.model.WithClientId;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -12,7 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class Announcement extends MongoBaseObject {
+public class Announcement extends MongoBaseObject implements WithClientId {
 
     @Id
     private String id;

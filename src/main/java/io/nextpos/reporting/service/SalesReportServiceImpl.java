@@ -212,8 +212,7 @@ public class SalesReportServiceImpl implements SalesReportService {
                 .and(createToDecimal("total.amountWithTax")).as("total") // this is critical to make $sum work.
                 .and("modifiedDate").as("modifiedDate")
                 .and("modifiedDate").extractWeek().as("week")
-                .and("modifiedDate").extractMonth().as("month")
-                .and("modifiedDate").extractYear().as("year");
+                .and("modifiedDate").extractMonth().as("month");
 
         final LocalDate firstDayOfYear = LocalDate.now().with(TemporalAdjusters.firstDayOfYear());
         final LocalDate firstDayOfNextYear = LocalDate.now().with(TemporalAdjusters.firstDayOfNextYear());
@@ -234,7 +233,6 @@ public class SalesReportServiceImpl implements SalesReportService {
 
         final FacetOperation facets = Aggregation.facet(salesByMonth).as("salesByMonth")
                 .and(salesByWeek).as("salesByWeek");
-
 
         final TypedAggregation<Order> aggregations = Aggregation.newAggregation(Order.class,
                 projection,

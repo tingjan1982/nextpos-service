@@ -6,6 +6,7 @@ import io.nextpos.announcement.web.model.AnnouncementRequest;
 import io.nextpos.announcement.web.model.AnnouncementResponse;
 import io.nextpos.announcement.web.model.AnnouncementsResponse;
 import io.nextpos.client.data.Client;
+import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -20,9 +21,12 @@ public class AnnouncementController {
 
     private final AnnouncementService announcementService;
 
+    private final ClientObjectOwnershipService clientObjectOwnershipService;
+
     @Autowired
-    public AnnouncementController(final AnnouncementService announcementService) {
+    public AnnouncementController(final AnnouncementService announcementService, final ClientObjectOwnershipService clientObjectOwnershipService) {
         this.announcementService = announcementService;
+        this.clientObjectOwnershipService = clientObjectOwnershipService;
     }
 
     @PostMapping
@@ -33,6 +37,15 @@ public class AnnouncementController {
         final Announcement savedAnnouncement = announcementService.saveAnnouncement(announcement);
 
         return toResponse(savedAnnouncement);
+    }
+
+    @GetMapping("/{id}")
+    public AnnouncementResponse getAnnouncement(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                @PathVariable final String id) {
+
+        final Announcement announcement = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> announcementService.getAnnouncement(id));
+
+        return toResponse(announcement);
     }
 
     @GetMapping

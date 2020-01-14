@@ -8,5 +8,7 @@ public interface AnnouncementService {
 
     Announcement saveAnnouncement(Announcement announcement);
 
+    Announcement getAnnouncement(String id);
+
     List<Announcement> getAnnouncements(String clientId);
 }

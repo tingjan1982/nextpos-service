@@ -2,6 +2,7 @@ package io.nextpos.announcement.service;
 
 import io.nextpos.announcement.data.Announcement;
 import io.nextpos.announcement.data.AnnouncementRepository;
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,13 @@ public class AnnouncementServiceImpl implements AnnouncementService {
     @Override
     public Announcement saveAnnouncement(final Announcement announcement) {
         return announcementRepository.save(announcement);
+    }
+
+    @Override
+    public Announcement getAnnouncement(final String id) {
+        return announcementRepository.findById(id).orElseThrow(() -> {
+            throw new ObjectNotFoundException(id, Announcement.class);
+        });
     }
 
     @Override

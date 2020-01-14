@@ -7,6 +7,7 @@ import io.nextpos.reporting.service.ReportingService;
 import io.nextpos.reporting.service.SalesReportService;
 import io.nextpos.reporting.web.model.OrderStateAverageTimeReportResponse;
 import io.nextpos.reporting.web.model.RangedSalesReportResponse;
+import io.nextpos.reporting.web.model.SalesDistributionResponse;
 import io.nextpos.reporting.web.model.SalesReportResponse;
 import io.nextpos.shared.web.ClientResolver;
 import org.apache.commons.lang3.tuple.Pair;
@@ -43,6 +44,14 @@ public class ReportingController {
         return new RangedSalesReportResponse(rangedSalesReport.getTotalSales().getSalesTotal(),
                 rangedSalesReport.getSalesByRange(),
                 rangedSalesReport.getSalesByProduct());
+    }
+
+    @GetMapping("/salesDistribution")
+    public SalesDistributionResponse getSalesDistributionReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        final SalesDistribution salesDistribution = salesReportService.generateSalesDistribution(client.getId());
+
+        return new SalesDistributionResponse(salesDistribution.getSalesByMonth());
     }
 
     @GetMapping("/salesreport")
