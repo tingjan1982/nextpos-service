@@ -58,4 +58,10 @@ public class UserTimeCardServiceImpl implements UserTimeCardService {
         final String username = oAuth2Helper.getCurrentPrincipal();
         return userTimeCardRepository.findByClientIdAndUsernameAndTimeCardStatus(client.getId(), username, UserTimeCard.TimeCardStatus.ACTIVE);
     }
+
+    @Override
+    public Optional<UserTimeCard> getMostRecentTimeCard(final Client client) {
+        final String username = oAuth2Helper.getCurrentPrincipal();
+        return userTimeCardRepository.findFirstByClientIdAndUsernameOrderByCreatedDateDesc(client.getId(), username);
+    }
 }

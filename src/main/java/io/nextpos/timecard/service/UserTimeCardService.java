@@ -11,5 +11,7 @@ public interface UserTimeCardService {
 
     UserTimeCard clockOut(Client client);
 
-    Optional<UserTimeCard> getActiveTimeCard(final Client client);
+    Optional<UserTimeCard> getActiveTimeCard(Client client);
+
+    Optional<UserTimeCard> getMostRecentTimeCard(Client client);
 }

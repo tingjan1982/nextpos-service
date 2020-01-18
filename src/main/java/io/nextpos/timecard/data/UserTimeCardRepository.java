@@ -7,4 +7,6 @@ import java.util.Optional;
 public interface UserTimeCardRepository extends PagingAndSortingRepository<UserTimeCard, String> {
 
     Optional<UserTimeCard> findByClientIdAndUsernameAndTimeCardStatus(String clientId, String username, UserTimeCard.TimeCardStatus timeCardStatus);
+
+    Optional<UserTimeCard> findFirstByClientIdAndUsernameOrderByCreatedDateDesc(String clientId, String username);
 }

@@ -38,6 +38,19 @@ public class ShiftController {
         return toShiftResponse(shift);
     }
 
+    @GetMapping("/mostRecent")
+    public ShiftResponse getMostRecentShift(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        final Shift mostRecentShift = shiftService.getMostRecentShift(client.getId()).orElseGet(() -> {
+            final Shift s = new Shift(client.getId(), null, null, null);
+            s.setShiftStatus(Shift.ShiftStatus.INACTIVE);
+
+            return s;
+        });
+
+        return toShiftResponse(mostRecentShift);
+    }
+
     @PostMapping("/open")
     public ShiftResponse openShift(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                    @Valid @RequestBody ShiftRequest shiftRequest) {

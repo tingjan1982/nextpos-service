@@ -52,6 +52,20 @@ public class UserTimeCardController {
         return toUserTimeCardResponse(userTimeCard);
     }
 
+    @GetMapping("/mostRecent")
+    public UserTimeCardResponse getMostRecentUserTimeCard(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        final UserTimeCard userTimeCard = userTimeCardService.getMostRecentTimeCard(client).orElseGet(() -> {
+            final ClientUser clientUser = oAuth2Helper.resolveCurrentClientUser(client);
+            final UserTimeCard card = new UserTimeCard(client.getId(), clientUser.getId().getUsername(), clientUser.getNickname());
+            card.setTimeCardStatus(UserTimeCard.TimeCardStatus.INACTIVE);
+
+            return card;
+        });
+
+        return toUserTimeCardResponse(userTimeCard);
+    }
+
     private UserTimeCardResponse toUserTimeCardResponse(final UserTimeCard userTimeCard) {
         return new UserTimeCardResponse(
                 userTimeCard.getId(),
