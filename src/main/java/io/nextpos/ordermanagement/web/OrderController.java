@@ -141,7 +141,7 @@ public class OrderController {
         final Map<String, List<TableDetailsResponse>> availableTables = tableLayoutService.getTableLayouts(client).stream()
                 .flatMap(tl -> tl.getTables().stream())
                 .filter(t -> !occupiedTableIds.contains(t.getId()))
-                .collect(Collectors.groupingBy(t -> t.getTableLayout().getLayoutName(),
+                .collect(Collectors.groupingBy(t -> t.getTableLayout().getId(),
                         Collectors.mapping(t -> new TableDetailsResponse(t.getId(), t.getTableName(), t.getCapacity()), Collectors.toList())));
 
         return new TablesResponse(availableTables);
