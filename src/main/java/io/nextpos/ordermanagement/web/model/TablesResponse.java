@@ -1,6 +1,6 @@
 package io.nextpos.ordermanagement.web.model;
 
-import io.nextpos.shared.web.model.SimpleObjectResponse;
+import io.nextpos.tablelayout.web.model.TableDetailsResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -11,5 +11,5 @@ import java.util.Map;
 @AllArgsConstructor
 public class TablesResponse {
 
-    Map<String, List<SimpleObjectResponse>> availableTables;
+    Map<String, List<TableDetailsResponse>> availableTables;
 }

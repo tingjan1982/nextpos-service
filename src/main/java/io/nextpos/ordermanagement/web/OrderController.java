@@ -15,6 +15,7 @@ import io.nextpos.shared.web.model.SimpleObjectResponse;
 import io.nextpos.shared.web.model.SimpleObjectsResponse;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
+import io.nextpos.tablelayout.web.model.TableDetailsResponse;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,11 +138,11 @@ public class OrderController {
                 .map(o -> o.getTableInfo().getTableId())
                 .collect(Collectors.toList());
 
-        final Map<String, List<SimpleObjectResponse>> availableTables = tableLayoutService.getTableLayouts(client).stream()
+        final Map<String, List<TableDetailsResponse>> availableTables = tableLayoutService.getTableLayouts(client).stream()
                 .flatMap(tl -> tl.getTables().stream())
                 .filter(t -> !occupiedTableIds.contains(t.getId()))
                 .collect(Collectors.groupingBy(t -> t.getTableLayout().getLayoutName(),
-                        Collectors.mapping(t -> new SimpleObjectResponse(t.getId(), t.getTableName()), Collectors.toList())));
+                        Collectors.mapping(t -> new TableDetailsResponse(t.getId(), t.getTableName(), t.getCapacity()), Collectors.toList())));
 
         return new TablesResponse(availableTables);
     }
