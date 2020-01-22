@@ -3,7 +3,8 @@ package io.nextpos.reporting.service;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.service.OrderService;
-import io.nextpos.reporting.data.CustomerCountReport;
+import io.nextpos.reporting.data.CustomerStatsReport;
+import io.nextpos.shared.DummyObjects;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,11 +15,13 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 
 import javax.transaction.Transactional;
+import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 @SpringBootTest
@@ -41,7 +44,7 @@ class StatsReportServiceImplTest {
 
 
     @Test
-    void generateCustomerCountReport() {
+    void generateCustomerStatsReport() {
 
         final LocalDate today = LocalDate.now();
         final LocalDate lastDayOfMonth = today.with(TemporalAdjusters.lastDayOfMonth());
@@ -49,17 +52,19 @@ class StatsReportServiceImplTest {
         for (int i = 1; i <= lastDayOfMonth.getDayOfMonth(); i++) {
             final LocalDate date = today.withDayOfMonth(i);
             createOrder(date, 2, 2, 2);
+            createOrder(date, 1, 1, 1);
         }
 
-        final CustomerCountReport results = statsReportService.generateCustomerCountReport("client", LocalDate.now());
+        final CustomerStatsReport results = statsReportService.generateCustomerStatsReport("client", LocalDate.now());
 
-        assertThat(results.getGroupedCustomerCount()).hasSize(lastDayOfMonth.getDayOfMonth());
+        assertThat(results.getGroupedCustomerStats()).hasSize(lastDayOfMonth.getDayOfMonth());
 
-        assertThat(results.getGroupedCustomerCount()).allSatisfy(cc -> {
-            assertThat(cc.getMaleCount()).isEqualTo(2);
-            assertThat(cc.getFemaleCount()).isEqualTo(2);
-            assertThat(cc.getKidCount()).isEqualTo(2);
-            assertThat(cc.getCustomerCount()).isEqualTo(6);
+        assertThat(results.getGroupedCustomerStats()).allSatisfy(cc -> {
+            assertThat(cc.getMaleCount()).isEqualTo(3);
+            assertThat(cc.getFemaleCount()).isEqualTo(3);
+            assertThat(cc.getKidCount()).isEqualTo(3);
+            assertThat(cc.getCustomerCount()).isEqualTo(9);
+            assertThat(cc.getAverageSpending()).isCloseTo(BigDecimal.valueOf(22), within(BigDecimal.valueOf(1)));
         });
         
         LOGGER.info("{}", results);
@@ -67,12 +72,16 @@ class StatsReportServiceImplTest {
 
     private void createOrder(final LocalDate orderDate, final int male, final int female, int kid) {
 
-        final Order order = new Order("client", orderSettings);
+        final OrderSettings newSettings = orderSettings.copy();
+        newSettings.setTaxInclusive(true);
+
+        final Order order = new Order("client", newSettings);
         final Order.DemographicData demographicData = new Order.DemographicData();
         demographicData.setMale(male);
         demographicData.setFemale(female);
         demographicData.setKid(kid);
         order.setDemographicData(demographicData);
+        order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
 
         orderService.createOrder(order);
 

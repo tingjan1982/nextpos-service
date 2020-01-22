@@ -154,7 +154,6 @@ public class SalesReportServiceImpl implements SalesReportService {
             s.setFormattedDate(date.format(DateTimeFormatter.ofPattern("E MM/dd").withLocale(Locale.TAIWAN)));
         });
 
-
         results.getSalesByProduct().forEach(s -> {
             final BigDecimal productSales = s.getProductSales();
             final BigDecimal percentage = productSales.multiply(BigDecimal.valueOf(100)).divide(salesTotal, RoundingMode.UP);

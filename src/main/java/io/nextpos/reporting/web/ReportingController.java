@@ -48,15 +48,16 @@ public class ReportingController {
                 rangedSalesReport.getSalesByProduct());
     }
 
-    @GetMapping("/customerCount")
-    public CustomerCountReportResponse getCustomerCountReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+    @GetMapping("/customerStats")
+    public CustomerStatsReportResponse getCustomerStatsReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
         final LocalDate today = LocalDate.now();
-        final CustomerCountReport customerCountOfThisMonth = statsReportService.generateCustomerCountReport(client.getId(), today);
-        final CustomerCountReport customerCountOfThisMonthLastYear = statsReportService.generateCustomerCountReport(client.getId(), today.minusYears(1));
+        final CustomerStatsReport customerStatsOfThisMonth = statsReportService.generateCustomerStatsReport(client.getId(), today);
+        final CustomerStatsReport customerStatsOfThisMonthLastYear = statsReportService.generateCustomerStatsReport(client.getId(), today.minusYears(1));
 
-        return new CustomerCountReportResponse(customerCountOfThisMonth.getGroupedCustomerCount(),
-                customerCountOfThisMonthLastYear.getGroupedCustomerCount());
+        return new CustomerStatsReportResponse(
+                customerStatsOfThisMonth.getGroupedCustomerStats(),
+                customerStatsOfThisMonthLastYear.getGroupedCustomerStats());
     }
 
     @GetMapping("/salesDistribution")

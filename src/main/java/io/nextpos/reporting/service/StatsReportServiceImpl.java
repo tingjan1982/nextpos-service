@@ -1,7 +1,7 @@
 package io.nextpos.reporting.service;
 
 import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.reporting.data.CustomerCountReport;
+import io.nextpos.reporting.data.CustomerStatsReport;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -26,13 +26,15 @@ public class StatsReportServiceImpl implements StatsReportService {
     }
 
     @Override
-    public CustomerCountReport generateCustomerCountReport(final String clientId, LocalDate dateFilter) {
+    public CustomerStatsReport generateCustomerStatsReport(final String clientId, LocalDate dateFilter) {
 
         final ProjectionOperation projection = Aggregation.project("clientId")
+                .and(createToDecimal("total.amountWithTax")).as("total")
                 .and("demographicData.male").as("male")
                 .and("demographicData.female").as("female")
                 .and("demographicData.kid").as("kid")
                 .andExpression("demographicData.male + demographicData.female + demographicData.kid").as("customerCount")
+                //.and(context -> Document.parse("{ $divide: [ { $toDecimal: [ '$total.amountWithTax' ] }, { $add: [ '$demographicData.male', '$demographicData.female', '$demographicData.kid' ] } ] }")).as("avgCustomerSpending")
                 .and("modifiedDate").as("modifiedDate")
                 .and("modifiedDate").extractDayOfMonth().as("day");
 
@@ -44,23 +46,36 @@ public class StatsReportServiceImpl implements StatsReportService {
 
         final LocalDate lastDayOfMonth = dateFilter.with(TemporalAdjusters.lastDayOfMonth());
         final Integer[] daysOfMonth = IntStream.rangeClosed(1, lastDayOfMonth.getDayOfMonth() + 1).boxed().toArray(Integer[]::new);
-        final BucketOperation groupedCustomerCount = Aggregation.bucket("day").withBoundaries(daysOfMonth).withDefaultBucket("Other")
+        final BucketOperation groupedCustomerStats = Aggregation.bucket("day").withBoundaries(daysOfMonth).withDefaultBucket("Other")
+                .andOutput(AccumulatorOperators.Sum.sumOf("total")).as("total")
                 .andOutput(AccumulatorOperators.Sum.sumOf("male")).as("maleCount")
                 .andOutput(AccumulatorOperators.Sum.sumOf("female")).as("femaleCount")
                 .andOutput(AccumulatorOperators.Sum.sumOf("kid")).as("kidCount")
                 .andOutput(AccumulatorOperators.Sum.sumOf("customerCount")).as("customerCount")
                 .andOutput(context -> new Document("$first", "$modifiedDate")).as("date");
 
-        final FacetOperation facets = Aggregation
-                .facet(groupedCustomerCount).as("groupedCustomerCount");
+        final ProjectionOperation test = Aggregation.project("total", "maleCount", "femaleCount", "kidCount", "customerCount", "date")
+                //.and(context -> Document.parse("{ $round: [ {$divide: ['$total', '$customerCount']}, 2 ] }")).as("averageSpending"); // version 4.2+
+                .andExpression("total / customerCount").as("averageSpending");
+
+        final FacetOperation facets = Aggregation.facet(groupedCustomerStats, test).as("groupedCustomerStats");
 
         final TypedAggregation<Order> aggregations = Aggregation.newAggregation(Order.class,
                 projection,
                 filter,
                 facets);
 
-        final AggregationResults<CustomerCountReport> results = mongoTemplate.aggregate(aggregations, CustomerCountReport.class);
+        final AggregationResults<CustomerStatsReport> results = mongoTemplate.aggregate(aggregations, CustomerStatsReport.class);
+        CustomerStatsReport customerStatsReport = results.getUniqueMappedResult();
 
-        return results.getUniqueMappedResult();
+        if (customerStatsReport == null) {
+            customerStatsReport = new CustomerStatsReport();
+        }
+
+        return customerStatsReport;
+    }
+    
+    private ConvertOperators.ToDecimal createToDecimal(String fieldReference) {
+        return ConvertOperators.valueOf(fieldReference).convertToDecimal();
     }
 }

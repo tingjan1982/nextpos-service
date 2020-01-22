@@ -9,6 +9,9 @@ import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordermanagement.service.ShiftService;
 import io.nextpos.ordermanagement.web.factory.OrderCreationFactory;
 import io.nextpos.ordermanagement.web.model.*;
+import io.nextpos.reporting.data.DateParameterType;
+import io.nextpos.reporting.data.ReportDateParameter;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.shared.web.model.DeleteObjectResponse;
 import io.nextpos.shared.web.model.SimpleObjectResponse;
@@ -26,7 +29,6 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -70,7 +72,20 @@ public class OrderController {
     }
 
     @GetMapping
-    public OrdersResponse getOrdersByDateRange(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+    public OrdersResponse getOrdersByDateRange(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                               @RequestParam(name = "dateRange", required = false) DateParameterType dateParameterType) {
+
+        final ReportDateParameter reportDateParameter = resolveDateRange(client, dateParameterType);
+        final List<Order> orders = orderService.getOrders(client, reportDateParameter.getFromDate(), reportDateParameter.getToDate());
+
+        return toOrdersResponse(orders);
+    }
+
+    private ReportDateParameter resolveDateRange(Client client, DateParameterType dateParameterType) {
+
+        if (dateParameterType != null) {
+            return dateParameterType.toReportingParameter();
+        }
 
         final Optional<Shift> mostRecentShift = shiftService.getMostRecentShift(client.getId());
 
@@ -83,11 +98,10 @@ public class OrderController {
                 toDate = shift.getEnd().getTimestamp().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
             }
 
-            final List<Order> orders = orderService.getOrders(client, fromDate, toDate);
-            return toOrdersResponse(orders);
+            return new ReportDateParameter(fromDate, toDate);
         }
 
-        return new OrdersResponse(Collections.emptyMap());
+        throw new BusinessLogicException("No date range specified.");
     }
 
     /**
