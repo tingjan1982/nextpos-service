@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Service
@@ -36,7 +39,7 @@ public class StatsReportServiceImpl implements StatsReportService {
                 .andExpression("demographicData.male + demographicData.female + demographicData.kid").as("customerCount")
                 //.and(context -> Document.parse("{ $divide: [ { $toDecimal: [ '$total.amountWithTax' ] }, { $add: [ '$demographicData.male', '$demographicData.female', '$demographicData.kid' ] } ] }")).as("avgCustomerSpending")
                 .and("modifiedDate").as("modifiedDate")
-                .and("modifiedDate").extractDayOfMonth().as("day");
+                .and(context -> Document.parse("{ $dayOfMonth: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("day");
 
         LocalDate fromDate = dateFilter.withDayOfMonth(1);
         LocalDate toDate = dateFilter.plusMonths(1).withDayOfMonth(1);
@@ -55,8 +58,7 @@ public class StatsReportServiceImpl implements StatsReportService {
                 .andOutput(context -> new Document("$first", "$modifiedDate")).as("date");
 
         final ProjectionOperation test = Aggregation.project("total", "maleCount", "femaleCount", "kidCount", "customerCount", "date")
-                //.and(context -> Document.parse("{ $round: [ {$divide: ['$total', '$customerCount']}, 2 ] }")).as("averageSpending"); // version 4.2+
-                .andExpression("total / customerCount").as("averageSpending");
+                .and(context -> Document.parse("{ $cond: [ {$gt: ['$customerCount', 0]}, {$divide: ['$total', '$customerCount']}, '$total'] }")).as("averageSpending");
 
         final FacetOperation facets = Aggregation.facet(groupedCustomerStats, test).as("groupedCustomerStats");
 
@@ -70,11 +72,41 @@ public class StatsReportServiceImpl implements StatsReportService {
 
         if (customerStatsReport == null) {
             customerStatsReport = new CustomerStatsReport();
+        } else {
+            enhanceResult(customerStatsReport, dateFilter);
         }
 
         return customerStatsReport;
     }
-    
+
+    private void enhanceResult(final CustomerStatsReport customerStatsReport, final LocalDate dateFilter) {
+
+        final int lastDayOfMonth = dateFilter.with(TemporalAdjusters.lastDayOfMonth()).getDayOfMonth();
+
+        if (customerStatsReport.getGroupedCustomerStats().size() != lastDayOfMonth) {
+            final Map<String, CustomerStatsReport.CustomerStats> statsMap = customerStatsReport.getGroupedCustomerStats().stream()
+                    .collect(Collectors.toMap(CustomerStatsReport.CustomerStats::getId, s -> s));
+
+            final ArrayList<CustomerStatsReport.CustomerStats> enhancedCustomerStatsList = new ArrayList<>();
+
+            for (int i = 1; i <= lastDayOfMonth; i++) {
+                final String day = String.valueOf(i);
+
+                if (statsMap.containsKey(day)) {
+                    enhancedCustomerStatsList.add(statsMap.get(day));
+                } else {
+                    final CustomerStatsReport.CustomerStats zeroCustomerStats = new CustomerStatsReport.CustomerStats();
+                    zeroCustomerStats.setId(day);
+                    zeroCustomerStats.setDate(dateFilter.withDayOfMonth(i));
+
+                    enhancedCustomerStatsList.add(zeroCustomerStats);
+                }
+            }
+
+            customerStatsReport.setGroupedCustomerStats(enhancedCustomerStatsList);
+        }
+    }
+
     private ConvertOperators.ToDecimal createToDecimal(String fieldReference) {
         return ConvertOperators.valueOf(fieldReference).convertToDecimal();
     }

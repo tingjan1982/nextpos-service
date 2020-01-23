@@ -23,9 +23,9 @@ public class CustomerStatsReport {
 
         private LocalDate date;
 
-        private BigDecimal averageSpending;
+        private BigDecimal averageSpending = BigDecimal.ZERO;
 
-        private BigDecimal total;
+        private BigDecimal total = BigDecimal.ZERO;
 
         private int customerCount;
 

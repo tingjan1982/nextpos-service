@@ -5,6 +5,7 @@ import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.reporting.data.CustomerStatsReport;
 import io.nextpos.shared.DummyObjects;
+import org.assertj.core.data.Index;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +69,27 @@ class StatsReportServiceImplTest {
         });
         
         LOGGER.info("{}", results);
+    }
+
+    @Test
+    void generateEmptyCustomerStatsReport() {
+
+        final LocalDate date = LocalDate.now().withDayOfMonth(1);
+        createOrder(date, 0, 0, 0);
+
+        final CustomerStatsReport results = statsReportService.generateCustomerStatsReport("client", LocalDate.now());
+
+        final LocalDate lastDayOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
+        assertThat(results.getGroupedCustomerStats()).hasSize(lastDayOfMonth.getDayOfMonth());
+
+        assertThat(results.getGroupedCustomerStats()).satisfies(cc -> {
+            assertThat(cc.getMaleCount()).isEqualTo(0);
+            assertThat(cc.getFemaleCount()).isEqualTo(0);
+            assertThat(cc.getKidCount()).isEqualTo(0);
+            assertThat(cc.getCustomerCount()).isEqualTo(0);
+            assertThat(cc.getAverageSpending()).isCloseTo(BigDecimal.valueOf(100), within(BigDecimal.valueOf(1)));
+
+        }, Index.atIndex(0));
     }
 
     private void createOrder(final LocalDate orderDate, final int male, final int female, int kid) {

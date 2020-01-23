@@ -43,7 +43,7 @@ dependencies {
     //implementation 'com.hazelcast:hazelcast-client'
     
     implementation 'io.vavr:vavr:0.9.3'
-    implementation 'org.apache.commons:commons-lang3:3.5'
+    implementation 'org.apache.commons:commons-lang3'
     implementation 'org.passay:passay:1.0' // password validation
     implementation 'com.twilio.sdk:twilio:7.41.1'
     compileOnly 'org.projectlombok:lombok'
