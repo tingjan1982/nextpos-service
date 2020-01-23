@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '2.1.5.RELEASE'
+    id 'org.springframework.boot' version '2.2.4.RELEASE'
     id 'java'
     id 'com.palantir.docker' version '0.22.1'
 

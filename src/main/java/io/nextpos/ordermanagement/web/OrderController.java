@@ -78,7 +78,7 @@ public class OrderController {
         final ReportDateParameter reportDateParameter = resolveDateRange(client, dateParameterType);
         final List<Order> orders = orderService.getOrders(client, reportDateParameter.getFromDate(), reportDateParameter.getToDate());
 
-        return toOrdersResponse(orders);
+        return toOrdersResponse(orders, reportDateParameter);
     }
 
     private ReportDateParameter resolveDateRange(Client client, DateParameterType dateParameterType) {
@@ -115,10 +115,11 @@ public class OrderController {
     public OrdersResponse getOrders(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
         List<Order> orders = orderService.getInflightOrders(client.getId());
-        return toOrdersResponse(orders);
+
+        return toOrdersResponse(orders, null);
     }
 
-    private OrdersResponse toOrdersResponse(final List<Order> orders) {
+    private OrdersResponse toOrdersResponse(final List<Order> orders, final ReportDateParameter reportDateParameter) {
         final Map<String, List<OrdersResponse.LightOrderResponse>> orderResponses = orders.stream()
                 .filter(o -> o.getTableInfo() != null)
                 .map(o -> {
@@ -142,7 +143,7 @@ public class OrderController {
                 })
                 .collect(Collectors.groupingBy(OrdersResponse.LightOrderResponse::getTableLayoutId, Collectors.toList()));
 
-        return new OrdersResponse(orderResponses);
+        return new OrdersResponse(reportDateParameter, orderResponses);
     }
 
     @GetMapping("/availableTables")
