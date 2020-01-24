@@ -16,13 +16,11 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoField;
-import java.time.temporal.TemporalAdjusters;
-import java.time.temporal.TemporalField;
-import java.time.temporal.WeekFields;
+import java.time.temporal.*;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Service
@@ -68,7 +66,7 @@ public class SalesReportServiceImpl implements SalesReportService {
 
         RangedSalesReport results = result.getUniqueMappedResult();
 
-        if (results != null && results.hasResult()) {
+        if (results != null) {
             enhanceResults(results, rangeType);
         } else {
             results = new RangedSalesReport();
@@ -147,18 +145,45 @@ public class SalesReportServiceImpl implements SalesReportService {
     private void enhanceResults(final RangedSalesReport results, final RangedSalesReport.RangeType rangeType) {
 
         results.setRangeType(rangeType);
-        final BigDecimal salesTotal = results.getTotalSales().getSalesTotal();
 
-        results.getSalesByRange().forEach(s -> {
-            final LocalDate date = s.getDate();
-            s.setFormattedDate(date.format(DateTimeFormatter.ofPattern("E MM/dd").withLocale(Locale.TAIWAN)));
-        });
+        final TemporalField temporalField = WeekFields.of(DayOfWeek.SUNDAY, 7).dayOfWeek();
+        final LocalDate firstDayOfCurrentWeek = LocalDate.now().with(temporalField, 1);
 
-        results.getSalesByProduct().forEach(s -> {
-            final BigDecimal productSales = s.getProductSales();
-            final BigDecimal percentage = productSales.multiply(BigDecimal.valueOf(100)).divide(salesTotal, RoundingMode.UP);
-            s.setPercentage(percentage);
-        });
+        switch (rangeType) {
+            case WEEK:
+                if (results.getSalesByRange().size() != 7) {
+                    final Map<String, RangedSalesReport.SalesByRange> salesMap = results.getSalesByRange().stream()
+                            .collect(Collectors.toMap(RangedSalesReport.SalesByRange::getId, s -> s));
+                    final ArrayList<RangedSalesReport.SalesByRange> enhancedSalesByRange = new ArrayList<>();
+
+                    IntStream.rangeClosed(1, 7).forEach(dayOfWeek -> {
+                        final String key = String.valueOf(dayOfWeek);
+                        if (salesMap.containsKey(key)) {
+                            enhancedSalesByRange.add(salesMap.get(key));
+                        } else {
+                            final RangedSalesReport.SalesByRange emptySalesByRange = new RangedSalesReport.SalesByRange();
+                            final LocalDate date = firstDayOfCurrentWeek.with(temporalField, dayOfWeek);
+                            emptySalesByRange.setId(key);
+                            emptySalesByRange.setDate(date);
+                            enhancedSalesByRange.add(emptySalesByRange);
+                        }
+                    });
+
+                    results.setSalesByRange(enhancedSalesByRange);
+                }
+
+                break;
+        }
+
+        if (results.hasResult()) {
+            final BigDecimal salesTotal = results.getTotalSales().getSalesTotal();
+
+            results.getSalesByProduct().forEach(s -> {
+                final BigDecimal productSales = s.getProductSales();
+                final BigDecimal percentage = productSales.multiply(BigDecimal.valueOf(100)).divide(salesTotal, RoundingMode.UP);
+                s.setPercentage(percentage);
+            });
+        }
     }
 
     @Override
@@ -239,8 +264,43 @@ public class SalesReportServiceImpl implements SalesReportService {
                 facets);
 
         final AggregationResults<SalesDistribution> result = mongoTemplate.aggregate(aggregations, SalesDistribution.class);
+        SalesDistribution salesDistribution = result.getUniqueMappedResult();
 
-        return result.getUniqueMappedResult();
+        if (salesDistribution != null) {
+            enhanceResult(salesDistribution, dateFilter);
+        } else {
+            salesDistribution = new SalesDistribution();
+        }
+
+        return salesDistribution;
+    }
+
+    private void enhanceResult(final SalesDistribution salesDistribution, final LocalDate dateFilter) {
+
+        if (salesDistribution.getSalesByMonth().size() != 12) {
+            final Map<String, SalesDistribution.MonthlySales> salesMap = salesDistribution.getSalesByMonth().stream()
+                    .collect(Collectors.toMap(SalesDistribution.MonthlySales::getMonth, s -> s));
+            final ArrayList<SalesDistribution.MonthlySales> enhancedMonthlySales = new ArrayList<>();
+
+            final ValueRange range = dateFilter.range(ChronoField.MONTH_OF_YEAR);
+
+            for (int i = 1; i <= range.getMaximum(); i++) {
+                final String key = String.valueOf(i);
+                SalesDistribution.MonthlySales monthlySales = salesMap.get(key);
+
+                if (monthlySales == null) {
+                    monthlySales = new SalesDistribution.MonthlySales();
+                    monthlySales.setId(key);
+                    monthlySales.setMonth(key);
+                    final LocalDate month = dateFilter.withMonth(i);
+                    monthlySales.setDate(month);
+                }
+
+                enhancedMonthlySales.add(monthlySales);
+            }
+
+            salesDistribution.setSalesByMonth(enhancedMonthlySales);
+        }
     }
 
     private ConvertOperators.ToDecimal createToDecimal(String fieldReference) {

@@ -5,6 +5,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -12,9 +13,9 @@ public class RangedSalesReport {
 
     private RangeType rangeType;
 
-    private List<TotalSales> totalSales;
+    private List<TotalSales> totalSales = new ArrayList<>();
 
-    private List<SalesByRange> salesByRange;
+    private List<SalesByRange> salesByRange = new ArrayList<>();
 
     private List<SalesByProduct> salesByProduct;
 
@@ -23,7 +24,7 @@ public class RangedSalesReport {
     }
 
     public TotalSales getTotalSales() {
-        return totalSales.get(0);
+        return hasResult() ? totalSales.get(0) : new TotalSales();
     }
 
     @Data
@@ -31,7 +32,7 @@ public class RangedSalesReport {
 
         private String id;
 
-        private BigDecimal salesTotal;
+        private BigDecimal salesTotal = BigDecimal.ZERO;
     }
 
     @Data
@@ -43,7 +44,7 @@ public class RangedSalesReport {
 
         private String formattedDate;
 
-        private BigDecimal total;
+        private BigDecimal total = BigDecimal.ZERO;
     }
 
     @Data
@@ -62,6 +63,6 @@ public class RangedSalesReport {
 
 
     public enum RangeType {
-        WEEK, MONTH;
+        WEEK, MONTH
     }
 }

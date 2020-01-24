@@ -10,6 +10,8 @@ import io.nextpos.reporting.data.SalesProgress;
 import io.nextpos.shared.DummyObjects;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -32,6 +34,8 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 @SpringBootTest
 @Transactional
 class SalesReportServiceImplTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SalesReportServiceImplTest.class);
 
     @Autowired
     private SalesReportService salesReportService;
@@ -79,6 +83,18 @@ class SalesReportServiceImplTest {
     }
 
     @Test
+    void generateWeeklySalesReport_WithEmptyData() {
+
+        final RangedSalesReport results = salesReportService.generateWeeklySalesReport("client", RangedSalesReport.RangeType.WEEK);
+
+        assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo("0");
+        assertThat(results.getSalesByRange()).hasSize(7);
+        assertThat(results.getSalesByProduct()).hasSize(0);
+
+        LOGGER.info("{}", results);
+    }
+
+    @Test
     void generateWeeklySalesReport_MonthRangeType() {
 
         final LocalDate today = LocalDate.now();
@@ -121,6 +137,17 @@ class SalesReportServiceImplTest {
         assertThat(sumOfMonthlySales).isEqualByComparingTo(BigDecimal.valueOf(500 * 52));
 
         assertThat(salesDistribution.getSalesByWeek()).hasSize(52);
+    }
+
+    @Test
+    void generateSalesDistribution_WithEmptyData() {
+
+        final SalesDistribution salesDistribution = salesReportService.generateSalesDistribution("client", LocalDate.now());
+
+        assertThat(salesDistribution.getSalesByMonth()).hasSize(12);
+        assertThat(salesDistribution.getSalesByWeek()).hasSize(0);
+
+        LOGGER.info("{}", salesDistribution);
     }
 
     @Test

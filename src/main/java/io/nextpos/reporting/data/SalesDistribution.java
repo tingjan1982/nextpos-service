@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -12,9 +14,9 @@ import java.util.List;
 @AllArgsConstructor
 public class SalesDistribution {
 
-    private List<WeeklySales> salesByWeek;
+    private List<WeeklySales> salesByWeek = new ArrayList<>();
 
-    private List<MonthlySales> salesByMonth;
+    private List<MonthlySales> salesByMonth = new ArrayList<>();
 
     @Data
     public static class WeeklySales {
@@ -33,6 +35,8 @@ public class SalesDistribution {
 
         private String month;
 
-        private BigDecimal total;
+        private LocalDate date;
+
+        private BigDecimal total = BigDecimal.ZERO;
     }
 }
