@@ -341,8 +341,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers(DELETE, "/clients/me").hasAuthority(Role.ADMIN_ROLE)
                     .antMatchers(GET, "/clients/me/users").hasAuthority(Role.USER_ROLE)
                     .antMatchers(GET, "/clients/me/users/*").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/clients/me/users/*").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(DELETE, "/clients/me/users/*").hasAuthority(Role.MANAGER_ROLE);
+                    .antMatchers(POST, "/clients/me/users/*").hasAuthority(Role.OWNER_ROLE)
+                    .antMatchers(PATCH, "/clients/me/users/currentUser/password").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(PATCH, "/clients/me/users/**").hasAuthority(Role.OWNER_ROLE)
+                    .antMatchers(DELETE, "/clients/me/users/*").hasAuthority(Role.OWNER_ROLE);
         }
 
         private void authorizeTimeCardRequests(final HttpSecurity http) throws Exception {
@@ -354,7 +356,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         private void authorizeTablesAndWorkingAreaRequests(final HttpSecurity http) throws Exception {
 
             http.authorizeRequests()
-                    .antMatchers("/tablelayouts/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(GET,"/tablelayouts/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(POST,"/tablelayouts/**").hasAuthority(Role.MANAGER_ROLE)
                     .antMatchers("/workingareas/**").hasAuthority(Role.MANAGER_ROLE)
                     .antMatchers("/printers/**").hasAuthority(Role.MANAGER_ROLE);
         }
@@ -377,7 +380,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
             http.authorizeRequests()
                     .antMatchers("/shifts/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers("/orders/**").hasAuthority(Role.USER_ROLE);
+                    .antMatchers(GET, "/orders/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(POST, "/orders/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(DELETE, "/orders/**").hasAuthority(Role.MANAGER_ROLE);
         }
 
         private void authorizeAnnouncementRequests(final HttpSecurity http) throws Exception {
@@ -390,7 +395,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         private void authorizeReportingRequests(final HttpSecurity http) throws Exception {
 
             http.authorizeRequests()
-                    .antMatchers("/reporting/**").hasAuthority(Role.ADMIN_ROLE);
+                    .antMatchers("/reporting/**").hasAuthority(Role.OWNER_ROLE);
         }
     }
 
@@ -411,6 +416,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         String MASTER_ROLE = "MASTER";
 
         String ADMIN_ROLE = "ADMIN";
+
+        String OWNER_ROLE = "OWNER";
 
         String MANAGER_ROLE = "MANAGER";
 

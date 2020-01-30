@@ -9,7 +9,10 @@ import java.util.List;
 
 public class RolesValidator implements ConstraintValidator<ValidRoles, List<String>> {
 
-    private static final List<String> VALID_ROLES = List.of(SecurityConfig.Role.ADMIN_ROLE, SecurityConfig.Role.MANAGER_ROLE, SecurityConfig.Role.USER_ROLE);
+    private static final List<String> VALID_ROLES = List.of(
+            SecurityConfig.Role.OWNER_ROLE,
+            SecurityConfig.Role.MANAGER_ROLE,
+            SecurityConfig.Role.USER_ROLE);
 
     @Override
     public void initialize(final ValidRoles constraintAnnotation) {

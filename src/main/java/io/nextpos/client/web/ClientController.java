@@ -213,7 +213,7 @@ public class ClientController {
         return toClientUserResponse(clientUser);
     }
 
-    @PatchMapping("/me/users/{username}/password")
+    @PatchMapping(value = "/me/users/{username}/password")
     public ClientUserResponse updateClientUserPassword(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                        @PathVariable final String username,
                                                        @Valid @RequestBody UpdateClientUserPasswordRequest request) {
@@ -235,6 +235,16 @@ public class ClientController {
                                  @PathVariable final String username) {
 
         clientService.deleteClientUser(client, username);
+    }
+
+    @PatchMapping("/me/users/currentUser/password")
+    public ClientUserResponse updateClientUserPassword(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                       @Valid @RequestBody UpdateClientUserPasswordRequest request) {
+
+        final ClientUser currentUser = oAuth2Helper.resolveCurrentClientUser(client);
+        currentUser.setPassword(request.getPassword());
+
+        return toClientUserResponse(clientService.saveClientUser(currentUser));
     }
 
     private void updateClientUserFromRequest(final ClientUser clientUser, final UpdateClientUserRequest updateClientUserRequest) {
