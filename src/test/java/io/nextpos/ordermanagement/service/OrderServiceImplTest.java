@@ -76,7 +76,7 @@ class OrderServiceImplTest {
     void createAndGetOrder() {
 
         final Order order = new Order(client.getId(), orderSettings);
-        order.setTableInfo(new Order.TableInfo(tableDetails.getId(), tableDetails.getTableName()));
+        order.setTableInfo(new Order.TableInfo(tableDetails));
 
         final List<ProductSnapshot.ProductOptionSnapshot> options = List.of(
                 new ProductSnapshot.ProductOptionSnapshot("ice", "1/3"),

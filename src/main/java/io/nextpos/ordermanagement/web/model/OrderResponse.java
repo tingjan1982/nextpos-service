@@ -20,7 +20,13 @@ public class OrderResponse {
 
     private String serialId;
 
+    private Order.OrderType orderType;
+
     private Order.TableInfo tableInfo;
+
+    private String tableNote;
+
+    private String tableDisplayName;
 
     private String servedBy;
 

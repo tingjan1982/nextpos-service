@@ -4,6 +4,7 @@ import io.nextpos.merchandising.data.OfferApplicableObject;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.model.MongoBaseObject;
 import io.nextpos.shared.model.WithClientId;
+import io.nextpos.tablelayout.data.TableLayout;
 import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
@@ -40,6 +41,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     private String clientId;
 
+    private OrderType orderType;
+
     private OrderState state;
 
     private List<OrderLineItem> orderLineItems = new ArrayList<>();
@@ -61,6 +64,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     private OfferApplicableObject.AppliedOfferInfo appliedOfferInfo;
 
     private TableInfo tableInfo;
+
+    private String tableNote;
 
     private String servedBy;
 
@@ -100,6 +105,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     @Override
     public boolean isNew() {
         return version == null;
+    }
+
+    public String getTableDisplayName() {
+        return tableInfo != null ? tableInfo.getTableName() : tableNote;
     }
 
     /**
@@ -241,6 +250,9 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         return copy;
     }
 
+    public enum OrderType {
+        IN_STORE, TAKE_OUT
+    }
 
     public enum OrderState {
 
@@ -339,13 +351,23 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     @AllArgsConstructor
     public static class TableInfo {
 
+        private String tableLayoutId;
+
+        private String tableLayoutName;
+
         private String tableId;
 
         private String tableName;
 
-        public TableInfo copy() {
+        public TableInfo(TableLayout.TableDetails tableDetails) {
+            this.tableLayoutId = tableDetails.getTableLayout().getId();
+            this.tableLayoutName = tableDetails.getTableLayout().getLayoutName();
+            this.tableId = tableDetails.getId();
+            this.tableName = tableDetails.getTableName();
+        }
 
-            return new TableInfo(tableId, tableName);
+        public TableInfo copy() {
+            return new TableInfo(tableLayoutId, tableLayoutName, tableId, tableName);
         }
     }
 

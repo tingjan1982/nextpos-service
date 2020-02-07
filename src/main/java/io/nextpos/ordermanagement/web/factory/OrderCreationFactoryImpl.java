@@ -68,8 +68,19 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
         String serialId = generateSerialId();
         order.setSerialId(serialId);
 
-        if (StringUtils.isNotEmpty(orderRequest.getTableId())) {
-            tableLayoutService.getTableDetails(orderRequest.getTableId()).ifPresent(t -> order.setTableInfo(new Order.TableInfo(t.getId(), t.getTableName())));
+        order.setOrderType(orderRequest.getOrderType());
+
+        if (order.getOrderType() == Order.OrderType.IN_STORE) {
+            if (StringUtils.isNotEmpty(orderRequest.getTableId())) {
+                tableLayoutService.getTableDetails(orderRequest.getTableId()).ifPresent(t -> {
+                    final Order.TableInfo tableInfo = new Order.TableInfo(t);
+                    order.setTableInfo(tableInfo);
+                });
+            }
+
+            if (StringUtils.isNotEmpty(orderRequest.getTableNote())) {
+                order.setTableNote(orderRequest.getTableNote());
+            }
         }
 
         final ClientUser clientUser = oAuth2Helper.resolveCurrentClientUser(client);

@@ -16,10 +16,8 @@ import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.shared.web.model.DeleteObjectResponse;
 import io.nextpos.shared.web.model.SimpleObjectResponse;
 import io.nextpos.shared.web.model.SimpleObjectsResponse;
-import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
 import io.nextpos.tablelayout.web.model.TableDetailsResponse;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,21 +119,15 @@ public class OrderController {
 
     private OrdersResponse toOrdersResponse(final List<Order> orders, final ReportDateParameter reportDateParameter) {
         final Map<String, List<OrdersResponse.LightOrderResponse>> orderResponses = orders.stream()
-                .filter(o -> o.getTableInfo() != null)
                 .map(o -> {
-                    final Optional<TableLayout.TableDetails> tableDetails = tableLayoutService.getTableDetails(o.getTableInfo().getTableId());
-                    return Pair.of(o, tableDetails);
-                })
-                .filter(pair -> pair.getRight().isPresent())
-                .map(pair -> {
-                    final Order o = pair.getLeft();
-                    final TableLayout.TableDetails table = pair.getRight().get();
-                    final TableLayout tableLayout = table.getTableLayout();
+                    String tableLayoutId = o.getTableInfo() != null ? o.getTableInfo().getTableLayoutId() : "NO_LAYOUT";
+                    String tableLayoutName = o.getTableInfo() != null ? o.getTableInfo().getTableLayoutName() : "N/A";
 
                     return new OrdersResponse.LightOrderResponse(o.getId(),
-                            tableLayout.getId(),
-                            tableLayout.getLayoutName(),
-                            table.getTableName(),
+                            o.getOrderType(),
+                            tableLayoutId,
+                            tableLayoutName,
+                            o.getTableDisplayName(),
                             o.getCustomerCount(),
                             o.getCreatedDate(),
                             o.getState(),
@@ -150,6 +142,7 @@ public class OrderController {
     public TablesResponse getTables(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
         final List<String> occupiedTableIds = orderService.getInflightOrders(client.getId()).stream()
+                .filter(o -> o.getTableInfo() != null)
                 .map(o -> o.getTableInfo().getTableId())
                 .collect(Collectors.toList());
 
@@ -264,7 +257,7 @@ public class OrderController {
         final List<OrderResponse.OrderLineItemResponse> orderLineItems = order.getOrderLineItems().stream()
                 .map(li -> {
                     final String options = li.getProductSnapshot().getProductOptions().stream()
-                            .map(po -> String.format("%s: %s (%s)", po.getOptionName(), po.getOptionValue(), po.getOptionPrice()))
+                            .map(po -> String.format("%s: %s $(%s)", po.getOptionName(), po.getOptionValue(), po.getOptionPrice()))
                             .collect(Collectors.joining(", "));
 
                     return new OrderResponse.OrderLineItemResponse(li.getId(),
@@ -279,7 +272,10 @@ public class OrderController {
 
         return new OrderResponse(order.getId(),
                 order.getSerialId(),
+                order.getOrderType(),
                 order.getTableInfo(),
+                order.getTableNote(),
+                order.getTableDisplayName(),
                 order.getServedBy(),
                 order.getCreatedDate(),
                 order.getModifiedDate(),

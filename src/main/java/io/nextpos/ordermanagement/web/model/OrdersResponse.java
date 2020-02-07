@@ -32,6 +32,8 @@ public class OrdersResponse {
 
         private String orderId;
 
+        private Order.OrderType orderType;
+
         private String tableLayoutId;
 
         private String tableLayout;
