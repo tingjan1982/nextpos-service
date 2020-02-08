@@ -7,6 +7,7 @@ import io.nextpos.reporting.data.SalesProgress;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -50,11 +51,12 @@ public class SalesReportServiceImpl implements SalesReportService {
                 .sum(subTotalToDecimal).as("productSales")
                 .sum("lineItems.quantity").as("salesQuantity")
                 .first("lineItems.productSnapshot.name").as("productName");
+        final SortOperation sortSalesByProduct = Aggregation.sort(Sort.Direction.DESC, "productSales");
 
         final FacetOperation facets = Aggregation
                 .facet(salesTotal).as("totalSales")
                 .and(salesByRange).as("salesByRange")
-                .and(salesByProduct).as("salesByProduct");
+                .and(salesByProduct, sortSalesByProduct).as("salesByProduct");
 
         final TypedAggregation<Order> aggregations = Aggregation.newAggregation(Order.class,
                 projection,
