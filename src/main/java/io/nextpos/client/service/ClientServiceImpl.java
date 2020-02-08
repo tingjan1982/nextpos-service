@@ -113,6 +113,12 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
     }
 
     @Override
+    public void updateDefaultClientUserPassword(Client client, String newPassword) {
+        final String username = client.getUsername();
+        clientDetailsService.updateClientSecret(username, newPassword);
+    }
+
+    @Override
     public Optional<Client> getClient(final String clientId) {
         return clientRepository.findByIdAndStatusIn(clientId, Client.Status.ACTIVE, Client.Status.PENDING_ACTIVE);
     }

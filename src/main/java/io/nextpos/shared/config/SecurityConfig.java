@@ -333,6 +333,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
             http.authorizeRequests()
                     .antMatchers(POST, "/clients/*/deactivate").access("hasAuthority('MASTER')")
+                    .antMatchers(POST, "/clients/resetPassword").access("hasAuthority('MASTER')")
                     .antMatchers(DELETE, "/clients/*/hard").access("hasAuthority('MASTER')")
                     .antMatchers(POST, "/clients").permitAll()
                     .antMatchers(GET, "/clients/default").permitAll()

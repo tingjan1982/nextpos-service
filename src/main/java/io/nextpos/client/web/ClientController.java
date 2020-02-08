@@ -98,6 +98,14 @@ public class ClientController {
         }
     }
 
+    // todo: reset password implementation
+    @PostMapping("/{resetPassword")
+    public void resetPassword() {
+
+
+
+    }
+
     @PostMapping("/{id}/deactivate")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void deactivateClient(@PathVariable String id) {
@@ -243,8 +251,13 @@ public class ClientController {
 
         final ClientUser currentUser = oAuth2Helper.resolveCurrentClientUser(client);
         currentUser.setPassword(request.getPassword());
+        final ClientUser updatedClientUser = clientService.saveClientUser(currentUser);
 
-        return toClientUserResponse(clientService.saveClientUser(currentUser));
+        if (currentUser.isDefaultUser()) {
+            clientService.updateDefaultClientUserPassword(client, request.getPassword());
+        }
+
+        return toClientUserResponse(updatedClientUser);
     }
 
     private void updateClientUserFromRequest(final ClientUser clientUser, final UpdateClientUserRequest updateClientUserRequest) {
