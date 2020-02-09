@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.transaction.Transactional;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -36,10 +37,12 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         final List<ProductLabel> productLabels = productLabelService.getProductLabels(client);
         final ProductLabel ungroupedLabel = new ProductLabel("ungrouped", client);
         final List<ProductVersion> products = productVersionRepository.findAllProductsByClient(client, version, Sort.by(Sort.Order.asc("productName")));
-        final Map<ProductLabel, List<ProductVersion>> groupedProducts = products.stream().collect(Collectors.groupingBy(pv -> {
-            ProductLabel label = pv.getProduct().getProductLabel();
-            return label != null ? label : ungroupedLabel;
-        }));
+        final Map<ProductLabel, List<ProductVersion>> groupedProducts = products.stream()
+                .sorted(Comparator.comparing(ProductVersion::getProductName))
+                .collect(Collectors.groupingBy(pv -> {
+                    ProductLabel label = pv.getProduct().getProductLabel();
+                    return label != null ? label : ungroupedLabel;
+                }));
 
         final List<ProductLabel> labelsWithoutProduct = productLabels.stream()
                 .filter(label -> !groupedProducts.containsKey(label))

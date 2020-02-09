@@ -25,6 +25,8 @@ public class ProductSearchResponse {
         private String name;
 
         private BigDecimal price;
+
+        private String productLabelId;
     }
 
 }
