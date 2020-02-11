@@ -2,11 +2,14 @@ package io.nextpos.tablelayout.web;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
+import io.nextpos.ordermanagement.service.ShiftService;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
 import io.nextpos.tablelayout.web.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -19,11 +22,14 @@ public class TableLayoutController {
 
     private final TableLayoutService tableLayoutService;
 
+    private final ShiftService shiftService;
+
     private final ClientObjectOwnershipService clientObjectOwnershipService;
 
     @Autowired
-    public TableLayoutController(final TableLayoutService tableLayoutService, final ClientObjectOwnershipService clientObjectOwnershipService) {
+    public TableLayoutController(final TableLayoutService tableLayoutService, final ShiftService shiftService, final ClientObjectOwnershipService clientObjectOwnershipService) {
         this.tableLayoutService = tableLayoutService;
+        this.shiftService = shiftService;
         this.clientObjectOwnershipService = clientObjectOwnershipService;
     }
 
@@ -77,6 +83,19 @@ public class TableLayoutController {
         return new TableLayoutsResponse(layoutsResponse);
     }
 
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTableLayout(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                 @PathVariable final String id) {
+
+        shiftService.getActiveShift(client.getId()).ifPresent(s -> {
+            throw new BusinessLogicException("Please close shift before deleting table layout.");
+        });
+
+        final TableLayout tableLayout = clientObjectOwnershipService.checkOwnership(client, () -> tableLayoutService.getTableLayout(id));
+        tableLayoutService.deleteTableLayout(tableLayout);
+    }
+
     @PostMapping("/{id}/tables")
     public TableLayoutResponse createTableDetails(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                   @PathVariable final String id,
@@ -98,9 +117,9 @@ public class TableLayoutController {
 
     @PostMapping("/{id}/tables/{tableId}")
     public TableDetailsResponse updateTableDetails(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                  @PathVariable final String id,
-                                                  @PathVariable final String tableId,
-                                                  @Valid @RequestBody UpdateTableDetailsRequest updateRequest) {
+                                                   @PathVariable final String id,
+                                                   @PathVariable final String tableId,
+                                                   @Valid @RequestBody UpdateTableDetailsRequest updateRequest) {
 
         final TableLayout tableLayout = clientObjectOwnershipService.checkOwnership(client, () -> tableLayoutService.getTableLayout(id));
         final TableLayout.TableDetails tableDetails = tableLayout.getTableDetails(tableId);
@@ -118,6 +137,18 @@ public class TableLayoutController {
 
         tableDetails.setTableName(updateRequest.getTableName());
         tableDetails.setCapacity(updateRequest.getCapacity());
+    }
+
+    @DeleteMapping("/{id}/tables/{tableId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTableDetails(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                   @PathVariable final String id,
+                                   @PathVariable final String tableId) {
+
+        final TableLayout tableLayout = clientObjectOwnershipService.checkOwnership(client, () -> tableLayoutService.getTableLayout(id));
+        tableLayout.deleteTableDetails(tableId);
+
+        tableLayoutService.saveTableLayout(tableLayout);
     }
 
     private TableLayoutResponse toTableLayoutResponse(final TableLayout savedTableLayout) {

@@ -14,5 +14,7 @@ public interface TableLayoutService {
 
     List<TableLayout> getTableLayouts(Client client);
 
+    void deleteTableLayout(TableLayout tableLayout);
+
     Optional<TableLayout.TableDetails> getTableDetails(String id);
 }

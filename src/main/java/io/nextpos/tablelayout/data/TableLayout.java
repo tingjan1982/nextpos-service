@@ -37,7 +37,7 @@ public class TableLayout extends BaseObject implements ClientObject {
     private AtomicInteger internalCounter;
 
 
-    @OneToMany(mappedBy = "tableLayout", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "tableLayout", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
     private List<TableDetails> tables = new ArrayList<>();
 
@@ -67,6 +67,10 @@ public class TableLayout extends BaseObject implements ClientObject {
         return tables.stream().filter(t -> t.getId().equals(tableId)).findFirst().orElseThrow(() -> {
             throw new ObjectNotFoundException(tableId, TableDetails.class);
         });
+    }
+
+    public void deleteTableDetails(String tableId) {
+        tables.removeIf(t -> t.getId().equals(tableId));
     }
 
     @Entity(name = "client_table_details")

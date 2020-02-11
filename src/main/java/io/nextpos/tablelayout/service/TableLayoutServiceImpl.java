@@ -44,7 +44,13 @@ public class TableLayoutServiceImpl implements TableLayoutService {
     }
 
     @Override
+    public void deleteTableLayout(final TableLayout tableLayout) {
+        tableLayoutRepository.delete(tableLayout);
+    }
+
+    @Override
     public Optional<TableLayout.TableDetails> getTableDetails(final String id) {
         return tableDetailsRepository.findById(id);
     }
+
 }
