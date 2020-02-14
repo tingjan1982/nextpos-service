@@ -251,11 +251,14 @@ public class SalesReportServiceImpl implements SalesReportService {
 
         final BucketOperation salesByWeek = Aggregation.bucket("week").withBoundaries(weeks).withDefaultBucket("Other")
                 .andOutput(AccumulatorOperators.Sum.sumOf("total")).as("total")
-                .andOutput(context -> new Document("$first", "$week")).as("week");
+                .andOutput(context -> new Document("$first", "$week")).as("week")
+                .andOutput(context -> new Document("$first", "$modifiedDate")).as("date");
 
         final BucketOperation salesByMonth = Aggregation.bucket("month").withBoundaries(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13).withDefaultBucket("Other")
                 .andOutput(AccumulatorOperators.Sum.sumOf("total")).as("total")
-                .andOutput(context -> new Document("$first", "$month")).as("month");
+                .andOutput(context -> new Document("$first", "$month")).as("month")
+                .andOutput(context -> new Document("$first", "$modifiedDate")).as("date");
+
 
         final FacetOperation facets = Aggregation.facet(salesByMonth).as("salesByMonth")
                 .and(salesByWeek).as("salesByWeek");
