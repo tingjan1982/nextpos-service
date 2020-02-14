@@ -70,7 +70,7 @@ public class OrderServiceImpl implements OrderService {
 
         LOGGER.info("Date range used to get orders: {}, {}", fromDate, toDate);
 
-        return orderRepository.findAllByClientAndDateRange(client.getId(), fromDate, toDate);
+        return orderRepository.findAllByClientAndDateRangeOrderByCreatedDateDesc(client.getId(), fromDate, toDate);
     }
 
     @Override

@@ -359,6 +359,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             http.authorizeRequests()
                     .antMatchers(GET,"/tablelayouts/**").hasAuthority(Role.USER_ROLE)
                     .antMatchers(POST,"/tablelayouts/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(DELETE,"/tablelayouts/**").hasAuthority(Role.MANAGER_ROLE)
                     .antMatchers("/workingareas/**").hasAuthority(Role.MANAGER_ROLE)
                     .antMatchers("/printers/**").hasAuthority(Role.MANAGER_ROLE);
         }

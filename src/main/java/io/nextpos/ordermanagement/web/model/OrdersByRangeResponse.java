@@ -2,21 +2,20 @@ package io.nextpos.ordermanagement.web.model;
 
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.TaxableAmount;
+import io.nextpos.reporting.data.ReportDateParameter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 @Data
 @AllArgsConstructor
-public class OrdersResponse {
+public class OrdersByRangeResponse {
 
-    /**
-     * Key is table layout id, value is list of LightOrderResponse.
-     */
-    private Map<String, List<LightOrderResponse>> orders;
+    private ReportDateParameter reportParameter;
+
+    private List<LightOrderResponse> orders;
 
     @Data
     @AllArgsConstructor
@@ -25,14 +24,6 @@ public class OrdersResponse {
         private String orderId;
 
         private Order.OrderType orderType;
-
-        private String tableLayoutId;
-
-        private String tableLayout;
-
-        private String tableName;
-
-        private int customerCount;
 
         private Date createdTime;
 

@@ -70,13 +70,25 @@ public class OrderController {
     }
 
     @GetMapping
-    public OrdersResponse getOrdersByDateRange(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+    public OrdersByRangeResponse getOrdersByDateRange(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                @RequestParam(name = "dateRange", required = false) DateParameterType dateParameterType) {
 
         final ReportDateParameter reportDateParameter = resolveDateRange(client, dateParameterType);
         final List<Order> orders = orderService.getOrders(client, reportDateParameter.getFromDate(), reportDateParameter.getToDate());
 
-        return toOrdersResponse(orders, reportDateParameter);
+        return toOrdersByRangeResponse(orders, reportDateParameter);
+    }
+
+    private OrdersByRangeResponse toOrdersByRangeResponse(final List<Order> orders, final ReportDateParameter reportDateParameter) {
+
+        final List<OrdersByRangeResponse.LightOrderResponse> orderResponses = orders.stream().
+                map(o -> new OrdersByRangeResponse.LightOrderResponse(o.getId(),
+                        o.getOrderType(),
+                        o.getCreatedDate(),
+                        o.getState(),
+                        o.getTotal())).collect(Collectors.toList());
+
+        return new OrdersByRangeResponse(reportDateParameter, orderResponses);
     }
 
     private ReportDateParameter resolveDateRange(Client client, DateParameterType dateParameterType) {
@@ -114,10 +126,10 @@ public class OrderController {
 
         List<Order> orders = orderService.getInflightOrders(client.getId());
 
-        return toOrdersResponse(orders, null);
+        return toOrdersResponse(orders);
     }
 
-    private OrdersResponse toOrdersResponse(final List<Order> orders, final ReportDateParameter reportDateParameter) {
+    private OrdersResponse toOrdersResponse(final List<Order> orders) {
         final Map<String, List<OrdersResponse.LightOrderResponse>> orderResponses = orders.stream()
                 .map(o -> {
                     String tableLayoutId = o.getTableInfo() != null ? o.getTableInfo().getTableLayoutId() : "NO_LAYOUT";
@@ -135,7 +147,7 @@ public class OrderController {
                 })
                 .collect(Collectors.groupingBy(OrdersResponse.LightOrderResponse::getTableLayoutId, Collectors.toList()));
 
-        return new OrdersResponse(reportDateParameter, orderResponses);
+        return new OrdersResponse(orderResponses);
     }
 
     @GetMapping("/availableTables")
