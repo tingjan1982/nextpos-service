@@ -8,6 +8,8 @@ import io.nextpos.reporting.service.SalesReportService;
 import io.nextpos.reporting.service.StatsReportService;
 import io.nextpos.reporting.web.model.*;
 import io.nextpos.shared.web.ClientResolver;
+import io.nextpos.timecard.data.TimeCardReport;
+import io.nextpos.timecard.service.TimeCardReportService;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bson.types.Decimal128;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Month;
+import java.time.YearMonth;
 import java.util.Date;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -30,11 +34,14 @@ public class ReportingController {
 
     private final StatsReportService statsReportService;
 
+    private final TimeCardReportService timeCardReportService;
+
     @Autowired
-    public ReportingController(final ReportingService reportingService, final SalesReportService salesReportService, final StatsReportService statsReportService) {
+    public ReportingController(final ReportingService reportingService, final SalesReportService salesReportService, final StatsReportService statsReportService, final TimeCardReportService timeCardReportService) {
         this.reportingService = reportingService;
         this.salesReportService = salesReportService;
         this.statsReportService = statsReportService;
+        this.timeCardReportService = timeCardReportService;
     }
 
     @GetMapping("/rangedSalesReport")
@@ -69,6 +76,20 @@ public class ReportingController {
 
         return new SalesDistributionResponse(salesDistribution.getSalesByMonth(),
                 salesDistributionLastYear.getSalesByMonth());
+    }
+
+    @GetMapping("/timeCardReport")
+    public TimeCardReport getTimeCardReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                  @RequestParam(name = "year", required = false) Integer year,
+                                  @RequestParam(name = "month", required = false) Month month) {
+
+        YearMonth yearMonth = YearMonth.now();
+
+        if (year != null && month != null) {
+            yearMonth = YearMonth.of(year, month);
+        }
+
+        return timeCardReportService.getTimeCardReport(client, yearMonth);
     }
 
     @GetMapping("/salesreport")
