@@ -8,7 +8,8 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.Date;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 @Document
 @Data
@@ -27,9 +28,9 @@ public class UserTimeCard extends MongoBaseObject {
 
     private TimeCardStatus timeCardStatus;
 
-    private Date clockIn;
+    private LocalDateTime clockIn;
 
-    private Date clockOut;
+    private LocalDateTime clockOut;
 
     public UserTimeCard(final String clientId, final String username, final String nickname) {
         this.clientId = clientId;
@@ -40,13 +41,22 @@ public class UserTimeCard extends MongoBaseObject {
     }
 
     public void clockIn() {
-        this.clockIn = new Date();
+        this.clockIn = LocalDateTime.now();
         timeCardStatus = TimeCardStatus.ACTIVE;
     }
 
     public void clockOut() {
-        this.clockOut = new Date();
+        this.clockOut = LocalDateTime.now();
         timeCardStatus = TimeCardStatus.COMPLETE;
+    }
+
+    public Duration getWorkingDuration() {
+
+        if (this.clockIn != null && this.clockOut != null) {
+            return Duration.between(this.clockIn, this.clockOut);
+        }
+
+        return Duration.ZERO;
     }
 
     @Override

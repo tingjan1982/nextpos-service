@@ -17,12 +17,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.transaction.Transactional;
 import java.time.Instant;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
-import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -53,19 +51,19 @@ class TimeCardReportServiceImplTest {
 
         final String username = "user-1";
         final String username2 = "user-2";
-        final Instant now = Instant.now();
+        final LocalDateTime now = LocalDateTime.now();
         
-        final Instant firstOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay(ZoneId.systemDefault()).toInstant();
-        final Instant lastOfMonth = YearMonth.now().atEndOfMonth().atStartOfDay(ZoneId.systemDefault()).toInstant();
+        final LocalDateTime firstOfMonth = now.withDayOfMonth(1);
+        final LocalDateTime lastOfMonth = YearMonth.now().atEndOfMonth().atStartOfDay();
 
-        createUserTimeCard(username, Date.from(firstOfMonth), Date.from(firstOfMonth.plus(5, ChronoUnit.HOURS)));
+        createUserTimeCard(username, firstOfMonth, firstOfMonth.plus(5, ChronoUnit.HOURS));
 
-        createUserTimeCard(username, Date.from(now), Date.from(now.plus(1, ChronoUnit.HALF_DAYS)));
-        createUserTimeCard(username, Date.from(now), Date.from(now.plus(1, ChronoUnit.DAYS)));
+        createUserTimeCard(username, now, now.plus(1, ChronoUnit.HALF_DAYS));
+        createUserTimeCard(username, now, now.plusDays(1));
 
-        createUserTimeCard(username2, Date.from(now.plus(1, ChronoUnit.DAYS)), Date.from(now.plus(2, ChronoUnit.DAYS)));
+        createUserTimeCard(username2, now.plusDays(1), now.plusDays(2));
 
-        createUserTimeCard(username2, Date.from(lastOfMonth), Date.from(lastOfMonth.plus(1, ChronoUnit.DAYS)));
+        createUserTimeCard(username2, lastOfMonth, lastOfMonth.plusDays(1));
 
         final TimeCardReport result = timeCardReportService.getTimeCardReport(client, YearMonth.now());
 
@@ -94,7 +92,7 @@ class TimeCardReportServiceImplTest {
     void getTimeCardReport_CheckEnhanceResult() {
 
         final Instant now = Instant.now();
-        createUserTimeCard("zoe", Date.from(now), Date.from(now.plus(1, ChronoUnit.HALF_DAYS)));
+        createUserTimeCard("zoe", LocalDateTime.now(), LocalDateTime.now().plusDays(1));
         final ClientUser user1 = new ClientUser(new ClientUser.ClientUserId("sig", client.getUsername()), "1qaz2wsx", "USER");
         clientService.saveClientUser(user1);
         final ClientUser user2 = new ClientUser(new ClientUser.ClientUserId("ada", client.getUsername()), "1qaz2wsx", "USER");
@@ -107,7 +105,7 @@ class TimeCardReportServiceImplTest {
         assertThat(result.getUserTimeCards()).isSortedAccordingTo(Comparator.comparing(TimeCardReport.UserShift::getId));
     }
 
-    void createUserTimeCard(String username, Date clockIn, Date clockOut) {
+    void createUserTimeCard(String username, LocalDateTime clockIn, LocalDateTime clockOut) {
 
         UserTimeCard userTimeCard = new UserTimeCard(client.getId(), username, null);
         userTimeCard.setClockIn(clockIn);

@@ -7,8 +7,15 @@ import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.timecard.data.UserTimeCard;
 import io.nextpos.timecard.service.UserTimeCardService;
 import io.nextpos.timecard.web.model.UserTimeCardResponse;
+import io.nextpos.timecard.web.model.UserTimeCardsResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.Duration;
+import java.time.Month;
+import java.time.YearMonth;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/timecards")
@@ -66,7 +73,28 @@ public class UserTimeCardController {
         return toUserTimeCardResponse(userTimeCard);
     }
 
+    @GetMapping("/{username}")
+    public UserTimeCardsResponse getUserTimeCardByUsername(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                           @PathVariable final String username,
+                                                           @RequestParam(name = "year", required = false) Integer year,
+                                                           @RequestParam(name = "month", required = false) Month month) {
+
+        YearMonth yearMonth = YearMonth.now();
+
+        if (year != null && month != null) {
+            yearMonth = YearMonth.of(year, month);
+        }
+
+        final List<UserTimeCardResponse> userTimeCards = userTimeCardService.getUserTimeCardsByYearMonth(client, username, yearMonth).stream()
+                .map(this::toUserTimeCardResponse)
+                .collect(Collectors.toList());
+
+        return new UserTimeCardsResponse(userTimeCards);
+    }
+
     private UserTimeCardResponse toUserTimeCardResponse(final UserTimeCard userTimeCard) {
+        final Duration workingDuration = userTimeCard.getWorkingDuration();
+
         return new UserTimeCardResponse(
                 userTimeCard.getId(),
                 userTimeCard.getClientId(),
@@ -74,6 +102,8 @@ public class UserTimeCardController {
                 userTimeCard.getNickname(),
                 userTimeCard.getClockIn(),
                 userTimeCard.getClockOut(),
+                workingDuration.toHours(),
+                workingDuration.toMinutesPart(),
                 userTimeCard.getTimeCardStatus());
     }
 }

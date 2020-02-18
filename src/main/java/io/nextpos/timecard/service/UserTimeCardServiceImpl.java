@@ -7,9 +7,12 @@ import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.timecard.data.UserTimeCard;
 import io.nextpos.timecard.data.UserTimeCardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.YearMonth;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -63,5 +66,17 @@ public class UserTimeCardServiceImpl implements UserTimeCardService {
     public Optional<UserTimeCard> getMostRecentTimeCard(final Client client) {
         final String username = oAuth2Helper.getCurrentPrincipal();
         return userTimeCardRepository.findFirstByClientIdAndUsernameOrderByCreatedDateDesc(client.getId(), username);
+    }
+
+    @Override
+    public List<UserTimeCard> getUserTimeCardsByYearMonth(Client client, String username, YearMonth yearMonth) {
+
+        return userTimeCardRepository.findAllByClientIdAndUsernameAndClockInDateRange(
+                client.getId(),
+                username,
+                yearMonth.atDay(1),
+                yearMonth.atEndOfMonth().plusDays(1),
+                Sort.by(Sort.Direction.ASC, "clockIn")
+        );
     }
 }
