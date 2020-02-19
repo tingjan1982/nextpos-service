@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Duration;
 import java.time.Month;
 import java.time.YearMonth;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -100,8 +102,8 @@ public class UserTimeCardController {
                 userTimeCard.getClientId(),
                 userTimeCard.getUsername(),
                 userTimeCard.getNickname(),
-                userTimeCard.getClockIn(),
-                userTimeCard.getClockOut(),
+                userTimeCard.getClockIn() != null ? Date.from(userTimeCard.getClockIn().atZone(ZoneId.systemDefault()).toInstant()) : null,
+                userTimeCard.getClockOut() != null ? Date.from(userTimeCard.getClockOut().atZone(ZoneId.systemDefault()).toInstant()) : null,
                 workingDuration.toHours(),
                 workingDuration.toMinutesPart(),
                 userTimeCard.getTimeCardStatus());

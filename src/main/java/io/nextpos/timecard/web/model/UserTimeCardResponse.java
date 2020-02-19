@@ -4,7 +4,7 @@ import io.nextpos.timecard.data.UserTimeCard;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @AllArgsConstructor
@@ -18,9 +18,9 @@ public class UserTimeCardResponse {
 
     private String nickname;
 
-    private LocalDateTime clockIn;
+    private Date clockIn;
 
-    private LocalDateTime clockOut;
+    private Date clockOut;
 
     private long hours;
 
