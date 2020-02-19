@@ -17,5 +17,7 @@ public interface UserTimeCardService {
 
     Optional<UserTimeCard> getMostRecentTimeCard(Client client);
 
+    UserTimeCard getUserTimeCardById(String id);
+
     List<UserTimeCard> getUserTimeCardsByYearMonth(Client client, String username, YearMonth yearMonth);
 }

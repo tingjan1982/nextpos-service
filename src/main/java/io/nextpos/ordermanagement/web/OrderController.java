@@ -9,11 +9,12 @@ import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordermanagement.service.ShiftService;
 import io.nextpos.ordermanagement.web.factory.OrderCreationFactory;
 import io.nextpos.ordermanagement.web.model.*;
+import io.nextpos.ordertransaction.service.OrderTransactionService;
+import io.nextpos.ordertransaction.web.model.OrderTransactionResponse;
 import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.reporting.data.ReportDateParameter;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.web.ClientResolver;
-import io.nextpos.shared.web.model.DeleteObjectResponse;
 import io.nextpos.shared.web.model.SimpleObjectResponse;
 import io.nextpos.shared.web.model.SimpleObjectsResponse;
 import io.nextpos.tablelayout.service.TableLayoutService;
@@ -40,6 +41,8 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    private final OrderTransactionService orderTransactionService;
+
     private final ClientObjectOwnershipService clientObjectOwnershipService;
 
     private final TableLayoutService tableLayoutService;
@@ -51,8 +54,9 @@ public class OrderController {
     private final ShiftService shiftService;
 
     @Autowired
-    public OrderController(final OrderService orderService, final ClientObjectOwnershipService clientObjectOwnershipService, final TableLayoutService tableLayoutService, final OrderCreationFactory orderCreationFactory, final MerchandisingService merchandisingService, final ShiftService shiftService) {
+    public OrderController(final OrderService orderService, final OrderTransactionService orderTransactionService, final ClientObjectOwnershipService clientObjectOwnershipService, final TableLayoutService tableLayoutService, final OrderCreationFactory orderCreationFactory, final MerchandisingService merchandisingService, final ShiftService shiftService) {
         this.orderService = orderService;
+        this.orderTransactionService = orderTransactionService;
         this.clientObjectOwnershipService = clientObjectOwnershipService;
         this.tableLayoutService = tableLayoutService;
         this.orderCreationFactory = orderCreationFactory;
@@ -71,7 +75,7 @@ public class OrderController {
 
     @GetMapping
     public OrdersByRangeResponse getOrdersByDateRange(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                               @RequestParam(name = "dateRange", required = false) DateParameterType dateParameterType) {
+                                                      @RequestParam(name = "dateRange", required = false) DateParameterType dateParameterType) {
 
         final ReportDateParameter reportDateParameter = resolveDateRange(client, dateParameterType);
         final List<Order> orders = orderService.getOrders(client, reportDateParameter.getFromDate(), reportDateParameter.getToDate());
@@ -171,7 +175,15 @@ public class OrderController {
     public OrderResponse getOrder(@PathVariable String id) {
 
         final Order order = orderService.getOrder(id);
-        return toOrderResponse(order);
+        final OrderResponse orderResponse = toOrderResponse(order);
+
+        final List<OrderTransactionResponse> transactions = orderTransactionService.getOrderTransactionByOrderId(order.getId()).stream()
+                .map(ot -> OrderTransactionResponse.toOrderTransactionResponse(ot, null))
+                .collect(Collectors.toList());
+
+        orderResponse.setTransactions(transactions);
+
+        return orderResponse;
     }
 
     @PostMapping("/{id}/applyDiscount")
@@ -196,12 +208,12 @@ public class OrderController {
     }
 
     @DeleteMapping("/{id}")
-    public DeleteObjectResponse deleteOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @PathVariable final String id) {
+    public OrderStateChangeResponse deleteOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                @PathVariable final String id) {
 
-        final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
-        orderService.deleteOrder(order);
+        OrderStateChangeBean orderStateChangeBean = orderService.performOrderAction(id, Order.OrderAction.DELETE);
 
-        return new DeleteObjectResponse(id);
+        return toOrderStateChangeResponse(orderStateChangeBean);
     }
 
 

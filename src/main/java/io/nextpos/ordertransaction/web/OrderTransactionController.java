@@ -43,9 +43,7 @@ public class OrderTransactionController {
         final OrderTransaction createdOrderTransaction = orderTransactionService.createOrderTransaction(orderTransaction);
         final String orderDetailsPrintInstruction = orderTransactionService.createOrderDetailsPrintInstruction(client, orderTransaction);
 
-        orderService.performOrderAction(orderTransaction.getOrderId(), Order.OrderAction.SETTLE);
-
-        return toOrderTransactionResponse(client, createdOrderTransaction, orderDetailsPrintInstruction);
+        return OrderTransactionResponse.toOrderTransactionResponse(createdOrderTransaction, orderDetailsPrintInstruction);
     }
 
     @GetMapping("/{id}")
@@ -53,7 +51,7 @@ public class OrderTransactionController {
 
         final OrderTransaction orderTransaction = orderTransactionService.getOrderTransaction(id);
 
-        return toOrderTransactionResponse(client, orderTransaction, null);
+        return OrderTransactionResponse.toOrderTransactionResponse(orderTransaction, null);
     }
 
     private OrderTransaction fromOrderTransactionRequest(final Client client, final OrderTransactionRequest orderTransactionRequest) {
@@ -130,23 +128,5 @@ public class OrderTransactionController {
             default:
                 return List.of();
         }
-    }
-
-    private OrderTransactionResponse toOrderTransactionResponse(final Client client, final OrderTransaction orderTransaction, final String orderDetailsPrintInstruction) {
-
-        final List<OrderTransactionResponse.BillLineItemResponse> billLineItems = orderTransaction.getBillDetails().getBillLineItems().stream()
-                .map(li -> new OrderTransactionResponse.BillLineItemResponse(li.getName(), li.getQuantity(), li.getSubTotal()))
-                .collect(Collectors.toList());
-
-        return new OrderTransactionResponse(orderTransaction.getId(),
-                orderTransaction.getOrderId(),
-                client.getClientName(),
-                client.getAttribute(Client.ClientAttributes.UBN.name()),
-                orderTransaction.getOrderTotal(),
-                orderTransaction.getSettleAmount(),
-                orderTransaction.getCashChange(),
-                orderTransaction.getBillDetails().getBillType(),
-                billLineItems,
-                orderDetailsPrintInstruction);
     }
 }

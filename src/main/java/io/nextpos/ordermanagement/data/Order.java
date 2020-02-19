@@ -294,7 +294,20 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         /**
          * When order is marked as completed to indicate it can be filtered out when trying to display current orders.
          */
-        COMPLETED
+        COMPLETED;
+
+        public static List<OrderState> inflightStates() {
+            return Arrays.asList(
+                    Order.OrderState.OPEN,
+                    Order.OrderState.IN_PROCESS,
+                    Order.OrderState.DELIVERED,
+                    Order.OrderState.SETTLED,
+                    Order.OrderState.REFUNDED);
+        }
+
+        public static EnumSet<OrderState> finalStates() {
+            return EnumSet.of(Order.OrderState.SETTLED, Order.OrderState.REFUNDED);
+        }
     }
 
     /**
@@ -308,7 +321,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
          */
         SUBMIT(EnumSet.of(OPEN, IN_PROCESS, DELIVERED), IN_PROCESS),
         CANCEL(EnumSet.of(OPEN, IN_PROCESS), CANCELLED),
-
+        DELETE(EnumSet.of(OPEN, CANCELLED, IN_PROCESS, DELIVERED), DELETED),
         /**
          * Used to mark line item as delivered.
          */

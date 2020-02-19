@@ -2,6 +2,7 @@ package io.nextpos.timecard.web;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
+import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.timecard.data.UserTimeCard;
@@ -25,11 +26,14 @@ public class UserTimeCardController {
 
     private final UserTimeCardService userTimeCardService;
 
+    private final ClientObjectOwnershipService clientObjectOwnershipService;
+
     private final OAuth2Helper oAuth2Helper;
 
     @Autowired
-    public UserTimeCardController(final UserTimeCardService userTimeCardService, final OAuth2Helper oAuth2Helper) {
+    public UserTimeCardController(final UserTimeCardService userTimeCardService, final ClientObjectOwnershipService clientObjectOwnershipService, final OAuth2Helper oAuth2Helper) {
         this.userTimeCardService = userTimeCardService;
+        this.clientObjectOwnershipService = clientObjectOwnershipService;
         this.oAuth2Helper = oAuth2Helper;
     }
 
@@ -75,9 +79,17 @@ public class UserTimeCardController {
         return toUserTimeCardResponse(userTimeCard);
     }
 
-    @GetMapping("/{username}")
+    @GetMapping("/{id}")
+    public UserTimeCardResponse getUserTimeCardById(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                    @PathVariable final String id) {
+
+        final UserTimeCard userTimeCard = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> userTimeCardService.getUserTimeCardById(id));
+        return toUserTimeCardResponse(userTimeCard);
+    }
+
+    @GetMapping
     public UserTimeCardsResponse getUserTimeCardByUsername(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                           @PathVariable final String username,
+                                                           @RequestParam(name = "username") String username,
                                                            @RequestParam(name = "year", required = false) Integer year,
                                                            @RequestParam(name = "month", required = false) Month month) {
 

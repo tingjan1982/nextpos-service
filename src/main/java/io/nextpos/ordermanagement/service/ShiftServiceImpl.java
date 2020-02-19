@@ -1,8 +1,11 @@
 package io.nextpos.ordermanagement.service;
 
+import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderRepository;
 import io.nextpos.ordermanagement.data.Shift;
 import io.nextpos.ordermanagement.data.ShiftRepository;
 import io.nextpos.shared.auth.OAuth2Helper;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ShiftException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,11 +25,14 @@ public class ShiftServiceImpl implements ShiftService {
 
     private final ShiftRepository shiftRepository;
 
+    private final OrderRepository orderRepository;
+
     private final OAuth2Helper oAuth2Helper;
 
     @Autowired
-    public ShiftServiceImpl(final ShiftRepository shiftRepository, final OAuth2Helper oAuth2Helper) {
+    public ShiftServiceImpl(final ShiftRepository shiftRepository, final OrderRepository orderRepository, final OAuth2Helper oAuth2Helper) {
         this.shiftRepository = shiftRepository;
+        this.orderRepository = orderRepository;
         this.oAuth2Helper = oAuth2Helper;
     }
 
@@ -62,6 +68,10 @@ public class ShiftServiceImpl implements ShiftService {
     public Shift closeShift(final String clientId, BigDecimal closingBalance) {
 
         final Shift shift = getActiveShiftOrThrows(clientId);
+
+        if (orderRepository.countByClientIdAndStateIn(clientId, Order.OrderState.inflightStates()) > 0) {
+            throw new BusinessLogicException("Please complete all orders before closing shift.");
+        }
 
         final String currentUser = oAuth2Helper.getCurrentPrincipal();
         shift.closeShift(currentUser, closingBalance);

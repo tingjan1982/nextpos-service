@@ -16,7 +16,6 @@ import org.springframework.util.CollectionUtils;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -75,12 +74,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<Order> getInflightOrders(final String clientId) {
-        final List<Order.OrderState> states = Arrays.asList(
-                Order.OrderState.OPEN,
-                Order.OrderState.IN_PROCESS,
-                Order.OrderState.DELIVERED,
-                Order.OrderState.SETTLED,
-                Order.OrderState.REFUNDED);
+        final List<Order.OrderState> states = Order.OrderState.inflightStates();
 
         final Shift activeShift = shiftService.getActiveShiftOrThrows(clientId);
 

@@ -69,6 +69,13 @@ public class UserTimeCardServiceImpl implements UserTimeCardService {
     }
 
     @Override
+    public UserTimeCard getUserTimeCardById(final String id) {
+        return userTimeCardRepository.findById(id).orElseThrow(() -> {
+            throw new ObjectNotFoundException(id, UserTimeCard.class);
+        });
+    }
+
+    @Override
     public List<UserTimeCard> getUserTimeCardsByYearMonth(Client client, String username, YearMonth yearMonth) {
 
         return userTimeCardRepository.findAllByClientIdAndUsernameAndClockInDateRange(

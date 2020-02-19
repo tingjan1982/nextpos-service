@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class OrderTransactionResponse {
 
@@ -17,21 +17,36 @@ public class OrderTransactionResponse {
 
     private String orderId;
 
-    private String client;
-
-    private String ubn;
+    private OrderTransaction.BillType billType;
 
     private BigDecimal orderTotal;
 
     private BigDecimal settleAmount;
 
-    private BigDecimal cashChange;
+    private OrderTransaction.PaymentMethod paymentMethod;
 
-    private OrderTransaction.BillType billType;
+    private BigDecimal cashChange;
 
     private List<BillLineItemResponse> billLineItems;
 
     private String orderDetailsPrintInstruction;
+
+    public static OrderTransactionResponse toOrderTransactionResponse(final OrderTransaction orderTransaction, final String orderDetailsPrintInstruction) {
+
+        final List<OrderTransactionResponse.BillLineItemResponse> billLineItems = orderTransaction.getBillDetails().getBillLineItems().stream()
+                .map(li -> new OrderTransactionResponse.BillLineItemResponse(li.getName(), li.getQuantity(), li.getSubTotal()))
+                .collect(Collectors.toList());
+
+        return new OrderTransactionResponse(orderTransaction.getId(),
+                orderTransaction.getOrderId(),
+                orderTransaction.getBillDetails().getBillType(),
+                orderTransaction.getOrderTotal(),
+                orderTransaction.getSettleAmount(),
+                orderTransaction.getPaymentMethod(),
+                orderTransaction.getCashChange(),
+                billLineItems,
+                orderDetailsPrintInstruction);
+    }
 
     @Data
     @NoArgsConstructor

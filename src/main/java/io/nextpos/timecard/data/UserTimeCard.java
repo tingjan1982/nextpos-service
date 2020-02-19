@@ -1,6 +1,7 @@
 package io.nextpos.timecard.data;
 
 import io.nextpos.shared.model.MongoBaseObject;
+import io.nextpos.shared.model.WithClientId;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -15,7 +16,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class UserTimeCard extends MongoBaseObject {
+public class UserTimeCard extends MongoBaseObject implements WithClientId {
 
     @Id
     private String id;

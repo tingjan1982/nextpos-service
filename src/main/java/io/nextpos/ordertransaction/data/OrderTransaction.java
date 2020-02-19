@@ -118,7 +118,7 @@ public class OrderTransaction extends MongoBaseObject {
     }
 
     public enum PaymentStatus {
-        SUCCESS
+        SUCCESS, FAIL
     }
 
     public enum BillType {

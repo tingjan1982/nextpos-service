@@ -3,8 +3,10 @@ package io.nextpos.ordermanagement.web.model;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.TaxableAmount;
+import io.nextpos.ordertransaction.web.model.OrderTransactionResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.Currency;
@@ -13,44 +15,48 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-@AllArgsConstructor
+//@AllArgsConstructor
+@RequiredArgsConstructor
 public class OrderResponse {
 
-    private String orderId;
+    private final String orderId;
 
-    private String serialId;
+    private final String serialId;
 
-    private Order.OrderType orderType;
+    private final Order.OrderType orderType;
 
-    private Order.TableInfo tableInfo;
+    private final Order.TableInfo tableInfo;
 
-    private String tableNote;
+    private final String tableNote;
 
-    private String tableDisplayName;
+    private final String tableDisplayName;
 
-    private String servedBy;
+    private final String servedBy;
 
-    private Date createdDate;
+    private final Date createdDate;
 
-    private Date modifiedDate;
+    private final Date modifiedDate;
 
-    private Order.OrderState state;
+    private final Order.OrderState state;
 
-    private TaxableAmount total;
+    private final TaxableAmount total;
 
-    private TaxableAmount discountedTotal;
+    private final TaxableAmount discountedTotal;
 
-    private BigDecimal serviceCharge;
+    private final BigDecimal serviceCharge;
 
-    private BigDecimal orderTotal;
+    private final BigDecimal orderTotal;
 
-    private Currency currency;
+    private final Currency currency;
 
-    private List<OrderLineItemResponse> lineItems;
+    private final List<OrderLineItemResponse> lineItems;
 
-    private Map<String, Object> metadata;
+    private final Map<String, Object> metadata;
 
-    private Order.DemographicData demographicData;
+    private final Order.DemographicData demographicData;
+
+    private List<OrderTransactionResponse> transactions;
+
 
     @Data
     @AllArgsConstructor

@@ -69,6 +69,8 @@ class UserTimeCardServiceImplTest {
         updatedUserTimeCard.setClockOut(LocalDateTime.now().plusMinutes(95));
         userTimeCardRepository.save(updatedUserTimeCard);
 
+        assertThat(userTimeCardService.getUserTimeCardById(updatedUserTimeCard.getId())).isNotNull();
+
         assertThat(updatedUserTimeCard.getId()).isEqualTo(userTimeCard.getId());
         assertThat(updatedUserTimeCard.getClockOut()).isNotNull().isAfter(updatedUserTimeCard.getClockIn());
         assertThat(updatedUserTimeCard.getTimeCardStatus()).isEqualTo(UserTimeCard.TimeCardStatus.COMPLETE);

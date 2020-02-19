@@ -1,6 +1,9 @@
 package io.nextpos.ordermanagement.service;
 
+import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.Shift;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +25,13 @@ class ShiftServiceImplTest {
     @Autowired
     private ShiftService shiftService;
 
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private OrderSettings orderSettings;
+
+
     @Test
     @WithMockUser("dummyUser")
     void openAndCloseShift() {
@@ -37,8 +47,14 @@ class ShiftServiceImplTest {
             assertThat(s.getShiftStatus()).isEqualTo(Shift.ShiftStatus.ACTIVE);
         });
 
+        final Order order = new Order(clientId, orderSettings);
+        orderService.createOrder(order);
+
         // there should be an active shift.
         assertThatCode(() -> shiftService.getActiveShift(clientId)).doesNotThrowAnyException();
+        assertThatThrownBy(() -> shiftService.closeShift(clientId, BigDecimal.valueOf(1000))).isInstanceOf(BusinessLogicException.class);
+
+        orderService.deleteOrder(order);
 
         final Shift closedShift = shiftService.closeShift(clientId, BigDecimal.valueOf(1000));
 
