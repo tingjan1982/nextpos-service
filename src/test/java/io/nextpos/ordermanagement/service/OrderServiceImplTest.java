@@ -10,7 +10,6 @@ import io.nextpos.shared.DummyObjects;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
 import org.assertj.core.data.Index;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -58,17 +57,10 @@ class OrderServiceImplTest {
         client = DummyObjects.dummyClient();
         clientService.saveClient(client);
 
-        shiftService.openShift(client.getId(), BigDecimal.ONE);
-
         final TableLayout tableLayout = DummyObjects.dummyTableLayout(this.client);
         tableLayoutService.saveTableLayout(tableLayout);
 
         tableDetails = tableLayout.getTables().get(0);
-    }
-
-    @AfterEach
-    void teardown() {
-        shiftService.closeShift(client.getId(), BigDecimal.ONE);
     }
 
     @Test
@@ -185,7 +177,7 @@ class OrderServiceImplTest {
         final Order copiedOrder = orderService.copyOrder(order.getId());
 
         assertThat(copiedOrder.getMetadata(Order.COPY_FROM_ORDER)).isEqualTo(order.getId());
-        assertThat(copiedOrder).isEqualToIgnoringGivenFields(order, "id", "orderLineItems", "metadata", "internalCounter", "createdDate", "modifiedDate");
+        assertThat(copiedOrder).isEqualToIgnoringGivenFields(order, "id", "lookupOrderId", "orderLineItems", "metadata", "internalCounter", "createdDate", "modifiedDate");
         assertThat(copiedOrder.getOrderLineItems()).usingElementComparatorIgnoringFields("id").isEqualTo(order.getOrderLineItems());
     }
 }

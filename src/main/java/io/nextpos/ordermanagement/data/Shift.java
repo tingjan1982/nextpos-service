@@ -1,17 +1,19 @@
 package io.nextpos.ordermanagement.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
+import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.shared.model.MongoBaseObject;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 
 @Document
 @Data
@@ -23,40 +25,53 @@ public class Shift extends MongoBaseObject {
     private String id;
 
     private String clientId;
-                                   
-    private ShiftDetails start;
 
-    private List<ShiftDetails> interimBalances = new ArrayList<>();
+    private OpenShiftDetails start;
 
-    private ShiftDetails end;
-
-    private String unbalanceReason;
+    private CloseShiftDetails end;
 
     private ShiftStatus shiftStatus;
+
 
     public Shift(final String clientId, final Date startTimestamp, final String shiftStartBy, final BigDecimal openingBalance) {
         this.clientId = clientId;
 
-        start = new ShiftDetails(startTimestamp, shiftStartBy, openingBalance);
-        end = new ShiftDetails();
+        start = new OpenShiftDetails(startTimestamp, shiftStartBy, openingBalance);
+        end = new CloseShiftDetails();
         shiftStatus = ShiftStatus.ACTIVE;
     }
 
-    public void addInterimBalance(ShiftDetails shiftDetails) {
-        interimBalances.add(shiftDetails);
+    public void initiateCloseShift(Function<Shift, ClosingShiftTransactionReport> closingShiftTransactionReport) {
+
+        end.setTimestamp(new Date());
+        end.setClosingShiftReport(closingShiftTransactionReport.apply(this));
+        shiftStatus = ShiftStatus.CLOSING;
     }
 
-    public void closeShift(String closedBy, BigDecimal closingBalance) {
-        end.setTimestamp(new Date());
-        end.setWho(closedBy);
-        end.setBalance(closingBalance);
+    public void closeShift(String closedBy, ClosingBalanceDetails cash, ClosingBalanceDetails card) {
 
-        if (closingBalance.equals(start.balance)) {
+        end.setWho(closedBy);
+        end.updateClosingBalanceDetails(cash, OrderTransaction.PaymentMethod.CASH);
+        end.updateClosingBalanceDetails(card, OrderTransaction.PaymentMethod.CARD);
+
+        shiftStatus = ShiftStatus.CONFIRM_CLOSE;
+    }
+
+    public void confirmCloseShift(String closingRemark) {
+        end.setClosingRemark(closingRemark);
+
+        if (end.checkClosingBalance()) {
             shiftStatus = ShiftStatus.BALANCED;
         } else {
             shiftStatus = ShiftStatus.UNBALANCED;
         }
     }
+
+    public void abortCloseShift() {
+        end = null;
+        shiftStatus = ShiftStatus.ACTIVE;
+    }
+
 
     @Override
     public boolean isNew() {
@@ -65,18 +80,75 @@ public class Shift extends MongoBaseObject {
 
     @Data
     @NoArgsConstructor(access = AccessLevel.PACKAGE)
-    public static class ShiftDetails {
+    public static class OpenShiftDetails {
 
         private Date timestamp;
 
         private String who;
 
+        /**
+         * Opening balance.
+         */
         private BigDecimal balance;
 
-        public ShiftDetails(final Date timestamp, final String who, final BigDecimal balance) {
+        public OpenShiftDetails(final Date timestamp, final String who, final BigDecimal balance) {
             this.timestamp = timestamp;
             this.who = who;
             this.balance = balance;
+        }
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class CloseShiftDetails {
+
+        private Date timestamp;
+
+        private String who;
+
+        private ClosingShiftTransactionReport closingShiftReport;
+
+        private Map<OrderTransaction.PaymentMethod, ClosingBalanceDetails> closingBalances = new HashMap<>();
+
+        private String closingRemark;
+
+        public void updateClosingBalanceDetails(ClosingBalanceDetails closingBalanceDetails, OrderTransaction.PaymentMethod paymentMethod) {
+
+            if (closingBalanceDetails != null) {
+                closingBalances.put(paymentMethod, closingBalanceDetails);
+
+                closingShiftReport.getTotalByPaymentMethod(paymentMethod).ifPresent(p -> {
+                    final BigDecimal orderTotal = p.getOrderTotal();
+                    BigDecimal difference = closingBalanceDetails.getClosingBalance().subtract(orderTotal);
+                    closingBalanceDetails.setDifference(difference);
+                });
+            }
+        }
+
+        public boolean checkClosingBalance() {
+            return closingBalances.values().stream().allMatch(ClosingBalanceDetails::isBalanced);
+        }
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ClosingBalanceDetails {
+
+        @PositiveOrZero
+        private BigDecimal closingBalance;
+
+        private BigDecimal difference = BigDecimal.ZERO;
+
+        private String unbalanceReason;
+
+        public static ClosingBalanceDetails of(BigDecimal closingBalance) {
+            return new ClosingBalanceDetails(closingBalance, BigDecimal.ZERO, null);
+        }
+
+        @JsonIgnore
+        public boolean isBalanced() {
+            return BigDecimal.ZERO.compareTo(difference) == 0;
         }
     }
 
@@ -91,6 +163,16 @@ public class Shift extends MongoBaseObject {
          * Indicates shift is active.
          */
         ACTIVE,
+
+        /**
+         * Indicates shift has initiated closing.
+         */
+        CLOSING,
+
+        /**
+         * Indicates shift is pending confirmation to close.
+         */
+        CONFIRM_CLOSE,
 
         /**
          * Shift is ended and closing balance matches the opening balance.

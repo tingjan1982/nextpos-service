@@ -360,8 +360,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers(GET,"/tablelayouts/**").hasAuthority(Role.USER_ROLE)
                     .antMatchers(POST,"/tablelayouts/**").hasAuthority(Role.MANAGER_ROLE)
                     .antMatchers(DELETE,"/tablelayouts/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers("/workingareas/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers("/printers/**").hasAuthority(Role.MANAGER_ROLE);
+                    .antMatchers(GET,"/workingareas/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(POST, "/workingareas/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(GET,"/printers/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(POST,"/printers/**").hasAuthority(Role.MANAGER_ROLE);
         }
 
         private void authorizeProductRequests(final HttpSecurity http) throws Exception {

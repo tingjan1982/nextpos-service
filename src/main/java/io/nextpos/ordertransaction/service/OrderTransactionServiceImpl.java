@@ -62,7 +62,7 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
                 .map(OrderTransaction::getSettleAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        if (order.getOrderTotal().compareTo(settledAmount) == 0) {
+        if (order.getOrderTotal().compareTo(settledAmount) <= 0) {
             LOGGER.info("Order[{}] with amount {} has been settled, settling the order.", order.getId(), order.getOrderTotal());
             orderService.performOrderAction(orderTransaction.getOrderId(), Order.OrderAction.SETTLE);
         }

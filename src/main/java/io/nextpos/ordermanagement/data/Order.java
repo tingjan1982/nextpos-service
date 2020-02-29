@@ -48,6 +48,11 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     private List<OrderLineItem> orderLineItems = new ArrayList<>();
 
     /**
+     * total or discounted total + service charge
+     */
+    private BigDecimal orderTotal;
+
+    /**
      * Stores total of all the line items taking into account of line item level discount.
      */
     private TaxableAmount total;
@@ -56,6 +61,11 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
      * Stores order level discounted total computed by order level offers.
      */
     private TaxableAmount discountedTotal;
+
+    /**
+     * if discountedTotal is not zero then, total - discountedTotal
+     */
+    private BigDecimal discount = BigDecimal.ZERO;
 
     private BigDecimal serviceCharge = BigDecimal.ZERO;
 
@@ -86,9 +96,15 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     @Version
     private Long version;
 
+    /**
+     * Used primarily for lookup operation joining other document.
+     */
+    private String lookupOrderId;
+
 
     public Order(String clientId, OrderSettings orderSettings) {
         this.id = new ObjectId().toString();
+        this.lookupOrderId = id;
         this.clientId = clientId;
         this.state = OPEN;
         this.total = new TaxableAmount(orderSettings.getTaxRate(), orderSettings.isTaxInclusive());
@@ -109,18 +125,6 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     public String getTableDisplayName() {
         return tableInfo != null ? tableInfo.getTableName() : tableNote;
-    }
-
-    /**
-     * total or discounted total + service charge
-     *
-     * @return
-     */
-    public BigDecimal getOrderTotal() {
-
-        final BigDecimal totalBeforeServiceCharge = discountedTotal != null && !discountedTotal.isZero() ? discountedTotal.getAmountWithTax() : total.getAmountWithTax();
-        return totalBeforeServiceCharge.add(serviceCharge);
-
     }
 
     /**
@@ -188,13 +192,16 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
         total.calculate(lineItemsTotal);
 
-        final BigDecimal discount = this.replayOfferIfExists(total);
-        applyOffer(discount);
+        final BigDecimal discountedPrice = this.replayOfferIfExists(total);
+        applyOffer(discountedPrice);
+
+        final BigDecimal totalBeforeServiceCharge = discountedTotal != null && !discountedTotal.isZero() ? discountedTotal.getAmountWithTax() : total.getAmountWithTax();
 
         if (orderSettings.hasServiceCharge()) {
-            final BigDecimal totalBeforeServiceCharge = discountedTotal != null && !discountedTotal.isZero() ? discountedTotal.getAmountWithTax() : total.getAmountWithTax();
             serviceCharge = totalBeforeServiceCharge.multiply(orderSettings.getServiceCharge());
         }
+
+        orderTotal = totalBeforeServiceCharge.add(serviceCharge);
     }
 
     @Override
@@ -202,6 +209,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
         discountedTotal = total.newInstance();
         discountedTotal.calculate(computedDiscount);
+
+        discount = total.getAmountWithTax().subtract(discountedTotal.getAmountWithTax());
     }
 
     public int getCustomerCount() {
@@ -225,11 +234,14 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
         final Order copy = new Order();
         copy.id = new ObjectId().toString();
+        copy.lookupOrderId = copy.id;
         copy.serialId = serialId;
         copy.clientId = clientId;
         copy.state = state;
+        copy.orderTotal = orderTotal;
         copy.total = total.copy();
         copy.discountedTotal = discountedTotal != null ? discountedTotal.copy() : null;
+        copy.discount = discount;
         copy.serviceCharge = serviceCharge;
         copy.currency = currency;
         copy.tableInfo = tableInfo != null ? tableInfo.copy() : null;

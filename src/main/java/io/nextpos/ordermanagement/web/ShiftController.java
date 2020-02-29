@@ -3,16 +3,14 @@ package io.nextpos.ordermanagement.web;
 import io.nextpos.client.data.Client;
 import io.nextpos.ordermanagement.data.Shift;
 import io.nextpos.ordermanagement.service.ShiftService;
-import io.nextpos.ordermanagement.web.model.ShiftRequest;
+import io.nextpos.ordermanagement.web.model.CloseShiftRequest;
+import io.nextpos.ordermanagement.web.model.OpenShiftRequest;
 import io.nextpos.ordermanagement.web.model.ShiftResponse;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/shifts")
@@ -53,45 +51,63 @@ public class ShiftController {
 
     @PostMapping("/open")
     public ShiftResponse openShift(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                   @Valid @RequestBody ShiftRequest shiftRequest) {
+                                   @Valid @RequestBody OpenShiftRequest shiftRequest) {
 
         final Shift shift = shiftService.openShift(client.getId(), shiftRequest.getBalance());
         return toShiftResponse(shift);
     }
 
-    @PostMapping("/interim")
-    public ShiftResponse interimBalance(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                        @Valid @RequestBody ShiftRequest shiftRequest) {
+    @PostMapping("/initiateClose")
+    public ShiftResponse initiateCloseShift(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
-        final Shift shift = shiftService.createInterimBalance(client.getId(), shiftRequest.getBalance());
+        final Shift shift = shiftService.initiateCloseShift(client.getId());
         return toShiftResponse(shift);
     }
 
     @PostMapping("/close")
     public ShiftResponse closeShift(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                    @Valid @RequestBody ShiftRequest shiftRequest) {
+                                    @Valid @RequestBody CloseShiftRequest closeShiftRequest) {
 
-        final Shift shift = shiftService.closeShift(client.getId(), shiftRequest.getBalance());
+        final Shift shift = shiftService.closeShift(client.getId(), closeShiftRequest.getCash(), closeShiftRequest.getCard());
+
+        return toShiftResponse(shift);
+    }
+
+    @PostMapping("/confirmClose")
+    public ShiftResponse closeShift(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                    @Valid @RequestBody String closingRemark) {
+
+        Shift shift = shiftService.confirmCloseShift(client.getId(), closingRemark);
+
+        return toShiftResponse(shift);
+    }
+
+    @PostMapping("/abortClose")
+    public ShiftResponse abortCloseShift(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        Shift shift = shiftService.abortCloseShift(client.getId());
+
         return toShiftResponse(shift);
     }
 
     private ShiftResponse toShiftResponse(final Shift shift) {
-        BigDecimal difference = null;
 
-        if (shift.getShiftStatus() == Shift.ShiftStatus.UNBALANCED) {
-            difference = shift.getEnd().getBalance().subtract(shift.getStart().getBalance());
-        }
+        final ShiftResponse.OpenShiftDetailsResponse openShiftResponse = new ShiftResponse.OpenShiftDetailsResponse(
+                shift.getStart().getTimestamp(),
+                shift.getStart().getWho(),
+                shift.getStart().getBalance());
 
-        final List<ShiftResponse.ShiftDetailsResponse> interimBalances = shift.getInterimBalances().stream()
-                .map(sd -> new ShiftResponse.ShiftDetailsResponse(sd.getTimestamp(), sd.getWho(), sd.getBalance()))
-                .collect(Collectors.toList());
+        final ShiftResponse.CloseShiftDetailsResponse closeShiftResponse = new ShiftResponse.CloseShiftDetailsResponse(
+                shift.getEnd().getTimestamp(),
+                shift.getEnd().getWho(),
+                shift.getEnd().getClosingShiftReport(),
+                shift.getEnd().getClosingBalances(),
+                shift.getEnd().getClosingRemark());
 
         return new ShiftResponse(shift.getId(),
                 shift.getClientId(),
                 shift.getShiftStatus(),
-                new ShiftResponse.ShiftDetailsResponse(shift.getStart().getTimestamp(), shift.getStart().getWho(), shift.getStart().getBalance()),
-                interimBalances,
-                new ShiftResponse.ShiftDetailsResponse(shift.getEnd().getTimestamp(), shift.getEnd().getWho(), shift.getEnd().getBalance()),
-                difference);
+                openShiftResponse,
+                closeShiftResponse);
     }
 }

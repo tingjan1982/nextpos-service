@@ -1,11 +1,13 @@
 package io.nextpos.reporting.service;
 
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderRepository;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.reporting.data.CustomerStatsReport;
 import io.nextpos.shared.DummyObjects;
 import org.assertj.core.data.Index;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +29,7 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 @SpringBootTest
 @Transactional
+//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD) use this sparingly as it is not good for performance.
 class StatsReportServiceImplTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StatsReportServiceImplTest.class);
@@ -38,11 +41,18 @@ class StatsReportServiceImplTest {
     private OrderService orderService;
 
     @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
     private MongoTemplate mongoTemplate;
 
     @Autowired
     private OrderSettings orderSettings;
 
+    @AfterEach
+    void cleanData() {
+        orderRepository.deleteAll();
+    }
 
     @Test
     void generateCustomerStatsReport() {

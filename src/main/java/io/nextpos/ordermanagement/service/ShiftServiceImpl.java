@@ -4,6 +4,7 @@ import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderRepository;
 import io.nextpos.ordermanagement.data.Shift;
 import io.nextpos.ordermanagement.data.ShiftRepository;
+import io.nextpos.ordertransaction.service.OrderTransactionReportService;
 import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ShiftException;
@@ -23,6 +24,8 @@ public class ShiftServiceImpl implements ShiftService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ShiftServiceImpl.class);
 
+    private final OrderTransactionReportService orderTransactionReportService;
+
     private final ShiftRepository shiftRepository;
 
     private final OrderRepository orderRepository;
@@ -30,7 +33,8 @@ public class ShiftServiceImpl implements ShiftService {
     private final OAuth2Helper oAuth2Helper;
 
     @Autowired
-    public ShiftServiceImpl(final ShiftRepository shiftRepository, final OrderRepository orderRepository, final OAuth2Helper oAuth2Helper) {
+    public ShiftServiceImpl(final OrderTransactionReportService orderTransactionReportService, final ShiftRepository shiftRepository, final OrderRepository orderRepository, final OAuth2Helper oAuth2Helper) {
+        this.orderTransactionReportService = orderTransactionReportService;
         this.shiftRepository = shiftRepository;
         this.orderRepository = orderRepository;
         this.oAuth2Helper = oAuth2Helper;
@@ -53,19 +57,7 @@ public class ShiftServiceImpl implements ShiftService {
     }
 
     @Override
-    public Shift createInterimBalance(final String clientId, BigDecimal interimBalanceAmount) {
-
-        final Shift shift = getActiveShiftOrThrows(clientId);
-        final String currentUser = oAuth2Helper.getCurrentPrincipal();
-
-        final Shift.ShiftDetails interimBalance = new Shift.ShiftDetails(new Date(), currentUser, interimBalanceAmount);
-        shift.addInterimBalance(interimBalance);
-
-        return shiftRepository.save(shift);
-    }
-
-    @Override
-    public Shift closeShift(final String clientId, BigDecimal closingBalance) {
+    public Shift initiateCloseShift(final String clientId) {
 
         final Shift shift = getActiveShiftOrThrows(clientId);
 
@@ -73,9 +65,44 @@ public class ShiftServiceImpl implements ShiftService {
             throw new BusinessLogicException("Please complete all orders before closing shift.");
         }
 
-        final String currentUser = oAuth2Helper.getCurrentPrincipal();
-        shift.closeShift(currentUser, closingBalance);
+        shift.initiateCloseShift(orderTransactionReportService::getClosingShiftTransactionReport);
 
+        return shiftRepository.save(shift);
+    }
+
+    @Override
+    public Shift closeShift(final String clientId, Shift.ClosingBalanceDetails cash, final Shift.ClosingBalanceDetails card) {
+
+        final Shift shift = getShiftByStatusOrThrows(clientId, Shift.ShiftStatus.CLOSING).orElseThrow(() -> {
+            throw new BusinessLogicException("Please initiate close shift first.");
+        });
+
+        final String currentUser = oAuth2Helper.getCurrentPrincipal();
+        shift.closeShift(currentUser, cash, card);
+
+        return shiftRepository.save(shift);
+    }
+
+    @Override
+    public Shift confirmCloseShift(final String clientId, final String closingRemark) {
+
+        final Shift shift = getShiftByStatusOrThrows(clientId, Shift.ShiftStatus.CONFIRM_CLOSE).orElseThrow(() -> {
+            throw new BusinessLogicException("Please close shift first.");
+        });
+
+        shift.confirmCloseShift(closingRemark);
+
+        return shiftRepository.save(shift);
+    }
+
+    @Override
+    public Shift abortCloseShift(final String clientId) {
+
+        final Shift shift = getShiftByStatusOrThrows(clientId, Shift.ShiftStatus.CONFIRM_CLOSE).orElseThrow(() -> {
+            throw new BusinessLogicException("Cannot abort a shift that is not in confirm closing status");
+        });
+
+        shift.abortCloseShift();
         return shiftRepository.save(shift);
     }
 
@@ -95,5 +122,9 @@ public class ShiftServiceImpl implements ShiftService {
         return this.getActiveShift(clientId).orElseThrow(() -> {
             throw new ShiftException(clientId);
         });
+    }
+
+    private Optional<Shift> getShiftByStatusOrThrows(String clientId, Shift.ShiftStatus shiftStatus) {
+        return shiftRepository.findByClientIdAndShiftStatus(clientId, shiftStatus);
     }
 }

@@ -61,7 +61,7 @@ class TimeCardReportServiceImplTest {
         createUserTimeCard(username, now, now.plus(1, ChronoUnit.HALF_DAYS));
         createUserTimeCard(username, now, now.plusDays(1));
 
-        createUserTimeCard(username2, now.plusDays(1), now.plusDays(2));
+        createUserTimeCard(username2, now.minusDays(2), now.minusDays(1));
 
         createUserTimeCard(username2, lastOfMonth, lastOfMonth.plusDays(1));
 

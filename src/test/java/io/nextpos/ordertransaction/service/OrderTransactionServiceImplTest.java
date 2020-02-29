@@ -38,12 +38,12 @@ class OrderTransactionServiceImplTest {
 
         final String clientId = "dummy-client-id";
         final Order order = new Order(clientId, orderSettings);
-        order.getTotal().calculate(BigDecimal.valueOf(150));
+        order.setOrderTotal(BigDecimal.valueOf(150));
         order.setState(Order.OrderState.DELIVERED);
         orderService.saveOrder(order);
 
         // 157.0 settle amount is to accommodate the default 5% tax.
-        final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), clientId, order.getOrderTotal(), BigDecimal.valueOf(157.5),
+        final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), clientId, order.getOrderTotal(), BigDecimal.valueOf(200),
                 OrderTransaction.PaymentMethod.CARD,
                 OrderTransaction.BillType.SINGLE,
                 List.of());

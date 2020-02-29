@@ -9,9 +9,13 @@ public interface ShiftService {
 
     Shift openShift(String clientId, BigDecimal openingBalance);
 
-    Shift createInterimBalance(String clientId, BigDecimal interimBalance);
+    Shift initiateCloseShift(String clientId);
 
-    Shift closeShift(String clientId, BigDecimal closingBalance);
+    Shift closeShift(String clientId, Shift.ClosingBalanceDetails cash, final Shift.ClosingBalanceDetails card);
+
+    Shift confirmCloseShift(String clientId, String closingRemark);
+
+    Shift abortCloseShift(String clientId);
 
     Optional<Shift> getActiveShift(String clientId);
 

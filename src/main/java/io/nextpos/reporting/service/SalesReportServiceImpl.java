@@ -197,9 +197,9 @@ public class SalesReportServiceImpl implements SalesReportService {
         final ProjectionOperation projection = Aggregation.project("clientId")
                 .and(createToDecimal("total.amountWithTax")).as("total") // this is critical to make $sum work.
                 .and("modifiedDate").as("modifiedDate")
-                .and("modifiedDate").extractDayOfMonth().as("day")
-                .and("modifiedDate").extractWeek().as("week")
-                .and("modifiedDate").extractMonth().as("month");
+                .and(context -> Document.parse("{ $dayOfMonth: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("day")
+                .and(context -> Document.parse("{ $week: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("week")
+                .and(context -> Document.parse("{ $month: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("month");
 
         final MatchOperation filter = Aggregation.match(
                 Criteria.where("clientId").is(clientId)

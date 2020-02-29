@@ -142,8 +142,8 @@ public class ClientController {
 
     private Client fromClientRequest(ClientRequest clientRequest) {
 
-        final Client client = new Client(clientRequest.getClientName(),
-                clientRequest.getUsername(),
+        final Client client = new Client(clientRequest.getClientName().trim(),
+                clientRequest.getUsername().trim(),
                 clientRequest.getMasterPassword(),
                 BootstrapConfig.DEFAULT_COUNTRY_CODE);
 
