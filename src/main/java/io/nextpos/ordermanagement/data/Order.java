@@ -210,7 +210,9 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         discountedTotal = total.newInstance();
         discountedTotal.calculate(computedDiscount);
 
-        discount = total.getAmountWithTax().subtract(discountedTotal.getAmountWithTax());
+        if (!discountedTotal.isZero()) {
+            discount = total.getAmountWithTax().subtract(discountedTotal.getAmountWithTax());
+        }
     }
 
     public int getCustomerCount() {

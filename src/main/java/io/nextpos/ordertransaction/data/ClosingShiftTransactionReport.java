@@ -1,12 +1,15 @@
 package io.nextpos.ordertransaction.data;
 
+import io.nextpos.ordermanagement.data.Order;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -24,6 +27,24 @@ public class ClosingShiftTransactionReport {
         }
 
         return 0;
+    }
+
+    public Map<OrderTransaction.PaymentMethod, PaymentMethodTotal> getTotalByPaymentMethod() {
+
+        if (!CollectionUtils.isEmpty(totalByPaymentMethod)) {
+            return totalByPaymentMethod.stream().collect(Collectors.toMap(PaymentMethodTotal::getPaymentMethod, p -> p));
+        }
+
+        return Map.of();
+    }
+
+    public Map<Order.OrderState, OrderCount> getOrderCountByState() {
+
+        if (!CollectionUtils.isEmpty(orderCountByState)) {
+            return orderCountByState.stream().collect(Collectors.toMap(OrderCount::getOrderState, oc -> oc));
+        }
+
+        return Map.of();
     }
 
     public Optional<PaymentMethodTotal> getTotalByPaymentMethod(OrderTransaction.PaymentMethod paymentMethod) {
@@ -55,6 +76,8 @@ public class ClosingShiftTransactionReport {
     public static class OrderCount {
 
         private String id;
+
+        private Order.OrderState orderState;
 
         private int orderCount;
     }

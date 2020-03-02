@@ -39,13 +39,15 @@ public class OrderTransactionReportServiceImpl implements OrderTransactionReport
 
         final GroupOperation totalByPaymentMethod = Aggregation.group("transactions.paymentMethodDetails.paymentMethod")
                 .first("transactions.paymentMethodDetails.paymentMethod").as("paymentMethod")
-                .sum("orderTotal").as("orderTotal")
+                .sum(createToDecimal("transactions.settleAmount")).as("orderTotal")
                 .sum("serviceCharge").as("serviceCharge")
                 .sum("discount").as("discount")
                 .count().as("orderCount");
 
         final CountOperation totalOrderCount = Aggregation.count().as("orderCount");
-        final GroupOperation orderCountByState = Aggregation.group("state").count().as("orderCount");
+        final GroupOperation orderCountByState = Aggregation.group("state")
+                .first("state").as("orderState")
+                .count().as("orderCount");
 
         final FacetOperation facets = Aggregation.facet(flattenTransactions, totalByPaymentMethod).as("totalByPaymentMethod")
                 .and(totalOrderCount).as("totalOrderCount")

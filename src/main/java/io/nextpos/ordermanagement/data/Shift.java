@@ -3,6 +3,7 @@ package io.nextpos.ordermanagement.data;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
 import io.nextpos.ordertransaction.data.OrderTransaction;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.model.MongoBaseObject;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -11,6 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -183,5 +185,32 @@ public class Shift extends MongoBaseObject {
          * Opposite of BALANCED.
          */
         UNBALANCED
+    }
+
+    public enum ShiftAction {
+
+        INITIATE_CLOSE(EnumSet.of(ShiftStatus.ACTIVE)),
+
+        CLOSE(EnumSet.of(ShiftStatus.CLOSING)),
+
+        CONFIRM_CLOSE(EnumSet.of(ShiftStatus.CONFIRM_CLOSE)),
+
+        ABORT_CLOSE(EnumSet.of(ShiftStatus.CLOSING, ShiftStatus.CONFIRM_CLOSE));
+
+        private final EnumSet<ShiftStatus> validFromState;
+
+        ShiftAction(final EnumSet<ShiftStatus> validFromState) {
+            this.validFromState = validFromState;
+        }
+
+        public void checkShiftStatus(Shift shift) {
+
+            final ShiftStatus shiftStatus = shift.getShiftStatus();
+
+            if (!validFromState.contains(shiftStatus)) {
+                final String message = String.format("Current shift status %s cannot execute this shift action[%s]. Valid shift status is: %s", shiftStatus, this, validFromState);
+                throw new BusinessLogicException(message);
+            }
+        }
     }
 }

@@ -7,6 +7,7 @@ import io.nextpos.ordermanagement.data.ShiftRepository;
 import io.nextpos.ordertransaction.service.OrderTransactionReportService;
 import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.exception.BusinessLogicException;
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.exception.ShiftException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +60,8 @@ public class ShiftServiceImpl implements ShiftService {
     @Override
     public Shift initiateCloseShift(final String clientId) {
 
-        final Shift shift = getActiveShiftOrThrows(clientId);
+        final Shift shift = getCurrentShiftOrThrows(clientId);
+        Shift.ShiftAction.INITIATE_CLOSE.checkShiftStatus(shift);
 
         if (orderRepository.countByClientIdAndStateIn(clientId, Order.OrderState.inflightStates()) > 0) {
             throw new BusinessLogicException("Please complete all orders before closing shift.");
@@ -73,9 +75,8 @@ public class ShiftServiceImpl implements ShiftService {
     @Override
     public Shift closeShift(final String clientId, Shift.ClosingBalanceDetails cash, final Shift.ClosingBalanceDetails card) {
 
-        final Shift shift = getShiftByStatusOrThrows(clientId, Shift.ShiftStatus.CLOSING).orElseThrow(() -> {
-            throw new BusinessLogicException("Please initiate close shift first.");
-        });
+        final Shift shift = getCurrentShiftOrThrows(clientId);
+        Shift.ShiftAction.CLOSE.checkShiftStatus(shift);
 
         final String currentUser = oAuth2Helper.getCurrentPrincipal();
         shift.closeShift(currentUser, cash, card);
@@ -86,9 +87,8 @@ public class ShiftServiceImpl implements ShiftService {
     @Override
     public Shift confirmCloseShift(final String clientId, final String closingRemark) {
 
-        final Shift shift = getShiftByStatusOrThrows(clientId, Shift.ShiftStatus.CONFIRM_CLOSE).orElseThrow(() -> {
-            throw new BusinessLogicException("Please close shift first.");
-        });
+        final Shift shift = getCurrentShiftOrThrows(clientId);
+        Shift.ShiftAction.CONFIRM_CLOSE.checkShiftStatus(shift);
 
         shift.confirmCloseShift(closingRemark);
 
@@ -98,9 +98,8 @@ public class ShiftServiceImpl implements ShiftService {
     @Override
     public Shift abortCloseShift(final String clientId) {
 
-        final Shift shift = getShiftByStatusOrThrows(clientId, Shift.ShiftStatus.CONFIRM_CLOSE).orElseThrow(() -> {
-            throw new BusinessLogicException("Cannot abort a shift that is not in confirm closing status");
-        });
+        final Shift shift = getCurrentShiftOrThrows(clientId);
+        Shift.ShiftAction.ABORT_CLOSE.checkShiftStatus(shift);
 
         shift.abortCloseShift();
         return shiftRepository.save(shift);
@@ -124,7 +123,9 @@ public class ShiftServiceImpl implements ShiftService {
         });
     }
 
-    private Optional<Shift> getShiftByStatusOrThrows(String clientId, Shift.ShiftStatus shiftStatus) {
-        return shiftRepository.findByClientIdAndShiftStatus(clientId, shiftStatus);
+    private Shift getCurrentShiftOrThrows(String clientId) {
+        return shiftRepository.findFirstByClientIdOrderByCreatedDateDesc(clientId).orElseThrow(() -> {
+            throw new ObjectNotFoundException(clientId, Shift.class);
+        });
     }
 }

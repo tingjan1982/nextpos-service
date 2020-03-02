@@ -40,7 +40,7 @@ public interface OrderService {
 
     OrderStateChangeBean performOrderAction(String id, Order.OrderAction orderAction);
 
-    OrderStateChange getOrderStateChangeByOrderId(String orderId);
+    Optional<OrderStateChange> getOrderStateChangeByOrderId(String orderId);
 
     List<OrderLineItem> deliverLineItems(String orderId, List<String> lineItemIds);
 

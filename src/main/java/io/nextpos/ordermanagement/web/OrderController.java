@@ -175,11 +175,12 @@ public class OrderController {
     public OrderResponse getOrder(@PathVariable String id) {
 
         final Order order = orderService.getOrder(id);
-        final OrderStateChange orderStateChange = orderService.getOrderStateChangeByOrderId(id);
         final OrderResponse orderResponse = toOrderResponse(order);
 
-        final OrderDuration orderDuration = orderStateChange.getOrderDuration();
-        orderResponse.setOrderDuration(orderDuration);
+        orderService.getOrderStateChangeByOrderId(id).ifPresent(sc -> {
+            final OrderDuration orderDuration = sc.getOrderDuration();
+            orderResponse.setOrderDuration(orderDuration);
+        });
 
         final List<OrderTransactionResponse> transactions = orderTransactionService.getOrderTransactionByOrderId(order.getId()).stream()
                 .map(ot -> OrderTransactionResponse.toOrderTransactionResponse(ot, null))
