@@ -13,6 +13,7 @@ import io.nextpos.shared.exception.ClientOwnershipViolationException;
 import io.nextpos.shared.web.ClientResolver;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -29,10 +30,13 @@ public class OrderTransactionController {
 
     private final OrderService orderService;
 
+    private final ConversionService conversionService;
+
     @Autowired
-    public OrderTransactionController(final OrderTransactionService orderTransactionService, final OrderService orderService) {
+    public OrderTransactionController(final OrderTransactionService orderTransactionService, final OrderService orderService, final ConversionService conversionService) {
         this.orderTransactionService = orderTransactionService;
         this.orderService = orderService;
+        this.conversionService = conversionService;
     }
 
     @PostMapping
@@ -78,15 +82,23 @@ public class OrderTransactionController {
                 OrderTransaction.BillType.valueOf(orderTransactionRequest.getBillType()),
                 billLineItems);
 
-        validateCashChange(orderTransactionRequest, orderTransaction);
+        orderTransaction.setTaxIdNumber(orderTransactionRequest.getTaxIdNumber());
+
+        orderTransactionRequest.getPaymentDetails().forEach((key, value) -> {
+            final Class<?> targetValueType = key.getValueType();
+            final Object convertedValue = conversionService.convert(value, targetValueType);
+            orderTransaction.putPaymentDetails(key, convertedValue);
+        });
+
+        validateCashChange(orderTransaction);
 
         return orderTransaction;
     }
 
-    private void validateCashChange(final OrderTransactionRequest orderTransactionRequest, final OrderTransaction orderTransaction) {
+    private void validateCashChange(OrderTransaction orderTransaction) {
 
         if (orderTransaction.getPaymentMethod() == OrderTransaction.PaymentMethod.CASH) {
-            final BigDecimal cash = orderTransactionRequest.getCash();
+            final BigDecimal cash = orderTransaction.getPaymentDetailsByKey(OrderTransaction.PaymentDetailsKey.CASH);
 
             if (cash != null) {
                 final BigDecimal settleAmount = orderTransaction.getSettleAmount();
@@ -95,7 +107,7 @@ public class OrderTransactionController {
                 }
 
                 final BigDecimal cashChange = cash.subtract(settleAmount);
-                orderTransaction.setCashChange(cashChange);
+                orderTransaction.putPaymentDetails(OrderTransaction.PaymentDetailsKey.CASH_CHANGE, cashChange);
             }
         }
     }
@@ -104,7 +116,7 @@ public class OrderTransactionController {
 
         final OrderTransaction.BillType billType = OrderTransaction.BillType.valueOf(orderTransactionRequest.getBillType());
 
-        switch(billType) {
+        switch (billType) {
             case SINGLE:
                 return List.of(new OrderTransaction.BillLineItem("single", 1, order.getOrderTotal()));
 

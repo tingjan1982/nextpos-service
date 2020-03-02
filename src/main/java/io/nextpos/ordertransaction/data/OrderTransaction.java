@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,9 +28,7 @@ public class OrderTransaction extends MongoBaseObject {
 
     private BigDecimal settleAmount;
 
-    private BigDecimal cashChange;
-
-    private PaymentMethodDetails paymentMethodDetails;
+    private PaymentDetails paymentDetails;
 
     private InvoiceDetails invoiceDetails;
 
@@ -42,44 +41,78 @@ public class OrderTransaction extends MongoBaseObject {
                             final PaymentMethod paymentMethod,
                             final BillType billType,
                             final List<BillLineItem> billLineItems) {
+
         this.orderId = orderId;
         this.clientId = clientId;
         this.orderTotal = orderTotal;
         this.settleAmount = settleAmount;
-        this.paymentMethodDetails = new PaymentMethodDetails(paymentMethod);
+        this.paymentDetails = new PaymentDetails(paymentMethod);
         this.invoiceDetails = new InvoiceDetails();
         this.billDetails = new BillDetails(billType);
         this.billDetails.getBillLineItems().addAll(billLineItems);
     }
 
     public PaymentMethod getPaymentMethod() {
-        return this.paymentMethodDetails.getPaymentMethod();
+        return this.paymentDetails.getPaymentMethod();
     }
+
+    public void setTaxIdNumber(String taxIdNumber) {
+        this.invoiceDetails.setTaxIdNumber(taxIdNumber);
+    }
+
+    public void putPaymentDetails(PaymentDetailsKey key, Object value) {
+        paymentDetails.values.put(key, value);
+    }
+
+    public <T> T getPaymentDetailsByKey(PaymentDetailsKey key) {
+        return (T) paymentDetails.values.get(key);
+    }
+
 
     @Override
     public boolean isNew() {
         return id == null;
     }
 
-
     @Data
-    public static class PaymentMethodDetails {
+    public static class PaymentDetails {
 
         private PaymentMethod paymentMethod;
 
         private PaymentStatus paymentStatus;
 
-        private Map<String, String> details;
+        private Map<OrderTransaction.PaymentDetailsKey, Object> values = new HashMap<>();
 
-        PaymentMethodDetails(final PaymentMethod paymentMethod) {
+        PaymentDetails(final PaymentMethod paymentMethod) {
             this.paymentMethod = paymentMethod;
         }
-
-
     }
+
+    public enum PaymentDetailsKey {
+
+        CASH(BigDecimal.class), CASH_CHANGE(BigDecimal.class), CARD_TYPE, LAST_FOUR_DIGITS;
+
+        private final Class<?> valueType;
+
+        PaymentDetailsKey() {
+            valueType = String.class;
+        }
+
+        PaymentDetailsKey(final Class<?> valueType) {
+            this.valueType = valueType;
+        }
+
+        public Class<?> getValueType() {
+            return valueType;
+        }
+    }
+
+
 
     @Data
     public static class InvoiceDetails {
+
+        private String taxIdNumber;
 
         /**
          * this stores the e-invoice number

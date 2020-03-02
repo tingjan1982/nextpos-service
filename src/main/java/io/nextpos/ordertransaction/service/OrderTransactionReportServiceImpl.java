@@ -37,8 +37,8 @@ public class OrderTransactionReportServiceImpl implements OrderTransactionReport
         final MatchOperation filter = Aggregation.match(Criteria.where("clientId").is(shift.getClientId())
                 .and("createdDate").gte(shift.getStart().getTimestamp()).lt(shift.getEnd().getTimestamp()));
 
-        final GroupOperation totalByPaymentMethod = Aggregation.group("transactions.paymentMethodDetails.paymentMethod")
-                .first("transactions.paymentMethodDetails.paymentMethod").as("paymentMethod")
+        final GroupOperation totalByPaymentMethod = Aggregation.group("transactions.paymentDetails.paymentMethod")
+                .first("transactions.paymentDetails.paymentMethod").as("paymentMethod")
                 .sum(createToDecimal("transactions.settleAmount")).as("orderTotal")
                 .sum("serviceCharge").as("serviceCharge")
                 .sum("discount").as("discount")

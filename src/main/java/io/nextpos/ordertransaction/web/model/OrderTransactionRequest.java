@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Positive;
-import javax.validation.constraints.PositiveOrZero;
-import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Data
 @NoArgsConstructor
@@ -29,16 +29,14 @@ public class OrderTransactionRequest {
     @ValidEnum(enumType = OrderTransaction.BillType.class)
     private String billType;
 
-    private Integer splitWith;
+    private String taxIdNumber;
 
-    /**
-     * The amount of cash provided by the customer to settle this transaction.
-     */
-    @PositiveOrZero
-    private BigDecimal cash;
+    private Integer splitWith;
 
     @Valid
     private List<BillLineItemRequest> billLineItems;
+
+    private Map<OrderTransaction.PaymentDetailsKey, Object> paymentDetails = new HashMap<>();
 
     @Data
     public static class BillLineItemRequest {

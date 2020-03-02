@@ -52,7 +52,7 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         LOGGER.info("Creating order transaction for order {}.", order.getId());
 
         // todo: this would change when we connect to external credit card processor
-        orderTransaction.getPaymentMethodDetails().setPaymentStatus(OrderTransaction.PaymentStatus.SUCCESS);
+        orderTransaction.getPaymentDetails().setPaymentStatus(OrderTransaction.PaymentStatus.SUCCESS);
         final String invoiceNumber = this.getInvoiceNumberExternally();
         orderTransaction.getInvoiceDetails().setInvoiceNumber(invoiceNumber);
 

@@ -25,7 +25,7 @@ public class OrderTransactionResponse {
 
     private OrderTransaction.PaymentMethod paymentMethod;
 
-    private BigDecimal cashChange;
+    private OrderTransaction.PaymentDetails paymentDetails;
 
     private List<BillLineItemResponse> billLineItems;
 
@@ -43,7 +43,7 @@ public class OrderTransactionResponse {
                 orderTransaction.getOrderTotal(),
                 orderTransaction.getSettleAmount(),
                 orderTransaction.getPaymentMethod(),
-                orderTransaction.getCashChange(),
+                orderTransaction.getPaymentDetails(),
                 billLineItems,
                 orderDetailsPrintInstruction);
     }
