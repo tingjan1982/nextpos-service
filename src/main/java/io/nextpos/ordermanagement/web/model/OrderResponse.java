@@ -1,6 +1,7 @@
 package io.nextpos.ordermanagement.web.model;
 
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderDuration;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.TaxableAmount;
 import io.nextpos.ordertransaction.web.model.OrderTransactionResponse;
@@ -43,6 +44,8 @@ public class OrderResponse {
 
     private final TaxableAmount discountedTotal;
 
+    private final BigDecimal discount;
+
     private final BigDecimal serviceCharge;
 
     private final BigDecimal orderTotal;
@@ -54,6 +57,8 @@ public class OrderResponse {
     private final Map<String, Object> metadata;
 
     private final Order.DemographicData demographicData;
+
+    private OrderDuration orderDuration;
 
     private List<OrderTransactionResponse> transactions;
 

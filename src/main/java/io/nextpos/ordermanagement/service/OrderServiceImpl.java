@@ -118,6 +118,14 @@ public class OrderServiceImpl implements OrderService {
         return this.getOrderStateChangeBeanFromFuture(future);
     }
 
+    @Override
+    public OrderStateChange getOrderStateChangeByOrderId(final String orderId) {
+
+        return orderStateChangeRepository.findById(orderId).orElseThrow(() -> {
+            throw new ObjectNotFoundException(orderId, OrderStateChange.class);
+        });
+    }
+
     private OrderStateChangeBean getOrderStateChangeBeanFromFuture(CompletableFuture<OrderStateChangeBean> future) {
 
         try {
