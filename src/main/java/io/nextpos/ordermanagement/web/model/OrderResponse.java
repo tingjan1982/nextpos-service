@@ -80,5 +80,7 @@ public class OrderResponse {
         private OrderLineItem.LineItemState state;
 
         private String options;
+
+        private Date modifiedDate;
     }
 }

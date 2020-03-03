@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Date;
 
 @Data
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
@@ -33,6 +34,10 @@ public class OrderLineItem implements OfferApplicableObject {
 
     private AppliedOfferInfo appliedOfferInfo;
 
+    private Date createdDate;
+
+    private Date modifiedDate;
+
 
     public OrderLineItem(final ProductSnapshot productSnapshot, final int quantity, OrderSettings orderSettings) {
         this.productSnapshot = productSnapshot;
@@ -42,6 +47,9 @@ public class OrderLineItem implements OfferApplicableObject {
         this.subTotal = new TaxableAmount(orderSettings.getTaxRate(), orderSettings.isTaxInclusive());
 
         computeSubTotal();
+
+        createdDate = new Date();
+        modifiedDate = new Date();
     }
 
     public TaxableAmount getProductPriceWithOptions() {
@@ -57,6 +65,8 @@ public class OrderLineItem implements OfferApplicableObject {
         this.quantity = quantity;
         
         computeSubTotal();
+
+        modifiedDate = new Date();
     }
 
     /**
@@ -83,6 +93,8 @@ public class OrderLineItem implements OfferApplicableObject {
 
         discountedSubTotal = subTotal.newInstance();
         discountedSubTotal.calculate(discountedLineItemTotal);
+
+        modifiedDate = new Date();
     }
 
     /**

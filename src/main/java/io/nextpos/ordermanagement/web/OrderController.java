@@ -295,7 +295,8 @@ public class OrderController {
                             li.getQuantity(),
                             li.getSubTotal(),
                             li.getState(),
-                            options);
+                            options,
+                            li.getModifiedDate());
 
                 }).collect(Collectors.toList());
 

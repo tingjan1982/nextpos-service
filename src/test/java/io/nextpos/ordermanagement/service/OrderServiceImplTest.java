@@ -178,6 +178,6 @@ class OrderServiceImplTest {
 
         assertThat(copiedOrder.getMetadata(Order.COPY_FROM_ORDER)).isEqualTo(order.getId());
         assertThat(copiedOrder).isEqualToIgnoringGivenFields(order, "id", "lookupOrderId", "orderLineItems", "metadata", "internalCounter", "createdDate", "modifiedDate");
-        assertThat(copiedOrder.getOrderLineItems()).usingElementComparatorIgnoringFields("id").isEqualTo(order.getOrderLineItems());
+        assertThat(copiedOrder.getOrderLineItems()).usingElementComparatorIgnoringFields("id", "createdDate", "modifiedDate").isEqualTo(order.getOrderLineItems());
     }
 }
