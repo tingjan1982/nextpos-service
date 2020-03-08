@@ -2,8 +2,10 @@ package io.nextpos.workingarea.service;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import io.nextpos.client.data.Client;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
+import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.PrinterInstructions;
@@ -73,6 +75,42 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
             throw new GeneralApplicationException("Error while generating order details XML template: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public String createOrderDetailsPrintInstruction(Client client, OrderTransaction orderTransaction) {
+
+        final Template orderDetails;
+        try {
+            orderDetails = freeMarkerCfg.getTemplate("orderDetails.ftl");
+            final StringWriter writer = new StringWriter();
+            orderDetails.process(Map.of("client", client, "orderTransaction", orderTransaction), writer);
+
+            return writer.toString();
+
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            throw new GeneralApplicationException("Error while generating order details XML template: " + e.getMessage());
+        }
+    }
+
+
+
+    @Override
+    public String createElectronicInvoiceXML(Client client, Order order, OrderTransaction orderTransaction) {
+
+        final Template electronicInvoice;
+        try {
+            electronicInvoice = freeMarkerCfg.getTemplate("eInvoice.ftl");
+            final StringWriter writer = new StringWriter();
+            electronicInvoice.process(Map.of("client", client, "order", order, "orderTransaction", orderTransaction, "electronicInvoice", orderTransaction.getInvoiceDetails().getElectronicInvoice()), writer);
+
+            return writer.toString();
+
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            throw new GeneralApplicationException("Error while generating electronic invoice XML template: " + e.getMessage());
         }
     }
 }

@@ -1,14 +1,13 @@
 package io.nextpos.ordertransaction.service;
 
 import freemarker.template.Configuration;
-import freemarker.template.Template;
 import io.nextpos.client.data.Client;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.service.OrderService;
+import io.nextpos.ordertransaction.data.ElectronicInvoice;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.data.OrderTransactionRepository;
 import io.nextpos.shared.exception.BusinessLogicException;
-import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,16 +15,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @Transactional
 public class OrderTransactionServiceImpl implements OrderTransactionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OrderTransactionServiceImpl.class);
+
+    private final ElectronicInvoiceService electronicInvoiceService;
 
     private final OrderTransactionRepository orderTransactionRepository;
 
@@ -34,14 +33,15 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
     private final Configuration freeMarkerCfg;
 
     @Autowired
-    public OrderTransactionServiceImpl(final OrderTransactionRepository orderTransactionRepository, final OrderService orderService, final Configuration freeMarkerCfg) {
+    public OrderTransactionServiceImpl(final ElectronicInvoiceService electronicInvoiceService, final OrderTransactionRepository orderTransactionRepository, final OrderService orderService, final Configuration freeMarkerCfg) {
+        this.electronicInvoiceService = electronicInvoiceService;
         this.orderTransactionRepository = orderTransactionRepository;
         this.orderService = orderService;
         this.freeMarkerCfg = freeMarkerCfg;
     }
 
     @Override
-    public OrderTransaction createOrderTransaction(final OrderTransaction orderTransaction) {
+    public OrderTransaction createOrderTransaction(final Client client, final OrderTransaction orderTransaction) {
 
         final Order order = orderService.getOrder(orderTransaction.getOrderId());
 
@@ -53,8 +53,10 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
 
         // todo: this would change when we connect to external credit card processor
         orderTransaction.getPaymentDetails().setPaymentStatus(OrderTransaction.PaymentStatus.SUCCESS);
-        final String invoiceNumber = this.getInvoiceNumberExternally();
-        orderTransaction.getInvoiceDetails().setInvoiceNumber(invoiceNumber);
+
+        if (orderTransaction.getInvoiceDetails().isNeedElectronicInvoice()) {
+            this.createAndSaveElectronicInvoice(client, order, orderTransaction);
+        }
 
         final OrderTransaction updatedTransaction = orderTransactionRepository.save(orderTransaction);
 
@@ -70,24 +72,6 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         return updatedTransaction;
     }
 
-    // todo: should refactor this to PrinterService
-    @Override
-    public String createOrderDetailsPrintInstruction(Client client, OrderTransaction orderTransaction) {
-
-        final Template orderDetails;
-        try {
-            orderDetails = freeMarkerCfg.getTemplate("orderDetails.ftl");
-            final StringWriter writer = new StringWriter();
-            orderDetails.process(Map.of("client", client, "orderTransaction", orderTransaction), writer);
-
-            return writer.toString();
-
-        } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
-            throw new GeneralApplicationException("Error while generating order details XML template: " + e.getMessage());
-        }
-    }
-
     @Override
     public OrderTransaction getOrderTransaction(final String id) {
 
@@ -101,7 +85,11 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         return orderTransactionRepository.findAllByOrderId(orderId);
     }
 
-    private String getInvoiceNumberExternally() {
-        return "DUMMY-E-INVOICE-NUMBER";
+    private void createAndSaveElectronicInvoice(final Client client, final Order order, final OrderTransaction orderTransaction) {
+
+        final ElectronicInvoice electronicInvoice = electronicInvoiceService.createElectronicInvoice(client, order, orderTransaction);
+
+        final OrderTransaction.InvoiceDetails invoiceDetails = orderTransaction.getInvoiceDetails();
+        invoiceDetails.setElectronicInvoice(electronicInvoice);
     }
 }

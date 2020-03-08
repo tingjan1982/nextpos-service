@@ -38,6 +38,8 @@ public class OrderTransactionRequest {
 
     private Map<OrderTransaction.PaymentDetailsKey, Object> paymentDetails = new HashMap<>();
 
+    private boolean needElectronicInvoice;
+
     @Data
     public static class BillLineItemRequest {
 

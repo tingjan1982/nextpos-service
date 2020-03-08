@@ -9,6 +9,7 @@ import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.workingarea.data.WorkingArea;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,6 +34,11 @@ public class DummyObjects {
     public static ProductSnapshot productSnapshot() {
         final List<ProductSnapshot.ProductOptionSnapshot> productOptions = Collections.singletonList(new ProductSnapshot.ProductOptionSnapshot("ice", "half"));
         return new ProductSnapshot("pid", "coffee", "sku", BigDecimal.valueOf(100), productOptions);
+    }
+
+    public static ProductSnapshot productSnapshot(String name, BigDecimal price, ProductSnapshot.ProductOptionSnapshot... productOptions) {
+        final List<ProductSnapshot.ProductOptionSnapshot> productOptionsList = productOptions != null ? Arrays.asList(productOptions) : List.of();
+        return new ProductSnapshot("pid", name, "sku", price, productOptionsList);
     }
 
     public static ProductOptionVersion dummyProductOptionVersion() {

@@ -183,7 +183,7 @@ public class OrderController {
         });
 
         final List<OrderTransactionResponse> transactions = orderTransactionService.getOrderTransactionByOrderId(order.getId()).stream()
-                .map(ot -> OrderTransactionResponse.toOrderTransactionResponse(ot, null))
+                .map(OrderTransactionResponse::toOrderTransactionResponse)
                 .collect(Collectors.toList());
 
         orderResponse.setTransactions(transactions);

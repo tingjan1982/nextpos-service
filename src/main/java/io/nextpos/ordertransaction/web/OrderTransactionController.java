@@ -1,6 +1,7 @@
 package io.nextpos.ordertransaction.web;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.service.OrderService;
@@ -9,9 +10,8 @@ import io.nextpos.ordertransaction.service.OrderTransactionService;
 import io.nextpos.ordertransaction.web.model.OrderTransactionRequest;
 import io.nextpos.ordertransaction.web.model.OrderTransactionResponse;
 import io.nextpos.shared.exception.BusinessLogicException;
-import io.nextpos.shared.exception.ClientOwnershipViolationException;
 import io.nextpos.shared.web.ClientResolver;
-import org.apache.commons.lang3.StringUtils;
+import io.nextpos.workingarea.service.PrinterInstructionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.web.bind.annotation.*;
@@ -30,12 +30,18 @@ public class OrderTransactionController {
 
     private final OrderService orderService;
 
+    private final PrinterInstructionService printerInstructionService;
+
+    private final ClientObjectOwnershipService clientObjectOwnershipService;
+
     private final ConversionService conversionService;
 
     @Autowired
-    public OrderTransactionController(final OrderTransactionService orderTransactionService, final OrderService orderService, final ConversionService conversionService) {
+    public OrderTransactionController(final OrderTransactionService orderTransactionService, final OrderService orderService, final PrinterInstructionService printerInstructionService, final ClientObjectOwnershipService clientObjectOwnershipService, final ConversionService conversionService) {
         this.orderTransactionService = orderTransactionService;
         this.orderService = orderService;
+        this.printerInstructionService = printerInstructionService;
+        this.clientObjectOwnershipService = clientObjectOwnershipService;
         this.conversionService = conversionService;
     }
 
@@ -43,31 +49,31 @@ public class OrderTransactionController {
     public OrderTransactionResponse createOrderTransaction(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                            @Valid @RequestBody OrderTransactionRequest orderTransactionRequest) {
 
-        OrderTransaction orderTransaction = fromOrderTransactionRequest(client, orderTransactionRequest);
-        final OrderTransaction createdOrderTransaction = orderTransactionService.createOrderTransaction(orderTransaction);
-        final String orderDetailsPrintInstruction = orderTransactionService.createOrderDetailsPrintInstruction(client, orderTransaction);
+        final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(orderTransactionRequest.getOrderId()));
+        OrderTransaction orderTransaction = fromOrderTransactionRequest(order, orderTransactionRequest);
+        final OrderTransaction createdOrderTransaction = orderTransactionService.createOrderTransaction(client, orderTransaction);
 
-        return OrderTransactionResponse.toOrderTransactionResponse(createdOrderTransaction, orderDetailsPrintInstruction);
+        return OrderTransactionResponse.toOrderTransactionResponse(createdOrderTransaction);
     }
 
-    @GetMapping("/{id}")
-    public OrderTransactionResponse getOrderTransaction(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @PathVariable String id) {
+    @GetMapping("/{transactionId}")
+    public OrderTransactionResponse getOrderTransaction(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                        @PathVariable String transactionId) {
 
-        final OrderTransaction orderTransaction = orderTransactionService.getOrderTransaction(id);
+        final OrderTransaction orderTransaction = orderTransactionService.getOrderTransaction(transactionId);
+        final Order order = orderService.getOrder(orderTransaction.getOrderId());
 
-        return OrderTransactionResponse.toOrderTransactionResponse(orderTransaction, null);
+        final String receiptXML = printerInstructionService.createOrderDetailsPrintInstruction(client, orderTransaction);
+        final String electronicInvoiceXML = printerInstructionService.createElectronicInvoiceXML(client, order, orderTransaction);
+
+        final OrderTransactionResponse response = OrderTransactionResponse.toOrderTransactionResponse(orderTransaction);
+        response.setReceiptXML(receiptXML);
+        response.setInvoiceXML(electronicInvoiceXML);
+
+        return response;
     }
 
-    private OrderTransaction fromOrderTransactionRequest(final Client client, final OrderTransactionRequest orderTransactionRequest) {
-
-        final Order order = orderService.getOrder(orderTransactionRequest.getOrderId());
-
-        if (!StringUtils.equals(order.getClientId(), client.getId())) {
-            final String errorMsg = String.format("Order client id and authenticated client id does not match, order cid=%s, auth cid=%s",
-                    order.getClientId(), client.getId());
-
-            throw new ClientOwnershipViolationException(errorMsg);
-        }
+    private OrderTransaction fromOrderTransactionRequest(final Order order, final OrderTransactionRequest orderTransactionRequest) {
 
         final List<OrderTransaction.BillLineItem> billLineItems = populateBillLineItems(order, orderTransactionRequest);
         final BigDecimal settleAmount = billLineItems.stream()
@@ -91,6 +97,8 @@ public class OrderTransactionController {
         });
 
         validateCashChange(orderTransaction);
+
+        orderTransaction.getInvoiceDetails().setNeedElectronicInvoice(orderTransactionRequest.isNeedElectronicInvoice());
 
         return orderTransaction;
     }

@@ -189,9 +189,9 @@ public class Shift extends MongoBaseObject {
 
     public enum ShiftAction {
 
-        INITIATE_CLOSE(EnumSet.of(ShiftStatus.ACTIVE)),
+        INITIATE_CLOSE(EnumSet.of(ShiftStatus.ACTIVE, ShiftStatus.CLOSING, ShiftStatus.CONFIRM_CLOSE)),
 
-        CLOSE(EnumSet.of(ShiftStatus.CLOSING)),
+        CLOSE(EnumSet.of(ShiftStatus.CLOSING, ShiftStatus.CONFIRM_CLOSE)),
 
         CONFIRM_CLOSE(EnumSet.of(ShiftStatus.CONFIRM_CLOSE)),
 

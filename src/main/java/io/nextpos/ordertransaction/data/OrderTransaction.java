@@ -3,6 +3,7 @@ package io.nextpos.ordertransaction.data;
 import io.nextpos.shared.model.MongoBaseObject;
 import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
@@ -114,12 +115,10 @@ public class OrderTransaction extends MongoBaseObject {
 
         private String taxIdNumber;
 
-        /**
-         * this stores the e-invoice number
-         */
-        private String invoiceNumber;
+        private boolean needElectronicInvoice;
 
-        private String carrierType;
+        @DBRef
+        private ElectronicInvoice electronicInvoice;
     }
 
     @Data

@@ -6,6 +6,7 @@ import io.nextpos.membership.data.Membership;
 import io.nextpos.merchandising.data.Offer;
 import io.nextpos.notification.data.NotificationDetails;
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordertransaction.data.ElectronicInvoice;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.product.data.Product;
 import io.nextpos.settings.data.CountrySettings;
@@ -37,7 +38,7 @@ import java.util.List;
  */
 @Configuration
 @EnableJpaRepositories(basePackageClasses = {Client.class, Product.class, Offer.class, CountrySettings.class, WorkingArea.class, TableLayout.class})
-@EnableMongoRepositories(basePackageClasses = {Order.class, OrderTransaction.class, NotificationDetails.class, UserTimeCard.class, Membership.class, Announcement.class})
+@EnableMongoRepositories(basePackageClasses = {Order.class, OrderTransaction.class, NotificationDetails.class, UserTimeCard.class, Membership.class, Announcement.class, ElectronicInvoice.class})
 @EnableMongoAuditing
 public class DataSourceConfig {
 

@@ -4,34 +4,37 @@ import io.nextpos.ordertransaction.data.OrderTransaction;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Data
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class OrderTransactionResponse {
 
-    private String transactionId;
+    private final String transactionId;
 
-    private String orderId;
+    private final String orderId;
 
-    private OrderTransaction.BillType billType;
+    private final OrderTransaction.BillType billType;
 
-    private BigDecimal orderTotal;
+    private final BigDecimal orderTotal;
 
-    private BigDecimal settleAmount;
+    private final BigDecimal settleAmount;
 
-    private OrderTransaction.PaymentMethod paymentMethod;
+    private final OrderTransaction.PaymentMethod paymentMethod;
 
-    private OrderTransaction.PaymentDetails paymentDetails;
+    private final OrderTransaction.PaymentDetails paymentDetails;
 
-    private List<BillLineItemResponse> billLineItems;
+    private final List<BillLineItemResponse> billLineItems;
 
-    private String orderDetailsPrintInstruction;
+    private String receiptXML;
 
-    public static OrderTransactionResponse toOrderTransactionResponse(final OrderTransaction orderTransaction, final String orderDetailsPrintInstruction) {
+    private String invoiceXML;
+
+    public static OrderTransactionResponse toOrderTransactionResponse(final OrderTransaction orderTransaction) {
 
         final List<OrderTransactionResponse.BillLineItemResponse> billLineItems = orderTransaction.getBillDetails().getBillLineItems().stream()
                 .map(li -> new OrderTransactionResponse.BillLineItemResponse(li.getName(), li.getQuantity(), li.getSubTotal()))
@@ -44,8 +47,7 @@ public class OrderTransactionResponse {
                 orderTransaction.getSettleAmount(),
                 orderTransaction.getPaymentMethod(),
                 orderTransaction.getPaymentDetails(),
-                billLineItems,
-                orderDetailsPrintInstruction);
+                billLineItems);
     }
 
     @Data

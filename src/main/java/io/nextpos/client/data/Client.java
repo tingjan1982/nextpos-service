@@ -162,6 +162,8 @@ public class Client extends BaseObject {
         /**
          * Business address that displays on the receipt
          */
-        ADDRESS
+        ADDRESS,
+
+        AES_KEY
     }
 }

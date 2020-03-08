@@ -7,9 +7,7 @@ import java.util.List;
 
 public interface OrderTransactionService {
 
-    OrderTransaction createOrderTransaction(OrderTransaction orderTransaction);
-
-    String createOrderDetailsPrintInstruction(Client client, OrderTransaction orderTransaction);
+    OrderTransaction createOrderTransaction(final Client client, OrderTransaction orderTransaction);
 
     OrderTransaction getOrderTransaction(String id);
 
