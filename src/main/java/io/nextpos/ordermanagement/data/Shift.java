@@ -70,7 +70,7 @@ public class Shift extends MongoBaseObject {
     }
 
     public void abortCloseShift() {
-        end = null;
+        end = new CloseShiftDetails();
         shiftStatus = ShiftStatus.ACTIVE;
     }
 
