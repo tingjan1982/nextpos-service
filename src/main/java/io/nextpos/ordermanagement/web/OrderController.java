@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -199,7 +200,7 @@ public class OrderController {
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
         final OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount = OrderLevelOffer.GlobalOrderDiscount.valueOf(discountRequest.getOrderDiscount());
 
-        BigDecimal discount = discountRequest.getDiscount().divide(BigDecimal.valueOf(100));
+        BigDecimal discount = discountRequest.getDiscount().divide(BigDecimal.valueOf(100), 2, RoundingMode.CEILING);
         final Order updatedOrder = merchandisingService.applyGlobalOrderDiscount(order, globalOrderDiscount, discount);
 
         return toOrderResponse(updatedOrder);

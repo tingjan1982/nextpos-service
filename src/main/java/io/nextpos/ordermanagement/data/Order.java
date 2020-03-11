@@ -213,6 +213,14 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         if (!discountedTotal.isZero()) {
             discount = total.getAmountWithTax().subtract(discountedTotal.getAmountWithTax());
         }
+
+        final BigDecimal totalBeforeServiceCharge = discountedTotal.getAmountWithTax();
+
+        if (orderSettings.hasServiceCharge()) {
+            serviceCharge = totalBeforeServiceCharge.multiply(orderSettings.getServiceCharge());
+        }
+
+        orderTotal = totalBeforeServiceCharge.add(serviceCharge);
     }
 
     public int getCustomerCount() {

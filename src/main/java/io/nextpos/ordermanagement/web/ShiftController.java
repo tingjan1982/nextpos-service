@@ -75,7 +75,7 @@ public class ShiftController {
 
     @PostMapping("/confirmClose")
     public ShiftResponse closeShift(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                    @Valid @RequestBody String closingRemark) {
+                                    @RequestBody String closingRemark) {
 
         Shift shift = shiftService.confirmCloseShift(client.getId(), closingRemark);
 
