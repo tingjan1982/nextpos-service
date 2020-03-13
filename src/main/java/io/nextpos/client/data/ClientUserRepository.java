@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ClientUserRepository extends JpaRepository<ClientUser, ClientUser.ClientUserId> {
 
-    @Query(value = "select * from client_user where client_id = ?1", nativeQuery = true)
+    @Query(value = "select * from client_user where client_id = ?1 order by nickname asc, username asc", nativeQuery = true)
     List<ClientUser> findAllByClientId(String clientId);
 
     @Modifying

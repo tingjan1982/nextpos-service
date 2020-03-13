@@ -6,6 +6,7 @@ import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -53,7 +54,7 @@ public class ProductLabelServiceImpl implements ProductLabelService {
 
     @Override
     public List<ProductLabel> getProductLabels(final Client client) {
-        return productLabelRepository.findAllByClientAndParentLabelIsNull(client);
+        return productLabelRepository.findAllByClientAndParentLabelIsNull(client, Sort.by(Sort.Direction.ASC, "name"));
     }
 
 

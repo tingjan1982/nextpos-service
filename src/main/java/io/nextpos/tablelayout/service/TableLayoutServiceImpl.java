@@ -40,7 +40,7 @@ public class TableLayoutServiceImpl implements TableLayoutService {
 
     @Override
     public List<TableLayout> getTableLayouts(final Client client) {
-        return tableLayoutRepository.findAllByClient(client);
+        return tableLayoutRepository.findAllByClientOrderByLayoutName(client);
     }
 
     @Override

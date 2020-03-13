@@ -39,6 +39,7 @@ public class TableLayout extends BaseObject implements ClientObject {
 
     @OneToMany(mappedBy = "tableLayout", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
+    @OrderBy("tableName ASC")
     private List<TableDetails> tables = new ArrayList<>();
 
     public TableLayout(final Client client, final String layoutName) {

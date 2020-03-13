@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface TableLayoutRepository extends JpaRepository<TableLayout, String> {
 
-    List<TableLayout> findAllByClient(Client client);
+    List<TableLayout> findAllByClientOrderByLayoutName(Client client);
 }
