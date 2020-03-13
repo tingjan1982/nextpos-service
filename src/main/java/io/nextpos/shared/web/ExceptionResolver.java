@@ -56,9 +56,9 @@ public class ExceptionResolver {
 
     @ExceptionHandler(BusinessLogicException.class)
     @ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
-    public ErrorResponse handleBusinessLogicException(Exception exception) {
+    public ErrorResponse handleBusinessLogicException(BusinessLogicException exception) {
 
-        return ErrorResponse.simpleErrorResponse(exception.getMessage());
+        return ErrorResponse.simpleErrorResponse(exception.getMessage(), exception.getLocalizedMessageKey());
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -97,7 +97,7 @@ public class ExceptionResolver {
 
         final String errorMessage = "Validation failed for object='" + bindingResult.getObjectName() + "'. Error count: " + bindingResult.getErrorCount();
 
-        return new ErrorResponse(errorMessage, fieldErrors, details.toString(), Instant.now());
+        return new ErrorResponse(errorMessage, null, fieldErrors, details.toString(), Instant.now());
     }
 
 
@@ -107,6 +107,8 @@ public class ExceptionResolver {
 
         private String message;
 
+        private String localizedMessageKey;
+
         private Map<String, String> fieldErrors;
 
         private String details;
@@ -114,9 +116,11 @@ public class ExceptionResolver {
         private Instant timestamp;
 
         static ErrorResponse simpleErrorResponse(String message) {
-            return new ErrorResponse(message, Collections.emptyMap(), "NA", Instant.now());
+            return new ErrorResponse(message, null, Collections.emptyMap(), "NA", Instant.now());
         }
 
-
+        static ErrorResponse simpleErrorResponse(String message, String localizedMessageKey) {
+            return new ErrorResponse(message, localizedMessageKey, Collections.emptyMap(), "NA", Instant.now());
+        }
     }
 }

@@ -111,7 +111,7 @@ public class OrderTransactionController {
             if (cash != null) {
                 final BigDecimal settleAmount = orderTransaction.getSettleAmount();
                 if (cash.compareTo(settleAmount) < 0) {
-                    throw new BusinessLogicException("Entered cash amount is less than the settling amount: " + settleAmount);
+                    throw new BusinessLogicException("message.insufficientCashAmount", "Entered cash amount is less than the settling amount: " + settleAmount);
                 }
 
                 final BigDecimal cashChange = cash.subtract(settleAmount);

@@ -6,6 +6,7 @@ import io.nextpos.reporting.data.ReportDateParameter;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -23,6 +24,8 @@ public class OrdersByRangeResponse {
 
         private String orderId;
 
+        private String serialId;
+
         private Order.OrderType orderType;
 
         private Date createdTime;
@@ -30,5 +33,7 @@ public class OrdersByRangeResponse {
         private Order.OrderState state;
 
         private TaxableAmount total;
+
+        private BigDecimal orderTotal;
     }
 }

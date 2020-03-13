@@ -92,10 +92,12 @@ public class OrderController {
 
         final List<OrdersByRangeResponse.LightOrderResponse> orderResponses = orders.stream().
                 map(o -> new OrdersByRangeResponse.LightOrderResponse(o.getId(),
+                        o.getSerialId(),
                         o.getOrderType(),
                         o.getCreatedDate(),
                         o.getState(),
-                        o.getTotal())).collect(Collectors.toList());
+                        o.getTotal(),
+                        o.getOrderTotal())).collect(Collectors.toList());
 
         return new OrdersByRangeResponse(reportDateParameter, orderResponses);
     }
