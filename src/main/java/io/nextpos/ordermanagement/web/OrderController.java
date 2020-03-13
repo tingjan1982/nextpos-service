@@ -22,6 +22,7 @@ import io.nextpos.tablelayout.web.model.TableDetailsResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -29,6 +30,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -76,9 +78,11 @@ public class OrderController {
 
     @GetMapping
     public OrdersByRangeResponse getOrdersByDateRange(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                      @RequestParam(name = "dateRange", required = false) DateParameterType dateParameterType) {
+                                                      @RequestParam(name = "dateRange", required = false, defaultValue = "SHIFT") DateParameterType dateParameterType,
+                                                      @RequestParam(name = "fromDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromDate,
+                                                      @RequestParam(name = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date toDate) {
 
-        final ReportDateParameter reportDateParameter = resolveDateRange(client, dateParameterType);
+        final ReportDateParameter reportDateParameter = resolveDateRange(client, dateParameterType, fromDate, toDate);
         final List<Order> orders = orderService.getOrders(client, reportDateParameter.getFromDate(), reportDateParameter.getToDate());
 
         return toOrdersByRangeResponse(orders, reportDateParameter);
@@ -96,10 +100,10 @@ public class OrderController {
         return new OrdersByRangeResponse(reportDateParameter, orderResponses);
     }
 
-    private ReportDateParameter resolveDateRange(Client client, DateParameterType dateParameterType) {
+    private ReportDateParameter resolveDateRange(Client client, DateParameterType dateParameterType, final Date fromDateParam, final Date toDateParam) {
 
-        if (dateParameterType != null) {
-            return dateParameterType.toReportingParameter();
+        if (dateParameterType != DateParameterType.SHIFT) {
+            return DateParameterType.toReportingParameter(dateParameterType, fromDateParam, toDateParam);
         }
 
         final Optional<Shift> mostRecentShift = shiftService.getMostRecentShift(client.getId());

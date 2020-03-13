@@ -98,13 +98,7 @@ public class ReportingController {
                                               @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromDate,
                                               @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date toDate) {
 
-        ReportDateParameter reportDateParameter;
-
-        if (dateParameterType == DateParameterType.RANGE) {
-            reportDateParameter = dateParameterType.toReportingParameter(fromDate, toDate);
-        } else {
-            reportDateParameter = dateParameterType.toReportingParameter();
-        }
+        ReportDateParameter reportDateParameter = DateParameterType.toReportingParameter(dateParameterType, fromDate, toDate);
 
         final SalesReport salesReport = reportingService.generateSalesReport(client, reportDateParameter);
         return toSalesReportResponse(salesReport);
@@ -126,13 +120,7 @@ public class ReportingController {
             @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromDate,
             @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date toDate) {
 
-        ReportDateParameter reportDateParameter;
-
-        if (dateParameterType == DateParameterType.RANGE) {
-            reportDateParameter = dateParameterType.toReportingParameter(fromDate, toDate);
-        } else {
-            reportDateParameter = dateParameterType.toReportingParameter();
-        }
+        ReportDateParameter reportDateParameter = DateParameterType.toReportingParameter(dateParameterType, fromDate, toDate);
 
         final OrderStateParameter orderStateParameter = new OrderStateParameter(reportDateParameter, Order.OrderState.OPEN, Order.OrderState.DELIVERED);
         final OrderStateAverageTimeReport report = reportingService.generateStateTransitionAverageTimeReport(client, orderStateParameter);

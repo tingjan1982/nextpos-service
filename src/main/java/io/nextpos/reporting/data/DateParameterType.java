@@ -1,5 +1,8 @@
 package io.nextpos.reporting.data;
 
+import io.nextpos.shared.exception.BusinessLogicException;
+import org.springframework.lang.NonNull;
+
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -44,21 +47,28 @@ public enum DateParameterType {
     RANGE {
         @Override
         public ReportDateParameter toReportingParameter() {
-            throw new UnsupportedOperationException("The parameterized variant of this method should be used instead.");
+            throw new BusinessLogicException("Please specify fromDate and toDate parameters.");
+        }
+    },
+
+    SHIFT {
+        @Override
+        public ReportDateParameter toReportingParameter() {
+            throw new UnsupportedOperationException("This shouldn't be called as this is handled in OrderController.");
         }
     };
 
     public abstract ReportDateParameter toReportingParameter();
 
-    public ReportDateParameter toReportingParameter(Date fromDate, Date toDate) {
+    public static ReportDateParameter toReportingParameter(@NonNull DateParameterType dateParameterType, Date fromDate, Date toDate) {
 
-        if (fromDate != null && toDate != null) {
+        if (dateParameterType == RANGE && fromDate != null && toDate != null) {
             final LocalDateTime fromDT = LocalDate.ofInstant(fromDate.toInstant(), ZoneId.systemDefault()).atStartOfDay();
             final LocalDateTime toDT = LocalDate.ofInstant(toDate.toInstant(), ZoneId.systemDefault()).atStartOfDay().plusDays(1);
 
             return new ReportDateParameter(fromDT, toDT);
         }
 
-        return TODAY.toReportingParameter();
+        return dateParameterType.toReportingParameter();
     }
 }
