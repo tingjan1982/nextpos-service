@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.temporal.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -35,11 +36,11 @@ public class SalesReportServiceImpl implements SalesReportService {
     }
 
     @Override
-    public RangedSalesReport generateWeeklySalesReport(final String clientId, final RangedSalesReport.RangeType rangeType) {
+    public RangedSalesReport generateWeeklySalesReport(final String clientId, final RangedSalesReport.RangeType rangeType, final LocalDate date) {
 
         ProjectionOperation projection = createProjection(rangeType);
         final UnwindOperation flattenLineItems = Aggregation.unwind("lineItems");
-        final MatchOperation filter = createMatchFilter(clientId, rangeType);
+        final MatchOperation filter = createMatchFilter(clientId, rangeType, date);
 
         final GroupOperation salesTotal = Aggregation.group("clientId")
                 .sum(createToDecimal("lineItems.subTotal.amountWithTax")).as("salesTotal");
@@ -69,7 +70,7 @@ public class SalesReportServiceImpl implements SalesReportService {
         RangedSalesReport results = result.getUniqueMappedResult();
 
         if (results != null) {
-            enhanceResults(results, rangeType);
+            enhanceResults(results, rangeType, date);
         } else {
             results = new RangedSalesReport();
         }
@@ -93,24 +94,24 @@ public class SalesReportServiceImpl implements SalesReportService {
         return projection;
     }
 
-    private MatchOperation createMatchFilter(final String clientId, final RangedSalesReport.RangeType rangeType) {
+    private MatchOperation createMatchFilter(final String clientId, final RangedSalesReport.RangeType rangeType, final LocalDate date) {
 
         LocalDate fromDate;
         LocalDate toDate;
 
         switch (rangeType) {
             case WEEK:
-                final TemporalField temporalField = WeekFields.of(DayOfWeek.SUNDAY, 7).dayOfWeek();
+                final TemporalField temporalField = WeekFields.of(DayOfWeek.MONDAY, 7).dayOfWeek();
                 final int todayOfWeek = LocalDate.now().get(ChronoField.DAY_OF_WEEK);
 
-                final LocalDate firstDayOfCurrentWeek = LocalDate.now().with(temporalField, 1);
-                final LocalDate firstDayOfNextWeek = LocalDate.now().with(temporalField, 7).plusDays(1);
+                final LocalDate firstDayOfCurrentWeek = date.with(temporalField, 1);
+                final LocalDate firstDayOfNextWeek = date.with(temporalField, 7).plusDays(1);
                 fromDate = firstDayOfCurrentWeek;
                 toDate = firstDayOfNextWeek;
                 break;
             case MONTH:
-                fromDate = LocalDate.now().withDayOfMonth(1);
-                toDate = LocalDate.now().plusMonths(1).withDayOfMonth(1);
+                fromDate = date.withDayOfMonth(1);
+                toDate = date.plusMonths(1).withDayOfMonth(1);
                 break;
             default:
                 throw new GeneralApplicationException("Ensure all RangeType is supported: " + Arrays.toString(RangedSalesReport.RangeType.values()));
@@ -144,19 +145,19 @@ public class SalesReportServiceImpl implements SalesReportService {
         }
     }
 
-    private void enhanceResults(final RangedSalesReport results, final RangedSalesReport.RangeType rangeType) {
+    private void enhanceResults(final RangedSalesReport results, final RangedSalesReport.RangeType rangeType, final LocalDate date) {
 
         results.setRangeType(rangeType);
 
-        final TemporalField temporalField = WeekFields.of(DayOfWeek.SUNDAY, 7).dayOfWeek();
-        final LocalDate firstDayOfCurrentWeek = LocalDate.now().with(temporalField, 1);
+        final TemporalField temporalField = WeekFields.of(DayOfWeek.MONDAY, 7).dayOfWeek();
+        final LocalDate firstDayOfCurrentWeek = date.with(temporalField, 1);
 
         switch (rangeType) {
             case WEEK:
                 if (results.getSalesByRange().size() != 7) {
                     final Map<String, RangedSalesReport.SalesByRange> salesMap = results.getSalesByRange().stream()
                             .collect(Collectors.toMap(RangedSalesReport.SalesByRange::getId, s -> s));
-                    final ArrayList<RangedSalesReport.SalesByRange> enhancedSalesByRange = new ArrayList<>();
+                    final List<RangedSalesReport.SalesByRange> enhancedSalesByRange = new ArrayList<>();
 
                     IntStream.rangeClosed(1, 7).forEach(dayOfWeek -> {
                         final String key = String.valueOf(dayOfWeek);
@@ -164,9 +165,9 @@ public class SalesReportServiceImpl implements SalesReportService {
                             enhancedSalesByRange.add(salesMap.get(key));
                         } else {
                             final RangedSalesReport.SalesByRange emptySalesByRange = new RangedSalesReport.SalesByRange();
-                            final LocalDate date = firstDayOfCurrentWeek.with(temporalField, dayOfWeek);
+                            final LocalDate dateOfWeek = firstDayOfCurrentWeek.with(temporalField, dayOfWeek);
                             emptySalesByRange.setId(key);
-                            emptySalesByRange.setDate(date);
+                            emptySalesByRange.setDate(dateOfWeek);
                             enhancedSalesByRange.add(emptySalesByRange);
                         }
                     });

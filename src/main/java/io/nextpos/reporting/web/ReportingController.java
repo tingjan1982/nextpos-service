@@ -46,11 +46,18 @@ public class ReportingController {
 
     @GetMapping("/rangedSalesReport")
     public RangedSalesReportResponse getRangedSalesReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                          @RequestParam(value = "rangeType", defaultValue = "WEEK") RangedSalesReport.RangeType rangeType) {
+                                                          @RequestParam(value = "rangeType", defaultValue = "WEEK") RangedSalesReport.RangeType rangeType,
+                                                          @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
 
-        final RangedSalesReport rangedSalesReport = salesReportService.generateWeeklySalesReport(client.getId(), rangeType);
+        if (date == null) {
+            date = LocalDate.now();
+        }
 
-        return new RangedSalesReportResponse(rangedSalesReport.getTotalSales().getSalesTotal(),
+        final RangedSalesReport rangedSalesReport = salesReportService.generateWeeklySalesReport(client.getId(), rangeType, date);
+
+        return new RangedSalesReportResponse(
+                date,
+                rangedSalesReport.getTotalSales().getSalesTotal(),
                 rangedSalesReport.getSalesByRange(),
                 rangedSalesReport.getSalesByProduct());
     }
@@ -80,8 +87,8 @@ public class ReportingController {
 
     @GetMapping("/timeCardReport")
     public TimeCardReport getTimeCardReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                  @RequestParam(name = "year", required = false) Integer year,
-                                  @RequestParam(name = "month", required = false) Month month) {
+                                            @RequestParam(name = "year", required = false) Integer year,
+                                            @RequestParam(name = "month", required = false) Month month) {
 
         YearMonth yearMonth = YearMonth.now();
 

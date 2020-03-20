@@ -8,7 +8,7 @@ import java.time.LocalDate;
 
 public interface SalesReportService {
 
-    RangedSalesReport generateWeeklySalesReport(String clientId, final RangedSalesReport.RangeType rangeType);
+    RangedSalesReport generateWeeklySalesReport(String clientId, final RangedSalesReport.RangeType rangeType, final LocalDate date);
 
     SalesProgress generateSalesProgress(String clientId);
 
