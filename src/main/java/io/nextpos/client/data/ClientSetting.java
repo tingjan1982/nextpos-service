@@ -37,10 +37,12 @@ public class ClientSetting extends BaseObject implements ClientObject {
     @EqualsAndHashCode.Exclude
     private Client client;
 
+    @Enumerated(EnumType.STRING)
     private SettingName name;
 
     private String storedValue;
 
+    @Enumerated(EnumType.STRING)
     private ValueType valueType;
 
     private boolean enabled;

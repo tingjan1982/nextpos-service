@@ -144,10 +144,8 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
         final OrderSettings orderSettings = new OrderSettings(countrySettings.getTaxRate(), true, countrySettings.getCurrency(), BigDecimal.ZERO);
 
         clientSettingsService.getClientSettingByName(client, ClientSetting.SettingName.TAX_INCLUSIVE).ifPresent(cs -> {
-            if (cs.isEnabled()) {
-                final Boolean taxInclusive = clientSettingsService.getActualStoredValue(cs, Boolean.class);
-                orderSettings.setTaxInclusive(taxInclusive);
-            }
+            final Boolean taxInclusive = clientSettingsService.getActualStoredValue(cs, Boolean.class);
+            orderSettings.setTaxInclusive(taxInclusive);
         });
 
         clientSettingsService.getClientSettingByName(client, ClientSetting.SettingName.SERVICE_CHARGE).ifPresent(sc -> {
