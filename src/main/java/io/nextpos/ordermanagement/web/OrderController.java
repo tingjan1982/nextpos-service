@@ -212,6 +212,17 @@ public class OrderController {
         return toOrderResponse(updatedOrder);
     }
 
+    @PostMapping("/{id}/waiveServiceCharge")
+    public OrderResponse waiveServiceCharge(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                            @PathVariable final String id) {
+
+        final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
+
+        final Order updatedOrder = merchandisingService.updateServiceCharge(order, BigDecimal.ZERO);
+
+        return toOrderResponse(updatedOrder);
+    }
+
     @PostMapping("/{id}/copy")
     public OrderResponse copyOrder(@PathVariable final String id) {
 

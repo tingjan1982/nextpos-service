@@ -19,6 +19,7 @@ import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Currency;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -82,7 +83,7 @@ public class BootstrapConfig {
                         Offer.TriggerType.AT_CHECKOUT,
                         Offer.DiscountType.PERCENT_OFF,
                         d.getDiscount())))
-                .collect(Collectors.toUnmodifiableMap(Pair::getLeft, Pair::getRight));
+                .collect(Collectors.toMap(Pair::getLeft, Pair::getRight, (existing, replacement) -> existing, LinkedHashMap::new));
     }
 
     @Bean

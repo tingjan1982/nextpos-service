@@ -270,9 +270,9 @@ public class ClientController {
     private ClientUser fromClientUserRequest(Client client, ClientUserRequest clientUserRequest) {
 
         final String roles = String.join(",", clientUserRequest.getRoles());
-        final ClientUser.ClientUserId id = new ClientUser.ClientUserId(clientUserRequest.getUsername(), client.getUsername());
+        final ClientUser.ClientUserId id = new ClientUser.ClientUserId(clientUserRequest.getUsername().trim(), client.getUsername());
         final ClientUser clientUser = new ClientUser(id, clientUserRequest.getPassword(), roles);
-        clientUser.setNickname(clientUserRequest.getNickname());
+        clientUser.setNickname(clientUserRequest.getNickname().trim());
 
         return clientUser;
     }

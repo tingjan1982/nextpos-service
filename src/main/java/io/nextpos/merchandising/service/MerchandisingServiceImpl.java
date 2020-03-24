@@ -61,6 +61,13 @@ public class MerchandisingServiceImpl implements MerchandisingService {
         return orderService.saveOrder(order);
     }
 
+    @Override
+    public Order updateServiceCharge(final Order order, final BigDecimal serviceCharge) {
+
+        order.updateServiceCharge(serviceCharge);
+        return orderService.saveOrder(order);
+    }
+
     /**
      *
      *

@@ -67,7 +67,7 @@ class SalesReportServiceImplTest {
             createOrder(date, "tea", BigDecimal.valueOf(35), 5);
         }
 
-        final RangedSalesReport results = salesReportService.generateWeeklySalesReport("client", RangedSalesReport.RangeType.WEEK, date);
+        final RangedSalesReport results = salesReportService.generateWeeklySalesReport("client", RangedSalesReport.RangeType.WEEK, LocalDate.now());
 
         assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo(String.valueOf((50 + 35) * 5 * 7));
         assertThat(results.getSalesByRange()).hasSize(7);
@@ -85,7 +85,7 @@ class SalesReportServiceImplTest {
     @Test
     void generateWeeklySalesReport_WithEmptyData() {
 
-        final RangedSalesReport results = salesReportService.generateWeeklySalesReport("client", RangedSalesReport.RangeType.WEEK, date);
+        final RangedSalesReport results = salesReportService.generateWeeklySalesReport("client", RangedSalesReport.RangeType.WEEK, LocalDate.now());
 
         assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo("0");
         assertThat(results.getSalesByRange()).hasSize(7);
@@ -106,7 +106,7 @@ class SalesReportServiceImplTest {
             createOrder(date, "tea", BigDecimal.valueOf(35), 5);
         }
 
-        final RangedSalesReport results = salesReportService.generateWeeklySalesReport("client", RangedSalesReport.RangeType.MONTH, date);
+        final RangedSalesReport results = salesReportService.generateWeeklySalesReport("client", RangedSalesReport.RangeType.MONTH, LocalDate.now());
 
         assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo(String.valueOf((50 + 35) * 5 * lastDayOfMonth.getDayOfMonth()));
         assertThat(results.getSalesByRange()).hasSize(lastDayOfMonth.getDayOfMonth());

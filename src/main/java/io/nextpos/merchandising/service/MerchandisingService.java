@@ -11,4 +11,6 @@ public interface MerchandisingService {
     Order computeOffers(Client client, Order order);
 
     Order applyGlobalOrderDiscount(Order order, OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount, BigDecimal discount);
+
+    Order updateServiceCharge(Order order, BigDecimal serviceCharge);
 }

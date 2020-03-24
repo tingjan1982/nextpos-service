@@ -195,13 +195,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         final BigDecimal discountedPrice = this.replayOfferIfExists(total);
         applyOffer(discountedPrice);
 
-        final BigDecimal totalBeforeServiceCharge = discountedTotal != null && !discountedTotal.isZero() ? discountedTotal.getAmountWithTax() : total.getAmountWithTax();
-
-        if (orderSettings.hasServiceCharge()) {
-            serviceCharge = totalBeforeServiceCharge.multiply(orderSettings.getServiceCharge());
-        }
-
-        orderTotal = totalBeforeServiceCharge.add(serviceCharge);
+        this.calculateServiceChargeAndOrderTotal();
     }
 
     @Override
@@ -214,11 +208,20 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
             discount = total.getAmountWithTax().subtract(discountedTotal.getAmountWithTax());
         }
 
-        final BigDecimal totalBeforeServiceCharge = discountedTotal.getAmountWithTax();
+        this.calculateServiceChargeAndOrderTotal();
+    }
 
-        if (orderSettings.hasServiceCharge()) {
-            serviceCharge = totalBeforeServiceCharge.multiply(orderSettings.getServiceCharge());
-        }
+    public void updateServiceCharge(BigDecimal serviceCharge) {
+        orderSettings.setServiceCharge(serviceCharge);
+
+        this.calculateServiceChargeAndOrderTotal();
+    }
+
+    private void calculateServiceChargeAndOrderTotal() {
+
+        final BigDecimal totalBeforeServiceCharge = discountedTotal != null && !discountedTotal.isZero() ? discountedTotal.getAmountWithTax() : total.getAmountWithTax();
+
+        serviceCharge = orderSettings.hasServiceCharge() ? totalBeforeServiceCharge.multiply(orderSettings.getServiceCharge()) : BigDecimal.ZERO;
 
         orderTotal = totalBeforeServiceCharge.add(serviceCharge);
     }
