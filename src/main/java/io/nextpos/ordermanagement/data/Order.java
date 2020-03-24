@@ -55,7 +55,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     /**
      * total or discounted total + service charge
      */
-    private BigDecimal orderTotal;
+    private BigDecimal orderTotal = BigDecimal.ZERO;
 
     /**
      * Stores total of all the line items taking into account of line item level discount.
