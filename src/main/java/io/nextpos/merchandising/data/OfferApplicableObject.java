@@ -27,6 +27,12 @@ public interface OfferApplicableObject {
         this.setAppliedOfferInfo(appliedOfferInfo);
     }
 
+    default void removeOffer() {
+
+        applyOffer(BigDecimal.ZERO);
+        this.setAppliedOfferInfo(null);
+    }
+
     default BigDecimal replayOfferIfExists(TaxableAmount amountToDiscountOn) {
 
         final AppliedOfferInfo appliedOfferInfo = getAppliedOfferInfo();

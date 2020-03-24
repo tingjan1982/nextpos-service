@@ -98,7 +98,9 @@ class ShiftServiceImplTest {
         shiftService.closeShift(clientId, Shift.ClosingBalanceDetails.of(BigDecimal.valueOf(100)), null);
 
         assertThat(shiftService.abortCloseShift(clientId)).satisfies(s -> {
-            assertThat(s.getEnd()).isNull();
+            assertThat(s.getEnd()).isNotNull();
+            assertThat(s.getEnd().getClosingShiftReport()).isNull();
+            assertThat(s.getEnd().getClosingBalances()).isEmpty();
             assertThat(s.getShiftStatus()).isEqualTo(Shift.ShiftStatus.ACTIVE);
         });
     }

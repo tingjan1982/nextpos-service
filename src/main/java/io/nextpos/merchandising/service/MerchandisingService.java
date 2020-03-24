@@ -13,4 +13,6 @@ public interface MerchandisingService {
     Order applyGlobalOrderDiscount(Order order, OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount, BigDecimal discount);
 
     Order updateServiceCharge(Order order, BigDecimal serviceCharge);
+
+    Order resetOrderOffers(Order order);
 }

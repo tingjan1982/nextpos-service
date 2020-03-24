@@ -45,7 +45,7 @@ public class SalesReportServiceImpl implements SalesReportService {
         final GroupOperation salesTotal = Aggregation.group("clientId")
                 .sum(createToDecimal("lineItems.subTotal.amountWithTax")).as("salesTotal");
 
-        final BucketOperation salesByRange = createSalesByRangeFacet(rangeType);
+        final BucketOperation salesByRange = createSalesByRangeFacet(rangeType, date);
 
         final ConvertOperators.ToDecimal subTotalToDecimal = createToDecimal("lineItems.subTotal.amountWithTax");
         final GroupOperation salesByProduct = Aggregation.group("lineItems.productSnapshot.name")
@@ -85,10 +85,10 @@ public class SalesReportServiceImpl implements SalesReportService {
 
         switch (rangeType) {
             case WEEK:
-                projection = projection.and("modifiedDate").extractDayOfWeek().as("day");
+                projection = projection.and(context -> Document.parse("{ $week: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("day");
                 break;
             case MONTH:
-                projection = projection.and("modifiedDate").extractDayOfMonth().as("day");
+                projection = projection.and(context -> Document.parse("{ $dayOfMonth: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("day");
                 break;
         }
         return projection;
@@ -122,7 +122,7 @@ public class SalesReportServiceImpl implements SalesReportService {
                         .and("modifiedDate").gte(fromDate).lt(toDate));
     }
 
-    private BucketOperation createSalesByRangeFacet(RangedSalesReport.RangeType rangeType) {
+    private BucketOperation createSalesByRangeFacet(RangedSalesReport.RangeType rangeType, final LocalDate date) {
 
         switch (rangeType) {
             case WEEK:
@@ -133,7 +133,7 @@ public class SalesReportServiceImpl implements SalesReportService {
                         .andOutput(context -> new Document("$first", "$modifiedDate")).as("date");
 
             case MONTH:
-                final LocalDate lastDayOfMonth = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth());
+                final LocalDate lastDayOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
                 final Integer[] dayOfMonth = IntStream.rangeClosed(1, lastDayOfMonth.getDayOfMonth() + 1).boxed().toArray(Integer[]::new);
 
                 return Aggregation.bucket("day").withBoundaries(dayOfMonth).withDefaultBucket("Other")

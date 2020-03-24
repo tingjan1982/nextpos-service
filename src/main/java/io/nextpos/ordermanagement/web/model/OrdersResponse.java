@@ -5,6 +5,7 @@ import io.nextpos.ordermanagement.data.TaxableAmount;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -39,5 +40,7 @@ public class OrdersResponse {
         private Order.OrderState state;
 
         private TaxableAmount total;
+
+        private BigDecimal orderTotal;
     }
 }

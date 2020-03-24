@@ -154,7 +154,8 @@ public class OrderController {
                             o.getCustomerCount(),
                             o.getCreatedDate(),
                             o.getState(),
-                            o.getTotal());
+                            o.getTotal(),
+                            o.getOrderTotal());
                 })
                 .collect(Collectors.groupingBy(OrdersResponse.LightOrderResponse::getTableLayoutId, Collectors.toList()));
 
@@ -219,6 +220,17 @@ public class OrderController {
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
         final Order updatedOrder = merchandisingService.updateServiceCharge(order, BigDecimal.ZERO);
+
+        return toOrderResponse(updatedOrder);
+    }
+
+    @PostMapping("/{id}/resetOrderOffers")
+    public OrderResponse resetOrderOffers(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                          @PathVariable final String id) {
+
+        final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
+
+        final Order updatedOrder = merchandisingService.resetOrderOffers(order);
 
         return toOrderResponse(updatedOrder);
     }

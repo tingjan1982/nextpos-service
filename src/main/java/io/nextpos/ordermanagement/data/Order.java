@@ -1,6 +1,7 @@
 package io.nextpos.ordermanagement.data;
 
 import io.nextpos.merchandising.data.OfferApplicableObject;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.model.MongoBaseObject;
 import io.nextpos.shared.model.WithClientId;
@@ -8,6 +9,8 @@ import io.nextpos.tablelayout.data.TableLayout;
 import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -30,6 +33,8 @@ import static io.nextpos.ordermanagement.data.Order.OrderState.*;
 public class Order extends MongoBaseObject implements WithClientId, OfferApplicableObject {
 
     public static final String COPY_FROM_ORDER = "copyFromOrder";
+
+    public static final String ORIGINAL_ORDER_SETTINGS = "originalOrderSettings";
 
     @Id
     private String id;
@@ -111,6 +116,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         this.currency = orderSettings.getCurrency();
         this.internalCounter = new AtomicInteger(1);
         this.orderSettings = orderSettings;
+
+        this.addMetadata(ORIGINAL_ORDER_SETTINGS, orderSettings.copy());
     }
 
     /**
@@ -195,7 +202,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         final BigDecimal discountedPrice = this.replayOfferIfExists(total);
         applyOffer(discountedPrice);
 
-        this.calculateServiceChargeAndOrderTotal();
+        OperationPipeline.executeDirectly(this);
     }
 
     @Override
@@ -206,15 +213,54 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
         if (!discountedTotal.isZero()) {
             discount = total.getAmountWithTax().subtract(discountedTotal.getAmountWithTax());
+        } else {
+            discount = BigDecimal.ZERO;
         }
 
-        this.calculateServiceChargeAndOrderTotal();
+        OperationPipeline.executeDirectly(this);
     }
 
     public void updateServiceCharge(BigDecimal serviceCharge) {
+
         orderSettings.setServiceCharge(serviceCharge);
 
-        this.calculateServiceChargeAndOrderTotal();
+        OperationPipeline.executeDirectly(this);
+    }
+
+    public static class OperationPipeline {
+
+        private static final Logger LOGGER = LoggerFactory.getLogger(OperationPipeline.class);
+
+        private static ThreadLocal<OperationPipeline> pipelineInThread = new ThreadLocal<>();
+
+        public static void executeDirectly(Order order) {
+            final OperationPipeline operationPipeline = OperationPipeline.pipelineInThread.get();
+
+            if (operationPipeline == null) {
+                new OperationPipeline().reconcileOrder(order);
+            }
+        }
+
+        public static void executeAfter(Order order, Runnable runnable) {
+
+            final OperationPipeline operationPipeline = new OperationPipeline();
+            pipelineInThread.set(operationPipeline);
+
+            try {
+                runnable.run();
+
+            } catch (Exception e) {
+                throw new BusinessLogicException("Order operation pipeline failed: " + e.getMessage());
+            } finally {
+                operationPipeline.reconcileOrder(order);
+                pipelineInThread.remove();
+            }
+        }
+
+        private void reconcileOrder(Order order) {
+            LOGGER.info("Reconcile order state");
+            order.calculateServiceChargeAndOrderTotal();
+        }
     }
 
     private void calculateServiceChargeAndOrderTotal() {

@@ -62,12 +62,12 @@ class SalesReportServiceImplTest {
         final ValueRange range = today.range(ChronoField.DAY_OF_WEEK);
 
         for (int i = 1; i <= range.getMaximum(); i++) {
-            final LocalDate date = today.with(WeekFields.of(DayOfWeek.SUNDAY, 7).dayOfWeek(), i);
+            final LocalDate date = today.with(WeekFields.of(DayOfWeek.MONDAY, 7).dayOfWeek(), i);
             createOrder(date, "coffee", BigDecimal.valueOf(50), 5);
             createOrder(date, "tea", BigDecimal.valueOf(35), 5);
         }
 
-        final RangedSalesReport results = salesReportService.generateWeeklySalesReport("client", RangedSalesReport.RangeType.WEEK, LocalDate.now());
+        final RangedSalesReport results = salesReportService.generateWeeklySalesReport("client", RangedSalesReport.RangeType.WEEK, today);
 
         assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo(String.valueOf((50 + 35) * 5 * 7));
         assertThat(results.getSalesByRange()).hasSize(7);
@@ -106,7 +106,7 @@ class SalesReportServiceImplTest {
             createOrder(date, "tea", BigDecimal.valueOf(35), 5);
         }
 
-        final RangedSalesReport results = salesReportService.generateWeeklySalesReport("client", RangedSalesReport.RangeType.MONTH, LocalDate.now());
+        final RangedSalesReport results = salesReportService.generateWeeklySalesReport("client", RangedSalesReport.RangeType.MONTH, today);
 
         assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo(String.valueOf((50 + 35) * 5 * lastDayOfMonth.getDayOfMonth()));
         assertThat(results.getSalesByRange()).hasSize(lastDayOfMonth.getDayOfMonth());
