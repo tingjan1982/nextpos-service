@@ -215,11 +215,12 @@ public class OrderController {
 
     @PostMapping("/{id}/waiveServiceCharge")
     public OrderResponse waiveServiceCharge(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                            @PathVariable final String id) {
+                                            @PathVariable final String id,
+                                            @RequestParam(value = "apply", defaultValue = "true") boolean apply) {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
-        final Order updatedOrder = merchandisingService.updateServiceCharge(order, BigDecimal.ZERO);
+        final Order updatedOrder = merchandisingService.updateServiceCharge(order, apply);
 
         return toOrderResponse(updatedOrder);
     }

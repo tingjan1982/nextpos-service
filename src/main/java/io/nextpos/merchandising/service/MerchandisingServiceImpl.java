@@ -47,23 +47,36 @@ public class MerchandisingServiceImpl implements MerchandisingService {
     @Override
     public Order applyGlobalOrderDiscount(final Order order, OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount, BigDecimal overrideDiscount) {
 
-        final OrderLevelOffer globalOffer = offerService.getGlobalOfferByName(globalOrderDiscount);
+        if (globalOrderDiscount == OrderLevelOffer.GlobalOrderDiscount.NO_DISCOUNT) {
+            order.removeOffer();
 
-        BigDecimal computedDiscount;
-
-        if (globalOffer.isZeroDiscount()) {
-            computedDiscount = globalOffer.calculateDiscount(order, overrideDiscount);
         } else {
-            computedDiscount = globalOffer.calculateDiscount(order);
-        }
+            final OrderLevelOffer globalOffer = offerService.getGlobalOfferByName(globalOrderDiscount);
+            BigDecimal computedDiscount;
 
-        order.applyAndRecordOffer(globalOffer, computedDiscount);
+            if (globalOffer.isZeroDiscount()) {
+                computedDiscount = globalOffer.calculateDiscount(order, overrideDiscount);
+            } else {
+                computedDiscount = globalOffer.calculateDiscount(order);
+            }
+
+            order.applyAndRecordOffer(globalOffer, computedDiscount);
+        }
 
         return orderService.saveOrder(order);
     }
 
     @Override
-    public Order updateServiceCharge(final Order order, final BigDecimal serviceCharge) {
+    public Order updateServiceCharge(final Order order, final boolean waiveServiceCharge) {
+
+        BigDecimal serviceCharge = BigDecimal.ZERO;
+
+        if (!waiveServiceCharge) {
+            final OrderSettings originalOrderSettings = (OrderSettings) order.getMetadata(Order.ORIGINAL_ORDER_SETTINGS);
+            if (originalOrderSettings != null) {
+                serviceCharge = originalOrderSettings.getServiceCharge();
+            }
+        }
 
         order.updateServiceCharge(serviceCharge);
         return orderService.saveOrder(order);
