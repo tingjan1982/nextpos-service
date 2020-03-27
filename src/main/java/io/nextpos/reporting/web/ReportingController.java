@@ -63,11 +63,18 @@ public class ReportingController {
     }
 
     @GetMapping("/customerStats")
-    public CustomerStatsReportResponse getCustomerStatsReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+    public CustomerStatsReportResponse getCustomerStatsReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                              @RequestParam(name = "year", required = false) Integer year,
+                                                              @RequestParam(name = "month", required = false) Month month) {
 
-        final LocalDate today = LocalDate.now();
-        final CustomerStatsReport customerStatsOfThisMonth = statsReportService.generateCustomerStatsReport(client.getId(), today);
-        final CustomerStatsReport customerStatsOfThisMonthLastYear = statsReportService.generateCustomerStatsReport(client.getId(), today.minusYears(1));
+        YearMonth yearMonth = YearMonth.now();
+
+        if (year != null && month != null) {
+            yearMonth = YearMonth.of(year, month);
+        }
+
+        final CustomerStatsReport customerStatsOfThisMonth = statsReportService.generateCustomerStatsReport(client.getId(), yearMonth);
+        final CustomerStatsReport customerStatsOfThisMonthLastYear = statsReportService.generateCustomerStatsReport(client.getId(), yearMonth.minusYears(1));
 
         return new CustomerStatsReportResponse(
                 customerStatsOfThisMonth.getGroupedCustomerStats(),

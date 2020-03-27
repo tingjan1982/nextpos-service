@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,7 +29,7 @@ public class StatsReportServiceImpl implements StatsReportService {
     }
 
     @Override
-    public CustomerStatsReport generateCustomerStatsReport(final String clientId, LocalDate dateFilter) {
+    public CustomerStatsReport generateCustomerStatsReport(final String clientId, YearMonth dateFilter) {
 
         final ProjectionOperation projection = Aggregation.project("clientId")
                 .and(createToDecimal("total.amountWithTax")).as("total")
@@ -41,13 +41,13 @@ public class StatsReportServiceImpl implements StatsReportService {
                 .and("modifiedDate").as("modifiedDate")
                 .and(context -> Document.parse("{ $dayOfMonth: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("day");
 
-        LocalDate fromDate = dateFilter.withDayOfMonth(1);
-        LocalDate toDate = dateFilter.plusMonths(1).withDayOfMonth(1);
+        LocalDate fromDate = dateFilter.atDay(1);
+        LocalDate toDate = dateFilter.plusMonths(1).atDay(1);
         final MatchOperation filter = Aggregation.match(
                 Criteria.where("clientId").is(clientId)
                         .and("modifiedDate").gte(fromDate).lt(toDate));
 
-        final LocalDate lastDayOfMonth = dateFilter.with(TemporalAdjusters.lastDayOfMonth());
+        final LocalDate lastDayOfMonth = dateFilter.atEndOfMonth();
         final Integer[] daysOfMonth = IntStream.rangeClosed(1, lastDayOfMonth.getDayOfMonth() + 1).boxed().toArray(Integer[]::new);
         final BucketOperation groupedCustomerStats = Aggregation.bucket("day").withBoundaries(daysOfMonth).withDefaultBucket("Other")
                 .andOutput(AccumulatorOperators.Sum.sumOf("total")).as("total")
@@ -79,9 +79,9 @@ public class StatsReportServiceImpl implements StatsReportService {
         return customerStatsReport;
     }
 
-    private void enhanceResult(final CustomerStatsReport customerStatsReport, final LocalDate dateFilter) {
+    private void enhanceResult(final CustomerStatsReport customerStatsReport, final YearMonth dateFilter) {
 
-        final int lastDayOfMonth = dateFilter.with(TemporalAdjusters.lastDayOfMonth()).getDayOfMonth();
+        final int lastDayOfMonth = dateFilter.atEndOfMonth().getDayOfMonth();
 
         if (customerStatsReport.getGroupedCustomerStats().size() != lastDayOfMonth) {
             final Map<String, CustomerStatsReport.CustomerStats> statsMap = customerStatsReport.getGroupedCustomerStats().stream()
@@ -97,7 +97,7 @@ public class StatsReportServiceImpl implements StatsReportService {
                 } else {
                     final CustomerStatsReport.CustomerStats zeroCustomerStats = new CustomerStatsReport.CustomerStats();
                     zeroCustomerStats.setId(day);
-                    zeroCustomerStats.setDate(dateFilter.withDayOfMonth(i));
+                    zeroCustomerStats.setDate(dateFilter.atDay(i));
 
                     enhancedCustomerStatsList.add(zeroCustomerStats);
                 }
