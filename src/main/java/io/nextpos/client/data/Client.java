@@ -164,6 +164,8 @@ public class Client extends BaseObject {
          */
         ADDRESS,
 
+        TABLE_AVAILABILITY_DISPLAY,
+
         AES_KEY
     }
 }

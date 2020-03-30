@@ -37,8 +37,8 @@ public class AttributeValidator implements ConstraintValidator<ValidAttribute, M
 
         if (!CollectionUtils.isEmpty(value)) {
             value.forEach((k, v) -> {
-                if (StringUtils.isBlank(k) || StringUtils.isBlank(v)) {
-                    final String errorMsg = String.format("[%s=%s] cannot be blank.", k, v);
+                if (StringUtils.isBlank(k)) {
+                    final String errorMsg = String.format("[key=%s] cannot be blank.", k);
                     context.buildConstraintViolationWithTemplate(errorMsg)
                             .addBeanNode()
                             .inContainer(Map.class, 1)
@@ -55,6 +55,8 @@ public class AttributeValidator implements ConstraintValidator<ValidAttribute, M
                                 .inContainer(Map.class, 1)
                                 .inIterable().atKey(k)
                                 .addConstraintViolation();
+
+                        valid.set(false);
                     }
                 }
             });
