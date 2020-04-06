@@ -21,6 +21,7 @@ import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.temporal.TemporalAdjusters;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,7 +67,7 @@ class StatsReportServiceImplTest {
             createOrder(date, 1, 1, 1);
         }
 
-        final CustomerStatsReport results = statsReportService.generateCustomerStatsReport("client", LocalDate.now());
+        final CustomerStatsReport results = statsReportService.generateCustomerStatsReport("client", YearMonth.now());
 
         assertThat(results.getGroupedCustomerStats()).hasSize(lastDayOfMonth.getDayOfMonth());
 
@@ -87,7 +88,7 @@ class StatsReportServiceImplTest {
         final LocalDate date = LocalDate.now().withDayOfMonth(1);
         createOrder(date, 0, 0, 0);
 
-        final CustomerStatsReport results = statsReportService.generateCustomerStatsReport("client", LocalDate.now());
+        final CustomerStatsReport results = statsReportService.generateCustomerStatsReport("client", YearMonth.now());
 
         final LocalDate lastDayOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
         assertThat(results.getGroupedCustomerStats()).hasSize(lastDayOfMonth.getDayOfMonth());

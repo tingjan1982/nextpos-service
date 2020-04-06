@@ -94,7 +94,7 @@ class MerchandisingServiceImplTest {
         assertThat(order.getServiceCharge()).isEqualByComparingTo(BigDecimal.valueOf(10.5));
         assertThat(order.getOrderTotal()).isEqualByComparingTo(BigDecimal.valueOf(115.5));
 
-        final Order updatedOrder = merchandisingService.updateServiceCharge(order, BigDecimal.ZERO);
+        final Order updatedOrder = merchandisingService.updateServiceCharge(order, false);
 
         assertThat(updatedOrder.getServiceCharge()).isEqualByComparingTo(BigDecimal.valueOf(0));
         assertThat(updatedOrder.getOrderTotal()).isEqualByComparingTo(BigDecimal.valueOf(105));
@@ -108,7 +108,7 @@ class MerchandisingServiceImplTest {
         order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
 
         merchandisingService.applyGlobalOrderDiscount(order, OrderLevelOffer.GlobalOrderDiscount.ENTER_DISCOUNT, BigDecimal.valueOf(0.2));
-        merchandisingService.updateServiceCharge(order, BigDecimal.ZERO);
+        merchandisingService.updateServiceCharge(order, true);
 
         final Order updatedOrder = merchandisingService.resetOrderOffers(order);
 

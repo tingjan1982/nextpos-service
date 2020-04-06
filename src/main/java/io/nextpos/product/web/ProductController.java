@@ -9,6 +9,7 @@ import io.nextpos.product.web.model.ProductOptionResponse;
 import io.nextpos.product.web.model.ProductRequest;
 import io.nextpos.product.web.model.ProductResponse;
 import io.nextpos.product.web.util.ObjectWithProductOptionVisitorWrapper;
+import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +44,7 @@ public class ProductController {
     }
 
     @PostMapping
-    public ProductResponse createProduct(@RequestAttribute("req-client") Client client, @Valid @RequestBody ProductRequest productRequest) {
+    public ProductResponse createProduct(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @Valid @RequestBody ProductRequest productRequest) {
 
         final Product product = fromRequest(productRequest, client);
         final Product createdProduct = productService.saveProduct(product);
@@ -73,7 +74,7 @@ public class ProductController {
     @GetMapping("/{id}")
     public ProductResponse getProduct(@PathVariable String id,
                                       @RequestParam(value = "version", required = false, defaultValue = "DESIGN") Version version,
-                                      @RequestAttribute("req-client") Client client) {
+                                      @RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
         final Product product = clientObjectOwnershipService.checkOwnership(client, () -> productService.getProduct(id));
 
@@ -82,7 +83,7 @@ public class ProductController {
 
     @PostMapping("/{id}")
     public ProductResponse updateProduct(@PathVariable final String id,
-                                         @RequestAttribute("req-client") Client client,
+                                         @RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                          @Valid @RequestBody ProductRequest productRequest) {
 
         final Product product = clientObjectOwnershipService.checkOwnership(client, () -> productService.getProduct(id));
@@ -129,13 +130,12 @@ public class ProductController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteProduct(@PathVariable final String id,
-                              @RequestAttribute("req-client") Client client) {
+                              @RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
         final Product product = clientObjectOwnershipService.checkOwnership(client, () -> productService.getProduct(id));
 
         productService.deleteProduct(product);
     }
-
 
     @PostMapping("/{id}/deploy")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -143,6 +143,17 @@ public class ProductController {
 
         productService.deployProduct(id);
     }
+
+    @PostMapping("/{id}/togglePin")
+    public ProductResponse pinProduct(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                      @PathVariable final String id) {
+
+        final Product product = clientObjectOwnershipService.checkOwnership(client, () -> productService.getProduct(id));
+        product.setPinned(!product.isPinned());
+
+        return toResponse(productService.saveProduct(product), Version.DESIGN);
+    }
+
 
     private ProductResponse toResponse(Product product, final Version version) {
 
@@ -169,7 +180,8 @@ public class ProductController {
                 productLabel != null ? productLabel.getName() : null,
                 workingArea != null ? workingArea.getId() : null,
                 productOptionIds,
-                productOptions);
+                productOptions,
+                product.isPinned());
     }
 
     private ProductOptionResponse toProductOptionResponse(final Version version, final ProductOptionRelation.ProductOptionOfProduct po) {

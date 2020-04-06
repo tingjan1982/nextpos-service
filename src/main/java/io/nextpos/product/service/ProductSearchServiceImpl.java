@@ -36,13 +36,20 @@ public class ProductSearchServiceImpl implements ProductSearchService {
 
         final List<ProductLabel> productLabels = productLabelService.getProductLabels(client);
         final ProductLabel ungroupedLabel = new ProductLabel("ungrouped", client);
-        final List<ProductVersion> products = productVersionRepository.findAllProductsByClient(client, version, Sort.by(Sort.Order.asc("productName")));
+        final Sort sortByProductName = Sort.by(Sort.Order.asc("productName"));
+
+        final List<ProductVersion> products = productVersionRepository.findAllProductsByClient(client, version, sortByProductName);
+
         final Map<ProductLabel, List<ProductVersion>> groupedProducts = products.stream()
                 .sorted(Comparator.comparing(ProductVersion::getProductName))
                 .collect(Collectors.groupingBy(pv -> {
                     ProductLabel label = pv.getProduct().getProductLabel();
                     return label != null ? label : ungroupedLabel;
                 }));
+
+        final ProductLabel pinnedLabel = new ProductLabel("pinned", client);
+        final List<ProductVersion> pinnedProducts = productVersionRepository.findAllByProduct_ClientAndVersionAndProduct_Pinned(client, version, true, sortByProductName);
+        groupedProducts.put(pinnedLabel, pinnedProducts);
 
         final List<ProductLabel> labelsWithoutProduct = productLabels.stream()
                 .filter(label -> !groupedProducts.containsKey(label))

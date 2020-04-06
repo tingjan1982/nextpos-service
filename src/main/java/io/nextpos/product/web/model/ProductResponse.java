@@ -37,4 +37,6 @@ public class ProductResponse {
     private List<String> productOptionIds;
 
     private List<ProductOptionResponse> productOptions;
+
+    private boolean pinned;
 }

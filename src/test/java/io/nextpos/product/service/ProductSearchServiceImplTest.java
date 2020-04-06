@@ -51,6 +51,7 @@ class ProductSearchServiceImplTest {
 
         final Product coffee = new Product(client, DummyObjects.dummyProductVersion("black coffee"));
         coffee.setProductLabel(drinkLabel);
+        coffee.setPinned(true);
         productService.saveProduct(coffee);
 
         final Product appleJuice = new Product(client, DummyObjects.dummyProductVersion("apple juice"));
@@ -74,6 +75,17 @@ class ProductSearchServiceImplTest {
 
         final Map<ProductLabel, List<ProductVersion>> products = productSearchService.getAllProductsGroupedByLabels(client, Version.DESIGN);
 
-        assertThat(products).hasSize(5);
+        assertThat(products).hasSize(6);
+        assertThat(findProductsByLabel(products, "drink")).hasSize(2);
+        assertThat(findProductsByLabel(products, "ungrouped")).hasSize(1);
+        assertThat(findProductsByLabel(products, "pinned")).hasSize(1);
+    }
+
+    private List<ProductVersion> findProductsByLabel(Map<ProductLabel, List<ProductVersion>> products, String label) {
+
+        return products.entrySet().stream()
+                .filter(entry -> label.equals(entry.getKey().getName()))
+                .map(Map.Entry::getValue)
+                .findFirst().orElseThrow();
     }
 }

@@ -27,6 +27,8 @@ public class ProductSearchResponse {
         private BigDecimal price;
 
         private String productLabelId;
+
+        private boolean pinned;
     }
 
 }

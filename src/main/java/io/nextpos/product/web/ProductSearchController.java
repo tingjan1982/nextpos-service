@@ -48,7 +48,8 @@ public class ProductSearchController {
                         return new ProductSearchResponse.ProductSearchResult(product.getProduct().getId(),
                                 product.getProductName(),
                                 product.getPrice(),
-                                productLabelId);
+                                productLabelId,
+                                product.getProduct().isPinned());
                     })
                     .collect(Collectors.toList());
             results.put(key.getName(), products);
