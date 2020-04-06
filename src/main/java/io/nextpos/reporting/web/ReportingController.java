@@ -81,6 +81,21 @@ public class ReportingController {
                 customerStatsOfThisMonthLastYear.getGroupedCustomerStats());
     }
 
+    @GetMapping("/customerTraffic")
+    public CustomerTrafficReportResponse getCustomerTrafficReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                                  @RequestParam(name = "year", required = false) Integer year,
+                                                                  @RequestParam(name = "month", required = false) Month month) {
+        YearMonth yearMonth = YearMonth.now();
+
+        if (year != null && month != null) {
+            yearMonth = YearMonth.of(year, month);
+        }
+
+        final CustomerTrafficReport customerTrafficReport = statsReportService.generateCustomerTrafficReport(client.getId(), yearMonth);
+
+        return new CustomerTrafficReportResponse(customerTrafficReport.getOrdersByHour());
+    }
+
     @GetMapping("/salesDistribution")
     public SalesDistributionResponse getSalesDistributionReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 

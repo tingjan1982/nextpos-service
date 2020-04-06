@@ -34,5 +34,14 @@ public class CustomerStatsReport {
         private int femaleCount;
 
         private int kidCount;
+
+        public static CustomerStats emptyObject(final String id, LocalDate date) {
+
+            final CustomerStatsReport.CustomerStats emptyObject = new CustomerStatsReport.CustomerStats();
+            emptyObject.setId(id);
+            emptyObject.setDate(date);
+
+            return emptyObject;
+        }
     }
 }

@@ -5,8 +5,8 @@ import io.nextpos.ordermanagement.data.OrderRepository;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.reporting.data.CustomerStatsReport;
+import io.nextpos.reporting.data.CustomerTrafficReport;
 import io.nextpos.shared.DummyObjects;
-import org.assertj.core.data.Index;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -21,7 +21,10 @@ import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAdjusters;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,6 +59,64 @@ class StatsReportServiceImplTest {
     }
 
     @Test
+    void generateCustomerTrafficReport() {
+
+        final LocalDateTime today = LocalDateTime.now();
+
+        for (int i = 0; i <= 23; i++) {
+            final LocalDateTime date = today.with(ChronoField.HOUR_OF_DAY, i);
+            createOrder(date);
+        }
+
+        final CustomerTrafficReport results = statsReportService.generateCustomerTrafficReport("client", YearMonth.now());
+
+        assertThat(results.getOrdersByHour()).hasSize(24);
+
+        assertThat(results.getOrdersByHour()).allSatisfy(cc -> {
+            assertThat(cc.getOrderCount()).isEqualTo(1);
+            assertThat(cc.getCustomerCount()).isEqualTo(2);
+        });
+
+        LOGGER.info("{}", results);
+    }
+
+    @Test
+    void generateEmptyCustomerTrafficReport() {
+
+        final CustomerTrafficReport results = statsReportService.generateCustomerTrafficReport("client", YearMonth.now());
+
+        assertThat(results.getOrdersByHour()).hasSize(24);
+
+        assertThat(results.getOrdersByHour()).allSatisfy(cc -> {
+            assertThat(cc.getOrderCount()).isEqualTo(0);
+            assertThat(cc.getCustomerCount()).isEqualTo(0);
+        });
+
+        LOGGER.info("{}", results);
+    }
+
+    private void createOrder(final LocalDateTime orderDate) {
+
+        final OrderSettings newSettings = orderSettings.copy();
+        newSettings.setTaxInclusive(true);
+
+        final Order order = new Order("client", newSettings);
+        final Order.DemographicData demographicData = new Order.DemographicData();
+        demographicData.setMale(2);
+        order.setDemographicData(demographicData);
+        order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
+
+        orderService.createOrder(order);
+
+        // use query to update order.modifiedDate to overwrite the dates that are set by Spring MongoDB auditing feature.
+        final Query query = new Query(where("id").is(order.getId()));
+
+
+        final Update update = new Update().set("modifiedDate", Date.from(orderDate.atZone(ZoneOffset.systemDefault()).toInstant()));
+        mongoTemplate.updateFirst(query, update, Order.class);
+    }
+
+    @Test
     void generateCustomerStatsReport() {
 
         final LocalDate today = LocalDate.now();
@@ -78,29 +139,27 @@ class StatsReportServiceImplTest {
             assertThat(cc.getCustomerCount()).isEqualTo(9);
             assertThat(cc.getAverageSpending()).isCloseTo(BigDecimal.valueOf(22), within(BigDecimal.valueOf(1)));
         });
-        
+
         LOGGER.info("{}", results);
     }
 
     @Test
     void generateEmptyCustomerStatsReport() {
 
-        final LocalDate date = LocalDate.now().withDayOfMonth(1);
-        createOrder(date, 0, 0, 0);
+        final YearMonth dateFilter = YearMonth.now();
+        final CustomerStatsReport results = statsReportService.generateCustomerStatsReport("client", dateFilter);
 
-        final CustomerStatsReport results = statsReportService.generateCustomerStatsReport("client", YearMonth.now());
+        assertThat(results.getGroupedCustomerStats()).hasSize(dateFilter.atEndOfMonth().getDayOfMonth());
 
-        final LocalDate lastDayOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
-        assertThat(results.getGroupedCustomerStats()).hasSize(lastDayOfMonth.getDayOfMonth());
-
-        assertThat(results.getGroupedCustomerStats()).satisfies(cc -> {
+        assertThat(results.getGroupedCustomerStats()).allSatisfy(cc -> {
+            assertThat(cc.getId()).isNotNull();
+            assertThat(cc.getDate()).isNotNull();
             assertThat(cc.getMaleCount()).isEqualTo(0);
             assertThat(cc.getFemaleCount()).isEqualTo(0);
             assertThat(cc.getKidCount()).isEqualTo(0);
             assertThat(cc.getCustomerCount()).isEqualTo(0);
-            assertThat(cc.getAverageSpending()).isCloseTo(BigDecimal.valueOf(100), within(BigDecimal.valueOf(1)));
-
-        }, Index.atIndex(0));
+            assertThat(cc.getAverageSpending()).isCloseTo(BigDecimal.valueOf(0), within(BigDecimal.valueOf(1)));
+        });
     }
 
     private void createOrder(final LocalDate orderDate, final int male, final int female, int kid) {

@@ -1,6 +1,7 @@
 package io.nextpos.ordermanagement.event;
 
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderStateChange;
 import io.nextpos.ordermanagement.data.OrderStateChangeBean;
 import io.nextpos.ordermanagement.service.OrderService;
@@ -46,18 +47,34 @@ public class OrderStateChangeListener {
         LOGGER.info("Order[{}] in the state[{}] received action[{}]", order.getId(), orderState, orderAction);
 
         if (orderAction.getValidFromState().contains(orderState)) {
-            final Optional<LineItemStateChangeEvent> lineItemStateChangeEvent = Optional.of(
-                    new LineItemStateChangeEvent(this, order, orderAction, order.getOrderLineItems())
-            );
+            if (canOrderActionContinue(orderAction, order)) {
+                final Optional<LineItemStateChangeEvent> lineItemStateChangeEvent = Optional.of(
+                        new LineItemStateChangeEvent(this, order, orderAction, order.getOrderLineItems())
+                );
 
-            final OrderStateChange orderStateChange = orderService.transitionOrderState(order, orderAction, lineItemStateChangeEvent);
-            final OrderStateChangeBean orderStateChangeBean = new OrderStateChangeBean(orderStateChange);
+                final OrderStateChange orderStateChange = orderService.transitionOrderState(order, orderAction, lineItemStateChangeEvent);
+                final OrderStateChangeBean orderStateChangeBean = new OrderStateChangeBean(orderStateChange);
 
-            // dispatch a post state change event.
-            eventPublisher.publishEvent(new PostStateChangeEvent(this, order, orderStateChangeBean, event.getFuture()));
+                // dispatch a post state change event.
+                eventPublisher.publishEvent(new PostStateChangeEvent(this, order, orderStateChangeBean, event.getFuture()));
+            }
         }
 
         final String errorMsg = String.format("Unable to process order action [%s] from the order state [%s], [orderId=%s]", orderAction, orderState, order.getId());
         event.getFuture().completeExceptionally(new GeneralApplicationException(errorMsg));
+    }
+
+    private boolean canOrderActionContinue(Order.OrderAction orderAction, Order order) {
+
+        if (orderAction == Order.OrderAction.SUBMIT) {
+            final boolean allLineItemsDelivered = order.getOrderLineItems().stream().allMatch(li -> li.getState() == OrderLineItem.LineItemState.DELIVERED);
+
+            if (allLineItemsDelivered) {
+                LOGGER.warn("All line items are delivered therefore submit action will be skipped at this time.");
+                return false;
+            }
+        }
+
+        return true;
     }
 }
