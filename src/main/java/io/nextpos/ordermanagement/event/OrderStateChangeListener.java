@@ -57,6 +57,8 @@ public class OrderStateChangeListener {
 
                 // dispatch a post state change event.
                 eventPublisher.publishEvent(new PostStateChangeEvent(this, order, orderStateChangeBean, event.getFuture()));
+            } else {
+                orderService.getOrderStateChangeByOrderId(order.getId()).ifPresent(sc -> event.getFuture().complete(new OrderStateChangeBean(sc)));
             }
         }
 
