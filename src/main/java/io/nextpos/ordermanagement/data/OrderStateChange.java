@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Duration;
@@ -13,6 +12,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Document
 @Data
@@ -23,9 +23,6 @@ public class OrderStateChange {
     private String orderId;
 
     private String clientId;
-
-    @Transient
-    private OrderStateChangeEntry lastEntry;
 
     private List<OrderStateChangeEntry> stateChanges = new ArrayList<>();
 
@@ -38,8 +35,10 @@ public class OrderStateChange {
 
         final OrderStateChangeEntry entry = new OrderStateChangeEntry(fromState, toState, Instant.now());
         stateChanges.add(entry);
+    }
 
-        lastEntry = entry;
+    public Optional<OrderStateChangeEntry> getLastEntry() {
+        return stateChanges.isEmpty() ? Optional.empty() : Optional.of(stateChanges.get(0));
     }
 
     public OrderDuration getOrderDuration() {

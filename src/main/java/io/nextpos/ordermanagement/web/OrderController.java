@@ -14,6 +14,7 @@ import io.nextpos.ordertransaction.web.model.OrderTransactionResponse;
 import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.reporting.data.ReportDateParameter;
 import io.nextpos.shared.exception.BusinessLogicException;
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.shared.web.model.SimpleObjectResponse;
 import io.nextpos.shared.web.model.SimpleObjectsResponse;
@@ -294,7 +295,9 @@ public class OrderController {
     private OrderStateChangeResponse toOrderStateChangeResponse(final OrderStateChangeBean orderStateChangeBean) {
 
         final OrderStateChange orderStateChange = orderStateChangeBean.getOrderStateChange();
-        final OrderStateChange.OrderStateChangeEntry orderStateChangeEntry = orderStateChange.getLastEntry();
+        final OrderStateChange.OrderStateChangeEntry orderStateChangeEntry = orderStateChange.getLastEntry().orElseThrow(() -> {
+            throw new ObjectNotFoundException(orderStateChange.getOrderId(), OrderStateChange.class);
+        });
 
         List<OrderStateChangeResponse.PrinterInstructionResponse> printerInstructions = List.of();
 
