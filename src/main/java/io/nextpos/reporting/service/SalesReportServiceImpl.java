@@ -2,6 +2,7 @@ package io.nextpos.reporting.service;
 
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.reporting.data.RangedSalesReport;
+import io.nextpos.reporting.data.ReportEnhancer;
 import io.nextpos.reporting.data.SalesDistribution;
 import io.nextpos.reporting.data.SalesProgress;
 import io.nextpos.shared.exception.GeneralApplicationException;
@@ -17,10 +18,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.temporal.*;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -79,7 +80,6 @@ public class SalesReportServiceImpl implements SalesReportService {
 
     private ProjectionOperation createProjection(final RangedSalesReport.RangeType rangeType) {
         ProjectionOperation projection = Aggregation.project("clientId")
-                .and(createToDecimal("total.amountWithTax")).as("total") // this is critical to make $sum work.
                 .and("orderLineItems").as("lineItems")
                 .and("modifiedDate").as("modifiedDate");
 
@@ -129,7 +129,7 @@ public class SalesReportServiceImpl implements SalesReportService {
                 final Integer[] daysInWeek = IntStream.rangeClosed(1, 8).boxed().toArray(Integer[]::new);
 
                 return Aggregation.bucket("day").withBoundaries(daysInWeek).withDefaultBucket("Other")
-                        .andOutput(AccumulatorOperators.Sum.sumOf("total")).as("total")
+                        .andOutput(createToDecimal("lineItems.subTotal.amountWithTax")).sum().as("total")
                         .andOutput(context -> new Document("$first", "$modifiedDate")).as("date");
 
             case MONTH:
@@ -137,7 +137,7 @@ public class SalesReportServiceImpl implements SalesReportService {
                 final Integer[] dayOfMonth = IntStream.rangeClosed(1, lastDayOfMonth.getDayOfMonth() + 1).boxed().toArray(Integer[]::new);
 
                 return Aggregation.bucket("day").withBoundaries(dayOfMonth).withDefaultBucket("Other")
-                        .andOutput(AccumulatorOperators.Sum.sumOf("total")).as("total")
+                        .andOutput(createToDecimal("lineItems.subTotal.amountWithTax")).sum().as("total")
                         .andOutput(context -> new Document("$first", "$modifiedDate")).as("date");
 
             default:
@@ -145,35 +145,30 @@ public class SalesReportServiceImpl implements SalesReportService {
         }
     }
 
-    private void  enhanceResults(final RangedSalesReport results, final RangedSalesReport.RangeType rangeType, final LocalDate date) {
+    private void enhanceResults(final RangedSalesReport results, final RangedSalesReport.RangeType rangeType, final LocalDate date) {
 
         results.setRangeType(rangeType);
 
-        final TemporalField temporalField = WeekFields.of(DayOfWeek.MONDAY, 7).dayOfWeek();
-        final LocalDate firstDayOfCurrentWeek = date.with(temporalField, 1);
-
         switch (rangeType) {
             case WEEK:
-                if (results.getSalesByRange().size() != 7) {
-                    final Map<String, RangedSalesReport.SalesByRange> salesMap = results.getSalesByRange().stream()
-                            .collect(Collectors.toMap(RangedSalesReport.SalesByRange::getId, s -> s));
-                    final List<RangedSalesReport.SalesByRange> enhancedSalesByRange = new ArrayList<>();
+                final TemporalField temporalField = WeekFields.of(DayOfWeek.MONDAY, 7).dayOfWeek();
 
-                    IntStream.rangeClosed(1, 7).forEach(dayOfWeek -> {
-                        final String key = String.valueOf(dayOfWeek);
-                        if (salesMap.containsKey(key)) {
-                            enhancedSalesByRange.add(salesMap.get(key));
-                        } else {
-                            final RangedSalesReport.SalesByRange emptySalesByRange = new RangedSalesReport.SalesByRange();
-                            final LocalDate dateOfWeek = firstDayOfCurrentWeek.with(temporalField, dayOfWeek);
-                            emptySalesByRange.setId(key);
-                            emptySalesByRange.setDate(dateOfWeek);
-                            enhancedSalesByRange.add(emptySalesByRange);
-                        }
-                    });
+                ReportEnhancer.enhanceReportResult(IntStream.rangeClosed(1, 7),
+                        () -> results.getSalesByRange().stream()
+                                .collect(Collectors.toMap(RangedSalesReport.SalesByRange::getId, s -> s)),
+                        id -> RangedSalesReport.SalesByRange.emptyObject(id, date.with(temporalField, Long.parseLong(id))),
+                        results::setSalesByRange);
 
-                    results.setSalesByRange(enhancedSalesByRange);
-                }
+                break;
+                
+            case MONTH:
+                final YearMonth month = YearMonth.from(date);
+
+                ReportEnhancer.enhanceReportResult(IntStream.rangeClosed(1, month.atEndOfMonth().getDayOfMonth()),
+                        () -> results.getSalesByRange().stream()
+                                .collect(Collectors.toMap(RangedSalesReport.SalesByRange::getId, s -> s)),
+                        id -> RangedSalesReport.SalesByRange.emptyObject(id, month.atDay(Integer.parseInt(id))),
+                        results::setSalesByRange);
 
                 break;
         }

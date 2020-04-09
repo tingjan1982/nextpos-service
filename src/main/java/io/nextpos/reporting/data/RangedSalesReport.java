@@ -42,9 +42,15 @@ public class RangedSalesReport {
 
         private LocalDate date;
 
-        private String formattedDate;
-
         private BigDecimal total = BigDecimal.ZERO;
+
+        public static SalesByRange emptyObject(final String id, LocalDate date) {
+            final SalesByRange salesByRange = new SalesByRange();
+            salesByRange.setId(id);
+            salesByRange.setDate(date);
+
+            return salesByRange;
+        }
     }
 
     @Data
