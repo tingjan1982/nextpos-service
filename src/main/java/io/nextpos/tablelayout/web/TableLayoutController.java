@@ -83,6 +83,18 @@ public class TableLayoutController {
         return new TableLayoutsResponse(layoutsResponse);
     }
 
+    private TableLayoutResponse toTableLayoutResponse(final TableLayout savedTableLayout) {
+        final List<TableDetailsResponse> tables = savedTableLayout.getTables().stream()
+                .map(TableDetailsResponse::fromTableDetails)
+                .collect(Collectors.toList());
+
+        return new TableLayoutResponse(savedTableLayout.getId(),
+                savedTableLayout.getLayoutName(),
+                tables.size(),
+                savedTableLayout.getTotalCapacity(),
+                tables);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteTableLayout(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
@@ -128,15 +140,29 @@ public class TableLayoutController {
 
         tableLayoutService.saveTableLayout(tableLayout);
 
-        return new TableDetailsResponse(tableDetails.getId(),
-                tableDetails.getTableName(),
-                tableDetails.getCapacity());
+        return TableDetailsResponse.fromTableDetails(tableDetails);
     }
 
     private void updateTableDetailsFromRequest(final TableLayout.TableDetails tableDetails, final UpdateTableDetailsRequest updateRequest) {
 
         tableDetails.setTableName(updateRequest.getTableName());
         tableDetails.setCapacity(updateRequest.getCapacity());
+    }
+
+    @PostMapping("/{id}/tables/{tableId}/position")
+    public TableDetailsResponse updateTableDetailsPosition(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                   @PathVariable final String id,
+                                                   @PathVariable final String tableId,
+                                                   @Valid @RequestBody UpdateTablePositionRequest request) {
+
+        final TableLayout tableLayout = clientObjectOwnershipService.checkOwnership(client, () -> tableLayoutService.getTableLayout(id));
+        final TableLayout.TableDetails tableDetails = tableLayout.getTableDetails(tableId);
+
+        tableDetails.setScreenPosition(request.toScreenPosition());
+
+        tableLayoutService.saveTableLayout(tableLayout);
+
+        return TableDetailsResponse.fromTableDetails(tableDetails);
     }
 
     @DeleteMapping("/{id}/tables/{tableId}")
@@ -149,17 +175,5 @@ public class TableLayoutController {
         tableLayout.deleteTableDetails(tableId);
 
         tableLayoutService.saveTableLayout(tableLayout);
-    }
-
-    private TableLayoutResponse toTableLayoutResponse(final TableLayout savedTableLayout) {
-        final List<TableDetailsResponse> tables = savedTableLayout.getTables().stream()
-                .map(t -> new TableDetailsResponse(t.getId(), t.getTableName(), t.getCapacity()))
-                .collect(Collectors.toList());
-
-        return new TableLayoutResponse(savedTableLayout.getId(),
-                savedTableLayout.getLayoutName(),
-                tables.size(),
-                savedTableLayout.getTotalCapacity(),
-                tables);
     }
 }

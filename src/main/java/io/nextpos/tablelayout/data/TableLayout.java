@@ -94,9 +94,23 @@ public class TableLayout extends BaseObject implements ClientObject {
 
         private int capacity;
 
+        @Embedded
+        private ScreenPosition screenPosition;
+
         public TableDetails(final String tableName, int capacity) {
             this.tableName = tableName;
             this.capacity = capacity;
+        }
+
+        @Embeddable
+        @Data
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class ScreenPosition {
+
+            private String x;
+
+            private String y;
         }
     }
 }

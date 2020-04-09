@@ -175,7 +175,7 @@ public class OrderController {
                 .flatMap(tl -> tl.getTables().stream())
                 .filter(t -> !occupiedTableIds.contains(t.getId()))
                 .collect(Collectors.groupingBy(t -> t.getTableLayout().getId(),
-                        Collectors.mapping(t -> new TableDetailsResponse(t.getId(), t.getTableName(), t.getCapacity()), Collectors.toList())));
+                        Collectors.mapping(TableDetailsResponse::fromTableDetails, Collectors.toList())));
 
         return new TablesResponse(availableTables);
     }
