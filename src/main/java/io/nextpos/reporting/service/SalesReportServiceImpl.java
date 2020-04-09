@@ -85,7 +85,7 @@ public class SalesReportServiceImpl implements SalesReportService {
 
         switch (rangeType) {
             case WEEK:
-                projection = projection.and(context -> Document.parse("{ $week: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("day");
+                projection = projection.and(context -> Document.parse("{ $dayOfWeek: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("day");
                 break;
             case MONTH:
                 projection = projection.and(context -> Document.parse("{ $dayOfMonth: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("day");
@@ -145,7 +145,7 @@ public class SalesReportServiceImpl implements SalesReportService {
         }
     }
 
-    private void enhanceResults(final RangedSalesReport results, final RangedSalesReport.RangeType rangeType, final LocalDate date) {
+    private void  enhanceResults(final RangedSalesReport results, final RangedSalesReport.RangeType rangeType, final LocalDate date) {
 
         results.setRangeType(rangeType);
 

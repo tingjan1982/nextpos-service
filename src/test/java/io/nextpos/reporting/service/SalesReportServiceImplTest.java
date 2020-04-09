@@ -71,6 +71,9 @@ class SalesReportServiceImplTest {
 
         assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo(String.valueOf((50 + 35) * 5 * 7));
         assertThat(results.getSalesByRange()).hasSize(7);
+        assertThat(results.getSalesByRange()).allSatisfy(sales -> {
+            assertThat(sales.getTotal()).isEqualByComparingTo(String.valueOf((50 + 35) * 5));
+        });
         assertThat(results.getSalesByProduct()).hasSize(2);
 
         assertThat(results.getSalesByProduct()).allSatisfy(byProduct -> {
