@@ -84,7 +84,7 @@ public class ReportingController {
     @GetMapping("/customerTraffic")
     public CustomerTrafficReportResponse getCustomerTrafficReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                                   @RequestParam(name = "year", required = false) Integer year,
-                                                                  @RequestParam(name = "month", required = false) Month month) {
+                                                                  @RequestParam(name = "month", required = false) Integer month) {
         YearMonth yearMonth = YearMonth.now();
 
         if (year != null && month != null) {
