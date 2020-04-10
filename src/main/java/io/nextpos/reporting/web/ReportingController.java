@@ -93,7 +93,20 @@ public class ReportingController {
 
         final CustomerTrafficReport customerTrafficReport = statsReportService.generateCustomerTrafficReport(client.getId(), yearMonth);
 
-        return new CustomerTrafficReportResponse(customerTrafficReport.getOrdersByHour());
+        if (customerTrafficReport.getTotalCountObject().isPresent()) {
+            return new CustomerTrafficReportResponse(
+                    customerTrafficReport.getTotalCountObject().get(),
+                    customerTrafficReport.getOrdersByHour(),
+                    customerTrafficReport.getOrdersByType(),
+                    customerTrafficReport.getOrdersByAgeGroup(),
+                    customerTrafficReport.getOrdersByVisitFrequency());
+        } else {
+            final CustomerTrafficReportResponse empty = new CustomerTrafficReportResponse();
+            empty.setTotalCount(new CustomerTrafficReport.TotalCount());
+
+            return empty;
+        }
+
     }
 
     @GetMapping("/salesDistribution")

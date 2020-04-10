@@ -65,19 +65,46 @@ class StatsReportServiceImplTest {
 
         for (int i = 0; i <= 23; i++) {
             final LocalDateTime date = today.with(ChronoField.HOUR_OF_DAY, i);
-            createOrder(date);
+            createOrder(date, Order.OrderType.IN_STORE, Order.DemographicData.AgeGroup.TWENTIES, Order.DemographicData.VisitFrequency.FIRST_TIME, 1, 1, 1);
+            createOrder(date, Order.OrderType.TAKE_OUT, Order.DemographicData.AgeGroup.THIRTIES, Order.DemographicData.VisitFrequency.MORE_THAN_THREE, 1, 1, 1);
         }
 
         final CustomerTrafficReport results = statsReportService.generateCustomerTrafficReport("client", YearMonth.now());
 
+        assertThat(results.getTotalCountObject()).isNotEmpty();
+        results.getTotalCountObject().ifPresent(count -> {
+            assertThat(count.getOrderCount()).isEqualTo(48);
+            assertThat(count.getMaleCount()).isEqualTo(48);
+            assertThat(count.getFemaleCount()).isEqualTo(48);
+            assertThat(count.getKidCount()).isEqualTo(48);
+            assertThat(count.getCustomerCount()).isEqualTo(48 * 3);
+        });
+        
         assertThat(results.getOrdersByHour()).hasSize(24);
 
         assertThat(results.getOrdersByHour()).allSatisfy(cc -> {
-            assertThat(cc.getOrderCount()).isEqualTo(1);
-            assertThat(cc.getCustomerCount()).isEqualTo(2);
+            assertThat(cc.getOrderCount()).isEqualTo(2);
+            assertThat(cc.getCustomerCount()).isEqualTo(6);
         });
 
+        assertThat(results.getOrdersByType()).hasSize(Order.OrderType.values().length);
+        assertThat(results.getOrdersByAgeGroup()).hasSize(Order.DemographicData.AgeGroup.values().length);
+        assertThat(results.getOrdersByVisitFrequency()).hasSize(Order.DemographicData.VisitFrequency.values().length);
+
         LOGGER.info("{}", results);
+    }
+
+    @Test
+    void generateCustomerTrafficReport_EnhanceResult() {
+
+        createOrder(LocalDateTime.now(), Order.OrderType.IN_STORE, Order.DemographicData.AgeGroup.TWENTIES, Order.DemographicData.VisitFrequency.FIRST_TIME, 1, 1, 1);
+
+        final CustomerTrafficReport results = statsReportService.generateCustomerTrafficReport("client", YearMonth.now());
+
+        assertThat(results.getOrdersByHour()).hasSize(24);
+        assertThat(results.getOrdersByType()).hasSize(Order.OrderType.values().length);
+        assertThat(results.getOrdersByAgeGroup()).hasSize(Order.DemographicData.AgeGroup.values().length);
+        assertThat(results.getOrdersByVisitFrequency()).hasSize(Order.DemographicData.VisitFrequency.values().length);
     }
 
     @Test
@@ -85,24 +112,29 @@ class StatsReportServiceImplTest {
 
         final CustomerTrafficReport results = statsReportService.generateCustomerTrafficReport("client", YearMonth.now());
 
-        assertThat(results.getOrdersByHour()).hasSize(24);
-
-        assertThat(results.getOrdersByHour()).allSatisfy(cc -> {
-            assertThat(cc.getOrderCount()).isEqualTo(0);
-            assertThat(cc.getCustomerCount()).isEqualTo(0);
-        });
-
-        LOGGER.info("{}", results);
+        assertThat(results.getTotalCountObject()).isEmpty();
+        assertThat(results.getOrdersByHour()).isEmpty();
+        assertThat(results.getOrdersByType()).isEmpty();
+        assertThat(results.getOrdersByAgeGroup()).isEmpty();
+        assertThat(results.getOrdersByVisitFrequency()).isEmpty();
     }
 
-    private void createOrder(final LocalDateTime orderDate) {
+    private void createOrder(final LocalDateTime orderDate,
+                             final Order.OrderType orderType,
+                             final Order.DemographicData.AgeGroup ageGroup,
+                             final Order.DemographicData.VisitFrequency visitFrequency, final int male, final int female, final int kid) {
 
         final OrderSettings newSettings = orderSettings.copy();
         newSettings.setTaxInclusive(true);
 
         final Order order = new Order("client", newSettings);
+        order.setOrderType(orderType);
         final Order.DemographicData demographicData = new Order.DemographicData();
-        demographicData.setMale(2);
+        demographicData.setAgeGroup(ageGroup);
+        demographicData.setVisitFrequency(visitFrequency);
+        demographicData.setMale(male);
+        demographicData.setFemale(female);
+        demographicData.setKid(kid);
         order.setDemographicData(demographicData);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
 

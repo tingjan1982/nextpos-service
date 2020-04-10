@@ -32,6 +32,12 @@ public class StatsReportServiceImpl implements StatsReportService {
     public CustomerTrafficReport generateCustomerTrafficReport(String clientId, YearMonth dateFilter) {
 
         final ProjectionOperation projection = Aggregation.project("clientId")
+                .and("orderType").as("orderType")
+                .and("demographicData.ageGroup").as("ageGroup")
+                .and("demographicData.visitFrequency").as("visitFrequency")
+                .and("demographicData.male").as("male")
+                .and("demographicData.female").as("female")
+                .and("demographicData.kid").as("kid")
                 .andExpression("demographicData.male + demographicData.female + demographicData.kid").as("customerCount")
                 .and(context -> Document.parse("{ $hour: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("hour")
                 .and("modifiedDate").as("modifiedDate");
@@ -42,13 +48,36 @@ public class StatsReportServiceImpl implements StatsReportService {
                 Criteria.where("clientId").is(clientId)
                         .and("modifiedDate").gte(fromDate).lt(toDate));
 
+        final GroupOperation counts = Aggregation.group("clientId")
+                .sum("male").as("maleCount")
+                .sum("female").as("femaleCount")
+                .sum("kid").as("kidCount")
+                .sum("customerCount").as("customerCount")
+                .count().as("orderCount");
+
         final Integer[] hoursOfDay = IntStream.rangeClosed(0, 24).boxed().toArray(Integer[]::new);
         final BucketOperation ordersByHour = Aggregation.bucket("hour").withBoundaries(hoursOfDay).withDefaultBucket("Other")
                 .andOutputCount().as("orderCount")
                 .andOutput("customerCount").sum().as("customerCount")
                 .andOutput(context -> new Document("$first", "$hour")).as("hourOfDay");
 
-        final FacetOperation facets = Aggregation.facet(ordersByHour).as("ordersByHour");
+        final GroupOperation ordersByType = Aggregation.group("orderType")
+                .first("orderType").as("orderType")
+                .count().as("orderCount");
+
+        final GroupOperation ordersByAgeGroup = Aggregation.group("ageGroup")
+                .first("ageGroup").as("ageGroup")
+                .count().as("orderCount");
+
+        final GroupOperation ordersByVisitFrequency = Aggregation.group("visitFrequency")
+                .first("visitFrequency").as("visitFrequency")
+                .count().as("orderCount");
+
+        final FacetOperation facets = Aggregation.facet(counts).as("counts")
+                .and(ordersByHour).as("ordersByHour")
+                .and(ordersByType).as("ordersByType")
+                .and(ordersByAgeGroup).as("ordersByAgeGroup")
+                .and(ordersByVisitFrequency).as("ordersByVisitFrequency");
 
         final TypedAggregation<Order> aggregations = Aggregation.newAggregation(Order.class,
                 projection,
@@ -59,14 +88,24 @@ public class StatsReportServiceImpl implements StatsReportService {
         final CustomerTrafficReport customerTrafficReport = results.getUniqueMappedResult();
 
         if (customerTrafficReport != null) {
-            ReportEnhancer.enhanceReportResult(IntStream.rangeClosed(0, 23),
-                    () -> customerTrafficReport.getOrdersByHour().stream().collect(Collectors.toMap(CustomerTrafficReport.CustomerTraffic::getId, s -> s)),
-                    CustomerTrafficReport.CustomerTraffic::emptyObject,
-                    customerTrafficReport::setOrdersByHour);
+            customerTrafficReport.enhanceResults();
+
+            //calculatePercentages(customerTrafficReport);
         }
 
         return customerTrafficReport;
     }
+
+    /*private void calculatePercentages(final CustomerTrafficReport customerTrafficReport) {
+
+        customerTrafficReport.getTotalCountObject().ifPresent(oc -> {
+            final Map<Order.OrderType, CustomerTrafficReport.OrdersByType> ordersByType = customerTrafficReport.getOrdersByType().stream()
+                    .collect(Collectors.toMap(CustomerTrafficReport.OrdersByType::getOrderType, o -> o));
+
+
+        });
+
+    }*/
 
     @Override
     public CustomerStatsReport generateCustomerStatsReport(final String clientId, YearMonth dateFilter) {
