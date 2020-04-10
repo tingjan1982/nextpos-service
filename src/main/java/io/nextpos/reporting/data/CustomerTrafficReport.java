@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.util.CollectionUtils;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -55,6 +57,32 @@ public class CustomerTrafficReport {
                     CustomerTrafficReport.OrdersByVisitFrequency::emptyObject,
                     this::setOrdersByVisitFrequency);
 
+            BigDecimal oneHundred = BigDecimal.valueOf(100);
+
+            this.getOrdersByType().forEach(order -> {
+                final BigDecimal percentage = BigDecimal.valueOf(order.getOrderCount()).divide(BigDecimal.valueOf(total.getOrderCount()), 2, RoundingMode.CEILING).multiply(oneHundred);
+                order.setPercentage(percentage);
+            });
+
+            this.getOrdersByAgeGroup().forEach(order -> {
+                final BigDecimal percentage = BigDecimal.valueOf(order.getOrderCount()).divide(BigDecimal.valueOf(total.getOrderCount()), 2, RoundingMode.CEILING).multiply(oneHundred);
+                order.setPercentage(percentage);
+            });
+
+            this.getOrdersByVisitFrequency().forEach(order -> {
+                final BigDecimal percentage = BigDecimal.valueOf(order.getOrderCount()).divide(BigDecimal.valueOf(total.getOrderCount()), 2, RoundingMode.CEILING).multiply(oneHundred);
+                order.setPercentage(percentage);
+            });
+
+            final BigDecimal malePercentage = BigDecimal.valueOf(total.maleCount).divide(BigDecimal.valueOf(total.customerCount), 2, RoundingMode.CEILING).multiply(oneHundred);
+            total.setMalePercentage(malePercentage);
+
+            final BigDecimal femalePercentage = BigDecimal.valueOf(total.femaleCount).divide(BigDecimal.valueOf(total.customerCount), 2, RoundingMode.CEILING).multiply(oneHundred);
+            total.setFemalePercentage(femalePercentage);
+
+            final BigDecimal kidPercentage = BigDecimal.valueOf(total.kidCount).divide(BigDecimal.valueOf(total.customerCount), 2, RoundingMode.CEILING).multiply(oneHundred);
+            total.setKidPercentage(kidPercentage);
+
         });
     }
 
@@ -89,6 +117,8 @@ public class CustomerTrafficReport {
 
         private int orderCount;
 
+        private BigDecimal percentage = BigDecimal.ZERO;
+
         public static OrdersByType emptyObject(Order.OrderType id) {
 
             final OrdersByType emptyOrdersByType = new OrdersByType();
@@ -107,6 +137,8 @@ public class CustomerTrafficReport {
         private Order.DemographicData.AgeGroup ageGroup;
 
         private int orderCount;
+
+        private BigDecimal percentage = BigDecimal.ZERO;
 
         public static OrdersByAgeGroup emptyObject(Order.DemographicData.AgeGroup id) {
 
@@ -127,6 +159,8 @@ public class CustomerTrafficReport {
 
         private int orderCount;
 
+        private BigDecimal percentage = BigDecimal.ZERO;
+
         public static OrdersByVisitFrequency emptyObject(final Order.DemographicData.VisitFrequency id) {
 
             final OrdersByVisitFrequency emptyOrdersByVisitFrequency = new OrdersByVisitFrequency();
@@ -146,9 +180,15 @@ public class CustomerTrafficReport {
 
         private int maleCount;
 
+        private BigDecimal malePercentage = BigDecimal.ZERO;
+
         private int femaleCount;
 
+        private BigDecimal femalePercentage = BigDecimal.ZERO;
+
         private int kidCount;
+
+        private BigDecimal kidPercentage = BigDecimal.ZERO;
 
         private int customerCount;
 

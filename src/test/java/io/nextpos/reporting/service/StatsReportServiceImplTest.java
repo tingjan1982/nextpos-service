@@ -75,11 +75,14 @@ class StatsReportServiceImplTest {
         results.getTotalCountObject().ifPresent(count -> {
             assertThat(count.getOrderCount()).isEqualTo(48);
             assertThat(count.getMaleCount()).isEqualTo(48);
+            assertThat(count.getMalePercentage()).isCloseTo(BigDecimal.valueOf(33), within(BigDecimal.ONE));
             assertThat(count.getFemaleCount()).isEqualTo(48);
+            assertThat(count.getFemalePercentage()).isCloseTo(BigDecimal.valueOf(33), within(BigDecimal.ONE));
             assertThat(count.getKidCount()).isEqualTo(48);
+            assertThat(count.getKidPercentage()).isCloseTo(BigDecimal.valueOf(33), within(BigDecimal.ONE));
             assertThat(count.getCustomerCount()).isEqualTo(48 * 3);
         });
-        
+
         assertThat(results.getOrdersByHour()).hasSize(24);
 
         assertThat(results.getOrdersByHour()).allSatisfy(cc -> {
@@ -88,6 +91,10 @@ class StatsReportServiceImplTest {
         });
 
         assertThat(results.getOrdersByType()).hasSize(Order.OrderType.values().length);
+        assertThat(results.getOrdersByType()).allSatisfy(order -> {
+            assertThat(order.getOrderCount()).isEqualTo(24);
+            assertThat(order.getPercentage()).isCloseTo(BigDecimal.valueOf(50), within(BigDecimal.ONE));
+        });
         assertThat(results.getOrdersByAgeGroup()).hasSize(Order.DemographicData.AgeGroup.values().length);
         assertThat(results.getOrdersByVisitFrequency()).hasSize(Order.DemographicData.VisitFrequency.values().length);
 
