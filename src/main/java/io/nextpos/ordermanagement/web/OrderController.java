@@ -186,10 +186,7 @@ public class OrderController {
         final Order order = orderService.getOrder(id);
         final OrderResponse orderResponse = toOrderResponse(order);
 
-        orderService.getOrderStateChangeByOrderId(id).ifPresent(sc -> {
-            final OrderDuration orderDuration = sc.getOrderDuration();
-            orderResponse.setOrderDuration(orderDuration);
-        });
+        orderService.getOrderStateChangeByOrderId(id).flatMap(OrderStateChange::getOrderPreparationDuration).ifPresent(orderResponse::setOrderPreparationTime);
 
         final List<OrderTransactionResponse> transactions = orderTransactionService.getOrderTransactionByOrderId(order.getId()).stream()
                 .map(OrderTransactionResponse::toOrderTransactionResponse)
@@ -352,7 +349,8 @@ public class OrderController {
                 order.getCurrency(),
                 orderLineItems,
                 order.getMetadata(),
-                order.getDemographicData());
+                order.getDemographicData(),
+                order.getOrderDuration());
     }
 
 }

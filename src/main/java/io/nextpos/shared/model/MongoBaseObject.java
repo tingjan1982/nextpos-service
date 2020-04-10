@@ -10,7 +10,7 @@ import javax.persistence.TemporalType;
 import java.util.Date;
 
 @Data
-public abstract class MongoBaseObject implements Persistable {
+public abstract class MongoBaseObject implements Persistable<String> {
 
     /**
      * https://stackoverflow.com/questions/25333711/what-is-the-use-of-the-temporal-annotation-in-hibernate

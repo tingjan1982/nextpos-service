@@ -16,6 +16,7 @@ import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -279,6 +280,16 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         }
 
         return 0;
+    }
+
+    public OrderDuration getOrderDuration() {
+        final Duration duration = Duration.between(this.getCreatedDate().toInstant(), this.getModifiedDate().toInstant());
+
+        return new OrderDuration(
+                getCreatedDate(),
+                getModifiedDate(),
+                duration.toHours(),
+                duration.toMinutesPart());
     }
 
     public void addMetadata(String key, Object value) {

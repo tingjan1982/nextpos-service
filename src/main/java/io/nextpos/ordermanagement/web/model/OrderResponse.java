@@ -58,7 +58,9 @@ public class OrderResponse {
 
     private final Order.DemographicData demographicData;
 
-    private OrderDuration orderDuration;
+    private final OrderDuration orderDuration;
+
+    private OrderDuration orderPreparationTime;
 
     private List<OrderTransactionResponse> transactions;
 

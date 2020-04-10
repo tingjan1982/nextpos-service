@@ -11,9 +11,9 @@ import java.util.Date;
 @AllArgsConstructor
 public class OrderDuration {
 
-    private Date orderSubmittedDate;
+    private Date startDate;
 
-    private Date orderSettledDate;
+    private Date endDate;
 
     private long durationHours;
 

@@ -41,22 +41,23 @@ public class OrderStateChange {
         return stateChanges.isEmpty() ? Optional.empty() : Optional.of(stateChanges.get(0));
     }
 
-    public OrderDuration getOrderDuration() {
+    public Optional<OrderDuration> getOrderPreparationDuration() {
 
-        if (stateChanges.size() < 2) {
-            return new OrderDuration();
+        final Optional<OrderStateChangeEntry> deliveredState = stateChanges.stream().filter(o -> o.toState == Order.OrderState.DELIVERED).findFirst();
+
+        if (deliveredState.isPresent()) {
+            final OrderStateChangeEntry firstStateChange = stateChanges.get(0);
+
+            final Duration duration = Duration.between(firstStateChange.getTimestamp(), deliveredState.get().getTimestamp());
+
+            return Optional.of(new OrderDuration(
+                    Date.from(firstStateChange.getTimestamp()),
+                    Date.from(deliveredState.get().getTimestamp()),
+                    duration.toHours(),
+                    duration.toMinutesPart()));
         }
 
-        final OrderStateChangeEntry firstStateChange = stateChanges.get(0);
-        final OrderStateChangeEntry lastStateChange = stateChanges.get(stateChanges.size() - 1);
-
-        final Duration duration = Duration.between(firstStateChange.getTimestamp(), lastStateChange.getTimestamp());
-
-        return new OrderDuration(
-                Date.from(firstStateChange.getTimestamp()),
-                Date.from(lastStateChange.getTimestamp()),
-                duration.toHours(),
-                duration.toMinutesPart());
+        return Optional.empty();
     }
 
     @Data
