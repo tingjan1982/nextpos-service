@@ -11,6 +11,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -82,6 +84,7 @@ public class Shift extends MongoBaseObject {
 
     @Data
     @NoArgsConstructor(access = AccessLevel.PACKAGE)
+    @AllArgsConstructor
     public static class OpenShiftDetails {
 
         private Date timestamp;
@@ -93,10 +96,8 @@ public class Shift extends MongoBaseObject {
          */
         private BigDecimal balance;
 
-        public OpenShiftDetails(final Date timestamp, final String who, final BigDecimal balance) {
-            this.timestamp = timestamp;
-            this.who = who;
-            this.balance = balance;
+        public LocalDateTime toLocalDateTime() {
+            return timestamp.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
         }
     }
 
@@ -129,6 +130,15 @@ public class Shift extends MongoBaseObject {
 
         public boolean checkClosingBalance() {
             return closingBalances.values().stream().allMatch(ClosingBalanceDetails::isBalanced);
+        }
+
+        public LocalDateTime toLocalDateTime() {
+
+            if (timestamp != null) {
+                return timestamp.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            }
+
+            return LocalDateTime.now();
         }
     }
 

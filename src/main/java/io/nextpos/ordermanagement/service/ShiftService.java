@@ -26,5 +26,8 @@ public interface ShiftService {
 
     Shift getActiveShiftOrThrows(String clientId);
 
+    Shift getShift(String shiftId);
+
     Page<Shift> getShifts(String clientId, Date date, PageRequest pageRequest);
+
 }

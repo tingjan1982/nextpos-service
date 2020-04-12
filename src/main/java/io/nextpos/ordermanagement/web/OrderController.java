@@ -29,8 +29,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -80,10 +78,11 @@ public class OrderController {
     @GetMapping
     public OrdersByRangeResponse getOrdersByDateRange(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                       @RequestParam(name = "dateRange", required = false, defaultValue = "SHIFT") DateParameterType dateParameterType,
+                                                      @RequestParam(name = "shiftId", required = false) String shiftId,
                                                       @RequestParam(name = "fromDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromDate,
                                                       @RequestParam(name = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date toDate) {
 
-        final ReportDateParameter reportDateParameter = resolveDateRange(client, dateParameterType, fromDate, toDate);
+        final ReportDateParameter reportDateParameter = resolveDateRange(client, dateParameterType, shiftId, fromDate, toDate);
         final List<Order> orders = orderService.getOrders(client, reportDateParameter.getFromDate(), reportDateParameter.getToDate());
 
         return toOrdersByRangeResponse(orders, reportDateParameter);
@@ -103,24 +102,23 @@ public class OrderController {
         return new OrdersByRangeResponse(reportDateParameter, orderResponses);
     }
 
-    private ReportDateParameter resolveDateRange(Client client, DateParameterType dateParameterType, final Date fromDateParam, final Date toDateParam) {
+    private ReportDateParameter resolveDateRange(Client client, DateParameterType dateParameterType, final String shiftId, final Date fromDateParam, final Date toDateParam) {
 
         if (dateParameterType != DateParameterType.SHIFT) {
             return DateParameterType.toReportingParameter(dateParameterType, fromDateParam, toDateParam);
+        }
+
+        if (shiftId != null) {
+            Shift shift = shiftService.getShift(shiftId);
+            return new ReportDateParameter(shift.getStart().toLocalDateTime(), shift.getEnd().toLocalDateTime());
         }
 
         final Optional<Shift> mostRecentShift = shiftService.getMostRecentShift(client.getId());
 
         if (mostRecentShift.isPresent()) {
             final Shift shift = mostRecentShift.get();
-            final LocalDateTime fromDate = shift.getStart().getTimestamp().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-            LocalDateTime toDate = LocalDateTime.now();
 
-            if (shift.getEnd().getTimestamp() != null) {
-                toDate = shift.getEnd().getTimestamp().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-            }
-
-            return new ReportDateParameter(fromDate, toDate);
+            return new ReportDateParameter(shift.getStart().toLocalDateTime(), shift.getEnd().toLocalDateTime());
         }
 
         throw new BusinessLogicException("No date range specified.");

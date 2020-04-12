@@ -126,6 +126,13 @@ public class ShiftServiceImpl implements ShiftService {
     }
 
     @Override
+    public Shift getShift(final String shiftId) {
+        return shiftRepository.findById(shiftId).orElseThrow(() -> {
+            throw new ObjectNotFoundException(shiftId, Shift.class);
+        });
+    }
+
+    @Override
     public Page<Shift> getShifts(final String clientId, final Date date, final PageRequest pageRequest) {
         return shiftRepository.findAllByClientIdAndStartTimestampGreaterThanEqual(clientId, date, pageRequest);
     }
