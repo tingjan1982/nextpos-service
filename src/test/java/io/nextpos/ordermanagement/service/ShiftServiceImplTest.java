@@ -9,11 +9,19 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Optional;
 
@@ -103,5 +111,25 @@ class ShiftServiceImplTest {
             assertThat(s.getEnd().getClosingBalances()).isEmpty();
             assertThat(s.getShiftStatus()).isEqualTo(Shift.ShiftStatus.ACTIVE);
         });
+    }
+
+    @Test
+    @WithMockUser
+    void listShifts() {
+
+        final Instant now = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant();
+
+        shiftRepository.save(new Shift(clientId, new Date(), "dummy", BigDecimal.ONE));
+        shiftRepository.save(new Shift(clientId, Date.from(now.minus(3, ChronoUnit.DAYS)), "dummy", BigDecimal.ONE));
+        shiftRepository.save(new Shift(clientId, Date.from(now.minus(5, ChronoUnit.DAYS)), "dummy", BigDecimal.ONE));
+        shiftRepository.save(new Shift(clientId, Date.from(now.minus(7, ChronoUnit.DAYS)), "dummy", BigDecimal.ONE));
+        shiftRepository.save(new Shift(clientId, Date.from(now.minus(8, ChronoUnit.DAYS)), "dummy", BigDecimal.ONE));
+
+        final Page<Shift> shifts = shiftService.getShifts(clientId, Date.from(now.minus(7, ChronoUnit.DAYS)), PageRequest.of(0, 50, Sort.by(Sort.Order.desc("start.timestamp"))));
+
+        assertThat(shifts.getContent()).hasSize(4);
+        final Comparator<Shift> compareByStartDate = Comparator.<Shift, Date>comparing(s -> s.getStart().getTimestamp()).reversed();
+
+        assertThat(shifts.getContent()).isSortedAccordingTo(compareByStartDate);
     }
 }

@@ -12,6 +12,8 @@ import io.nextpos.shared.exception.ShiftException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -121,6 +123,11 @@ public class ShiftServiceImpl implements ShiftService {
         return this.getActiveShift(clientId).orElseThrow(() -> {
             throw new ShiftException(clientId);
         });
+    }
+
+    @Override
+    public Page<Shift> getShifts(final String clientId, final Date date, final PageRequest pageRequest) {
+        return shiftRepository.findAllByClientIdAndStartTimestampGreaterThanEqual(clientId, date, pageRequest);
     }
 
     private Shift getCurrentShiftOrThrows(String clientId) {

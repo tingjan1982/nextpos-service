@@ -6,11 +6,20 @@ import io.nextpos.ordermanagement.service.ShiftService;
 import io.nextpos.ordermanagement.web.model.CloseShiftRequest;
 import io.nextpos.ordermanagement.web.model.OpenShiftRequest;
 import io.nextpos.ordermanagement.web.model.ShiftResponse;
+import io.nextpos.ordermanagement.web.model.ShiftsResponse;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/shifts")
@@ -48,6 +57,26 @@ public class ShiftController {
 
         return toShiftResponse(mostRecentShift);
     }
+
+    @GetMapping()
+    public ShiftsResponse getShifts(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                    @RequestParam(value = "date", required = false) Date date) {
+
+        Date searchDate = date;
+
+        if (searchDate == null) {
+            final Instant instant = LocalDateTime.now().minusDays(30).atZone(ZoneId.systemDefault()).toInstant();
+            searchDate = Date.from(instant);
+        }
+
+        final PageRequest pageRequest = PageRequest.of(0, 30, Sort.by(Sort.Order.desc("start.timestamp")));
+
+        final List<ShiftResponse> shifts = shiftService.getShifts(client.getId(), searchDate, pageRequest).stream()
+                .map(this::toShiftResponse).collect(Collectors.toList());
+
+        return new ShiftsResponse(shifts);
+    }
+
 
     @PostMapping("/open")
     public ShiftResponse openShift(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
