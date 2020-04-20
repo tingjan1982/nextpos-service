@@ -319,6 +319,7 @@ public class OrderController {
                             .collect(Collectors.joining(", "));
 
                     return new OrderResponse.OrderLineItemResponse(li.getId(),
+                            li.getProductSnapshot().getId(),
                             li.getProductSnapshot().getName(),
                             li.getProductSnapshot().getPrice(),
                             li.getQuantity(),

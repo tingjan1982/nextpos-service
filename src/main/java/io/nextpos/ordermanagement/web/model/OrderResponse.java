@@ -71,6 +71,8 @@ public class OrderResponse {
 
         private String lineItemId;
 
+        private String productId;
+
         private String productName;
 
         private BigDecimal price;
