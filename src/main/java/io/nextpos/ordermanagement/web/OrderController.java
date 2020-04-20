@@ -274,7 +274,7 @@ public class OrderController {
     @PatchMapping("/{id}/lineitems/{lineItemId}")
     public OrderResponse updateOrderLineItem(@PathVariable String id, @PathVariable String lineItemId, @Valid @RequestBody UpdateOrderLineItemRequest updateOrderLineItemRequest) {
 
-        final Order order = orderService.updateOrderLineItem(id, lineItemId, updateOrderLineItemRequest.getQuantity());
+        final Order order = orderService.updateOrderLineItem(id, lineItemId, updateOrderLineItemRequest.getQuantity(), updateOrderLineItemRequest.toProductOptionSnapshots());
 
         return toOrderResponse(order);
     }
@@ -315,7 +315,7 @@ public class OrderController {
         final List<OrderResponse.OrderLineItemResponse> orderLineItems = order.getOrderLineItems().stream()
                 .map(li -> {
                     final String options = li.getProductSnapshot().getProductOptions().stream()
-                            .map(po -> String.format("%s: %s $(%s)", po.getOptionName(), po.getOptionValue(), po.getOptionPrice()))
+                            .map(po -> String.format("%s: %s ($%s)", po.getOptionName(), po.getOptionValue(), po.getOptionPrice()))
                             .collect(Collectors.joining(", "));
 
                     return new OrderResponse.OrderLineItemResponse(li.getId(),

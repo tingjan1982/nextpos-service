@@ -1,10 +1,7 @@
 package io.nextpos.ordermanagement.service;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.OrderLineItem;
-import io.nextpos.ordermanagement.data.OrderStateChange;
-import io.nextpos.ordermanagement.data.OrderStateChangeBean;
+import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.event.LineItemStateChangeEvent;
 
 import java.time.LocalDateTime;
@@ -34,7 +31,7 @@ public interface OrderService {
 
     OrderStateChange transitionOrderState(Order order, Order.OrderAction orderAction, final Optional<LineItemStateChangeEvent> lineItemStateChangeEvent);
 
-    Order updateOrderLineItem(String id, String lineItemId, int quantity);
+    Order updateOrderLineItem(String id, String lineItemId, int quantity, final List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots);
 
     Order addOrderLineItem(Order order, OrderLineItem orderLineItem);
 

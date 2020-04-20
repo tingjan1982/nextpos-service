@@ -21,6 +21,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -132,7 +133,7 @@ class OrderServiceImplTest {
 
         assertThat(createdOrder.getOrderLineItems()).hasSize(1);
 
-        final Order updatedOrder = orderService.updateOrderLineItem(createdOrder.getId(), createdOrder.getOrderLineItems().get(0).getId(), 5);
+        final Order updatedOrder = orderService.updateOrderLineItem(createdOrder.getId(), createdOrder.getOrderLineItems().get(0).getId(), 5, Collections.emptyList());
 
         assertThat(updatedOrder.getOrderLineItems()).satisfies(li -> {
             assertThat(li.getQuantity()).isEqualTo(5);

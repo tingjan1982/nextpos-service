@@ -167,11 +167,11 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     /**
      * Quantity of 0 will remove the line item.
-     *
-     * @param lineItemId
+     *  @param lineItemId
      * @param quantity
+     * @param productOptionSnapshots
      */
-    public void updateOrderLineItem(String lineItemId, int quantity) {
+    public void updateOrderLineItem(String lineItemId, int quantity, final List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots) {
 
         final OrderLineItem orderLineItem = this.getOrderLineItem(lineItemId);
 
@@ -181,6 +181,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
             // todo: test removing line item and verify discountTotal is reset.
             orderLineItem.updateQuantity(quantity);
         }
+
+        orderLineItem.getProductSnapshot().setProductOptions(productOptionSnapshots);
 
         computeTotal();
     }

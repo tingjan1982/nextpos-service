@@ -88,10 +88,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order updateOrderLineItem(final String id, final String lineItemId, final int quantity) {
+    public Order updateOrderLineItem(final String id, final String lineItemId, final int quantity, final List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots) {
 
         final Order order = this.getOrder(id);
-        order.updateOrderLineItem(lineItemId, quantity);
+        order.updateOrderLineItem(lineItemId, quantity, productOptionSnapshots);
 
 //        final Query query = new Query(where("orderLineItems.id").is(lineItemId));
 //        final Update update = new Update().set("orderLineItems.$.quantity", updateOrderLineItemRequest.getQuantity());
