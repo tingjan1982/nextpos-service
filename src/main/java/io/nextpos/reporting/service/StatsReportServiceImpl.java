@@ -66,11 +66,11 @@ public class StatsReportServiceImpl implements StatsReportService {
                 .count().as("orderCount");
 
         final GroupOperation ordersByAgeGroup = Aggregation.group("ageGroup")
-                .first("ageGroup").as("ageGroup")
+                .first(ConditionalOperators.ifNull("ageGroup").then(Order.DemographicData.AgeGroup.NOT_ENTERED)).as("ageGroup")
                 .count().as("orderCount");
 
         final GroupOperation ordersByVisitFrequency = Aggregation.group("visitFrequency")
-                .first("visitFrequency").as("visitFrequency")
+                .first(ConditionalOperators.ifNull("visitFrequency").then(Order.DemographicData.VisitFrequency.NOT_ENTERED)).as("visitFrequency")
                 .count().as("orderCount");
 
         final FacetOperation facets = Aggregation.facet(counts).as("counts")
@@ -89,23 +89,10 @@ public class StatsReportServiceImpl implements StatsReportService {
 
         if (customerTrafficReport != null) {
             customerTrafficReport.enhanceResults();
-
-            //calculatePercentages(customerTrafficReport);
         }
 
         return customerTrafficReport;
     }
-
-    /*private void calculatePercentages(final CustomerTrafficReport customerTrafficReport) {
-
-        customerTrafficReport.getTotalCountObject().ifPresent(oc -> {
-            final Map<Order.OrderType, CustomerTrafficReport.OrdersByType> ordersByType = customerTrafficReport.getOrdersByType().stream()
-                    .collect(Collectors.toMap(CustomerTrafficReport.OrdersByType::getOrderType, o -> o));
-
-
-        });
-
-    }*/
 
     @Override
     public CustomerStatsReport generateCustomerStatsReport(final String clientId, YearMonth dateFilter) {

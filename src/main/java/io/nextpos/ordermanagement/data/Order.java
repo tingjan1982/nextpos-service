@@ -180,9 +180,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         } else {
             // todo: test removing line item and verify discountTotal is reset.
             orderLineItem.updateQuantity(quantity);
+            orderLineItem.getProductSnapshot().setProductOptions(productOptionSnapshots);
         }
-
-        orderLineItem.getProductSnapshot().setProductOptions(productOptionSnapshots);
 
         computeTotal();
     }
@@ -494,11 +493,11 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         }
 
         public enum AgeGroup {
-            TWENTIES, THIRTIES, FORTIES, FIFTIES_AND_ABOVE
+            TWENTIES, THIRTIES, FORTIES, FIFTIES_AND_ABOVE, NOT_ENTERED
         }
 
         public enum VisitFrequency {
-            FIRST_TIME, TWO_TO_THREE, MORE_THAN_THREE
+            FIRST_TIME, TWO_TO_THREE, MORE_THAN_THREE, NOT_ENTERED
         }
     }
 }

@@ -48,12 +48,12 @@ public class CustomerTrafficReport {
                     this::setOrdersByType);
 
             ReportEnhancer.enhanceReportResult(Order.DemographicData.AgeGroup.values(),
-                    () -> this.getOrdersByAgeGroup().stream().collect(Collectors.toMap(CustomerTrafficReport.OrdersByAgeGroup::getId, s -> s)),
+                    () -> this.getOrdersByAgeGroup().stream().collect(Collectors.toMap(CustomerTrafficReport.OrdersByAgeGroup::getAgeGroup, s -> s)),
                     CustomerTrafficReport.OrdersByAgeGroup::emptyObject,
                     this::setOrdersByAgeGroup);
 
             ReportEnhancer.enhanceReportResult(Order.DemographicData.VisitFrequency.values(),
-                    () -> this.getOrdersByVisitFrequency().stream().collect(Collectors.toMap(CustomerTrafficReport.OrdersByVisitFrequency::getId, s -> s)),
+                    () -> this.getOrdersByVisitFrequency().stream().collect(Collectors.toMap(CustomerTrafficReport.OrdersByVisitFrequency::getVisitFrequency, s -> s)),
                     CustomerTrafficReport.OrdersByVisitFrequency::emptyObject,
                     this::setOrdersByVisitFrequency);
 
