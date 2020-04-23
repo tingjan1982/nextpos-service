@@ -153,7 +153,7 @@ public class TableLayoutController {
     public TableDetailsResponse updateTableDetailsPosition(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                    @PathVariable final String id,
                                                    @PathVariable final String tableId,
-                                                   @Valid @RequestBody UpdateTablePositionRequest request) {
+                                                   @RequestBody UpdateTablePositionRequest request) {
 
         final TableLayout tableLayout = clientObjectOwnershipService.checkOwnership(client, () -> tableLayoutService.getTableLayout(id));
         final TableLayout.TableDetails tableDetails = tableLayout.getTableDetails(tableId);

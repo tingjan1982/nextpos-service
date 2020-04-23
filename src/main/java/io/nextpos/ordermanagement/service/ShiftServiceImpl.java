@@ -66,7 +66,7 @@ public class ShiftServiceImpl implements ShiftService {
         Shift.ShiftAction.INITIATE_CLOSE.checkShiftStatus(shift);
 
         if (orderRepository.countByClientIdAndStateIn(clientId, Order.OrderState.inflightStates()) > 0) {
-            throw new BusinessLogicException("Please complete all orders before closing shift.");
+            throw new BusinessLogicException("message.completeAllOrdersFirst", "Please complete all orders before closing shift.");
         }
 
         shift.initiateCloseShift(orderTransactionReportService::getClosingShiftTransactionReport);
