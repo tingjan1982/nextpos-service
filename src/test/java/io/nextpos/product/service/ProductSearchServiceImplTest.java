@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.transaction.Transactional;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +42,9 @@ class ProductSearchServiceImplTest {
 
         client = clientService.createClient(DummyObjects.dummyClient());
         final ProductLabel drinkLabel = new ProductLabel("drink", client);
+        drinkLabel.setOrderKey("2");
         final ProductLabel foodLabel = new ProductLabel("food", client);
+        foodLabel.setOrderKey("1");
         final ProductLabel pastaLabel = foodLabel.addChildProductLabel("pasta");
         final ProductLabel labelWithoutProduct = new ProductLabel("not used", client);
 
@@ -49,25 +52,31 @@ class ProductSearchServiceImplTest {
         productLabelService.saveProductLabel(foodLabel);
         productLabelService.saveProductLabel(labelWithoutProduct);
 
-        final Product coffee = new Product(client, DummyObjects.dummyProductVersion("black coffee"));
-        coffee.setProductLabel(drinkLabel);
-        coffee.setPinned(true);
-        productService.saveProduct(coffee);
+        final Product coffee = createProduct("black coffee", drinkLabel, true);
+        final Product latte = createProduct("latte coffee", drinkLabel, true);
+        final Product appleJuice = createProduct("apple juice", drinkLabel);
 
-        final Product appleJuice = new Product(client, DummyObjects.dummyProductVersion("apple juice"));
-        appleJuice.setProductLabel(drinkLabel);
-        productService.saveProduct(appleJuice);
+        final Product foodProduct = createProduct("salad", foodLabel);
+        final Product pasta = createProduct("carbonara", pastaLabel);
 
-        final Product foodProduct = new Product(client, DummyObjects.dummyProductVersion());
-        foodProduct.setProductLabel(foodLabel);
-        productService.saveProduct(foodProduct);
+        final Product productWithoutLabel = createProduct("productWithoutLabel", null);
+    }
 
-        final Product pasta = new Product(client, DummyObjects.dummyProductVersion("carbonara"));
-        pasta.setProductLabel(pastaLabel);
-        productService.saveProduct(pasta);
+    private Product createProduct(String productName, ProductLabel productLabel) {
+        return createProduct(productName, productLabel, false);
+    }
 
-        final Product productWithoutLabel = new Product(client, DummyObjects.dummyProductVersion("productWithoutLabel"));
-        productService.saveProduct(productWithoutLabel);
+    private Product createProduct(String productName, ProductLabel productLabel, boolean pinned) {
+
+        final Product product = new Product(client, DummyObjects.dummyProductVersion(productName));
+
+        if (productLabel != null) {
+            product.setProductLabel(productLabel);
+        }
+
+        product.setPinned(pinned);
+
+        return productService.saveProduct(product);
     }
 
     @Test
@@ -76,9 +85,10 @@ class ProductSearchServiceImplTest {
         final Map<ProductLabel, List<ProductVersion>> products = productSearchService.getAllProductsGroupedByLabels(client, Version.DESIGN);
 
         assertThat(products).hasSize(6);
-        assertThat(findProductsByLabel(products, "drink")).hasSize(2);
+        assertThat(findProductsByLabel(products, "drink")).hasSize(3);
+        assertThat(findProductsByLabel(products, "drink")).isSortedAccordingTo(Comparator.comparing(ProductVersion::getProductName));
         assertThat(findProductsByLabel(products, "ungrouped")).hasSize(1);
-        assertThat(findProductsByLabel(products, "pinned")).hasSize(1);
+        assertThat(findProductsByLabel(products, "pinned")).hasSize(2);
     }
 
     private List<ProductVersion> findProductsByLabel(Map<ProductLabel, List<ProductVersion>> products, String label) {

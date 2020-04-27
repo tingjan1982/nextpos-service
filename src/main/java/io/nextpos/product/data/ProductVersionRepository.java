@@ -10,8 +10,8 @@ import java.util.List;
 
 public interface ProductVersionRepository extends JpaRepository<ProductVersion, String> {
 
-    @Query("select p from io.nextpos.product.data.ProductVersion p where p.product.client = ?1 and p.version = ?2")
-    List<ProductVersion> findAllProductsByClient(Client client, Version version, Sort sort);
+    @Query("select p from io.nextpos.product.data.ProductVersion p where p.product.client = ?1 and p.version = ?2 order by p.productName asc")
+    List<ProductVersion> findAllProductsByClient(Client client, Version version);
 
     List<ProductVersion> findAllByProduct_ClientAndVersionAndProduct_Pinned(Client client, Version version, boolean pinned, Sort sort);
 

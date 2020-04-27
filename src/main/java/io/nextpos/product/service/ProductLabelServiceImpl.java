@@ -3,6 +3,7 @@ package io.nextpos.product.service;
 import io.nextpos.client.data.Client;
 import io.nextpos.product.data.*;
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +55,7 @@ public class ProductLabelServiceImpl implements ProductLabelService {
 
     @Override
     public List<ProductLabel> getProductLabels(final Client client) {
-        return productLabelRepository.findAllByClientAndParentLabelIsNull(client, Sort.by(Sort.Direction.ASC, "name"));
+        return productLabelRepository.findAllByClientAndParentLabelIsNull(client, Sort.by(Sort.Order.asc("orderKey"), Sort.Order.asc("name")));
     }
 
 
@@ -87,5 +88,26 @@ public class ProductLabelServiceImpl implements ProductLabelService {
         LOGGER.info("Saving {} product changes after applying product label changes.", productsToUpdate.size());
 
         return productsToUpdate.stream().map(productRepository::save).collect(Collectors.toList());
+    }
+
+    @Override
+    public ProductLabel updateProductLabelOrder(String productLabelId, String previousProductLabelId, String nextProductLabelId) {
+
+        final ProductLabel productLabel = productLabelRepository.findById(productLabelId).orElseThrow();
+        final ProductLabel previousProductLabel = productLabelRepository.findById(previousProductLabelId).orElseThrow();
+        final ProductLabel nextProductLabel = productLabelRepository.findById(nextProductLabelId).orElseThrow();
+
+        if (StringUtils.isBlank(previousProductLabel.getOrderKey())) {
+            previousProductLabel.setOrderKey("1");
+            productLabelRepository.save(previousProductLabel);
+        }
+
+        if (StringUtils.isBlank(nextProductLabel.getOrderKey())) {
+            nextProductLabel.setOrderKey("2");
+            productLabelRepository.save(nextProductLabel);
+        }
+
+        productLabel.setOrderKey(previousProductLabel.getOrderKey() + nextProductLabel.getOrderKey());
+        return productLabelRepository.save(productLabel);
     }
 }

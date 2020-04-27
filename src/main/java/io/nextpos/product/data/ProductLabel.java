@@ -11,6 +11,7 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Entity(name = "client_product_label")
@@ -42,6 +43,8 @@ public class ProductLabel extends BaseObject implements ClientObject {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private WorkingArea workingArea;
+    
+    private String orderKey;
 
     /**
      * https://stackoverflow.com/questions/4334970/hibernate-cannot-simultaneously-fetch-multiple-bags
@@ -82,5 +85,17 @@ public class ProductLabel extends BaseObject implements ClientObject {
 
     private ProductOptionRelation.ProductOptionOfLabel addProductOption(ProductOption productOption) {
         return new ProductOptionRelation.ProductOptionOfLabel(productOption, this);
+    }
+
+    public static class ProductLabelComparator implements Comparator<ProductLabel> {
+        @Override
+        public int compare(final ProductLabel o1, final ProductLabel o2) {
+
+            if (o1.getOrderKey() != null && o2.getOrderKey() != null) {
+                return o1.getOrderKey().compareTo(o2.getOrderKey());
+            }
+
+            return o1.getName().compareTo(o2.getName());
+        }
     }
 }

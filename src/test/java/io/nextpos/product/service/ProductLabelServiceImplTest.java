@@ -10,10 +10,13 @@ import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.transaction.Transactional;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,11 +24,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Optional assertions:
  * https://github.com/joel-costigliola/assertj-examples/blob/master/assertions-examples/src/test/java/org/assertj/examples/OptionalAssertionsExamples.java
- * 
  */
 @SpringBootTest
 @Transactional
 class ProductLabelServiceImplTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProductLabelServiceImplTest.class);
 
     @Autowired
     private ProductLabelService productLabelService;
@@ -124,5 +128,28 @@ class ProductLabelServiceImplTest {
         final List<ProductLabel> productLabels = productLabelService.getProductLabels(client);
 
         assertThat(productLabels).hasSize(3);
+    }
+
+    @Test
+    void updateProductLabelOrder() {
+
+        List<ProductLabel> labels = new ArrayList<>();
+
+        for (int i = 0; i < 5; i++) {
+            final ProductLabel productLabel = productLabelService.saveProductLabel(new ProductLabel("label " + i, client));
+            labels.add(productLabel);
+        }
+
+        productLabelService.updateProductLabelOrder(labels.get(4).getId(), labels.get(0).getId(), labels.get(1).getId()); // orderKey=1, 12, 2, null, null
+        assertThat(productLabelService.getProductLabels(client)).isSortedAccordingTo(new ProductLabel.ProductLabelComparator());
+        productLabelService.getProductLabels(client).forEach(l -> LOGGER.info("id: {}, name: {}, order: {}", l.getId(), l.getName(), l.getOrderKey()));
+
+        productLabelService.updateProductLabelOrder(labels.get(3).getId(), labels.get(4).getId(), labels.get(1).getId()); // orderKey=1, 12, 122, 2, null
+        assertThat(productLabelService.getProductLabels(client)).isSortedAccordingTo(new ProductLabel.ProductLabelComparator());
+        productLabelService.getProductLabels(client).forEach(l -> LOGGER.info("id: {}, name: {}, order: {}", l.getId(), l.getName(), l.getOrderKey()));
+
+        productLabelService.updateProductLabelOrder(labels.get(2).getId(), labels.get(4).getId(), labels.get(3).getId()); // orderKey=1, 12, 12122, 122, 2
+        assertThat(productLabelService.getProductLabels(client)).isSortedAccordingTo(new ProductLabel.ProductLabelComparator());
+        productLabelService.getProductLabels(client).forEach(l -> LOGGER.info("id: {}, name: {}, order: {}", l.getId(), l.getName(), l.getOrderKey()));
     }
 }

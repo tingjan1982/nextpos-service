@@ -20,4 +20,6 @@ public interface ProductLabelService {
     List<ProductLabel> getProductLabels(Client client);
 
     List<Product> applyProductLabelChangesToProducts(ProductLabel productLabel);
+
+    ProductLabel updateProductLabelOrder(String productLabelId, String previousProductLabelId, String nextProductLabelId);
 }

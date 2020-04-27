@@ -13,6 +13,7 @@ import io.nextpos.shared.web.model.SimpleObjectResponse;
 import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -97,7 +98,7 @@ public class ProductLabelController {
             final List<Product> products = productLabelService.applyProductLabelChangesToProducts(savedProductLabel);
             final List<SimpleObjectResponse> simpleProducts = products.stream()
                     .map(p -> new SimpleObjectResponse(p.getId(), p.getDesignVersion().getProductName())).collect(Collectors.toList());
-            
+
             productLabelResponse.setAppliedProducts(simpleProducts);
         }
 
@@ -121,6 +122,14 @@ public class ProductLabelController {
         } else {
             productLabel.setWorkingArea(null);
         }
+    }
+
+    @PostMapping("/{id}/order")
+    @ResponseStatus(code = HttpStatus.NO_CONTENT)
+    public void updateProductLabel(@PathVariable final String id,
+                                   @Valid @RequestBody OrderProductLabelRequest request) {
+
+        productLabelService.updateProductLabelOrder(id, request.getPreviousProductLabelId(), request.getNextProductLabelId());
     }
 
     @PostMapping("/{id}/applyOptions")
