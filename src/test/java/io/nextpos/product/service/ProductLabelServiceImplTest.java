@@ -140,15 +140,15 @@ class ProductLabelServiceImplTest {
             labels.add(productLabel);
         }
 
-        productLabelService.updateProductLabelOrder(labels.get(4).getId(), labels.get(0).getId(), labels.get(1).getId()); // orderKey=1, 12, 2, null, null
+        productLabelService.updateProductLabelOrder(labels.get(4).getId(), 1, labels.get(0).getId(), labels.get(1).getId()); // orderKey=1, 12, 2, null, null
         assertThat(productLabelService.getProductLabels(client)).isSortedAccordingTo(new ProductLabel.ProductLabelComparator());
         productLabelService.getProductLabels(client).forEach(l -> LOGGER.info("id: {}, name: {}, order: {}", l.getId(), l.getName(), l.getOrderKey()));
 
-        productLabelService.updateProductLabelOrder(labels.get(3).getId(), labels.get(4).getId(), labels.get(1).getId()); // orderKey=1, 12, 122, 2, null
+        productLabelService.updateProductLabelOrder(labels.get(3).getId(), 1, labels.get(4).getId(), labels.get(1).getId()); // orderKey=1, 12, 122, 2, null
         assertThat(productLabelService.getProductLabels(client)).isSortedAccordingTo(new ProductLabel.ProductLabelComparator());
         productLabelService.getProductLabels(client).forEach(l -> LOGGER.info("id: {}, name: {}, order: {}", l.getId(), l.getName(), l.getOrderKey()));
 
-        productLabelService.updateProductLabelOrder(labels.get(2).getId(), labels.get(4).getId(), labels.get(3).getId()); // orderKey=1, 12, 12122, 122, 2
+        productLabelService.updateProductLabelOrder(labels.get(2).getId(), 2, labels.get(4).getId(), labels.get(3).getId()); // orderKey=1, 12, 12122, 122, 2
         assertThat(productLabelService.getProductLabels(client)).isSortedAccordingTo(new ProductLabel.ProductLabelComparator());
         productLabelService.getProductLabels(client).forEach(l -> LOGGER.info("id: {}, name: {}, order: {}", l.getId(), l.getName(), l.getOrderKey()));
     }

@@ -4,6 +4,7 @@ import io.nextpos.merchandising.data.Offer;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
 import io.nextpos.product.data.ProductOption;
+import io.nextpos.roles.data.UserRole;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.workingarea.data.Printer;
@@ -60,6 +61,11 @@ public class Client extends BaseObject {
     /**
      * The following associations exist so when client is deleted, all associated client objects are also removed via cascade operation.
      */
+    @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<UserRole> userRoles;
+
     @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

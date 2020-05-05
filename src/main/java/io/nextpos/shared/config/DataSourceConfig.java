@@ -9,6 +9,7 @@ import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordertransaction.data.ElectronicInvoice;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.product.data.Product;
+import io.nextpos.roles.data.UserRole;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.converter.Decimal128ToBigDecimal;
 import io.nextpos.tablelayout.data.TableLayout;
@@ -37,7 +38,7 @@ import java.util.List;
  *  in Order Mongo Document.
  */
 @Configuration
-@EnableJpaRepositories(basePackageClasses = {Client.class, Product.class, Offer.class, CountrySettings.class, WorkingArea.class, TableLayout.class})
+@EnableJpaRepositories(basePackageClasses = {Client.class, Product.class, Offer.class, CountrySettings.class, WorkingArea.class, TableLayout.class, UserRole.class})
 @EnableMongoRepositories(basePackageClasses = {Order.class, OrderTransaction.class, NotificationDetails.class, UserTimeCard.class, Membership.class, Announcement.class, ElectronicInvoice.class})
 @EnableMongoAuditing
 public class DataSourceConfig {

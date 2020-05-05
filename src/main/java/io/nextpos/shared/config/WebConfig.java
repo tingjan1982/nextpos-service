@@ -37,7 +37,8 @@ public class WebConfig {
                 "/workingareas/*",
                 "/printers/*",
                 "/tablelayouts/*",
-                "/announcements/*");
+                "/announcements/*",
+                "/roles/*");
 
         return registrationBean;
     }

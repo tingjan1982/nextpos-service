@@ -16,4 +16,6 @@ public class UpdateClientUserRequest {
 
     @ValidRoles
     private List<String> roles;
+
+    private String userRoleId;
 }

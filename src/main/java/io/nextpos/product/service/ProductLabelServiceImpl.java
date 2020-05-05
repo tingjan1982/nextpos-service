@@ -91,23 +91,45 @@ public class ProductLabelServiceImpl implements ProductLabelService {
     }
 
     @Override
-    public ProductLabel updateProductLabelOrder(String productLabelId, String previousProductLabelId, String nextProductLabelId) {
+    public ProductLabel updateProductLabelOrder(String productLabelId, final int index, String previousProductLabelId, String nextProductLabelId) {
 
         final ProductLabel productLabel = productLabelRepository.findById(productLabelId).orElseThrow();
-        final ProductLabel previousProductLabel = productLabelRepository.findById(previousProductLabelId).orElseThrow();
-        final ProductLabel nextProductLabel = productLabelRepository.findById(nextProductLabelId).orElseThrow();
+        final Optional<ProductLabel> previousLabelOptional = productLabelRepository.findById(previousProductLabelId);
+        final Optional<ProductLabel> nextLabelOptional = productLabelRepository.findById(nextProductLabelId);
 
-        if (StringUtils.isBlank(previousProductLabel.getOrderKey())) {
-            previousProductLabel.setOrderKey("1");
-            productLabelRepository.save(previousProductLabel);
+        if (previousLabelOptional.isEmpty()) {
+            productLabel.setOrderKey("0");
+
+            nextLabelOptional.ifPresent(l -> {
+                l.setOrderKey("00");
+                productLabelRepository.save(l);
+            });
+
+        } else if (nextLabelOptional.isEmpty()) {
+            productLabel.setOrderKey(String.valueOf(index));
+
+            previousLabelOptional.ifPresent(l -> {
+                l.setOrderKey(String.valueOf(index) + 0);
+            });
+
+        } else {
+            final ProductLabel previousLabel = previousLabelOptional.get();
+
+            if (StringUtils.isBlank(previousLabel.getOrderKey())) {
+                previousLabel.setOrderKey(String.valueOf(index - 1));
+                productLabelRepository.save(previousLabel);
+            }
+
+            final ProductLabel nextLabel = nextLabelOptional.get();
+
+            if (StringUtils.isBlank(nextLabel.getOrderKey())) {
+                nextLabel.setOrderKey(String.valueOf(index + 1));
+                productLabelRepository.save(nextLabel);
+            }
+
+            productLabel.setOrderKey(previousLabel.getOrderKey() + nextLabel.getOrderKey());
         }
 
-        if (StringUtils.isBlank(nextProductLabel.getOrderKey())) {
-            nextProductLabel.setOrderKey("2");
-            productLabelRepository.save(nextProductLabel);
-        }
-
-        productLabel.setOrderKey(previousProductLabel.getOrderKey() + nextProductLabel.getOrderKey());
         return productLabelRepository.save(productLabel);
     }
 }

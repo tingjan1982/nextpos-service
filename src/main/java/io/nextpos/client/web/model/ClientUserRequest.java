@@ -26,4 +26,6 @@ public class ClientUserRequest {
 
     @ValidRoles
     private List<String> roles;
+
+    private String userRoleId;
 }

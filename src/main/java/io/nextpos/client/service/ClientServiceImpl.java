@@ -1,9 +1,11 @@
 package io.nextpos.client.service;
 
+import io.micrometer.core.instrument.util.StringUtils;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientRepository;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.data.ClientUserRepository;
+import io.nextpos.roles.data.Permission;
 import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.shared.config.SecurityConfig;
 import io.nextpos.shared.exception.ObjectAlreadyExistsException;
@@ -28,7 +30,6 @@ import javax.transaction.Transactional;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @Transactional
@@ -73,11 +74,15 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
 
         final Client savedClient = clientRepository.save(client);
 
-        final String clientRoles = clientDetails.getAuthorities().stream()
+        final String roles = String.join(",", SecurityConfig.Role.getRoles());
+        final String permissions = clientDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).collect(Collectors.joining(","));
+
+
         // client's default user will use email as the username.
-        final ClientUser defaultClientUser = new ClientUser(new ClientUser.ClientUserId(client.getUsername(), client.getUsername()), plainPassword, clientRoles);
+        final ClientUser defaultClientUser = new ClientUser(new ClientUser.ClientUserId(client.getUsername(), client.getUsername()), plainPassword, roles);
         defaultClientUser.setNickname(client.getClientName());
+        defaultClientUser.setPermissions(permissions);
 
         this.createClientUser(defaultClientUser);
 
@@ -100,10 +105,16 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
         final int validPeriod = Long.valueOf(TimeUnit.DAYS.toSeconds(1)).intValue();
         result.setAccessTokenValiditySeconds(validPeriod);
         result.setRefreshTokenValiditySeconds(validPeriod);
-        result.setScope(SecurityConfig.OAuthScopes.SCOPES);
+        result.setScope(Permission.allPermissions());
 
-        String[] roles = Stream.of(SecurityConfig.Role.ADMIN_ROLE, SecurityConfig.Role.OWNER_ROLE, SecurityConfig.Role.MANAGER_ROLE, SecurityConfig.Role.USER_ROLE, client.getRoles()).filter(Objects::nonNull).toArray(String[]::new);
-        result.setAuthorities(AuthorityUtils.createAuthorityList(roles));
+        final ArrayList<String> authorities = new ArrayList<>(Permission.allPermissions());
+        authorities.addAll(SecurityConfig.Role.getRoles());
+
+        if (StringUtils.isNotBlank(client.getRoles())) {
+            authorities.add(client.getRoles());
+        }
+
+        result.setAuthorities(AuthorityUtils.createAuthorityList(authorities.toArray(String[]::new)));
         result.setResourceIds(Collections.singletonList(SecurityConfig.OAuthSettings.RESOURCE_ID));
 
         return result;
@@ -235,7 +246,8 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
             throw new UsernameNotFoundException("Username does not exist: " + username);
         });
 
-        final Collection<? extends GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(clientUser.getRoles());
+        final String joinedAuthorities = clientUser.getRoles() + "," + clientUser.getPermissions();
+        final Collection<? extends GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(joinedAuthorities);
         return new User(clientUser.getId().getUsername(), clientUser.getPassword(), authorities);
     }
 

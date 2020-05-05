@@ -22,4 +22,6 @@ public class ClientUserResponse {
     private List<String> roles;
 
     private boolean defaultUser;
+
+    private String permissions;
 }

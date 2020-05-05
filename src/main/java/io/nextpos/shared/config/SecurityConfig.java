@@ -17,6 +17,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
@@ -30,6 +31,7 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
+import org.springframework.security.oauth2.provider.request.DefaultOAuth2RequestFactory;
 import org.springframework.security.oauth2.provider.token.*;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
@@ -39,6 +41,8 @@ import javax.sql.DataSource;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpMethod.*;
 
@@ -218,10 +222,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             final TokenEnhancerChain enhancerChain = new TokenEnhancerChain();
             final ClientTokenEnhancer clientTokenEnhancer = new ClientTokenEnhancer(clientService());
             enhancerChain.setTokenEnhancers(Arrays.asList(clientTokenEnhancer, accessTokenConverter));
+            final DefaultOAuth2RequestFactory oAuth2RequestFactory = new DefaultOAuth2RequestFactory(clientDetailsService);
+            oAuth2RequestFactory.setCheckUserScopes(true);
 
             endpoints.tokenStore(tokenStore)
                     .tokenEnhancer(enhancerChain)
-                    .authenticationManager(authenticationManager);
+                    .authenticationManager(authenticationManager)
+                    .requestFactory(oAuth2RequestFactory);
         }
 
         @Override
@@ -263,9 +270,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     throw new ConfigurationException("Client is not resolvable by username. The token cannot be enhanced: " + clientId);
                 });
 
-
                 final Map<String, Object> additionalInfo = Map.of(ExtraClaims.APPLICATION_CLIENT_ID, client.getId());
-                ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(additionalInfo);
+                final DefaultOAuth2AccessToken oauth2AccessToken = (DefaultOAuth2AccessToken) accessToken;
+                oauth2AccessToken.setAdditionalInformation(additionalInfo);
+                final Set<String> actualScopes = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
+                oauth2AccessToken.setScope(actualScopes);
 
                 return accessToken;
             }
@@ -410,11 +419,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         private static final String SIGNING_KEY = "1qaz2wsx";
     }
 
-    // todo: revisit this concept later
-    public interface Group {
-        String[] DEFAULT_ADMIN_ROLES = new String[]{Role.ADMIN_ROLE, Role.MANAGER_ROLE, Role.USER_ROLE};
-    }
-
     public interface Role {
 
         String MASTER_ROLE = "MASTER";
@@ -426,18 +430,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         String MANAGER_ROLE = "MANAGER";
 
         String USER_ROLE = "USER";
-    }
 
-    public static class OAuthScopes {
-
-        public static final List<String> SCOPES = Arrays.asList(
-                "client:read",
-                "client:write",
-                "user:read",
-                "user:write",
-                "product:read",
-                "product:write",
-                "all"
-        );
+        static List<String> getRoles() {
+            return Arrays.asList(ADMIN_ROLE, OWNER_ROLE, MANAGER_ROLE, USER_ROLE);
+        }
     }
 }

@@ -129,7 +129,7 @@ public class ProductLabelController {
     public void updateProductLabel(@PathVariable final String id,
                                    @Valid @RequestBody OrderProductLabelRequest request) {
 
-        productLabelService.updateProductLabelOrder(id, request.getPreviousProductLabelId(), request.getNextProductLabelId());
+        productLabelService.updateProductLabelOrder(id, request.getIndex(), request.getPreviousProductLabelId(), request.getNextProductLabelId());
     }
 
     @PostMapping("/{id}/applyOptions")

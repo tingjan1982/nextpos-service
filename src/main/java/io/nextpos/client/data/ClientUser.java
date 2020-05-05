@@ -1,13 +1,12 @@
 package io.nextpos.client.data;
 
 import io.micrometer.core.instrument.util.StringUtils;
+import io.nextpos.roles.data.UserRole;
 import io.nextpos.shared.config.SecurityConfig;
 import io.nextpos.shared.model.BaseObject;
 import lombok.*;
 
-import javax.persistence.Embeddable;
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
+import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity(name = "client_user")
@@ -23,12 +22,30 @@ public class ClientUser extends BaseObject {
 
     private String password;
 
+    @Deprecated
     private String roles;
+
+    /**
+     * Stores user's UserRole and associated permissions.
+     */
+    @ManyToOne
+    private UserRole userRole;
+
+    /**
+     * Comma separate list of scopes as permissions, which is used in SecurityConfig to determine access privilege.
+     */
+    @Column(length = 1000)
+    private String permissions;
 
     public ClientUser(final ClientUserId id, final String password, final String roles) {
         this.id = id;
         this.password = password;
         this.roles = roles;
+    }
+
+    public void setUserRole(final UserRole userRole) {
+        this.userRole = userRole;
+        this.permissions = userRole.getPermissionsAsString();
     }
 
     /**

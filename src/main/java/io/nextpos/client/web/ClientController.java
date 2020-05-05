@@ -5,8 +5,9 @@ import io.nextpos.client.data.ClientSetting;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientActivationService;
 import io.nextpos.client.service.ClientService;
-import io.nextpos.client.service.ClientSettingsService;
 import io.nextpos.client.web.model.*;
+import io.nextpos.roles.data.UserRole;
+import io.nextpos.roles.service.UserRoleService;
 import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.shared.exception.ClientAccountException;
@@ -31,16 +32,16 @@ public class ClientController {
 
     private final ClientService clientService;
 
-    private final ClientSettingsService clientSettingsService;
+    private final UserRoleService userRoleService;
 
     private final ClientActivationService clientActivationService;
 
     private final OAuth2Helper oAuth2Helper;
 
     @Autowired
-    public ClientController(final ClientService clientService, final ClientSettingsService clientSettingsService, final ClientActivationService clientActivationService, final OAuth2Helper oAuth2Helper) {
+    public ClientController(final ClientService clientService, final UserRoleService userRoleService, final ClientActivationService clientActivationService, final OAuth2Helper oAuth2Helper) {
         this.clientService = clientService;
-        this.clientSettingsService = clientSettingsService;
+        this.userRoleService = userRoleService;
         this.clientActivationService = clientActivationService;
         this.oAuth2Helper = oAuth2Helper;
     }
@@ -101,7 +102,6 @@ public class ClientController {
     // todo: reset password implementation
     @PostMapping("/{resetPassword")
     public void resetPassword() {
-
 
 
     }
@@ -265,6 +265,11 @@ public class ClientController {
         clientUser.setNickname(updateClientUserRequest.getNickname());
         final String roles = String.join(",", updateClientUserRequest.getRoles());
         clientUser.setRoles(roles);
+
+        if (StringUtils.isNotBlank(updateClientUserRequest.getUserRoleId())) {
+            final UserRole userRole = userRoleService.getUserRole(updateClientUserRequest.getUserRoleId());
+            clientUser.setUserRole(userRole);
+        }
     }
 
     private ClientUser fromClientUserRequest(Client client, ClientUserRequest clientUserRequest) {
@@ -274,12 +279,23 @@ public class ClientController {
         final ClientUser clientUser = new ClientUser(id, clientUserRequest.getPassword(), roles);
         clientUser.setNickname(clientUserRequest.getNickname().trim());
 
+        if (StringUtils.isNotBlank(clientUserRequest.getUserRoleId())) {
+            final UserRole userRole = userRoleService.getUserRole(clientUserRequest.getUserRoleId());
+            clientUser.setUserRole(userRole);
+        }
+
         return clientUser;
     }
 
     private ClientUserResponse toClientUserResponse(ClientUser clientUser) {
 
         final List<String> roles = Arrays.asList(clientUser.getRoles().split(","));
-        return new ClientUserResponse(clientUser.getNickname(), clientUser.getId().getUsername(), clientUser.getName(), clientUser.getPassword(), roles, clientUser.isDefaultUser());
+        return new ClientUserResponse(clientUser.getNickname(),
+                clientUser.getId().getUsername(),
+                clientUser.getName(),
+                clientUser.getPassword(),
+                roles,
+                clientUser.isDefaultUser(),
+                clientUser.getPermissions());
     }
 }

@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OrderProductLabelRequest {
 
+    private int index;
+    
     private String previousProductLabelId;
 
     private String nextProductLabelId;
