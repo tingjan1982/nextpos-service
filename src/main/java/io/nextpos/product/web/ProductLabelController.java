@@ -12,6 +12,7 @@ import io.nextpos.product.web.util.ObjectWithProductOptionVisitorWrapper;
 import io.nextpos.shared.web.model.SimpleObjectResponse;
 import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
@@ -129,7 +130,10 @@ public class ProductLabelController {
     public void updateProductLabel(@PathVariable final String id,
                                    @Valid @RequestBody OrderProductLabelRequest request) {
 
-        productLabelService.updateProductLabelOrder(id, request.getIndex(), request.getPreviousProductLabelId(), request.getNextProductLabelId());
+        final String previousProductLabelId = StringUtils.defaultIfBlank(request.getPreviousProductLabelId(), "");
+        final String nextProductLabelId = StringUtils.defaultIfBlank(request.getNextProductLabelId(), "");
+        
+        productLabelService.updateProductLabelOrder(id, request.getIndex(), previousProductLabelId, nextProductLabelId);
     }
 
     @PostMapping("/{id}/applyOptions")

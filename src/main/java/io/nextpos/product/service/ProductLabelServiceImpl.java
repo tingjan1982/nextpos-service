@@ -108,9 +108,7 @@ public class ProductLabelServiceImpl implements ProductLabelService {
         } else if (nextLabelOptional.isEmpty()) {
             productLabel.setOrderKey(String.valueOf(index));
 
-            previousLabelOptional.ifPresent(l -> {
-                l.setOrderKey(String.valueOf(index) + 0);
-            });
+            previousLabelOptional.ifPresent(l -> l.setOrderKey(String.valueOf(index) + 0));
 
         } else {
             final ProductLabel previousLabel = previousLabelOptional.get();
