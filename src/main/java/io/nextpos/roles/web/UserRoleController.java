@@ -9,6 +9,7 @@ import io.nextpos.roles.web.model.PermissionBundlesResponse;
 import io.nextpos.roles.web.model.UserRoleRequest;
 import io.nextpos.roles.web.model.UserRoleResponse;
 import io.nextpos.roles.web.model.UserRolesResponse;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -70,11 +71,11 @@ public class UserRoleController {
     }
 
     @PostMapping("/{id}")
-    public UserRoleResponse createUserRole(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+    public UserRoleResponse updateUserRole(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                            @PathVariable String id,
                                            @Valid @RequestBody UserRoleRequest userRoleRequest) {
 
-        final UserRole userRole = clientObjectOwnershipService.checkOwnership(client, () -> userRoleService.getUserRole(id));
+        final UserRole userRole = clientObjectOwnershipService.checkOwnership(client, () -> userRoleService.loadUserRole(id));
 
         updateUserRoleFromRequest(userRole, userRoleRequest);
 
@@ -96,7 +97,11 @@ public class UserRoleController {
     public void deleteUserRole(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                            @PathVariable String id) {
 
-        final UserRole userRole = clientObjectOwnershipService.checkOwnership(client, () -> userRoleService.getUserRole(id));
+        final UserRole userRole = clientObjectOwnershipService.checkOwnership(client, () -> userRoleService.loadUserRole(id));
+
+        if (!userRole.getClientUsers().isEmpty()) {
+            throw new BusinessLogicException("message.userRoleInUse", "The user role is being used.");
+        }
 
         userRoleService.deleteUserRole(userRole);
 

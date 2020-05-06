@@ -5,6 +5,7 @@ import io.nextpos.client.data.ClientUser;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.product.data.ProductOptionVersion;
 import io.nextpos.product.data.ProductVersion;
+import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.workingarea.data.WorkingArea;
 
@@ -20,7 +21,7 @@ public class DummyObjects {
     }
 
     public static ClientUser dummyClientUser() {
-        return new ClientUser(new ClientUser.ClientUserId("test-user", "admin@nextpos.io"), "password", "ADMIN,USER");
+        return new ClientUser(new ClientUser.ClientUserId("test-user", BootstrapConfig.MASTER_CLIENT), "password", "ADMIN,USER");
     }
 
     public static ProductVersion dummyProductVersion() {

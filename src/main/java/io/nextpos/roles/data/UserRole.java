@@ -14,10 +14,13 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Entity(name = "client_user_role")
+@NamedEntityGraph(name = "UserRole.clientUsers", attributeNodes = @NamedAttributeNode("clientUsers"))
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
@@ -36,8 +39,10 @@ public class UserRole extends BaseObject implements ClientObject {
 
     private String name;
 
-    @OneToMany(mappedBy = "userRole")
-    private List<ClientUser> clientUsers;
+    @OneToMany(mappedBy = "userRole", cascade = CascadeType.MERGE)
+    @MapKey
+    @Fetch(FetchMode.SUBSELECT)
+    private Map<ClientUser.ClientUserId, ClientUser> clientUsers = new HashMap<>();
 
     /**
      * Stores the permission bundles for role screen rendering.
@@ -58,9 +63,12 @@ public class UserRole extends BaseObject implements ClientObject {
         this.name = name;
     }
 
-    public void updatePermissionBundle(List<PermissionBundle> permissionBundles) {
+    public void updatePermissionBundle(List<PermissionBundle> permissionBundlesToUpdate) {
 
-        final List<PermissionBundle> updatedPermissionBundles = new ArrayList<>(permissionBundles);
+        permissionBundles.clear();
+        permissions.clear();
+
+        final List<PermissionBundle> updatedPermissionBundles = new ArrayList<>(permissionBundlesToUpdate);
         updatedPermissionBundles.add(PermissionBundle.BASE);
         this.setPermissionBundles(updatedPermissionBundles);
 
@@ -69,7 +77,7 @@ public class UserRole extends BaseObject implements ClientObject {
     }
 
     public void addPermissionBundle(PermissionBundle permissionBundle) {
-        permissionBundles.add(permissionBundle);
+        updatePermissionBundle(List.of(permissionBundle));
     }
 
     public void addUserPermission(UserPermission userPermission) {
@@ -84,6 +92,10 @@ public class UserRole extends BaseObject implements ClientObject {
         return permissions.stream()
                 .map(up -> up.getPermission().toString(up.getOperation()))
                 .collect(Collectors.joining(","));
+    }
+
+    public void putClientUser(ClientUser clientUser) {
+        this.clientUsers.putIfAbsent(clientUser.getId(), clientUser);
     }
 
     @Embeddable

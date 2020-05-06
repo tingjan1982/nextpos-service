@@ -267,7 +267,7 @@ public class ClientController {
         clientUser.setRoles(roles);
 
         if (StringUtils.isNotBlank(updateClientUserRequest.getUserRoleId())) {
-            final UserRole userRole = userRoleService.getUserRole(updateClientUserRequest.getUserRoleId());
+            final UserRole userRole = userRoleService.loadUserRole(updateClientUserRequest.getUserRoleId());
             clientUser.setUserRole(userRole);
         }
     }
@@ -280,7 +280,7 @@ public class ClientController {
         clientUser.setNickname(clientUserRequest.getNickname().trim());
 
         if (StringUtils.isNotBlank(clientUserRequest.getUserRoleId())) {
-            final UserRole userRole = userRoleService.getUserRole(clientUserRequest.getUserRoleId());
+            final UserRole userRole = userRoleService.loadUserRole(clientUserRequest.getUserRoleId());
             clientUser.setUserRole(userRole);
         }
 

@@ -29,6 +29,8 @@ public class ClientUser extends BaseObject {
      * Stores user's UserRole and associated permissions.
      */
     @ManyToOne
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private UserRole userRole;
 
     /**
@@ -46,6 +48,8 @@ public class ClientUser extends BaseObject {
     public void setUserRole(final UserRole userRole) {
         this.userRole = userRole;
         this.permissions = userRole.getPermissionsAsString();
+
+        userRole.putClientUser(this);
     }
 
     /**

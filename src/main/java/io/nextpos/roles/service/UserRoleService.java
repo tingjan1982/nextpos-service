@@ -11,6 +11,8 @@ public interface UserRoleService {
 
     UserRole getUserRole(String id);
 
+    UserRole loadUserRole(String id);
+
     List<UserRole> getUserRoles(Client client);
 
     UserRole updateUserRole(UserRole userRole);

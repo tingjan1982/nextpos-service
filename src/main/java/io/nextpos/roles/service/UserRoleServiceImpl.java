@@ -34,6 +34,11 @@ public class UserRoleServiceImpl implements UserRoleService {
     }
 
     @Override
+    public UserRole loadUserRole(String id) {
+        return userRoleRepository.loadById(id);
+    }
+
+    @Override
     public List<UserRole> getUserRoles(Client client) {
         return userRoleRepository.findAllByClientOrderByName(client);
     }
@@ -41,7 +46,7 @@ public class UserRoleServiceImpl implements UserRoleService {
     @Override
     public UserRole updateUserRole(final UserRole userRole) {
 
-        userRole.getClientUsers().forEach(u -> u.setUserRole(userRole));
+        userRole.getClientUsers().forEach((id, user) -> user.setUserRole(userRole));
 
         return userRoleRepository.save(userRole);
     }
