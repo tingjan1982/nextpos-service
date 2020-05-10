@@ -56,6 +56,10 @@ public class TaxableAmount {
         return amountWithoutTax.compareTo(BigDecimal.ZERO) == 0;
     }
 
+    public boolean lessThanZero() {
+        return amountWithoutTax.compareTo(BigDecimal.ZERO) < 0;
+    }
+
     public TaxableAmount copy() {
         final TaxableAmount copy = this.newInstance();
         copy.amountWithoutTax = amountWithoutTax;

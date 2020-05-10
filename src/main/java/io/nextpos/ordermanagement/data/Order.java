@@ -213,6 +213,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         discountedTotal = total.newInstance();
         discountedTotal.calculate(computedDiscount);
 
+        if (discountedTotal.lessThanZero()) {
+            throw new BusinessLogicException("message.discountedTotalLessThanZero", "Discounted amount cannot be less than zero");
+        }
+
         if (!discountedTotal.isZero()) {
             discount = total.getAmountWithTax().subtract(discountedTotal.getAmountWithTax());
         } else {
