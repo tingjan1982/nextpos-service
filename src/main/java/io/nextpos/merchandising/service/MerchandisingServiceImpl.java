@@ -60,7 +60,7 @@ public class MerchandisingServiceImpl implements MerchandisingService {
                 computedDiscount = globalOffer.calculateDiscount(order);
             }
 
-            order.applyAndRecordOffer(globalOffer, computedDiscount);
+            order.applyAndRecordOffer(globalOffer, computedDiscount, overrideDiscount);
         }
 
         return orderService.saveOrder(order);
