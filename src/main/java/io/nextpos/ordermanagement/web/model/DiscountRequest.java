@@ -10,6 +10,8 @@ import java.math.BigDecimal;
 @ValidDiscount
 public class DiscountRequest {
 
+    private String offerId;
+
     private String orderDiscount;
 
     private BigDecimal discount = BigDecimal.ZERO;

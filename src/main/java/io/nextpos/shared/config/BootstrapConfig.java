@@ -78,11 +78,15 @@ public class BootstrapConfig {
     public Map<OrderLevelOffer.GlobalOrderDiscount, OrderLevelOffer> globalOrderLevelOffers(Client defaultClient) {
 
         return Arrays.stream(OrderLevelOffer.GlobalOrderDiscount.values())
-                .map(d -> Pair.of(d, new OrderLevelOffer(defaultClient,
-                        d.name(),
-                        Offer.TriggerType.AT_CHECKOUT,
-                        Offer.DiscountType.PERCENT_OFF,
-                        d.getDiscount())))
+                .map(d -> {
+                    final OrderLevelOffer orderLevelOffer = new OrderLevelOffer(defaultClient,
+                            d.name(),
+                            Offer.TriggerType.AT_CHECKOUT,
+                            d.getDiscountType(),
+                            d.getDiscount());
+                    orderLevelOffer.setId(d.name());
+                    return Pair.of(d, orderLevelOffer);
+                })
                 .collect(Collectors.toMap(Pair::getLeft, Pair::getRight, (existing, replacement) -> existing, LinkedHashMap::new));
     }
 

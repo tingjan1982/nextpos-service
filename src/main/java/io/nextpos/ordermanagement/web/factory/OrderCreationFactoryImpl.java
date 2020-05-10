@@ -16,6 +16,7 @@ import io.nextpos.product.service.ProductService;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.settings.service.SettingsService;
 import io.nextpos.shared.auth.OAuth2Helper;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.storage.service.DistributedCounterService;
 import io.nextpos.tablelayout.service.TableLayoutService;
 import org.apache.commons.lang3.StringUtils;
@@ -68,25 +69,10 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
         String serialId = generateSerialId();
         order.setSerialId(serialId);
 
-        order.setOrderType(orderRequest.getOrderType());
-
-        if (order.getOrderType() == Order.OrderType.IN_STORE) {
-            if (StringUtils.isNotEmpty(orderRequest.getTableId())) {
-                tableLayoutService.getTableDetails(orderRequest.getTableId()).ifPresent(t -> {
-                    final Order.TableInfo tableInfo = new Order.TableInfo(t);
-                    order.setTableInfo(tableInfo);
-                });
-            }
-
-            if (StringUtils.isNotEmpty(orderRequest.getTableNote())) {
-                order.setTableNote(orderRequest.getTableNote());
-            }
-        }
+        updateTableInfoAndDemographicData(order, orderRequest);
 
         final ClientUser clientUser = oAuth2Helper.resolveCurrentClientUser(client);
         order.setServedBy(clientUser.getName());
-
-        order.setDemographicData(orderRequest.getDemographicData());
 
         if (!CollectionUtils.isEmpty(orderRequest.getLineItems())) {
             final List<OrderLineItem> orderLineItems = orderRequest.getLineItems().stream()
@@ -104,6 +90,41 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
     private String generateSerialId() {
         final int counter = distributedCounterService.getNextRotatingCounter("order");
         return LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "-" + counter;
+    }
+
+    @Override
+    public void updateTableInfoAndDemographicData(final Order order, final OrderRequest orderRequest) {
+
+        updateTableInfo(order, orderRequest.getOrderType(), orderRequest.getTableId(), orderRequest.getTableNote());
+
+        if (orderRequest.getDemographicData() != null) {
+            order.setDemographicData(orderRequest.getDemographicData());
+        }
+    }
+
+    private void updateTableInfo(Order order, Order.OrderType orderType, String tableId, String tableNote) {
+
+        switch (orderType) {
+            case IN_STORE:
+                if (StringUtils.isBlank(tableId)) {
+                    throw new BusinessLogicException("Table id cannot be empty for an in-store order");
+                }
+
+                tableLayoutService.getTableDetails(tableId).ifPresent(t -> {
+                    final Order.TableInfo tableInfo = new Order.TableInfo(t);
+                    order.setTableInfo(tableInfo);
+                });
+
+                break;
+
+            case TAKE_OUT:
+                order.setTableInfo(null);
+
+                break;
+        }
+
+        order.setOrderType(orderType);
+        order.setTableNote(tableNote);
     }
 
     @Override

@@ -2,6 +2,7 @@ package io.nextpos.ordermanagement.web;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
+import io.nextpos.merchandising.data.Offer;
 import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.merchandising.service.MerchandisingService;
 import io.nextpos.ordermanagement.data.*;
@@ -67,7 +68,8 @@ public class OrderController {
     }
 
     @PostMapping
-    public OrderResponse createOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @RequestBody OrderRequest orderRequest) {
+    public OrderResponse createOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                     @RequestBody OrderRequest orderRequest) {
 
         Order order = orderCreationFactory.newOrder(client, orderRequest);
         final Order createdOrder = orderService.createOrder(order);
@@ -195,6 +197,18 @@ public class OrderController {
         return orderResponse;
     }
 
+    @PostMapping("/{id}")
+    public OrderResponse updateOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                     @PathVariable final String id,
+                                     @RequestBody OrderRequest orderRequest) {
+
+        final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
+
+        orderCreationFactory.updateTableInfoAndDemographicData(order, orderRequest);
+
+        return toOrderResponse(orderService.saveOrder(order));
+    }
+
     @PostMapping("/{id}/applyDiscount")
     public OrderResponse applyOrderDiscount(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                             @PathVariable final String id,
@@ -203,7 +217,11 @@ public class OrderController {
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
         final OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount = OrderLevelOffer.GlobalOrderDiscount.valueOf(discountRequest.getOrderDiscount());
 
-        BigDecimal discount = discountRequest.getDiscount().divide(BigDecimal.valueOf(100), 2, RoundingMode.CEILING);
+        BigDecimal discount = discountRequest.getDiscount();
+
+        if (globalOrderDiscount.getDiscountType() == Offer.DiscountType.PERCENT_OFF) {
+            discount = discountRequest.getDiscount().divide(BigDecimal.valueOf(100), 2, RoundingMode.CEILING);
+        }
         final Order updatedOrder = merchandisingService.applyGlobalOrderDiscount(order, globalOrderDiscount, discount);
 
         return toOrderResponse(updatedOrder);
@@ -349,6 +367,7 @@ public class OrderController {
                 orderLineItems,
                 order.getMetadata(),
                 order.getDemographicData(),
+                order.getAppliedOfferInfo(),
                 order.getOrderDuration());
     }
 

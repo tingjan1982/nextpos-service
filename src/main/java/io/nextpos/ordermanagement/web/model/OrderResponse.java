@@ -1,5 +1,6 @@
 package io.nextpos.ordermanagement.web.model;
 
+import io.nextpos.merchandising.data.OfferApplicableObject;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderDuration;
 import io.nextpos.ordermanagement.data.OrderLineItem;
@@ -57,6 +58,8 @@ public class OrderResponse {
     private final Map<String, Object> metadata;
 
     private final Order.DemographicData demographicData;
+
+    private final OfferApplicableObject.AppliedOfferInfo appliedOfferInfo;
 
     private final OrderDuration orderDuration;
 

@@ -10,6 +10,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class OfferResponse {
 
+    private String offerId;
+
     private String offerName;
 
     private String displayName;

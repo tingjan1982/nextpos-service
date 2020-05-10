@@ -43,22 +43,31 @@ public class OrderLevelOffer extends Offer implements DiscountCalculator<Order> 
 
     public enum GlobalOrderDiscount {
 
-        NO_DISCOUNT("NO DISCOUNT", BigDecimal.valueOf(-1)),
-        VIP_DISCOUNT("VIP 15%", BigDecimal.valueOf(0.15)),
-        STAFF_DISCOUNT("Staff 20%", BigDecimal.valueOf(0.2)),
-        ENTER_DISCOUNT("Enter Discount", BigDecimal.valueOf(0));
+        NO_DISCOUNT("NO Discount", DiscountType.PERCENT_OFF, BigDecimal.valueOf(-1)),
+        VIP_DISCOUNT("VIP 15%", DiscountType.PERCENT_OFF, BigDecimal.valueOf(0.15)),
+        STAFF_DISCOUNT("Staff 30%", DiscountType.PERCENT_OFF, BigDecimal.valueOf(0.3)),
+        ENTER_DISCOUNT("Discount %", DiscountType.PERCENT_OFF, BigDecimal.valueOf(0)),
+        DISCOUNT_AMOUNT_OFF("Discount $", DiscountType.AMOUNT_OFF, BigDecimal.valueOf(0));
+
 
         private final String discountName;
 
+        private final DiscountType discountType;
+
         private final BigDecimal discount;
 
-        GlobalOrderDiscount(final String discountName, final BigDecimal discount) {
+        GlobalOrderDiscount(final String discountName, final DiscountType discountType, final BigDecimal discount) {
             this.discountName = discountName;
+            this.discountType = discountType;
             this.discount = discount;
         }
 
         public String getDiscountName() {
             return discountName;
+        }
+
+        public DiscountType getDiscountType() {
+            return discountType;
         }
 
         public BigDecimal getDiscount() {

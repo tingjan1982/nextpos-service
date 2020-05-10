@@ -29,6 +29,7 @@ public class OfferController {
                 .map(entry -> {
                     final OrderLevelOffer offer = entry.getValue();
                     return new OfferResponse(
+                            offer.getId(),
                             offer.getName(),
                             entry.getKey().getDiscountName(),
                             offer.getTriggerType(),

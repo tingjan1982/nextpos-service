@@ -10,5 +10,7 @@ public interface OrderCreationFactory {
 
     Order newOrder(final Client client, OrderRequest orderRequest);
 
+    void updateTableInfoAndDemographicData(Order order, OrderRequest orderRequest);
+
     OrderLineItem newOrderLineItem(Client client, OrderLineItemRequest li);
 }
