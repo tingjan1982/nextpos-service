@@ -81,7 +81,7 @@ public class BootstrapConfig {
         return Arrays.stream(OrderLevelOffer.GlobalOrderDiscount.values())
                 .map(d -> {
                     final OrderLevelOffer orderLevelOffer = new OrderLevelOffer(defaultClient,
-                            d.name(),
+                            d.getDiscountName(),
                             Offer.TriggerType.AT_CHECKOUT,
                             d.getDiscountType(),
                             d.getDiscount());
@@ -98,7 +98,7 @@ public class BootstrapConfig {
         return Arrays.stream(ProductLevelOffer.GlobalProductDiscount.values())
                 .map(d -> {
                     final ProductLevelOffer productLevelOffer = new ProductLevelOffer(defaultClient,
-                            d.name(),
+                            d.getDiscountName(),
                             Offer.TriggerType.AT_CHECKOUT,
                             d.getDiscountType(),
                             d.getDiscount(),

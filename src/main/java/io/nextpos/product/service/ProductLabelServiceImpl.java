@@ -101,7 +101,7 @@ public class ProductLabelServiceImpl implements ProductLabelService {
             productLabel.setOrderKey("0");
 
             nextLabelOptional.ifPresent(l -> {
-                l.setOrderKey("00");
+                l.setOrderKey("01");
                 productLabelRepository.save(l);
             });
 

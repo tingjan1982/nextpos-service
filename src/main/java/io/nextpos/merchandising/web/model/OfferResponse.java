@@ -14,6 +14,7 @@ public class OfferResponse {
 
     private String offerName;
 
+    @Deprecated
     private String displayName;
 
     private Offer.TriggerType triggerType;

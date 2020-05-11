@@ -86,6 +86,14 @@ public class OrderResponse {
 
         private int quantity;
 
+        /**
+         * derived from OrderLineItem.getLineItemSubTotal()
+         */
+        private BigDecimal lineItemSubTotal;
+
+        /**
+         * Total without discount
+         */
         private TaxableAmount subTotal;
 
         private TaxableAmount discountedSubTotal;

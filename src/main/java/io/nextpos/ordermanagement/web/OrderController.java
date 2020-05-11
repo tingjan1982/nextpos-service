@@ -354,6 +354,7 @@ public class OrderController {
                             options,
                             li.getProductPriceWithOptions().getAmount(),
                             li.getQuantity(),
+                            li.getLineItemSubTotal(),
                             li.getSubTotal(),
                             li.getDiscountedSubTotal(),
                             li.getAppliedOfferInfo(),
