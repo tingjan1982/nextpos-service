@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @Data
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
@@ -43,13 +44,13 @@ public class OrderLineItem implements OfferApplicableObject {
         this.productSnapshot = productSnapshot;
         this.quantity = quantity;
 
-        state = LineItemState.OPEN;
+        this.state = LineItemState.OPEN;
         this.subTotal = new TaxableAmount(orderSettings.getTaxRate(), orderSettings.isTaxInclusive());
 
         computeSubTotal();
 
-        createdDate = new Date();
-        modifiedDate = new Date();
+        this.createdDate = new Date();
+        this.modifiedDate = new Date();
     }
 
     public TaxableAmount getProductPriceWithOptions() {
@@ -61,18 +62,20 @@ public class OrderLineItem implements OfferApplicableObject {
         return taxableProductPrice;
     }
 
-    void updateQuantity(int quantity) {
-        this.quantity = quantity;
-        
-        computeSubTotal();
+    public void updateQuantityAndProductOptions(int quantity, List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots) {
 
+        this.quantity = quantity;
+        this.getProductSnapshot().setProductOptions(productOptionSnapshots);
         modifiedDate = new Date();
+
+        computeSubTotal();
     }
 
     /**
-     * This method should be called whether line item is changed in the following ways:
-     * > new line item is added.
-     * > quantity is updated.
+     * This method must be called whether line item is changed in the following ways:
+     *  new line item is added.
+     *  quantity is updated.
+     *  product options is updated.
      */
     private void computeSubTotal() {
 

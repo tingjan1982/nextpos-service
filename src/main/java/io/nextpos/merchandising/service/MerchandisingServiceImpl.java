@@ -2,9 +2,11 @@ package io.nextpos.merchandising.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.merchandising.data.OrderLevelOffer;
+import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderLineItem;
+import io.nextpos.ordermanagement.data.OrderRepository;
 import io.nextpos.ordermanagement.data.OrderSettings;
-import io.nextpos.ordermanagement.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,12 +19,12 @@ public class MerchandisingServiceImpl implements MerchandisingService {
 
     private final OfferService offerService;
 
-    private final OrderService orderService;
+    private final OrderRepository orderRepository;
 
     @Autowired
-    public MerchandisingServiceImpl(final OfferService offerService, final OrderService orderService) {
+    public MerchandisingServiceImpl(final OfferService offerService, final OrderRepository orderRepository) {
         this.offerService = offerService;
-        this.orderService = orderService;
+        this.orderRepository = orderRepository;
     }
 
     /**
@@ -41,7 +43,7 @@ public class MerchandisingServiceImpl implements MerchandisingService {
         activeOffers.arbitrateBestProductLevelOffer(order);
         activeOffers.arbitrateBestOrderLevelOffer(order);
 
-        return orderService.saveOrder(order);
+        return orderRepository.save(order);
     }
 
     @Override
@@ -51,7 +53,7 @@ public class MerchandisingServiceImpl implements MerchandisingService {
             order.removeOffer();
 
         } else {
-            final OrderLevelOffer globalOffer = offerService.getGlobalOfferByName(globalOrderDiscount);
+            final OrderLevelOffer globalOffer = offerService.getGlobalOrderOffer(globalOrderDiscount);
             BigDecimal computedDiscount;
 
             if (globalOffer.isZeroDiscount()) {
@@ -63,7 +65,24 @@ public class MerchandisingServiceImpl implements MerchandisingService {
             order.applyAndRecordOffer(globalOffer, computedDiscount, overrideDiscount);
         }
 
-        return orderService.saveOrder(order);
+        return orderRepository.save(order);
+    }
+
+    @Override
+    public OrderLineItem applyGlobalProductDiscount(OrderLineItem lineItem, ProductLevelOffer.GlobalProductDiscount globalProductDiscount, BigDecimal overrideDiscount) {
+
+        final ProductLevelOffer globalProductOffer = offerService.getGlobalProductOffer(globalProductDiscount);
+        BigDecimal computedDiscount;
+
+        if (globalProductOffer.isZeroDiscount()) {
+            computedDiscount = globalProductOffer.calculateDiscount(lineItem, overrideDiscount);
+        } else {
+            computedDiscount = globalProductOffer.calculateDiscount(lineItem);
+        }
+
+        lineItem.applyAndRecordOffer(globalProductOffer, computedDiscount, overrideDiscount);
+
+        return lineItem;
     }
 
     @Override
@@ -79,7 +98,7 @@ public class MerchandisingServiceImpl implements MerchandisingService {
         }
 
         order.updateServiceCharge(serviceCharge);
-        return orderService.saveOrder(order);
+        return orderRepository.save(order);
     }
 
     @Override
@@ -95,7 +114,7 @@ public class MerchandisingServiceImpl implements MerchandisingService {
             }
         });
 
-        return orderService.saveOrder(order);
+        return orderRepository.save(order);
     }
 
     /**

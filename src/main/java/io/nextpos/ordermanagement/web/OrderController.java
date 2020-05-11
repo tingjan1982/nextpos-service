@@ -8,6 +8,7 @@ import io.nextpos.merchandising.service.MerchandisingService;
 import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordermanagement.service.ShiftService;
+import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
 import io.nextpos.ordermanagement.web.factory.OrderCreationFactory;
 import io.nextpos.ordermanagement.web.model.*;
 import io.nextpos.ordertransaction.service.OrderTransactionService;
@@ -222,6 +223,7 @@ public class OrderController {
         if (globalOrderDiscount.getDiscountType() == Offer.DiscountType.PERCENT_OFF) {
             discount = discountRequest.getDiscount().divide(BigDecimal.valueOf(100), 2, RoundingMode.CEILING);
         }
+
         final Order updatedOrder = merchandisingService.applyGlobalOrderDiscount(order, globalOrderDiscount, discount);
 
         return toOrderResponse(updatedOrder);
@@ -268,7 +270,9 @@ public class OrderController {
 
 
     @PostMapping("/{id}/lineitems")
-    public OrderResponse AddOrderLineItem(@PathVariable String id, @RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @Valid @RequestBody OrderLineItemRequest orderLineItemRequest) {
+    public OrderResponse AddOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                          @PathVariable String id,
+                                          @Valid @RequestBody OrderLineItemRequest orderLineItemRequest) {
 
         final Order order = orderService.getOrder(id);
         final OrderLineItem orderLineItem = orderCreationFactory.newOrderLineItem(client, orderLineItemRequest);
@@ -279,7 +283,8 @@ public class OrderController {
     }
 
     @PostMapping("/{id}/lineitems/deliver")
-    public SimpleObjectsResponse deliverLineItems(@PathVariable final String id, @Valid @RequestBody UpdateLineItemsRequest updateLineItemsRequest) {
+    public SimpleObjectsResponse deliverLineItems(@PathVariable final String id,
+                                                  @Valid @RequestBody UpdateLineItemsRequest updateLineItemsRequest) {
 
         final List<OrderLineItem> updatedOrderLineItems = orderService.deliverLineItems(id, updateLineItemsRequest.getLineItemIds());
         final List<SimpleObjectResponse> simpleObjects = updatedOrderLineItems.stream()
@@ -290,11 +295,17 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}/lineitems/{lineItemId}")
-    public OrderResponse updateOrderLineItem(@PathVariable String id, @PathVariable String lineItemId, @Valid @RequestBody UpdateOrderLineItemRequest updateOrderLineItemRequest) {
+    public OrderResponse updateOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                             @PathVariable String id,
+                                             @PathVariable String lineItemId,
+                                             @Valid @RequestBody UpdateOrderLineItemRequest request) {
 
-        final Order order = orderService.updateOrderLineItem(id, lineItemId, updateOrderLineItemRequest.getQuantity(), updateOrderLineItemRequest.toProductOptionSnapshots());
+        final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
+        final UpdateLineItem updateLineItem = new UpdateLineItem(lineItemId, request.getQuantity(), request.toProductOptionSnapshots(), request.getProductDiscount(), request.getDiscountValue());
 
-        return toOrderResponse(order);
+        final Order updatedOrder = orderService.updateOrderLineItem(order, updateLineItem);
+
+        return toOrderResponse(updatedOrder);
     }
 
     @PostMapping("/{id}/process")
@@ -338,12 +349,14 @@ public class OrderController {
 
                     return new OrderResponse.OrderLineItemResponse(li.getId(),
                             li.getProductSnapshot().getId(),
+                            li.getState(),
                             li.getProductSnapshot().getName(),
-                            li.getProductSnapshot().getPrice(),
+                            options,
+                            li.getProductPriceWithOptions().getAmount(),
                             li.getQuantity(),
                             li.getSubTotal(),
-                            li.getState(),
-                            options,
+                            li.getDiscountedSubTotal(),
+                            li.getAppliedOfferInfo(),
                             li.getModifiedDate());
 
                 }).collect(Collectors.toList());

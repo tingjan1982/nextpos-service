@@ -1,6 +1,7 @@
 package io.nextpos.ordermanagement.data;
 
 import io.nextpos.merchandising.data.OfferApplicableObject;
+import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.model.MongoBaseObject;
@@ -19,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static io.nextpos.ordermanagement.data.Order.OrderState.*;
@@ -167,20 +169,18 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     /**
      * Quantity of 0 will remove the line item.
-     *  @param lineItemId
-     * @param quantity
-     * @param productOptionSnapshots
+     *
+     * @param updateLineItem
      */
-    public void updateOrderLineItem(String lineItemId, int quantity, final List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots) {
+    public void updateOrderLineItem(UpdateLineItem updateLineItem, Consumer<OrderLineItem> updateOperation) {
 
-        final OrderLineItem orderLineItem = this.getOrderLineItem(lineItemId);
+        final OrderLineItem orderLineItem = this.getOrderLineItem(updateLineItem.getLineItemId());
 
-        if (quantity == 0) {
+        if (updateLineItem.getQuantity() == 0) {
             orderLineItems.remove(orderLineItem);
         } else {
             // todo: test removing line item and verify discountTotal is reset.
-            orderLineItem.updateQuantity(quantity);
-            orderLineItem.getProductSnapshot().setProductOptions(productOptionSnapshots);
+            updateOperation.accept(orderLineItem);
         }
 
         computeTotal();
@@ -239,6 +239,12 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
         private static ThreadLocal<OperationPipeline> pipelineInThread = new ThreadLocal<>();
 
+        /**
+         * If OperationPipeline is found in ThreadLocal, it means the reconcileOrder is to be deferred
+         * and therefore is skipped in this method.
+         *
+         * @param order
+         */
         public static void executeDirectly(Order order) {
             final OperationPipeline operationPipeline = OperationPipeline.pipelineInThread.get();
 

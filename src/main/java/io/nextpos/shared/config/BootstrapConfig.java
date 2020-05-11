@@ -4,6 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.merchandising.data.Offer;
 import io.nextpos.merchandising.data.OrderLevelOffer;
+import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.settings.service.SettingsService;
 import org.apache.commons.lang3.tuple.Pair;
@@ -86,6 +87,24 @@ public class BootstrapConfig {
                             d.getDiscount());
                     orderLevelOffer.setId(d.name());
                     return Pair.of(d, orderLevelOffer);
+                })
+                .collect(Collectors.toMap(Pair::getLeft, Pair::getRight, (existing, replacement) -> existing, LinkedHashMap::new));
+    }
+
+    @Bean
+    @Lazy
+    public Map<ProductLevelOffer.GlobalProductDiscount, ProductLevelOffer> globalProductLevelOffers(Client defaultClient) {
+
+        return Arrays.stream(ProductLevelOffer.GlobalProductDiscount.values())
+                .map(d -> {
+                    final ProductLevelOffer productLevelOffer = new ProductLevelOffer(defaultClient,
+                            d.name(),
+                            Offer.TriggerType.AT_CHECKOUT,
+                            d.getDiscountType(),
+                            d.getDiscount(),
+                            true);
+                    productLevelOffer.setId(d.name());
+                    return Pair.of(d, productLevelOffer);
                 })
                 .collect(Collectors.toMap(Pair::getLeft, Pair::getRight, (existing, replacement) -> existing, LinkedHashMap::new));
     }

@@ -42,6 +42,10 @@ public class DummyObjects {
         return new ProductSnapshot("pid", name, "sku", price, productOptionsList);
     }
 
+    public static ProductSnapshot.ProductOptionSnapshot productOptionSnapshot() {
+        return new ProductSnapshot.ProductOptionSnapshot("ice", "normal", new BigDecimal(10));
+    }
+
     public static ProductOptionVersion dummyProductOptionVersion() {
         return new ProductOptionVersion("option", ProductOptionVersion.OptionType.ONE_CHOICE, true);
     }

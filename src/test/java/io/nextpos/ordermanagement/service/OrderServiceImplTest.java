@@ -2,10 +2,12 @@ package io.nextpos.ordermanagement.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
+import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
+import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
@@ -21,7 +23,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -124,20 +125,29 @@ class OrderServiceImplTest {
 
         final Order order = new Order(client.getId(), orderSettings);
         final Order createdOrder = orderService.createOrder(order);
-
-
-        final ProductSnapshot product = DummyObjects.productSnapshot();
-        final OrderLineItem orderLineItem = new OrderLineItem(product, 1, orderSettings);
+        final OrderLineItem orderLineItem = new OrderLineItem(DummyObjects.productSnapshot(), 1, orderSettings);
 
         orderService.addOrderLineItem(createdOrder, orderLineItem);
 
         assertThat(createdOrder.getOrderLineItems()).hasSize(1);
 
-        final Order updatedOrder = orderService.updateOrderLineItem(createdOrder.getId(), createdOrder.getOrderLineItems().get(0).getId(), 5, Collections.emptyList());
+        final List<ProductSnapshot.ProductOptionSnapshot> productOptions = List.of(DummyObjects.productOptionSnapshot());
+        final UpdateLineItem updateLineItem = new UpdateLineItem(orderLineItem.getId(), 5, productOptions, ProductLevelOffer.GlobalProductDiscount.DISCOUNT_AMOUNT_OFF, new BigDecimal(20));
+
+        final Order updatedOrder = orderService.updateOrderLineItem(createdOrder, updateLineItem);
 
         assertThat(updatedOrder.getOrderLineItems()).satisfies(li -> {
             assertThat(li.getQuantity()).isEqualTo(5);
+            assertThat(li.getProductPriceWithOptions().getAmountWithoutTax()).isEqualByComparingTo("110");
+            assertThat(li.getProductPriceWithOptions().getAmountWithTax()).isEqualByComparingTo("115.5");
+            assertThat(li.getSubTotal().getAmount()).isEqualByComparingTo("550");
+            assertThat(li.getDiscountedSubTotal().getAmount()).isEqualByComparingTo("450");
         }, Index.atIndex(0));
+
+        assertThat(updatedOrder).satisfies(o -> {
+            assertThat(o.getOrderTotal()).isEqualByComparingTo(BigDecimal.valueOf((110 - 20) * 5 * 1.05 * 1.1));
+            assertThat(o.getServiceCharge()).isEqualByComparingTo(o.getTotal().getAmountWithTax().multiply(new BigDecimal("0.1")));
+        });
     }
 
     @Test

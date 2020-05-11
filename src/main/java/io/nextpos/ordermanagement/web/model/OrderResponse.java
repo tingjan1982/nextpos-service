@@ -76,17 +76,21 @@ public class OrderResponse {
 
         private String productId;
 
+        private OrderLineItem.LineItemState state;
+
         private String productName;
 
+        private String options;
+
         private BigDecimal price;
-        
+
         private int quantity;
 
         private TaxableAmount subTotal;
 
-        private OrderLineItem.LineItemState state;
+        private TaxableAmount discountedSubTotal;
 
-        private String options;
+        private OfferApplicableObject.AppliedOfferInfo appliedOfferInfo;
 
         private Date modifiedDate;
     }

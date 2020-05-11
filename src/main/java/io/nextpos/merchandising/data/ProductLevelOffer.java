@@ -94,4 +94,35 @@ public class ProductLevelOffer extends Offer implements DiscountCalculator<Order
     public EnumSet<DiscountType> supportedDiscountType() {
         return EnumSet.allOf(DiscountType.class);
     }
+
+    public enum GlobalProductDiscount {
+
+        DISCOUNT_PERCENT_OFF("Discount %", DiscountType.PERCENT_OFF, BigDecimal.valueOf(0)),
+        DISCOUNT_AMOUNT_OFF("Discount $", DiscountType.AMOUNT_OFF, BigDecimal.valueOf(0));
+
+        private final String discountName;
+
+        private final DiscountType discountType;
+
+        private final BigDecimal discount;
+
+
+        GlobalProductDiscount(final String discountName, final DiscountType discountType, final BigDecimal discount) {
+            this.discountName = discountName;
+            this.discountType = discountType;
+            this.discount = discount;
+        }
+
+        public String getDiscountName() {
+            return discountName;
+        }
+
+        public DiscountType getDiscountType() {
+            return discountType;
+        }
+
+        public BigDecimal getDiscount() {
+            return discount;
+        }
+    }
 }

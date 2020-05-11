@@ -22,10 +22,13 @@ public class OfferServiceImpl implements OfferService {
 
     private final Map<OrderLevelOffer.GlobalOrderDiscount, OrderLevelOffer> globalOrderLevelOffers;
 
+    private final Map<ProductLevelOffer.GlobalProductDiscount, ProductLevelOffer> globalProductLevelOffers;
+
     @Autowired
-    public OfferServiceImpl(final OfferRepository offerRepository, final Map<OrderLevelOffer.GlobalOrderDiscount, OrderLevelOffer> globalOrderLevelOffers) {
+    public OfferServiceImpl(final OfferRepository offerRepository, final Map<OrderLevelOffer.GlobalOrderDiscount, OrderLevelOffer> globalOrderLevelOffers, final Map<ProductLevelOffer.GlobalProductDiscount, ProductLevelOffer> globalProductLevelOffers) {
         this.offerRepository = offerRepository;
         this.globalOrderLevelOffers = globalOrderLevelOffers;
+        this.globalProductLevelOffers = globalProductLevelOffers;
     }
 
     @Override
@@ -71,8 +74,22 @@ public class OfferServiceImpl implements OfferService {
     }
 
     @Override
-    public OrderLevelOffer getGlobalOfferByName(OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount) {
-
+    public OrderLevelOffer getGlobalOrderOffer(OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount) {
         return globalOrderLevelOffers.get(globalOrderDiscount);
+    }
+
+    @Override
+    public ProductLevelOffer getGlobalProductOffer(ProductLevelOffer.GlobalProductDiscount globalProductDiscount) {
+        return globalProductLevelOffers.get(globalProductDiscount);
+    }
+
+    @Override
+    public Map<OrderLevelOffer.GlobalOrderDiscount, OrderLevelOffer> getGlobalOrderOffers() {
+        return globalOrderLevelOffers;
+    }
+
+    @Override
+    public Map<ProductLevelOffer.GlobalProductDiscount, ProductLevelOffer> getGlobalProductOffers() {
+        return globalProductLevelOffers;
     }
 }

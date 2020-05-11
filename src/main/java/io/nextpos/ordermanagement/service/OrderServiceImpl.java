@@ -1,9 +1,12 @@
 package io.nextpos.ordermanagement.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.merchandising.data.ProductLevelOffer;
+import io.nextpos.merchandising.service.MerchandisingService;
 import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.event.LineItemStateChangeEvent;
 import io.nextpos.ordermanagement.event.OrderStateChangeEvent;
+import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.slf4j.Logger;
@@ -30,6 +33,8 @@ public class OrderServiceImpl implements OrderService {
 
     private final ShiftService shiftService;
 
+    private final MerchandisingService merchandisingService;
+
     private final OrderRepository orderRepository;
 
     private final OrderStateChangeRepository orderStateChangeRepository;
@@ -37,8 +42,9 @@ public class OrderServiceImpl implements OrderService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
-    public OrderServiceImpl(final ShiftService shiftService, final OrderRepository orderRepository, final OrderStateChangeRepository orderStateChangeRepository, final ApplicationEventPublisher applicationEventPublisher) {
+    public OrderServiceImpl(final ShiftService shiftService, final MerchandisingService merchandisingService, final OrderRepository orderRepository, final OrderStateChangeRepository orderStateChangeRepository, final ApplicationEventPublisher applicationEventPublisher) {
         this.shiftService = shiftService;
+        this.merchandisingService = merchandisingService;
         this.orderRepository = orderRepository;
         this.orderStateChangeRepository = orderStateChangeRepository;
         this.applicationEventPublisher = applicationEventPublisher;
@@ -88,10 +94,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order updateOrderLineItem(final String id, final String lineItemId, final int quantity, final List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots) {
+    public Order updateOrderLineItem(final Order order, final UpdateLineItem updateLineItem) {
 
-        final Order order = this.getOrder(id);
-        order.updateOrderLineItem(lineItemId, quantity, productOptionSnapshots);
+        order.updateOrderLineItem(updateLineItem, (lineItem) -> {
+            final ProductLevelOffer.GlobalProductDiscount globalProductDiscount = updateLineItem.getGlobalProductDiscount();
+
+            if (globalProductDiscount != null) {
+                merchandisingService.applyGlobalProductDiscount(lineItem, globalProductDiscount, updateLineItem.getDiscountValue());
+            }
+
+            lineItem.updateQuantityAndProductOptions(updateLineItem.getQuantity(), updateLineItem.getProductOptionSnapshots());
+        });
 
 //        final Query query = new Query(where("orderLineItems.id").is(lineItemId));
 //        final Update update = new Update().set("orderLineItems.$.quantity", updateOrderLineItemRequest.getQuantity());
