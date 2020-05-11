@@ -1,6 +1,7 @@
 package io.nextpos.ordermanagement.data;
 
 import io.nextpos.merchandising.data.OfferApplicableObject;
+import io.nextpos.shared.exception.BusinessLogicException;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -96,6 +97,10 @@ public class OrderLineItem implements OfferApplicableObject {
 
         discountedSubTotal = subTotal.newInstance();
         discountedSubTotal.calculate(discountedLineItemTotal);
+
+        if (discountedSubTotal.lessThanZero()) {
+            throw new BusinessLogicException("message.discountedTotalLessThanZero", "Discounted amount cannot be less than zero");
+        }
 
         modifiedDate = new Date();
     }

@@ -4,6 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.merchandising.data.Offer;
 import io.nextpos.merchandising.data.OrderLevelOffer;
+import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.merchandising.service.MerchandisingService;
 import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.service.OrderService;
@@ -301,7 +302,15 @@ public class OrderController {
                                              @Valid @RequestBody UpdateOrderLineItemRequest request) {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
-        final UpdateLineItem updateLineItem = new UpdateLineItem(lineItemId, request.getQuantity(), request.toProductOptionSnapshots(), request.getProductDiscount(), request.getDiscountValue());
+
+        BigDecimal discount = request.getDiscountValue();
+        final ProductLevelOffer.GlobalProductDiscount productDiscount = request.getProductDiscount();
+
+        if (productDiscount.getDiscountType() == Offer.DiscountType.PERCENT_OFF) {
+            discount = discount.divide(BigDecimal.valueOf(100), 2, RoundingMode.CEILING);
+        }
+
+        final UpdateLineItem updateLineItem = new UpdateLineItem(lineItemId, request.getQuantity(), request.toProductOptionSnapshots(), productDiscount, discount);
 
         final Order updatedOrder = orderService.updateOrderLineItem(order, updateLineItem);
 
