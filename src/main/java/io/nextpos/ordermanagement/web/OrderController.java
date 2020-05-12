@@ -273,10 +273,15 @@ public class OrderController {
     @PostMapping("/{id}/lineitems")
     public OrderResponse AddOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                           @PathVariable String id,
-                                          @Valid @RequestBody OrderLineItemRequest orderLineItemRequest) {
+                                          @Valid @RequestBody OrderLineItemRequest request) {
 
         final Order order = orderService.getOrder(id);
-        final OrderLineItem orderLineItem = orderCreationFactory.newOrderLineItem(client, orderLineItemRequest);
+        final OrderLineItem orderLineItem = orderCreationFactory.newOrderLineItem(client, request);
+
+        if (request.getProductDiscount() != null) {
+            BigDecimal discountValue = resolveProductDiscountValue(request.getProductDiscount(), request.getDiscountValue());
+            merchandisingService.applyGlobalProductDiscount(orderLineItem, request.getProductDiscount(), discountValue);
+        }
 
         orderService.addOrderLineItem(order, orderLineItem);
 
@@ -303,18 +308,28 @@ public class OrderController {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
-        BigDecimal discount = request.getDiscountValue();
         final ProductLevelOffer.GlobalProductDiscount productDiscount = request.getProductDiscount();
+        BigDecimal discountValue = request.getDiscountValue();
 
-        if (productDiscount.getDiscountType() == Offer.DiscountType.PERCENT_OFF) {
-            discount = discount.divide(BigDecimal.valueOf(100), 2, RoundingMode.CEILING);
+        if (productDiscount != null) {
+            discountValue = resolveProductDiscountValue(productDiscount, discountValue);
         }
 
-        final UpdateLineItem updateLineItem = new UpdateLineItem(lineItemId, request.getQuantity(), request.toProductOptionSnapshots(), productDiscount, discount);
+        final UpdateLineItem updateLineItem = new UpdateLineItem(lineItemId, request.getQuantity(), request.toProductOptionSnapshots(), productDiscount, discountValue);
 
         final Order updatedOrder = orderService.updateOrderLineItem(order, updateLineItem);
 
         return toOrderResponse(updatedOrder);
+    }
+
+    private BigDecimal resolveProductDiscountValue(ProductLevelOffer.GlobalProductDiscount productDiscount, BigDecimal discountValue) {
+
+        if (productDiscount.getDiscountType() == Offer.DiscountType.PERCENT_OFF) {
+            return discountValue.divide(BigDecimal.valueOf(100), 2, RoundingMode.CEILING);
+        }
+
+        return discountValue;
+
     }
 
     @PostMapping("/{id}/process")

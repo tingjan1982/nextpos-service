@@ -97,7 +97,7 @@ public class ProductLevelOffer extends Offer implements DiscountCalculator<Order
 
     public enum GlobalProductDiscount {
 
-        NO_DISCOUNT("NO Discount", DiscountType.PERCENT_OFF, BigDecimal.valueOf(-1)),
+        NO_DISCOUNT("No Discount", DiscountType.PERCENT_OFF, BigDecimal.valueOf(-1)),
         DISCOUNT_PERCENT_OFF("Discount %", DiscountType.PERCENT_OFF, BigDecimal.valueOf(0)),
         DISCOUNT_AMOUNT_OFF("Discount $", DiscountType.AMOUNT_OFF, BigDecimal.valueOf(0));
 
