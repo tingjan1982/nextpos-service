@@ -13,10 +13,7 @@ import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity(name = "client_user_role")
@@ -50,7 +47,7 @@ public class UserRole extends BaseObject implements ClientObject {
     @ElementCollection(fetch = FetchType.EAGER)
     @Fetch(FetchMode.SUBSELECT)
     @CollectionTable(name = "client_user_role_permission_bundle", joinColumns = @JoinColumn(name = "role_id"))
-    private List<PermissionBundle> permissionBundles = new ArrayList<>();
+    private Set<PermissionBundle> permissionBundles = new HashSet<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Fetch(FetchMode.SUBSELECT)
@@ -63,12 +60,12 @@ public class UserRole extends BaseObject implements ClientObject {
         this.name = name;
     }
 
-    public void updatePermissionBundle(List<PermissionBundle> permissionBundlesToUpdate) {
+    public void updatePermissionBundle(Set<PermissionBundle> permissionBundlesToUpdate) {
 
         permissionBundles.clear();
         permissions.clear();
 
-        final List<PermissionBundle> updatedPermissionBundles = new ArrayList<>(permissionBundlesToUpdate);
+        final Set<PermissionBundle> updatedPermissionBundles = new HashSet<>(permissionBundlesToUpdate);
         updatedPermissionBundles.add(PermissionBundle.BASE);
         this.setPermissionBundles(updatedPermissionBundles);
 
@@ -77,7 +74,7 @@ public class UserRole extends BaseObject implements ClientObject {
     }
 
     public void addPermissionBundle(PermissionBundle permissionBundle) {
-        updatePermissionBundle(List.of(permissionBundle));
+        updatePermissionBundle(Set.of(permissionBundle));
     }
 
     public void addUserPermission(UserPermission userPermission) {

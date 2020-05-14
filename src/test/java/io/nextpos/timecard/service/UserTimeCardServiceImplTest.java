@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * This annotation runs the test without embedded mongodb:
  * https://stackoverflow.com/questions/52604062/how-to-disable-flapdoodle-embedded-mongodb-in-certain-tests
  *
- * \@TestPropertySource(properties = "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration")
+ * @TestPropertySource(properties = "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration")
  */
 @SpringBootTest
 @Transactional

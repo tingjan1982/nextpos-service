@@ -5,8 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -15,5 +15,5 @@ public class UserRoleRequest {
     @NotBlank
     private String roleName;
 
-    private List<PermissionBundle> permissions = new ArrayList<>();
+    private Set<PermissionBundle> permissions = new HashSet<>();
 }

@@ -295,6 +295,7 @@ public class ClientController {
                 clientUser.getName(),
                 clientUser.getPassword(),
                 roles,
+                clientUser.getUserRole() != null ? clientUser.getUserRole().getId() : null,
                 clientUser.isDefaultUser(),
                 clientUser.getPermissions());
     }

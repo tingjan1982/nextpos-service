@@ -4,7 +4,7 @@ import io.nextpos.roles.data.PermissionBundle;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @AllArgsConstructor
@@ -14,6 +14,6 @@ public class UserRoleResponse {
 
     private String roleName;
 
-    private List<PermissionBundle> permissions;
+    private Set<PermissionBundle> permissions;
 
 }
