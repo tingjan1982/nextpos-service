@@ -47,6 +47,7 @@ public class OrderLineItem implements OfferApplicableObject {
 
         this.state = LineItemState.OPEN;
         this.subTotal = new TaxableAmount(orderSettings.getTaxRate(), orderSettings.isTaxInclusive());
+        this.discountedSubTotal = new TaxableAmount(orderSettings.getTaxRate(), orderSettings.isTaxInclusive());
 
         computeSubTotal();
 
@@ -61,6 +62,13 @@ public class OrderLineItem implements OfferApplicableObject {
         taxableProductPrice.calculate(productTotal);
 
         return taxableProductPrice;
+    }
+
+    public void incrementQuantity() {
+        this.quantity++;
+        modifiedDate = new Date();
+
+        computeSubTotal();
     }
 
     public void updateQuantityAndProductOptions(int quantity, List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots) {

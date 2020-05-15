@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -34,6 +35,8 @@ import static io.nextpos.ordermanagement.data.Order.OrderState.*;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class Order extends MongoBaseObject implements WithClientId, OfferApplicableObject {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(Order.class);
 
     public static final String COPY_FROM_ORDER = "copyFromOrder";
 
@@ -162,9 +165,42 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     private void addLineItemToOrder(final OrderLineItem orderLineItem) {
 
-        final String orderLineItemId = this.id + "-" + internalCounter.getAndIncrement();
-        orderLineItem.setId(orderLineItemId);
-        orderLineItems.add(orderLineItem);
+        findMergeableLineItemByProductId(orderLineItem).ifPresentOrElse(li -> {
+            LOGGER.info("Line item {} is mergeable, incrementing its quantity to {}", li, li.getQuantity() + 1);
+            li.incrementQuantity();
+
+        }, () -> {
+            final String orderLineItemId = this.id + "-" + internalCounter.getAndIncrement();
+            orderLineItem.setId(orderLineItemId);
+            orderLineItems.add(orderLineItem);
+        });
+    }
+
+    private Optional<OrderLineItem> findMergeableLineItemByProductId(OrderLineItem orderLineItem) {
+        return orderLineItems.stream()
+                .filter(l -> l.getProductSnapshot().getId().equals(orderLineItem.getProductSnapshot().getId()))
+                .filter(li -> isLineItemMergeable(li, orderLineItem)).findFirst();
+    }
+
+    private boolean isLineItemMergeable(final OrderLineItem existingLineItem, final OrderLineItem orderLineItem) {
+
+        if (!CollectionUtils.isEmpty(orderLineItem.getProductSnapshot().getProductOptions())) {
+            return false;
+        }
+
+        if (!CollectionUtils.isEmpty(existingLineItem.getProductSnapshot().getProductOptions())) {
+            return false;
+        }
+
+        if (existingLineItem.getState() != OrderLineItem.LineItemState.OPEN) {
+            return false;
+        }
+
+        if (existingLineItem.getAppliedOfferInfo() != null) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
