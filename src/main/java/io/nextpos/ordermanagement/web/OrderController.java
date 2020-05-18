@@ -170,7 +170,7 @@ public class OrderController {
     public TablesResponse getTables(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
         final List<String> occupiedTableIds = orderService.getInflightOrders(client.getId()).stream()
-                .filter(o -> o.getTableInfo() != null)
+                .filter(o -> StringUtils.isNotBlank(o.getTableInfo().getTableId()))
                 .map(o -> o.getTableInfo().getTableId())
                 .collect(Collectors.toList());
 
