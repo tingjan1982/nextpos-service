@@ -10,6 +10,7 @@ import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -17,15 +18,17 @@ import java.util.List;
 @Entity(name = "client_product_label")
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "clientId"})})
 @Data
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class ProductLabel extends BaseObject implements ClientObject {
 
     @Id
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
+    @EqualsAndHashCode.Include
     private String id;
 
+    @EqualsAndHashCode.Include
     private String name;
 
     @ManyToOne
@@ -43,7 +46,7 @@ public class ProductLabel extends BaseObject implements ClientObject {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private WorkingArea workingArea;
-    
+
     private String orderKey;
 
     /**
@@ -61,6 +64,14 @@ public class ProductLabel extends BaseObject implements ClientObject {
     public ProductLabel(final String name, final Client client) {
         this.name = name;
         this.client = client;
+    }
+
+    public static ProductLabel dynamicLabel(Client client, String name) {
+
+        final ProductLabel productLabel = new ProductLabel(name, client);
+        productLabel.setId(name);
+
+        return productLabel;
     }
 
     public ProductLabel addChildProductLabel(String labelName) {
@@ -87,15 +98,15 @@ public class ProductLabel extends BaseObject implements ClientObject {
         return new ProductOptionRelation.ProductOptionOfLabel(productOption, this);
     }
 
-    public static class ProductLabelComparator implements Comparator<ProductLabel> {
+    public static class ProductLabelComparator implements Comparator<ProductLabel>, Serializable {
         @Override
         public int compare(final ProductLabel o1, final ProductLabel o2) {
 
-            if (o1.getOrderKey() != null && o2.getOrderKey() != null) {
-                return o1.getOrderKey().compareTo(o2.getOrderKey());
-            }
+            final Comparator<ProductLabel> chainedComparator = Comparator.comparing(ProductLabel::getId)
+                    .thenComparing(ProductLabel::getName)
+                    .thenComparing(l -> l.getOrderKey() != null ? l.getOrderKey() : "");
 
-            return o1.getName().compareTo(o2.getName());
+            return chainedComparator.compare(o1, o2);
         }
     }
 }

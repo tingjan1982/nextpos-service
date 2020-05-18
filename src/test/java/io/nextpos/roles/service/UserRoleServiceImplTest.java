@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.transaction.Transactional;
-import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -56,7 +56,7 @@ class UserRoleServiceImplTest {
         assertThat(savedClientUser.getPermissions()).isEqualTo(userRole.getPermissionsAsString());
 
         userRole.setName("updated role");
-        userRole.setPermissionBundles(List.of(PermissionBundle.CREATE_ORDER, PermissionBundle.DELETE_ORDER));
+        userRole.setPermissionBundles(Set.of(PermissionBundle.CREATE_ORDER, PermissionBundle.DELETE_ORDER));
 
         final UserRole updatedUserRole = userRoleService.updateUserRole(userRole);
 

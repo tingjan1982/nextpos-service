@@ -2,6 +2,7 @@ package io.nextpos.ordermanagement.web.factory;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
+import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.web.model.OrderLineItemRequest;
 import io.nextpos.ordermanagement.web.model.OrderProductOptionRequest;
@@ -62,7 +63,7 @@ class OrderCreationFactoryImplTest {
         productService.deployProduct(product.getId());
 
         final OrderProductOptionRequest poRequest = new OrderProductOptionRequest("ice", "normal", BigDecimal.ZERO);
-        final OrderLineItemRequest line1 = new OrderLineItemRequest(product.getId(), 1, List.of(poRequest));
+        final OrderLineItemRequest line1 = new OrderLineItemRequest(product.getId(), 1, List.of(poRequest), ProductLevelOffer.GlobalProductDiscount.NO_DISCOUNT, BigDecimal.ZERO);
         final OrderRequest request = new OrderRequest(Order.OrderType.IN_STORE, tableDetails.getId(), null,  null, List.of(line1));
 
         final Order order = orderCreationFactory.newOrder(client, request);

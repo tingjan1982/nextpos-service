@@ -35,8 +35,8 @@ public class ProductSearchServiceImpl implements ProductSearchService {
     public Map<ProductLabel, List<ProductVersion>> getAllProductsGroupedByLabels(final Client client, final Version version) {
 
         final List<ProductLabel> productLabels = productLabelService.getProductLabels(client);
-        final ProductLabel ungroupedLabel = new ProductLabel("ungrouped", client);
-        
+        final ProductLabel ungroupedLabel = ProductLabel.dynamicLabel(client, "ungrouped");
+
 
         final List<ProductVersion> products = productVersionRepository.findAllProductsByClient(client, version);
 
@@ -48,7 +48,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
                         () -> new TreeMap<>(new ProductLabel.ProductLabelComparator()),
                         Collectors.toList()));
 
-        final ProductLabel pinnedLabel = new ProductLabel("pinned", client);
+        final ProductLabel pinnedLabel = ProductLabel.dynamicLabel(client, "pinned");
         final Sort sortByProductName = Sort.by(Sort.Order.asc("productName"));
         final List<ProductVersion> pinnedProducts = productVersionRepository.findAllByProduct_ClientAndVersionAndProduct_Pinned(client, version, true, sortByProductName);
         groupedProducts.put(pinnedLabel, pinnedProducts);
