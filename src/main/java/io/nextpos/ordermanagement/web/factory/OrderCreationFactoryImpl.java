@@ -63,7 +63,7 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
 
         final OrderSettings orderSettings = createOrderSettings(client);
 
-        final Order order = new Order(client.getId(), orderSettings);
+        final Order order = Order.newOrder(client.getId(), orderRequest.getOrderType(), orderSettings);
         String serialId = orderService.generateSerialId(client.getId());
         order.setSerialId(serialId);
 
@@ -97,27 +97,13 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
 
     private void updateTableInfo(Order order, Order.OrderType orderType, String tableId, String tableNote) {
 
-        switch (orderType) {
-            case IN_STORE:
-                if (StringUtils.isBlank(tableId)) {
-                    throw new BusinessLogicException("Table id cannot be empty for an in-store order");
-                }
+        if (orderType == Order.OrderType.IN_STORE) {
+            if (StringUtils.isBlank(tableId)) {
+                throw new BusinessLogicException("Table id cannot be empty for an in-store order");
+            }
 
-                tableLayoutService.getTableDetails(tableId).ifPresent(t -> {
-                    final Order.TableInfo tableInfo = new Order.TableInfo(t);
-                    order.setTableInfo(tableInfo);
-                });
-
-                break;
-
-            case TAKE_OUT:
-                order.setTableInfo(null);
-
-                break;
+            tableLayoutService.getTableDetails(tableId).ifPresent(t -> order.getTableInfo().updateTableInfo(t, tableNote));
         }
-
-        order.setOrderType(orderType);
-        order.setTableNote(tableNote);
     }
 
     @Override

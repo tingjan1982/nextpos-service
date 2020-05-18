@@ -86,15 +86,13 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     private OfferApplicableObject.AppliedOfferInfo appliedOfferInfo;
 
-    private TableInfo tableInfo;
-
-    private String tableNote;
+    private TableInfo tableInfo = new TableInfo();
 
     private String servedBy;
 
     private OrderSettings orderSettings;
 
-    private DemographicData demographicData;
+    public DemographicData demographicData = new DemographicData();
 
     /**
      * Data that is not presented to the user and is not business information.
@@ -120,14 +118,23 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         this.lookupOrderId = id;
         this.clientId = clientId;
         this.state = OPEN;
+        this.tableInfo = new TableInfo();
         this.total = new TaxableAmount(orderSettings.getTaxRate(), orderSettings.isTaxInclusive());
+        this.discountedTotal = new TaxableAmount(orderSettings.getTaxRate(), orderSettings.isTaxInclusive());
         this.currency = orderSettings.getCurrency();
         this.internalCounter = new AtomicInteger(1);
         this.orderSettings = orderSettings;
+        this.demographicData = new DemographicData();
 
         this.addMetadata(ORIGINAL_ORDER_SETTINGS, orderSettings.copy());
     }
 
+    public static Order newOrder(String clientId, OrderType orderType, OrderSettings orderSettings) {
+        final Order order = new Order(clientId, orderSettings);
+        order.setOrderType(orderType);
+
+        return order;
+    }
     /**
      * https://jira.spring.io/browse/DATAMONGO-946
      *
@@ -136,10 +143,6 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     @Override
     public boolean isNew() {
         return version == null;
-    }
-
-    public String getTableDisplayName() {
-        return tableInfo != null ? tableInfo.getTableName() : tableNote;
     }
 
     /**
@@ -322,15 +325,6 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         orderTotal = totalBeforeServiceCharge.add(serviceCharge);
     }
 
-    public int getCustomerCount() {
-
-        if (demographicData != null) {
-            return demographicData.male + demographicData.female + demographicData.kid;
-        }
-
-        return 0;
-    }
-
     public OrderDuration getOrderDuration() {
         final Duration duration = Duration.between(this.getCreatedDate().toInstant(), this.getModifiedDate().toInstant());
 
@@ -356,6 +350,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         copy.lookupOrderId = copy.id;
         copy.serialId = serialId;
         copy.clientId = clientId;
+        copy.orderType = orderType;
         copy.state = state;
         copy.orderTotal = orderTotal;
         copy.total = total.copy();
@@ -363,6 +358,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         copy.discount = discount;
         copy.serviceCharge = serviceCharge;
         copy.currency = currency;
+        copy.appliedOfferInfo = appliedOfferInfo != null ? appliedOfferInfo.copy() : null;
         copy.tableInfo = tableInfo != null ? tableInfo.copy() : null;
         copy.servedBy = servedBy;
         copy.internalCounter = new AtomicInteger(1);
@@ -493,7 +489,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     @Data
     @NoArgsConstructor(access = AccessLevel.PACKAGE)
-    @AllArgsConstructor
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class TableInfo {
 
         private String tableLayoutId;
@@ -504,20 +500,28 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
         private String tableName;
 
-        public TableInfo(TableLayout.TableDetails tableDetails) {
+        private String tableNote;
+
+        public void updateTableInfo(TableLayout.TableDetails tableDetails, String tableNote) {
             this.tableLayoutId = tableDetails.getTableLayout().getId();
             this.tableLayoutName = tableDetails.getTableLayout().getLayoutName();
             this.tableId = tableDetails.getId();
             this.tableName = tableDetails.getTableName();
+            this.tableNote = tableNote;
+        }
+
+        public String getDisplayName() {
+            return StringUtils.isNotBlank(tableName) ? tableName : tableNote;
         }
 
         public TableInfo copy() {
-            return new TableInfo(tableLayoutId, tableLayoutName, tableId, tableName);
+            return new TableInfo(tableLayoutId, tableLayoutName, tableId, tableName, tableNote);
         }
     }
 
     @Data
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class DemographicData {
 
         private int male;
@@ -531,14 +535,12 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         private VisitFrequency visitFrequency;
 
         DemographicData copy() {
-            final DemographicData demographicData = new DemographicData();
-            demographicData.male = male;
-            demographicData.female = female;
-            demographicData.kid = kid;
-            demographicData.ageGroup = ageGroup;
-            demographicData.visitFrequency = visitFrequency;
+            return new DemographicData(male, female, kid, ageGroup, visitFrequency);
+        }
 
-            return demographicData;
+        public int getCustomerCount() {
+            return male + female + kid;
+
         }
 
         public enum AgeGroup {

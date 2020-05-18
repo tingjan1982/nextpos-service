@@ -70,7 +70,7 @@ class OrderServiceImplTest {
     void createAndGetOrder() {
 
         final Order order = new Order(client.getId(), orderSettings);
-        order.setTableInfo(new Order.TableInfo(tableDetails));
+        order.getTableInfo().updateTableInfo(tableDetails, null);
 
         final List<ProductSnapshot.ProductOptionSnapshot> options = List.of(
                 new ProductSnapshot.ProductOptionSnapshot("ice", "1/3"),
@@ -172,7 +172,8 @@ class OrderServiceImplTest {
     @Test
     void copyOrder() {
 
-        final Order order = new Order(client.getId(), orderSettings);
+        final Order order = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
+
         order.addOrderLineItem(DummyObjects.productSnapshot(), 5);
 
         final ProductSnapshot productWithOption = new ProductSnapshot("pid",

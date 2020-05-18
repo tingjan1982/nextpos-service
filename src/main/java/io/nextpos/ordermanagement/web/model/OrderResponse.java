@@ -29,8 +29,6 @@ public class OrderResponse {
 
     private final Order.TableInfo tableInfo;
 
-    private final String tableNote;
-
     private final String tableDisplayName;
 
     private final String servedBy;

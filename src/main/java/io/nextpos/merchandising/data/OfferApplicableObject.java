@@ -1,6 +1,7 @@
 package io.nextpos.merchandising.data;
 
 import io.nextpos.ordermanagement.data.TaxableAmount;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -53,6 +54,7 @@ public interface OfferApplicableObject {
 
     @Data
     @NoArgsConstructor
+    @AllArgsConstructor
     class AppliedOfferInfo {
 
         private String offerId;
@@ -71,6 +73,10 @@ public interface OfferApplicableObject {
             this.offerType = offer.getClass().getSimpleName();
             this.discountDetails = offer.getDiscountDetails();
             this.overrideDiscount = overrideDiscount;
+        }
+
+        public AppliedOfferInfo copy() {
+            return new AppliedOfferInfo(offerId, offerName, offerType, discountDetails, overrideDiscount);
         }
     }
 }
