@@ -195,6 +195,8 @@ public class OrderServiceImpl implements OrderService {
 
         final Order order = this.getOrder(id);
         Order copiedOrder = order.copy();
+        copiedOrder.setState(Order.OrderState.OPEN);
+        copiedOrder.getOrderLineItems().forEach(li -> li.setState(OrderLineItem.LineItemState.OPEN));
 
         return this.saveOrder(copiedOrder);
     }

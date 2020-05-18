@@ -450,7 +450,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
          */
         SUBMIT(EnumSet.of(OPEN, IN_PROCESS, DELIVERED), IN_PROCESS),
         CANCEL(EnumSet.of(OPEN, IN_PROCESS), CANCELLED),
-        DELETE(EnumSet.of(OPEN, CANCELLED, IN_PROCESS, DELIVERED), DELETED),
+        DELETE(EnumSet.of(OPEN, CANCELLED, IN_PROCESS, DELIVERED, SETTLED, REFUNDED, COMPLETED), DELETED),
         /**
          * Used to mark line item as delivered.
          */
