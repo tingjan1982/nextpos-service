@@ -187,8 +187,9 @@ class OrderServiceImplTest {
 
         final Order copiedOrder = orderService.copyOrder(order.getId());
 
-        assertThat(copiedOrder.getMetadata(Order.COPY_FROM_ORDER)).isEqualTo(order.getId());
-        assertThat(copiedOrder).isEqualToIgnoringGivenFields(order, "id", "lookupOrderId", "orderLineItems", "metadata", "internalCounter", "createdDate", "modifiedDate");
+        assertThat(copiedOrder.getMetadata(Order.COPY_FROM_ORDER_ID)).isEqualTo(order.getId());
+        assertThat(copiedOrder.getMetadata(Order.COPY_FROM_SERIAL_ID)).isEqualTo(order.getSerialId());
+        assertThat(copiedOrder).isEqualToIgnoringGivenFields(order, "id", "serialId", "lookupOrderId", "orderLineItems", "metadata", "internalCounter", "createdDate", "modifiedDate");
         assertThat(copiedOrder.getOrderLineItems()).usingElementComparatorIgnoringFields("id", "createdDate", "modifiedDate").isEqualTo(order.getOrderLineItems());
     }
 }

@@ -38,7 +38,9 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Order.class);
 
-    public static final String COPY_FROM_ORDER = "copyFromOrder";
+    public static final String COPY_FROM_ORDER_ID = "copyFromOrderId";
+
+    public static final String COPY_FROM_SERIAL_ID = "copyFromSerialId";
 
     public static final String ORIGINAL_ORDER_SETTINGS = "originalOrderSettings";
 
@@ -374,7 +376,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         copy.orderSettings = orderSettings;
 
         copy.metadata = metadata;
-        copy.addMetadata(COPY_FROM_ORDER, id);
+        copy.addMetadata(COPY_FROM_ORDER_ID, id);
+        copy.addMetadata(COPY_FROM_SERIAL_ID, serialId);
 
         return copy;
     }

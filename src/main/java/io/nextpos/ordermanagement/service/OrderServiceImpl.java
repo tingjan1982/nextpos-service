@@ -9,6 +9,7 @@ import io.nextpos.ordermanagement.event.OrderStateChangeEvent;
 import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import io.nextpos.storage.service.DistributedCounterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.transaction.Transactional;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -35,6 +38,8 @@ public class OrderServiceImpl implements OrderService {
 
     private final MerchandisingService merchandisingService;
 
+    private final DistributedCounterService distributedCounterService;
+
     private final OrderRepository orderRepository;
 
     private final OrderStateChangeRepository orderStateChangeRepository;
@@ -42,9 +47,10 @@ public class OrderServiceImpl implements OrderService {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
-    public OrderServiceImpl(final ShiftService shiftService, final MerchandisingService merchandisingService, final OrderRepository orderRepository, final OrderStateChangeRepository orderStateChangeRepository, final ApplicationEventPublisher applicationEventPublisher) {
+    public OrderServiceImpl(final ShiftService shiftService, final MerchandisingService merchandisingService, final DistributedCounterService distributedCounterService, final OrderRepository orderRepository, final OrderStateChangeRepository orderStateChangeRepository, final ApplicationEventPublisher applicationEventPublisher) {
         this.shiftService = shiftService;
         this.merchandisingService = merchandisingService;
+        this.distributedCounterService = distributedCounterService;
         this.orderRepository = orderRepository;
         this.orderStateChangeRepository = orderStateChangeRepository;
         this.applicationEventPublisher = applicationEventPublisher;
@@ -195,9 +201,16 @@ public class OrderServiceImpl implements OrderService {
 
         final Order order = this.getOrder(id);
         Order copiedOrder = order.copy();
+        copiedOrder.setSerialId(this.generateSerialId(order.getClientId()));
         copiedOrder.setState(Order.OrderState.OPEN);
         copiedOrder.getOrderLineItems().forEach(li -> li.setState(OrderLineItem.LineItemState.OPEN));
 
         return this.saveOrder(copiedOrder);
+    }
+
+    @Override
+    public String generateSerialId(String clientId) {
+        final int counter = distributedCounterService.getNextRotatingCounter(clientId);
+        return LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "-" + counter;
     }
 }

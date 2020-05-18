@@ -46,4 +46,6 @@ public interface OrderService {
     List<OrderLineItem> deliverLineItems(String orderId, List<String> lineItemIds);
 
     Order copyOrder(String id);
+
+    String generateSerialId(String clientId);
 }
