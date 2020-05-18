@@ -23,6 +23,7 @@ import io.nextpos.shared.web.model.SimpleObjectResponse;
 import io.nextpos.shared.web.model.SimpleObjectsResponse;
 import io.nextpos.tablelayout.service.TableLayoutService;
 import io.nextpos.tablelayout.web.model.TableDetailsResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -146,8 +147,8 @@ public class OrderController {
     private OrdersResponse toOrdersResponse(final List<Order> orders) {
         final Map<String, List<OrdersResponse.LightOrderResponse>> orderResponses = orders.stream()
                 .map(o -> {
-                    String tableLayoutId = o.getTableInfo() != null ? o.getTableInfo().getTableLayoutId() : "NO_LAYOUT";
-                    String tableLayoutName = o.getTableInfo() != null ? o.getTableInfo().getTableLayoutName() : "N/A";
+                    String tableLayoutId = StringUtils.defaultIfBlank(o.getTableInfo().getTableLayoutId(), "NO_LAYOUT");
+                    String tableLayoutName = StringUtils.defaultIfBlank(o.getTableInfo().getTableLayoutName(), "N/A");
 
                     return new OrdersResponse.LightOrderResponse(o.getId(),
                             o.getOrderType(),
