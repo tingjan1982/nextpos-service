@@ -150,7 +150,10 @@ public class OrderController {
                     String tableLayoutId = StringUtils.defaultIfBlank(o.getTableInfo().getTableLayoutId(), "NO_LAYOUT");
                     String tableLayoutName = StringUtils.defaultIfBlank(o.getTableInfo().getTableLayoutName(), "N/A");
 
+
                     return new OrdersResponse.LightOrderResponse(o.getId(),
+                            o.getSerialId(),
+                            StringUtils.substringAfter(o.getSerialId(), "-"),
                             o.getOrderType(),
                             tableLayoutId,
                             tableLayoutName,
@@ -158,7 +161,6 @@ public class OrderController {
                             o.getDemographicData().getCustomerCount(),
                             o.getCreatedDate(),
                             o.getState(),
-                            o.getTotal(),
                             o.getOrderTotal());
                 })
                 .collect(Collectors.groupingBy(OrdersResponse.LightOrderResponse::getTableLayoutId, Collectors.toList()));

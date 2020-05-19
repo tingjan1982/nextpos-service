@@ -1,7 +1,6 @@
 package io.nextpos.ordermanagement.web.model;
 
 import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.TaxableAmount;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -25,6 +24,10 @@ public class OrdersResponse {
 
         private String orderId;
 
+        private String serialId;
+
+        private String serialIdSuffix;
+
         private Order.OrderType orderType;
 
         private String tableLayoutId;
@@ -38,8 +41,6 @@ public class OrdersResponse {
         private Date createdTime;
 
         private Order.OrderState state;
-
-        private TaxableAmount total;
 
         private BigDecimal orderTotal;
     }
