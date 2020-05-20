@@ -179,6 +179,21 @@ public class ClientController {
         return toClientUserResponse(createdClientUser);
     }
 
+    private ClientUser fromClientUserRequest(Client client, ClientUserRequest clientUserRequest) {
+
+        final String roles = String.join(",", clientUserRequest.getRoles());
+        final ClientUser.ClientUserId id = new ClientUser.ClientUserId(clientUserRequest.getUsername().trim(), client.getUsername());
+        final ClientUser clientUser = new ClientUser(id, clientUserRequest.getPassword(), roles);
+        clientUser.setNickname(clientUserRequest.getNickname().trim());
+
+        if (StringUtils.isNotBlank(clientUserRequest.getUserRoleId())) {
+            final UserRole userRole = userRoleService.loadUserRole(clientUserRequest.getUserRoleId());
+            clientUser.setUserRole(userRole);
+        }
+
+        return clientUser;
+    }
+
     @GetMapping("/me/users/{username}")
     public ClientUserResponse getClientUser(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                             @PathVariable final String username) {
@@ -209,7 +224,7 @@ public class ClientController {
                                                @PathVariable final String username,
                                                @Valid @RequestBody UpdateClientUserRequest updateClientUserRequest) {
 
-        final ClientUser clientUser = clientService.getClientUser(client, username);
+        final ClientUser clientUser = clientService.loadClientUser(client, username);
 
         if (clientUser.isDefaultUser()) {
             throw new GeneralApplicationException("Default client user cannot be updated.");
@@ -219,6 +234,20 @@ public class ClientController {
 
         clientService.saveClientUser(clientUser);
         return toClientUserResponse(clientUser);
+    }
+
+    private void updateClientUserFromRequest(final ClientUser clientUser, final UpdateClientUserRequest updateClientUserRequest) {
+
+        clientUser.setNickname(updateClientUserRequest.getNickname());
+        final String roles = String.join(",", updateClientUserRequest.getRoles());
+        clientUser.setRoles(roles);
+
+        if (StringUtils.isNotBlank(updateClientUserRequest.getUserRoleId())) {
+            final UserRole userRole = userRoleService.loadUserRole(updateClientUserRequest.getUserRoleId());
+            clientUser.setUserRole(userRole);
+        } else {
+            clientUser.removeUserRole();
+        }
     }
 
     @PatchMapping(value = "/me/users/{username}/password")
@@ -258,33 +287,6 @@ public class ClientController {
         }
 
         return toClientUserResponse(updatedClientUser);
-    }
-
-    private void updateClientUserFromRequest(final ClientUser clientUser, final UpdateClientUserRequest updateClientUserRequest) {
-
-        clientUser.setNickname(updateClientUserRequest.getNickname());
-        final String roles = String.join(",", updateClientUserRequest.getRoles());
-        clientUser.setRoles(roles);
-
-        if (StringUtils.isNotBlank(updateClientUserRequest.getUserRoleId())) {
-            final UserRole userRole = userRoleService.loadUserRole(updateClientUserRequest.getUserRoleId());
-            clientUser.setUserRole(userRole);
-        }
-    }
-
-    private ClientUser fromClientUserRequest(Client client, ClientUserRequest clientUserRequest) {
-
-        final String roles = String.join(",", clientUserRequest.getRoles());
-        final ClientUser.ClientUserId id = new ClientUser.ClientUserId(clientUserRequest.getUsername().trim(), client.getUsername());
-        final ClientUser clientUser = new ClientUser(id, clientUserRequest.getPassword(), roles);
-        clientUser.setNickname(clientUserRequest.getNickname().trim());
-
-        if (StringUtils.isNotBlank(clientUserRequest.getUserRoleId())) {
-            final UserRole userRole = userRoleService.loadUserRole(clientUserRequest.getUserRoleId());
-            clientUser.setUserRole(userRole);
-        }
-
-        return clientUser;
     }
 
     private ClientUserResponse toClientUserResponse(ClientUser clientUser) {

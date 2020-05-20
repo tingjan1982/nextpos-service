@@ -59,6 +59,9 @@ class ClientServiceImplTest {
         assertThat(createdUser.getPassword()).startsWith("{bcrypt}");
         assertThat(createdUser.getId()).isEqualTo(clientUser.getId());
 
+        final ClientUser loadedClientUser = clientService.loadClientUser(client, username);
+        assertThat(loadedClientUser).isNotNull();
+
         final UserDetails userDetails = clientService.loadUserByUsername(username);
         assertThat(userDetails).isNotNull();
 

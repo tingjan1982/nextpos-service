@@ -10,6 +10,15 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 @Entity(name = "client_user")
+@NamedEntityGraph(name = "ClientUser.userRole",
+        attributeNodes = @NamedAttributeNode(value = "userRole", subgraph = "ClientUser.userRole.clientUsers"),
+        subgraphs = {
+                @NamedSubgraph(name = "ClientUser.userRole.clientUsers",
+                        attributeNodes = {
+                                @NamedAttributeNode("clientUsers")
+                        })
+        }
+)
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
@@ -51,6 +60,15 @@ public class ClientUser extends BaseObject {
 
         userRole.putClientUser(this);
     }
+
+    public void removeUserRole() {
+        if (this.userRole != null) {
+            this.userRole.removeClientUser(this);
+            this.permissions = "";
+            this.userRole = null;
+        }
+    }
+
 
     /**
      * Represent a meaningful name. Nickname comes first.

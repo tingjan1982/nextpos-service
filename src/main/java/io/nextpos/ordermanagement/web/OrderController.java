@@ -150,7 +150,6 @@ public class OrderController {
                     String tableLayoutId = StringUtils.defaultIfBlank(o.getTableInfo().getTableLayoutId(), "NO_LAYOUT");
                     String tableLayoutName = StringUtils.defaultIfBlank(o.getTableInfo().getTableLayoutName(), "N/A");
 
-
                     return new OrdersResponse.LightOrderResponse(o.getId(),
                             o.getSerialId(),
                             StringUtils.substringAfter(o.getSerialId(), "-"),

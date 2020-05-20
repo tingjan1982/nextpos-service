@@ -56,7 +56,7 @@ class UserRoleServiceImplTest {
         assertThat(savedClientUser.getPermissions()).isEqualTo(userRole.getPermissionsAsString());
 
         userRole.setName("updated role");
-        userRole.setPermissionBundles(Set.of(PermissionBundle.CREATE_ORDER, PermissionBundle.DELETE_ORDER));
+        userRole.updatePermissionBundle(Set.of(PermissionBundle.CREATE_ORDER, PermissionBundle.DELETE_ORDER));
 
         final UserRole updatedUserRole = userRoleService.updateUserRole(userRole);
 
@@ -68,5 +68,13 @@ class UserRoleServiceImplTest {
         assertThat(userToCheck.getUserRole().getPermissionBundles()).hasSize(updatedUserRole.getPermissionBundles().size());
         assertThat(userToCheck.getUserRole().getPermissions()).hasSize(updatedUserRole.getPermissions().size());
         assertThat(userToCheck.getUserRole()).isEqualTo(updatedUserRole);
+
+        userToCheck.removeUserRole();
+        final ClientUser removedRoleUser = clientService.saveClientUser(userToCheck);
+        final UserRole updatedRole2 = userRoleService.getUserRole(updatedUserRole.getId());
+
+        assertThat(removedRoleUser.getUserRole()).isNull();
+        assertThat(removedRoleUser.getPermissions()).isBlank();
+        assertThat(updatedRole2.getClientUsers()).isEmpty();
     }
 }

@@ -30,6 +30,8 @@ public interface ClientService {
 
     ClientUser getClientUser(Client client, String username);
 
+    ClientUser loadClientUser(Client client, String username);
+
     List<ClientUser> getClientUsers(Client client);
 
     ClientUser saveClientUser(ClientUser clientUser);

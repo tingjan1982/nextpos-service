@@ -78,7 +78,6 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
         final String permissions = clientDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).collect(Collectors.joining(","));
 
-
         // client's default user will use email as the username.
         final ClientUser defaultClientUser = new ClientUser(new ClientUser.ClientUserId(client.getUsername(), client.getUsername()), plainPassword, roles);
         defaultClientUser.setNickname(client.getClientName());
@@ -205,6 +204,15 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
 
         final ClientUser.ClientUserId clientUserId = new ClientUser.ClientUserId(username, client.getUsername());
         return clientUserRepository.findById(clientUserId).orElseThrow(() -> {
+            throw new ObjectNotFoundException(clientUserId.toString(), ClientUser.class);
+        });
+    }
+
+    @Override
+    public ClientUser loadClientUser(Client client, String username) {
+
+        final ClientUser.ClientUserId clientUserId = new ClientUser.ClientUserId(username, client.getUsername());
+        return clientUserRepository.loadById(clientUserId).orElseThrow(() -> {
             throw new ObjectNotFoundException(clientUserId.toString(), ClientUser.class);
         });
     }

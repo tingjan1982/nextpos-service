@@ -17,7 +17,6 @@ public enum Permission {
     CLIENT_USER,
     TIME_CARD,
 
-
     TABLE_LAYOUT,
     TABLE,
     WORKING_AREA,

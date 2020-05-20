@@ -5,7 +5,7 @@ import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderStateChange;
 import io.nextpos.ordermanagement.data.OrderStateChangeBean;
 import io.nextpos.ordermanagement.service.OrderService;
-import io.nextpos.shared.exception.GeneralApplicationException;
+import io.nextpos.shared.exception.BusinessLogicException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +63,9 @@ public class OrderStateChangeListener {
         }
 
         final String errorMsg = String.format("Unable to process order action [%s] from the order state [%s], [orderId=%s]", orderAction, orderState, order.getId());
-        event.getFuture().completeExceptionally(new GeneralApplicationException(errorMsg));
+        LOGGER.error("{}", errorMsg);
+
+        event.getFuture().completeExceptionally(new BusinessLogicException("message.unableToChangeState", errorMsg));
     }
 
     private boolean canOrderActionContinue(Order.OrderAction orderAction, Order order) {

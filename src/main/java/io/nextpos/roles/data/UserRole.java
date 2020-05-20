@@ -95,6 +95,10 @@ public class UserRole extends BaseObject implements ClientObject {
         this.clientUsers.putIfAbsent(clientUser.getId(), clientUser);
     }
 
+    public void removeClientUser(ClientUser clientUser) {
+        this.clientUsers.remove(clientUser.getId());
+    }
+
     @Embeddable
     @Data
     @NoArgsConstructor

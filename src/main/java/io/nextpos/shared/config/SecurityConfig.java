@@ -392,9 +392,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         private void authorizeShiftAndOrderRequests(final HttpSecurity http) throws Exception {
 
             http.authorizeRequests()
+                    .antMatchers(POST, "/orders/*/applyDiscount").access("#oauth2.hasScope('write:discount') or hasAuthority('MANAGER')")
                     .antMatchers("/shifts/**").hasAuthority(Role.USER_ROLE)
                     .antMatchers(GET, "/orders/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/orders/**").hasAuthority(Role.USER_ROLE)
+                    .regexMatchers(POST, "\\/orders(\\/?((?!applyDiscount).)+)").hasAuthority(Role.USER_ROLE)
                     .antMatchers(DELETE, "/orders/**").hasAuthority(Role.MANAGER_ROLE);
         }
 
