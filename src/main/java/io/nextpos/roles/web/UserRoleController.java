@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -95,7 +96,7 @@ public class UserRoleController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteUserRole(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                           @PathVariable String id) {
+                               @PathVariable String id) {
 
         final UserRole userRole = clientObjectOwnershipService.checkOwnership(client, () -> userRoleService.loadUserRole(id));
 
@@ -104,7 +105,6 @@ public class UserRoleController {
         }
 
         userRoleService.deleteUserRole(userRole);
-
     }
 
     @GetMapping("/permissions")
@@ -112,7 +112,8 @@ public class UserRoleController {
 
         final Map<PermissionBundle, String> permissionBundles = Arrays.stream(PermissionBundle.values())
                 .filter(p -> p != PermissionBundle.BASE)
-                .collect(Collectors.toMap(p -> p, PermissionBundle::getMessageKey));
+                .collect(Collectors.toMap(p -> p, PermissionBundle::getMessageKey, (a, b) -> b, LinkedHashMap::new));
+
         return new PermissionBundlesResponse(permissionBundles);
     }
 }

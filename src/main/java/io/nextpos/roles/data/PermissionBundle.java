@@ -24,8 +24,10 @@ public enum PermissionBundle {
             UserRole.UserPermission.of(Permission.ANNOUNCEMENT, Permission.Operation.READ)
     )),
 
-    CREATE_ORDER("createOrder", Collections.singletonList(
-            UserRole.UserPermission.of(Permission.ORDER, Permission.Operation.WRITE))),
+    CREATE_ORDER("createOrder", List.of(
+            UserRole.UserPermission.of(Permission.ORDER, Permission.Operation.WRITE),
+            UserRole.UserPermission.of(Permission.DISCOUNT, Permission.Operation.DELETE)
+    )),
 
     DELETE_ORDER("deleteOrder", Collections.singletonList(
             UserRole.UserPermission.of(Permission.ORDER, Permission.Operation.DELETE)

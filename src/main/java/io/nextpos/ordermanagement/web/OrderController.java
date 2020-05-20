@@ -232,6 +232,17 @@ public class OrderController {
         return toOrderResponse(updatedOrder);
     }
 
+    @PostMapping("/{id}/removeDiscount")
+    public OrderResponse removeOrderDiscount(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                            @PathVariable final String id) {
+
+        final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
+
+        final Order updatedOrder = merchandisingService.applyGlobalOrderDiscount(order, OrderLevelOffer.GlobalOrderDiscount.NO_DISCOUNT, BigDecimal.ZERO);
+
+        return toOrderResponse(updatedOrder);
+    }
+
     @PostMapping("/{id}/waiveServiceCharge")
     public OrderResponse waiveServiceCharge(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                             @PathVariable final String id,
