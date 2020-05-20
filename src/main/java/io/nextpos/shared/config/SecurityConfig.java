@@ -72,10 +72,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     /**
      * Use basic auth only to authenticate /actuator and /counter requests.
-     *
+     * <p>
      * Reference to configuring multiple HttpSecurity with @Order:
      * https://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#multiple-httpsecurity
-     *
+     * <p>
      * Regex online:
      * https://regex101.com/
      */
@@ -228,7 +228,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             endpoints.tokenStore(tokenStore)
                     .tokenEnhancer(enhancerChain)
                     .authenticationManager(authenticationManager)
-                    .requestFactory(oAuth2RequestFactory);
+                    .requestFactory(oAuth2RequestFactory)
+                    .userDetailsService(clientService());
         }
 
         @Override
@@ -366,13 +367,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         private void authorizeTablesAndWorkingAreaRequests(final HttpSecurity http) throws Exception {
 
             http.authorizeRequests()
-                    .antMatchers(GET,"/tablelayouts/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST,"/tablelayouts/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(DELETE,"/tablelayouts/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(GET,"/workingareas/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(GET, "/tablelayouts/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(POST, "/tablelayouts/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(DELETE, "/tablelayouts/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(GET, "/workingareas/**").hasAuthority(Role.USER_ROLE)
                     .antMatchers(POST, "/workingareas/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(GET,"/printers/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST,"/printers/**").hasAuthority(Role.MANAGER_ROLE);
+                    .antMatchers(GET, "/printers/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(POST, "/printers/**").hasAuthority(Role.MANAGER_ROLE);
         }
 
         private void authorizeProductRequests(final HttpSecurity http) throws Exception {
@@ -402,8 +403,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         private void authorizeAnnouncementRequests(final HttpSecurity http) throws Exception {
 
             http.authorizeRequests()
-                    .antMatchers(GET,"/announcements/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST,"/announcements/**").hasAuthority(Role.MANAGER_ROLE);
+                    .antMatchers(GET, "/announcements/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(POST, "/announcements/**").hasAuthority(Role.MANAGER_ROLE);
         }
 
         private void authorizeReportingRequests(final HttpSecurity http) throws Exception {
