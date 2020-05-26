@@ -1,7 +1,11 @@
 package io.nextpos.ordermanagement.web.model;
 
+import com.google.common.collect.Iterables;
 import io.nextpos.merchandising.data.ProductLevelOffer;
-import lombok.AllArgsConstructor;
+import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderLineItem;
+import io.nextpos.ordermanagement.data.OrderLog;
+import io.nextpos.shared.aspect.OrderLogChangeObject;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,8 +16,7 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
-public class OrderLineItemRequest {
+public class OrderLineItemRequest implements OrderLogChangeObject {
 
     @NotBlank
     private String productId;
@@ -26,4 +29,17 @@ public class OrderLineItemRequest {
     private ProductLevelOffer.GlobalProductDiscount productDiscount;
 
     private BigDecimal discountValue;
+
+    @Override
+    public void populateOrderLogEntries(final Order orderBeforeChange, final Order orderAfterChange, final OrderLog orderLog) {
+
+        final OrderLineItem last = Iterables.getLast(orderAfterChange.getOrderLineItems());
+        orderLog.addOrderLogEntry("product", last.getProductSnapshot().getName());
+        orderLog.addOrderLogEntry("quantity", String.valueOf(last.getQuantity()));
+        orderLog.addOrderLogEntry("subtotal", last.getLineItemSubTotal().toString());
+
+        if (last.getAppliedOfferInfo() != null) {
+            orderLog.addOrderLogEntry("discount", last.getAppliedOfferInfo().getOfferDisplayName());
+        }
+    }
 }

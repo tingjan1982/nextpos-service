@@ -75,6 +75,13 @@ public interface OfferApplicableObject {
             this.overrideDiscount = overrideDiscount;
         }
 
+        public String getOfferDisplayName() {
+            BigDecimal discountValue = overrideDiscount != null && overrideDiscount.compareTo(BigDecimal.ZERO) > 0 ? overrideDiscount : discountDetails.getDiscountValue();
+            String discountType = discountDetails.getDiscountType() == Offer.DiscountType.PERCENT_OFF ? "%" : "$";
+
+            return String.format("%s - (%s)", offerName, discountType, discountValue);
+        }
+
         public AppliedOfferInfo copy() {
             return new AppliedOfferInfo(offerId, offerName, offerType, discountDetails, overrideDiscount);
         }

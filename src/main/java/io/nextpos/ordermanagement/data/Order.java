@@ -99,6 +99,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
      */
     private Map<String, Object> metadata = new HashMap<>();
 
+    private List<OrderLog> orderLogs = new ArrayList<>();
+
     /**
      * this represents the id suffix of line item id.
      */
@@ -341,6 +343,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     public Object getMetadata(final String key) {
         return metadata.get(key);
+    }
+
+    public void addOrderLog(OrderLog orderLog) {
+        orderLogs.add(orderLog);
     }
 
     public Order copy() {

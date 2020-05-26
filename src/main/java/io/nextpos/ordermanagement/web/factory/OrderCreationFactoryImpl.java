@@ -97,6 +97,8 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
 
     private void updateTableInfo(Order order, Order.OrderType orderType, String tableId, String tableNote) {
 
+        order.setOrderType(orderType);
+
         if (orderType == Order.OrderType.IN_STORE) {
             if (StringUtils.isBlank(tableId)) {
                 throw new BusinessLogicException("Table id cannot be empty for an in-store order");

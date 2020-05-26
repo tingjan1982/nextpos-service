@@ -16,6 +16,8 @@ import io.nextpos.ordertransaction.service.OrderTransactionService;
 import io.nextpos.ordertransaction.web.model.OrderTransactionResponse;
 import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.reporting.data.ReportDateParameter;
+import io.nextpos.shared.aspect.OrderLogAction;
+import io.nextpos.shared.aspect.OrderLogParam;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.web.ClientResolver;
@@ -202,6 +204,7 @@ public class OrderController {
     }
 
     @PostMapping("/{id}")
+    @OrderLogAction
     public OrderResponse updateOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                      @PathVariable final String id,
                                      @RequestBody OrderRequest orderRequest) {
@@ -214,6 +217,7 @@ public class OrderController {
     }
 
     @PostMapping("/{id}/applyDiscount")
+    @OrderLogAction
     public OrderResponse applyOrderDiscount(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                             @PathVariable final String id,
                                             @Valid @RequestBody DiscountRequest discountRequest) {
@@ -233,6 +237,7 @@ public class OrderController {
     }
 
     @PostMapping("/{id}/removeDiscount")
+    @OrderLogAction
     public OrderResponse removeOrderDiscount(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                             @PathVariable final String id) {
 
@@ -244,9 +249,10 @@ public class OrderController {
     }
 
     @PostMapping("/{id}/waiveServiceCharge")
+    @OrderLogAction
     public OrderResponse waiveServiceCharge(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                             @PathVariable final String id,
-                                            @RequestParam(value = "apply", defaultValue = "true") boolean apply) {
+                                            @OrderLogParam @RequestParam(value = "apply", defaultValue = "true") boolean apply) {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
@@ -267,13 +273,16 @@ public class OrderController {
     }
 
     @PostMapping("/{id}/copy")
-    public OrderResponse copyOrder(@PathVariable final String id) {
+    @OrderLogAction
+    public OrderResponse copyOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                   @PathVariable final String id) {
 
         Order copiedOrder = orderService.copyOrder(id);
         return toOrderResponse(copiedOrder);
     }
 
     @DeleteMapping("/{id}")
+    @OrderLogAction
     public OrderStateChangeResponse deleteOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                 @PathVariable final String id) {
 
@@ -284,7 +293,8 @@ public class OrderController {
 
 
     @PostMapping("/{id}/lineitems")
-    public OrderResponse AddOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+    @OrderLogAction
+    public OrderResponse addOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                           @PathVariable String id,
                                           @Valid @RequestBody OrderLineItemRequest request) {
 
@@ -302,7 +312,9 @@ public class OrderController {
     }
 
     @PostMapping("/{id}/lineitems/deliver")
-    public SimpleObjectsResponse deliverLineItems(@PathVariable final String id,
+    @OrderLogAction
+    public SimpleObjectsResponse deliverLineItems(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                  @PathVariable final String id,
                                                   @Valid @RequestBody UpdateLineItemsRequest updateLineItemsRequest) {
 
         final List<OrderLineItem> updatedOrderLineItems = orderService.deliverLineItems(id, updateLineItemsRequest.getLineItemIds());
@@ -314,11 +326,13 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}/lineitems/{lineItemId}")
+    @OrderLogAction
     public OrderResponse updateOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                              @PathVariable String id,
                                              @PathVariable String lineItemId,
                                              @Valid @RequestBody UpdateOrderLineItemRequest request) {
 
+        request.setLineItemId(lineItemId);
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
         final ProductLevelOffer.GlobalProductDiscount productDiscount = request.getProductDiscount();
@@ -346,7 +360,10 @@ public class OrderController {
     }
 
     @PostMapping("/{id}/process")
-    public OrderStateChangeResponse stateChange(@PathVariable String id, @RequestParam("action") Order.OrderAction orderAction) {
+    @OrderLogAction
+    public OrderStateChangeResponse stateChange(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                @PathVariable String id,
+                                                @OrderLogParam @RequestParam("action") Order.OrderAction orderAction) {
 
         OrderStateChangeBean orderStateChangeBean = orderService.performOrderAction(id, orderAction);
 
@@ -416,6 +433,7 @@ public class OrderController {
                 order.getCurrency(),
                 orderLineItems,
                 order.getMetadata(),
+                order.getOrderLogs(),
                 order.getDemographicData(),
                 order.getAppliedOfferInfo(),
                 order.getOrderDuration());

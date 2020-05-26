@@ -1,10 +1,7 @@
 package io.nextpos.ordermanagement.web.model;
 
 import io.nextpos.merchandising.data.OfferApplicableObject;
-import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.OrderDuration;
-import io.nextpos.ordermanagement.data.OrderLineItem;
-import io.nextpos.ordermanagement.data.TaxableAmount;
+import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordertransaction.web.model.OrderTransactionResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-//@AllArgsConstructor
 @RequiredArgsConstructor
 public class OrderResponse {
 
@@ -54,6 +50,8 @@ public class OrderResponse {
     private final List<OrderLineItemResponse> lineItems;
 
     private final Map<String, Object> metadata;
+
+    private final List<OrderLog> orderLogs;
 
     private final Order.DemographicData demographicData;
 
