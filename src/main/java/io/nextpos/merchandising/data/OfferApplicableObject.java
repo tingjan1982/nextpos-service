@@ -77,9 +77,14 @@ public interface OfferApplicableObject {
 
         public String getOfferDisplayName() {
             BigDecimal discountValue = overrideDiscount != null && overrideDiscount.compareTo(BigDecimal.ZERO) > 0 ? overrideDiscount : discountDetails.getDiscountValue();
-            String discountType = discountDetails.getDiscountType() == Offer.DiscountType.PERCENT_OFF ? "%" : "$";
+            String discountDisplay;
 
-            return String.format("%s - (%s)", offerName, discountType, discountValue);
+            if (discountDetails.getDiscountType() == Offer.DiscountType.PERCENT_OFF) {
+                discountDisplay = discountValue + "%";
+            } else {
+                discountDisplay = "$" + discountValue;
+            }
+            return String.format("%s - (%s)", offerName, discountDisplay);
         }
 
         public AppliedOfferInfo copy() {

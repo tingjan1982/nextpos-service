@@ -1,5 +1,6 @@
 package io.nextpos.ordermanagement.web.model;
 
+import io.nextpos.merchandising.data.OfferApplicableObject;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
@@ -53,5 +54,12 @@ public class UpdateOrderLineItemRequest implements OrderLogChangeObject {
 
         orderLog.addChangeOrderLogEntry("quantity", String.valueOf(lineItemBeforeChange.getQuantity()), String.valueOf(lineItemAfterChange.getQuantity()));
 
+        final OfferApplicableObject.AppliedOfferInfo offerInfoBeforeChange = orderBeforeChange.getAppliedOfferInfo();
+        final OfferApplicableObject.AppliedOfferInfo offerInfoAfterChange = orderAfterChange.getAppliedOfferInfo();
+
+        String beforeOffer = offerInfoBeforeChange != null ? offerInfoBeforeChange.getOfferDisplayName() : null;
+        String afterOffer = offerInfoAfterChange != null ? offerInfoAfterChange.getOfferDisplayName() : null;
+
+        orderLog.addChangeOrderLogEntry("discount", beforeOffer, afterOffer);
     }
 }
