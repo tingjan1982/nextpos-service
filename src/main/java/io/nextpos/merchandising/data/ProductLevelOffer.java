@@ -71,7 +71,7 @@ public class ProductLevelOffer extends Offer implements DiscountCalculator<Order
         final ProductSnapshot productSnapshot = orderLineItem.getProductSnapshot();
 
         if (isProductEligible(productSnapshot)) {
-            return OfferDiscountUtils.calculateDiscount(orderLineItem.getProductPriceWithOptions(), this.getDiscountDetails());
+            return OfferDiscountUtils.calculateDiscount(orderLineItem.getProductPriceWithOptions(), this.getDiscountDetails(), discountValue);
         }
 
         return discountedPrice;

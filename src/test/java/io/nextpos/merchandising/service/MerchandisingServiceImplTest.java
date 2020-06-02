@@ -6,7 +6,9 @@ import io.nextpos.merchandising.data.Offer;
 import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderSettings;
+import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.shared.DummyObjects;
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.BeforeEach;
@@ -82,6 +84,30 @@ class MerchandisingServiceImplTest {
         assertThat(updatedOrder.getTotal().getAmountWithTax()).isEqualByComparingTo(BigDecimal.valueOf(105));
         assertThat(updatedOrder.getDiscountedTotal().getAmountWithTax()).isEqualByComparingTo(BigDecimal.valueOf(84));
         assertThat(updatedOrder.getAppliedOfferInfo()).isNotNull();
+    }
+
+    @Test
+    void applyProductDiscount() {
+
+        final Order order = new Order(client.getId(), orderSettings);
+        final ProductSnapshot productSnapshot = DummyObjects.productSnapshot();
+        productSnapshot.setOverridePrice(new BigDecimal("50"));
+        final OrderLineItem orderLineItem = order.addOrderLineItem(productSnapshot, 1);
+
+        final OrderLineItem updatedOrderLineItem = merchandisingService.applyGlobalProductDiscount(orderLineItem, ProductLevelOffer.GlobalProductDiscount.DISCOUNT_AMOUNT_OFF, BigDecimal.valueOf(15));
+
+        assertThat(updatedOrderLineItem.getProductSnapshot()).satisfies(p -> {
+            assertThat(p.getPrice()).isEqualByComparingTo("100");
+            assertThat(p.getOverridePrice()).isEqualByComparingTo("50");
+            assertThat(p.getDiscountedPrice()).isEqualByComparingTo("35");
+            assertThat(p.getProductPriceWithOptions()).isEqualByComparingTo("50");
+        });
+
+        assertThat(updatedOrderLineItem).satisfies(li -> {
+            assertThat(li.getSubTotal().getAmount()).isEqualByComparingTo("50");
+            assertThat(li.getDiscountedSubTotal().getAmount()).isEqualByComparingTo("35");
+            assertThat(li.getLineItemSubTotal()).isEqualByComparingTo("35");
+        });
     }
 
     @Test

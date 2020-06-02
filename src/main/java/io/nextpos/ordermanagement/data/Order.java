@@ -154,10 +154,12 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     /**
      * Convenience method to add OrderLineItem.
      */
-    public void addOrderLineItem(ProductSnapshot productSnapshot, int quantity) {
+    public OrderLineItem addOrderLineItem(ProductSnapshot productSnapshot, int quantity) {
 
         final OrderLineItem orderLineItem = new OrderLineItem(productSnapshot, quantity, orderSettings);
         this.addOrderLineItem(orderLineItem);
+
+        return orderLineItem;
     }
 
     public void addOrderLineItems(List<OrderLineItem> orderLineItems) {
