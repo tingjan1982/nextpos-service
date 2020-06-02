@@ -81,9 +81,10 @@ class UserTimeCardServiceImplTest {
     @Test
     void getUserTimeCardsByDateRange() {
 
-        createUserTimeCard("user-1", LocalDateTime.now(), LocalDateTime.now().plusDays(1));
-        createUserTimeCard("user-1", LocalDateTime.now().minusDays(1), LocalDateTime.now().minusHours(6));
-        createUserTimeCard("user-2", LocalDateTime.now().minusDays(1), LocalDateTime.now().minusHours(6));
+        final LocalDateTime now = LocalDateTime.now();
+        createUserTimeCard("user-1", now, now.plusDays(1));
+        createUserTimeCard("user-1", now.withDayOfMonth(15), now.withDayOfMonth(15).plusHours(6));
+        createUserTimeCard("user-2", now.withDayOfMonth(15), now.withDayOfMonth(15).plusHours(6));
 
         final List<UserTimeCard> userTimeCardsByDateRange = userTimeCardService.getUserTimeCardsByYearMonth(client, "user-1", YearMonth.now());
 

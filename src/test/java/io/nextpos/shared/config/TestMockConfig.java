@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import static org.mockito.ArgumentMatchers.any;
 
@@ -32,6 +33,11 @@ public class TestMockConfig {
 
     @Bean
     public OrderSettings defaultOrderSettings(CountrySettings defaultCountrySettings) {
-        return new OrderSettings(defaultCountrySettings.getTaxRate(), false, defaultCountrySettings.getCurrency(), BigDecimal.valueOf(0.1));
+        return new OrderSettings(defaultCountrySettings.getTaxRate(),
+                false,
+                defaultCountrySettings.getCurrency(),
+                BigDecimal.valueOf(0.1),
+                2,
+                RoundingMode.HALF_UP);
     }
 }

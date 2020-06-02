@@ -47,6 +47,7 @@ public class ProductLabel extends BaseObject implements ClientObject {
     @ToString.Exclude
     private WorkingArea workingArea;
 
+    @EqualsAndHashCode.Include
     private String orderKey;
 
     /**

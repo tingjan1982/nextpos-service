@@ -16,6 +16,8 @@ public class UpdateLineItem {
 
     private int quantity;
 
+    private BigDecimal overridePrice;
+
     private List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots;
 
     private ProductLevelOffer.GlobalProductDiscount globalProductDiscount;

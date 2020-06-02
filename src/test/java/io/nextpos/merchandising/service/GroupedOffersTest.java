@@ -15,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Currency;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,7 +32,7 @@ class GroupedOffersTest {
         client = DummyObjects.dummyClient();
 
         final BigDecimal taxRate = BigDecimal.valueOf(0.05);
-        order = new Order(client.getId(), new OrderSettings(taxRate, false, Currency.getInstance("TWD"), BigDecimal.ZERO));
+        order = new Order(client.getId(), new OrderSettings(taxRate, false, Currency.getInstance("TWD"), BigDecimal.ZERO, 2, RoundingMode.HALF_UP));
 
         final ProductSnapshot item1Product = new ProductSnapshot("item1product", "coffee", "sku", BigDecimal.valueOf(100), null);
         order.addOrderLineItem(item1Product, 2);

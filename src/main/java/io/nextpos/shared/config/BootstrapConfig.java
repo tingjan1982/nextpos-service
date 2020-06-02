@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Currency;
 import java.util.LinkedHashMap;
@@ -64,14 +65,25 @@ public class BootstrapConfig {
             LOGGER.info("Created master client: {}", client);
         }
 
-        if (settingsService.findCountrySettings(DEFAULT_COUNTRY_CODE).isEmpty()) {
-            final CountrySettings defaultCountrySettings = new CountrySettings(DEFAULT_COUNTRY_CODE, BigDecimal.valueOf(0.05), Currency.getInstance("TWD"));
+        settingsService.findCountrySettings(DEFAULT_COUNTRY_CODE).ifPresentOrElse(settings -> {
+            settings.setDecimalPlaces(0);
+            settings.setRoundingMode(RoundingMode.HALF_UP);
+
+            LOGGER.info("Updating default country settings: {}", settings);
+            settingsService.saveCountrySettings(settings);
+
+        }, () -> {
+            final CountrySettings defaultCountrySettings = new CountrySettings(DEFAULT_COUNTRY_CODE,
+                    BigDecimal.valueOf(0.05),
+                    Currency.getInstance("TWD"),
+                    0,
+                    RoundingMode.HALF_UP);
+
             settingsProperties.getCommonAttributes().forEach(defaultCountrySettings::addCommonAttribute);
 
-            settingsService.createCountrySettings(defaultCountrySettings);
-
-            LOGGER.info("Created default country settings: {}", defaultCountrySettings);
-        }
+            LOGGER.info("Creating default country settings: {}", defaultCountrySettings);
+            settingsService.saveCountrySettings(defaultCountrySettings);
+        });
     }
 
     @Bean

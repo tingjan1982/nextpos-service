@@ -94,7 +94,7 @@ class MerchandisingServiceImplTest {
         assertThat(order.getServiceCharge()).isEqualByComparingTo(BigDecimal.valueOf(10.5));
         assertThat(order.getOrderTotal()).isEqualByComparingTo(BigDecimal.valueOf(115.5));
 
-        final Order updatedOrder = merchandisingService.updateServiceCharge(order, false);
+        final Order updatedOrder = merchandisingService.updateServiceCharge(order, true);
 
         assertThat(updatedOrder.getServiceCharge()).isEqualByComparingTo(BigDecimal.valueOf(0));
         assertThat(updatedOrder.getOrderTotal()).isEqualByComparingTo(BigDecimal.valueOf(105));

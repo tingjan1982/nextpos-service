@@ -62,8 +62,8 @@ class OrderCreationFactoryImplTest {
         productService.saveProduct(product);
         productService.deployProduct(product.getId());
 
-        final OrderProductOptionRequest poRequest = new OrderProductOptionRequest("ice", "normal", BigDecimal.ZERO);
-        final OrderLineItemRequest line1 = new OrderLineItemRequest(product.getId(), 1, List.of(poRequest), ProductLevelOffer.GlobalProductDiscount.NO_DISCOUNT, BigDecimal.ZERO);
+        final OrderProductOptionRequest poRequest = new OrderProductOptionRequest("ice", "normal", new BigDecimal("10"));
+        final OrderLineItemRequest line1 = new OrderLineItemRequest(product.getId(), 1, new BigDecimal("20"), List.of(poRequest), ProductLevelOffer.GlobalProductDiscount.NO_DISCOUNT, BigDecimal.ZERO);
         final OrderRequest request = new OrderRequest(Order.OrderType.IN_STORE, tableDetails.getId(), null,  null, List.of(line1));
 
         final Order order = orderCreationFactory.newOrder(client, request);
@@ -77,7 +77,9 @@ class OrderCreationFactoryImplTest {
         assertThat(order.getOrderLineItems()).hasSize(1);
         assertThat(order.getOrderLineItems()).satisfies(li -> {
             assertThat(li.getId()).isEqualTo(order.getId() + "-1");
-            assertThat(li.getProductSnapshot()).isNotNull();
+            assertThat(li.getProductSnapshot().getPrice()).isZero();
+            assertThat(li.getProductSnapshot().getOverridePrice()).isEqualTo("20");
+            assertThat(li.getProductSnapshot().getProductPriceWithOptions()).isEqualTo("20");
             assertThat(li.getProductSnapshot().getProductOptions()).hasSize(1);
 
         }, Index.atIndex(0));

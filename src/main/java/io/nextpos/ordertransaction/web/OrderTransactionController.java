@@ -132,7 +132,7 @@ public class OrderTransactionController {
                 return orderTransactionRequest.getBillLineItems().stream().map(liRequest -> {
                     final OrderLineItem orderLineItem = order.getOrderLineItem(liRequest.getLineItemId());
 
-                    final BigDecimal subTotal = orderLineItem.getProductSnapshot().getPrice().multiply(BigDecimal.valueOf(liRequest.getQuantity()));
+                    final BigDecimal subTotal = orderLineItem.getProductSnapshot().getProductPriceWithOptions().multiply(BigDecimal.valueOf(liRequest.getQuantity()));
                     return new OrderTransaction.BillLineItem(orderLineItem.getProductSnapshot().getName(), liRequest.getQuantity(), subTotal);
                 }).collect(Collectors.toList());
 

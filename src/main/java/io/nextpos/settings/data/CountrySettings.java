@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Currency;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,16 +26,23 @@ public class CountrySettings extends BaseObject {
 
     private Currency currency;
 
+    private int decimalPlaces;
+
+    @Enumerated(EnumType.STRING)
+    private RoundingMode roundingMode;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @Column(name = "attribute")
     @CollectionTable(name = "country_settings_attributes", joinColumns = @JoinColumn(name = "iso_country_code"))
     private Set<String> commonAttributes = new HashSet<>();
 
 
-    public CountrySettings(final String isoCountryCode, final BigDecimal taxRate, final Currency currency) {
+    public CountrySettings(String isoCountryCode, BigDecimal taxRate, Currency currency, int decimalPlaces, RoundingMode roundingMode) {
         this.isoCountryCode = isoCountryCode;
         this.taxRate = taxRate;
         this.currency = currency;
+        this.decimalPlaces = decimalPlaces;
+        this.roundingMode = roundingMode;
     }
 
     public CountrySettings addCommonAttribute(String attribute) {

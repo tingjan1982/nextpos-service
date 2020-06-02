@@ -6,6 +6,7 @@ import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderLog;
 import io.nextpos.shared.aspect.OrderLogChangeObject;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -16,6 +17,7 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class OrderLineItemRequest implements OrderLogChangeObject {
 
     @NotBlank
@@ -23,6 +25,8 @@ public class OrderLineItemRequest implements OrderLogChangeObject {
 
     @Positive
     private int quantity;
+
+    private BigDecimal overridePrice = BigDecimal.ZERO;
 
     private List<OrderProductOptionRequest> productOptions;
 

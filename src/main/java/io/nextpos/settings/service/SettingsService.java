@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public interface SettingsService {
 
-    CountrySettings createCountrySettings(CountrySettings countrySettings);
+    CountrySettings saveCountrySettings(CountrySettings countrySettings);
 
     CountrySettings getCountrySettings(String isoCountryCode);
 

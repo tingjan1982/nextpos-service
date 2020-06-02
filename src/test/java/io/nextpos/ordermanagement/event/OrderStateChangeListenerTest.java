@@ -3,7 +3,7 @@ package io.nextpos.ordermanagement.event;
 import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.shared.DummyObjects;
-import io.nextpos.shared.exception.GeneralApplicationException;
+import io.nextpos.shared.exception.BusinessLogicException;
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -136,6 +136,6 @@ class OrderStateChangeListenerTest {
         eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.SETTLE, future));
 
         assertThatThrownBy(future::get).isInstanceOf(ExecutionException.class)
-                .hasCauseInstanceOf(GeneralApplicationException.class);
+                .hasCauseInstanceOf(BusinessLogicException.class);
     }
 }

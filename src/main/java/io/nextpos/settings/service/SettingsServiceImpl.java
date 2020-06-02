@@ -13,15 +13,15 @@ import java.util.Optional;
 @Transactional
 public class SettingsServiceImpl implements SettingsService {
 
-    @Autowired
     private final CountrySettingsRepository countrySettingsRepository;
 
+    @Autowired
     public SettingsServiceImpl(final CountrySettingsRepository countrySettingsRepository) {
         this.countrySettingsRepository = countrySettingsRepository;
     }
 
     @Override
-    public CountrySettings createCountrySettings(final CountrySettings countrySettings) {
+    public CountrySettings saveCountrySettings(final CountrySettings countrySettings) {
         return countrySettingsRepository.save(countrySettings);
     }
 

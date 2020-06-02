@@ -31,6 +31,8 @@ public class UpdateOrderLineItemRequest implements OrderLogChangeObject {
 
     private List<OrderProductOptionRequest> productOptions;
 
+    private BigDecimal overridePrice = BigDecimal.ZERO;
+
     private ProductLevelOffer.GlobalProductDiscount productDiscount;
 
     private BigDecimal discountValue;

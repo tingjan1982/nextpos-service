@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -136,20 +137,24 @@ class ProductLabelServiceImplTest {
         List<ProductLabel> labels = new ArrayList<>();
 
         for (int i = 0; i < 5; i++) {
-            final ProductLabel productLabel = productLabelService.saveProductLabel(new ProductLabel("label " + i, client));
-            labels.add(productLabel);
+            final ProductLabel productLabel = new ProductLabel("label " + i, client);
+            final ProductLabel savedLabel = productLabelService.saveProductLabel(productLabel);
+            labels.add(savedLabel);
         }
 
+        // https://stackoverflow.com/questions/50215341/java8-null-safe-comparison
+        final Comparator<ProductLabel> comparatorToUse = Comparator.comparing(ProductLabel::getOrderKey, Comparator.nullsLast(Comparator.naturalOrder()));
+
         productLabelService.updateProductLabelOrder(labels.get(4).getId(), 1, labels.get(0).getId(), labels.get(1).getId()); // orderKey=1, 12, 2, null, null
-        assertThat(productLabelService.getProductLabels(client)).isSortedAccordingTo(new ProductLabel.ProductLabelComparator());
+        assertThat(productLabelService.getProductLabels(client)).isSortedAccordingTo(comparatorToUse);
         productLabelService.getProductLabels(client).forEach(l -> LOGGER.info("id: {}, name: {}, order: {}", l.getId(), l.getName(), l.getOrderKey()));
 
         productLabelService.updateProductLabelOrder(labels.get(3).getId(), 1, labels.get(4).getId(), labels.get(1).getId()); // orderKey=1, 12, 122, 2, null
-        assertThat(productLabelService.getProductLabels(client)).isSortedAccordingTo(new ProductLabel.ProductLabelComparator());
+        assertThat(productLabelService.getProductLabels(client)).isSortedAccordingTo(comparatorToUse);
         productLabelService.getProductLabels(client).forEach(l -> LOGGER.info("id: {}, name: {}, order: {}", l.getId(), l.getName(), l.getOrderKey()));
 
         productLabelService.updateProductLabelOrder(labels.get(2).getId(), 2, labels.get(4).getId(), labels.get(3).getId()); // orderKey=1, 12, 12122, 122, 2
-        assertThat(productLabelService.getProductLabels(client)).isSortedAccordingTo(new ProductLabel.ProductLabelComparator());
+        assertThat(productLabelService.getProductLabels(client)).isSortedAccordingTo(comparatorToUse);
         productLabelService.getProductLabels(client).forEach(l -> LOGGER.info("id: {}, name: {}, order: {}", l.getId(), l.getName(), l.getOrderKey()));
     }
 }

@@ -22,6 +22,11 @@ public class ProductSnapshot {
     private BigDecimal price;
 
     /**
+     * This will override the original price and option prices.
+     */
+    private BigDecimal overridePrice = BigDecimal.ZERO;
+
+    /**
      * Stores the discounted price with options after product level offer computation.
      */
     private BigDecimal discountedPrice;
@@ -56,12 +61,16 @@ public class ProductSnapshot {
 
     public BigDecimal getProductPriceWithOptions() {
 
+        if (overridePrice.compareTo(BigDecimal.ZERO) > 0) {
+            return overridePrice;
+        }
+
         final BigDecimal optionPriceTotal = this.getProductOptions().stream()
                 .filter(po -> BigDecimal.ZERO.compareTo(po.getOptionPrice()) < 0)
                 .map(ProductSnapshot.ProductOptionSnapshot::getOptionPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        return this.price.add(optionPriceTotal);
+        return price.add(optionPriceTotal);
     }
 
     public ProductSnapshot copy() {
@@ -70,6 +79,7 @@ public class ProductSnapshot {
         copy.name = name;
         copy.sku = sku;
         copy.price = price;
+        copy.overridePrice = overridePrice;
         copy.discountedPrice = discountedPrice;
         copy.labelId = labelId;
         copy.label = label;

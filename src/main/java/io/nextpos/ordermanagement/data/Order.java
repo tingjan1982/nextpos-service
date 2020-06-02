@@ -61,7 +61,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     private List<OrderLineItem> orderLineItems = new ArrayList<>();
 
     /**
-     * total or discounted total + service charge
+     * total or discounted total + service charge (tax inclusive)
      */
     private BigDecimal orderTotal = BigDecimal.ZERO;
 
@@ -76,10 +76,13 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     private TaxableAmount discountedTotal;
 
     /**
-     * if discountedTotal is not zero then, total - discountedTotal
+     * if discountedTotal is not zero then, total - discountedTotal (tax inclusive)
      */
     private BigDecimal discount = BigDecimal.ZERO;
 
+    /**
+     * Service charge (tax inclusive)
+     */
     private BigDecimal serviceCharge = BigDecimal.ZERO;
 
     private Currency currency;
@@ -246,8 +249,6 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
         final BigDecimal discountedPrice = this.replayOfferIfExists(total);
         applyOffer(discountedPrice);
-
-        OperationPipeline.executeDirectly(this);
     }
 
     @Override
@@ -324,7 +325,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
         serviceCharge = orderSettings.hasServiceCharge() ? totalBeforeServiceCharge.multiply(orderSettings.getServiceCharge()) : BigDecimal.ZERO;
 
-        orderTotal = totalBeforeServiceCharge.add(serviceCharge);
+        orderTotal = totalBeforeServiceCharge.add(serviceCharge).setScale(orderSettings.getDecimalPlaces(), orderSettings.getRoundingMode());
     }
 
     public OrderDuration getOrderDuration() {

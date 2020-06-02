@@ -127,6 +127,10 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
                 productVersion.getPrice(),
                 productOptionSnapshots);
 
+        if (li.getOverridePrice().compareTo(BigDecimal.ZERO) > 0) {
+            productSnapshot.setOverridePrice(li.getOverridePrice());
+        }
+
         if (product.getProductLabel() != null) {
             productSnapshot.setLabelInformation(product.getProductLabel().getId(), product.getProductLabel().getName());
         }
@@ -143,7 +147,7 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
 
     private OrderSettings createOrderSettings(final Client client) {
         final CountrySettings countrySettings = settingsService.getCountrySettings(client.getCountryCode());
-        final OrderSettings orderSettings = new OrderSettings(countrySettings.getTaxRate(), true, countrySettings.getCurrency(), BigDecimal.ZERO);
+        final OrderSettings orderSettings = new OrderSettings(countrySettings, true, BigDecimal.ZERO);
 
         clientSettingsService.getClientSettingByName(client, ClientSetting.SettingName.TAX_INCLUSIVE).ifPresent(cs -> {
             final Boolean taxInclusive = clientSettingsService.getActualStoredValue(cs, Boolean.class);

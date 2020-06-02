@@ -61,7 +61,7 @@ class TimeCardReportServiceImplTest {
         createUserTimeCard(username, now, now.plus(1, ChronoUnit.HALF_DAYS));
         createUserTimeCard(username, now, now.plusDays(1));
 
-        createUserTimeCard(username2, now.minusDays(2), now.minusDays(1));
+        createUserTimeCard(username2, now.withDayOfMonth(15), now.withDayOfMonth(16));
 
         createUserTimeCard(username2, lastOfMonth, lastOfMonth.plusDays(1));
 
@@ -70,6 +70,7 @@ class TimeCardReportServiceImplTest {
         LOGGER.info("{}", result);
 
         assertThat(result.getUserTimeCards()).hasSize(2);
+
         assertThat(result.getUserTimeCards()).satisfies(u -> {
             assertThat(u.getTotalShifts()).isEqualTo(3);
             assertThat(u.getTotalHours()).isEqualByComparingTo("41.0");

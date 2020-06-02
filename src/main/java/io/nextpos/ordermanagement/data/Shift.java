@@ -55,8 +55,8 @@ public class Shift extends MongoBaseObject {
     public void closeShift(String closedBy, ClosingBalanceDetails cash, ClosingBalanceDetails card) {
 
         end.setWho(closedBy);
-        end.updateClosingBalanceDetails(cash, OrderTransaction.PaymentMethod.CASH);
-        end.updateClosingBalanceDetails(card, OrderTransaction.PaymentMethod.CARD);
+        end.updateClosingBalanceDetails(cash, OrderTransaction.PaymentMethod.CASH, start.balance);
+        end.updateClosingBalanceDetails(card, OrderTransaction.PaymentMethod.CARD, BigDecimal.ZERO);
 
         shiftStatus = ShiftStatus.CONFIRM_CLOSE;
     }
@@ -115,14 +115,14 @@ public class Shift extends MongoBaseObject {
 
         private String closingRemark;
 
-        public void updateClosingBalanceDetails(ClosingBalanceDetails closingBalanceDetails, OrderTransaction.PaymentMethod paymentMethod) {
+        public void updateClosingBalanceDetails(ClosingBalanceDetails closingBalanceDetails, OrderTransaction.PaymentMethod paymentMethod, final BigDecimal startingBalance) {
 
             if (closingBalanceDetails != null) {
                 closingBalances.put(paymentMethod, closingBalanceDetails);
 
                 closingShiftReport.getTotalByPaymentMethod(paymentMethod).ifPresent(p -> {
                     final BigDecimal orderTotal = p.getOrderTotal();
-                    BigDecimal difference = closingBalanceDetails.getClosingBalance().subtract(orderTotal);
+                    BigDecimal difference = closingBalanceDetails.getClosingBalance().subtract(orderTotal).subtract(startingBalance);
                     closingBalanceDetails.setDifference(difference);
                 });
             }

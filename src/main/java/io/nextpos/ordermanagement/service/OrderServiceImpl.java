@@ -109,7 +109,9 @@ public class OrderServiceImpl implements OrderService {
                 merchandisingService.applyGlobalProductDiscount(lineItem, globalProductDiscount, updateLineItem.getDiscountValue());
             }
 
-            lineItem.updateQuantityAndProductOptions(updateLineItem.getQuantity(), updateLineItem.getProductOptionSnapshots());
+            lineItem.updateQuantityAndProductOptions(updateLineItem.getQuantity(),
+                    updateLineItem.getOverridePrice(),
+                    updateLineItem.getProductOptionSnapshots());
         });
 
 //        final Query query = new Query(where("orderLineItems.id").is(lineItemId));

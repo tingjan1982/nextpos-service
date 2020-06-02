@@ -71,10 +71,11 @@ public class OrderLineItem implements OfferApplicableObject {
         computeSubTotal();
     }
 
-    public void updateQuantityAndProductOptions(int quantity, List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots) {
+    public void updateQuantityAndProductOptions(int quantity, BigDecimal overridePrice, List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots) {
 
         this.quantity = quantity;
         this.getProductSnapshot().setProductOptions(productOptionSnapshots);
+        this.getProductSnapshot().setOverridePrice(overridePrice);
         modifiedDate = new Date();
 
         computeSubTotal();

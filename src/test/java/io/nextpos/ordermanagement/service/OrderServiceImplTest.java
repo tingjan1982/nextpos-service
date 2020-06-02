@@ -41,9 +41,6 @@ class OrderServiceImplTest {
     private OrderService orderService;
 
     @Autowired
-    private ShiftService shiftService;
-
-    @Autowired
     private OrderSettings orderSettings;
 
     @Autowired
@@ -132,22 +129,49 @@ class OrderServiceImplTest {
         assertThat(createdOrder.getOrderLineItems()).hasSize(1);
 
         final List<ProductSnapshot.ProductOptionSnapshot> productOptions = List.of(DummyObjects.productOptionSnapshot());
-        final UpdateLineItem updateLineItem = new UpdateLineItem(orderLineItem.getId(), 5, productOptions, ProductLevelOffer.GlobalProductDiscount.DISCOUNT_AMOUNT_OFF, new BigDecimal(20));
+        UpdateLineItem updateLineItem = new UpdateLineItem(orderLineItem.getId(), 5, BigDecimal.ZERO, productOptions, ProductLevelOffer.GlobalProductDiscount.DISCOUNT_AMOUNT_OFF, new BigDecimal(20));
 
-        final Order updatedOrder = orderService.updateOrderLineItem(createdOrder, updateLineItem);
+        Order updatedOrder = orderService.updateOrderLineItem(createdOrder, updateLineItem);
 
         assertThat(updatedOrder.getOrderLineItems()).satisfies(li -> {
             assertThat(li.getQuantity()).isEqualTo(5);
             assertThat(li.getProductPriceWithOptions().getAmountWithoutTax()).isEqualByComparingTo("110");
             assertThat(li.getProductPriceWithOptions().getAmountWithTax()).isEqualByComparingTo("115.5");
+            assertThat(li.getProductPriceWithOptions().getAmount()).isEqualByComparingTo("110");
+            assertThat(li.getSubTotal().getAmountWithoutTax()).isEqualByComparingTo("550");
+            assertThat(li.getSubTotal().getAmountWithTax()).isEqualByComparingTo("577.5");
             assertThat(li.getSubTotal().getAmount()).isEqualByComparingTo("550");
+            assertThat(li.getDiscountedSubTotal().getAmountWithoutTax()).isEqualByComparingTo("450");
+            assertThat(li.getDiscountedSubTotal().getAmountWithTax()).isEqualByComparingTo("472.5");
             assertThat(li.getDiscountedSubTotal().getAmount()).isEqualByComparingTo("450");
+            assertThat(li.getLineItemSubTotal()).isEqualByComparingTo("450");
         }, Index.atIndex(0));
 
         assertThat(updatedOrder).satisfies(o -> {
+            assertThat(o.getDiscount()).isEqualByComparingTo("0");
+            assertThat(o.getDiscountedTotal().getAmountWithoutTax()).isEqualByComparingTo("0");
+            assertThat(o.getDiscountedTotal().getAmountWithTax()).isEqualByComparingTo("0");
+            assertThat(o.getDiscountedTotal().getAmount()).isEqualByComparingTo("0");
+            assertThat(o.getServiceCharge()).isEqualByComparingTo("47.25");
             assertThat(o.getOrderTotal()).isEqualByComparingTo(BigDecimal.valueOf((110 - 20) * 5 * 1.05 * 1.1));
-            assertThat(o.getServiceCharge()).isEqualByComparingTo(o.getTotal().getAmountWithTax().multiply(new BigDecimal("0.1")));
         });
+
+        updateLineItem = new UpdateLineItem(orderLineItem.getId(), 5, new BigDecimal("50"), productOptions, ProductLevelOffer.GlobalProductDiscount.NO_DISCOUNT, BigDecimal.ZERO);
+        updatedOrder = orderService.updateOrderLineItem(createdOrder, updateLineItem);
+
+        assertThat(updatedOrder.getOrderLineItems()).satisfies(li -> {
+            assertThat(li.getProductSnapshot().getProductPriceWithOptions()).isEqualByComparingTo("50");
+            assertThat(li.getProductPriceWithOptions().getAmountWithoutTax()).isEqualByComparingTo("50");
+            assertThat(li.getProductPriceWithOptions().getAmountWithTax()).isEqualByComparingTo("52.5");
+            assertThat(li.getProductPriceWithOptions().getAmount()).isEqualByComparingTo("50");
+            assertThat(li.getSubTotal().getAmountWithoutTax()).isEqualByComparingTo("250");
+            assertThat(li.getSubTotal().getAmountWithTax()).isEqualByComparingTo("262.5");
+            assertThat(li.getSubTotal().getAmount()).isEqualByComparingTo("250");
+            assertThat(li.getDiscountedSubTotal().getAmountWithoutTax()).isEqualByComparingTo("0");
+            assertThat(li.getDiscountedSubTotal().getAmountWithTax()).isEqualByComparingTo("0");
+            assertThat(li.getDiscountedSubTotal().getAmount()).isEqualByComparingTo("0");
+            assertThat(li.getLineItemSubTotal()).isEqualByComparingTo("250");
+        }, Index.atIndex(0));
     }
 
     @Test
@@ -192,5 +216,23 @@ class OrderServiceImplTest {
         assertThat(copiedOrder.getMetadata(Order.COPY_FROM_SERIAL_ID)).isEqualTo(order.getSerialId());
         assertThat(copiedOrder).isEqualToIgnoringGivenFields(order, "id", "serialId", "lookupOrderId", "orderLineItems", "metadata", "internalCounter", "createdDate", "modifiedDate");
         assertThat(copiedOrder.getOrderLineItems()).usingElementComparatorIgnoringFields("id", "createdDate", "modifiedDate").isEqualTo(order.getOrderLineItems());
+    }
+
+    @Test
+    void checkOrderTotalRounding() {
+
+        final Order order = new Order(client.getId(), orderSettings);
+        order.addOrderLineItem(DummyObjects.productSnapshot("coffee", new BigDecimal("9.5")), 1);
+
+        assertThat(order.getOrderTotal()).isEqualTo("10.97"); // from 10.9725
+
+        final OrderSettings copiedOrderSettings = orderSettings.copy();
+        copiedOrderSettings.setDecimalPlaces(0);
+        copiedOrderSettings.setRoundingMode(null);
+        
+        order.setOrderSettings(copiedOrderSettings);
+        order.computeTotal();
+
+        assertThat(order.getOrderTotal()).isEqualTo("11");
     }
 }
