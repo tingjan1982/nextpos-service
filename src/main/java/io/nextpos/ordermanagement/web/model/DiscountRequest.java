@@ -26,8 +26,8 @@ public class DiscountRequest implements OrderLogChangeObject {
         final OfferApplicableObject.AppliedOfferInfo offerInfoBeforeChange = orderBeforeChange.getAppliedOfferInfo();
         final OfferApplicableObject.AppliedOfferInfo offerInfoAfterChange = orderAfterChange.getAppliedOfferInfo();
 
-        String beforeOffer = offerInfoBeforeChange != null ? offerInfoBeforeChange.getOfferDisplayName() : null;
-        String afterOffer = offerInfoAfterChange != null ? offerInfoAfterChange.getOfferDisplayName() : null;
+        String beforeOffer = offerInfoBeforeChange != null ? offerInfoBeforeChange.getOfferDisplayName() : "N/A";
+        String afterOffer = offerInfoAfterChange != null ? offerInfoAfterChange.getOfferDisplayName() : "N/A";
 
         orderLog.addChangeOrderLogEntry("discount", beforeOffer, afterOffer);
     }

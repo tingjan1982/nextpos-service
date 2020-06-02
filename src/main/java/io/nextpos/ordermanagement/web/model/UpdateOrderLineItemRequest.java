@@ -60,12 +60,12 @@ public class UpdateOrderLineItemRequest implements OrderLogChangeObject {
                 String.valueOf(lineItemBeforeChange.getProductSnapshot().getOverridePrice()),
                 String.valueOf(lineItemAfterChange.getProductSnapshot().getOverridePrice()));
 
-        final OfferApplicableObject.AppliedOfferInfo offerInfoBeforeChange = orderBeforeChange.getAppliedOfferInfo();
-        final OfferApplicableObject.AppliedOfferInfo offerInfoAfterChange = orderAfterChange.getAppliedOfferInfo();
-
         orderLog.addChangeOrderLogEntry("subtotal",
                 lineItemBeforeChange.getLineItemSubTotal().toString(),
                 lineItemAfterChange.getLineItemSubTotal().toString());
+
+        final OfferApplicableObject.AppliedOfferInfo offerInfoBeforeChange = lineItemBeforeChange.getAppliedOfferInfo();
+        final OfferApplicableObject.AppliedOfferInfo offerInfoAfterChange = lineItemAfterChange.getAppliedOfferInfo();
 
         String beforeOffer = offerInfoBeforeChange != null ? offerInfoBeforeChange.getOfferDisplayName() : "N/A";
         String afterOffer = offerInfoAfterChange != null ? offerInfoAfterChange.getOfferDisplayName() : "N/A";
