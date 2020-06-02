@@ -6,6 +6,7 @@ import io.nextpos.shared.aspect.OrderLogChangeObject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
@@ -29,9 +30,11 @@ public class OrderRequest implements OrderLogChangeObject {
     @Override
     public void populateOrderLogEntries(final Order orderBeforeChange, final Order orderAfterChange, final OrderLog orderLog) {
 
-        orderLog.addChangeOrderLogEntry("orderType", orderBeforeChange.getOrderType().name(), orderType.name());
+        if (orderBeforeChange.getOrderType() != orderType) {
+            orderLog.addChangeOrderLogEntry("orderType", orderBeforeChange.getOrderType().name(), orderType.name());
+        }
 
-        if (orderType == Order.OrderType.IN_STORE) {
+        if (orderType == Order.OrderType.IN_STORE && !StringUtils.equals(orderBeforeChange.getTableInfo().getDisplayName(), orderAfterChange.getTableInfo().getDisplayName())) {
             orderLog.addChangeOrderLogEntry("table", orderBeforeChange.getTableInfo().getDisplayName(), orderAfterChange.getTableInfo().getDisplayName());
         }
     }

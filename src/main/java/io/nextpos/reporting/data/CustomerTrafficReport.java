@@ -74,15 +74,16 @@ public class CustomerTrafficReport {
                 order.setPercentage(percentage);
             });
 
-            final BigDecimal malePercentage = BigDecimal.valueOf(total.maleCount).divide(BigDecimal.valueOf(total.customerCount), 2, RoundingMode.CEILING).multiply(oneHundred);
-            total.setMalePercentage(malePercentage);
+            if (total.customerCount > 0) {
+                final BigDecimal malePercentage = BigDecimal.valueOf(total.maleCount).divide(BigDecimal.valueOf(total.customerCount), 2, RoundingMode.CEILING).multiply(oneHundred);
+                total.setMalePercentage(malePercentage);
 
-            final BigDecimal femalePercentage = BigDecimal.valueOf(total.femaleCount).divide(BigDecimal.valueOf(total.customerCount), 2, RoundingMode.CEILING).multiply(oneHundred);
-            total.setFemalePercentage(femalePercentage);
+                final BigDecimal femalePercentage = BigDecimal.valueOf(total.femaleCount).divide(BigDecimal.valueOf(total.customerCount), 2, RoundingMode.CEILING).multiply(oneHundred);
+                total.setFemalePercentage(femalePercentage);
 
-            final BigDecimal kidPercentage = BigDecimal.valueOf(total.kidCount).divide(BigDecimal.valueOf(total.customerCount), 2, RoundingMode.CEILING).multiply(oneHundred);
-            total.setKidPercentage(kidPercentage);
-
+                final BigDecimal kidPercentage = BigDecimal.valueOf(total.kidCount).divide(BigDecimal.valueOf(total.customerCount), 2, RoundingMode.CEILING).multiply(oneHundred);
+                total.setKidPercentage(kidPercentage);
+            }
         });
     }
 
