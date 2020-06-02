@@ -363,7 +363,7 @@ public class OrderController {
     @DeleteMapping("/{id}/lineitems/{lineItemId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @OrderLogAction
-    public void updateOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+    public void deleteOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                              @PathVariable String id,
                                              @PathVariable String lineItemId) {
 
