@@ -237,6 +237,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
         final OrderLineItem orderLineItem = this.getOrderLineItem(lineItemId);
         orderLineItems.remove(orderLineItem);
+
+        computeTotal();
     }
 
     public OrderLineItem getOrderLineItem(String lineItemId) {
