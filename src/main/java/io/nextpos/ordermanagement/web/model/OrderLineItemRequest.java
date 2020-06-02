@@ -40,6 +40,13 @@ public class OrderLineItemRequest implements OrderLogChangeObject {
         final OrderLineItem last = Iterables.getLast(orderAfterChange.getOrderLineItems());
         orderLog.addOrderLogEntry("product", last.getProductSnapshot().getName());
         orderLog.addOrderLogEntry("quantity", String.valueOf(last.getQuantity()));
+
+        final BigDecimal overridePrice = last.getProductSnapshot().getOverridePrice();
+
+        if (overridePrice.compareTo(BigDecimal.ZERO) > 0) {
+            orderLog.addOrderLogEntry("overridePrice", String.valueOf(overridePrice));
+        }
+
         orderLog.addOrderLogEntry("subtotal", last.getLineItemSubTotal().toString());
 
         if (last.getAppliedOfferInfo() != null) {
