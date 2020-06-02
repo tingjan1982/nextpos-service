@@ -140,6 +140,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
         return order;
     }
+
     /**
      * https://jira.spring.io/browse/DATAMONGO-946
      *
@@ -230,6 +231,12 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         }
 
         computeTotal();
+    }
+
+    public void deleteOrderLineItem(String lineItemId) {
+
+        final OrderLineItem orderLineItem = this.getOrderLineItem(lineItemId);
+        orderLineItems.remove(orderLineItem);
     }
 
     public OrderLineItem getOrderLineItem(String lineItemId) {

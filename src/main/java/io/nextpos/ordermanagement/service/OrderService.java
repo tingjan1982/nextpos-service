@@ -37,6 +37,8 @@ public interface OrderService {
 
     Order updateOrderLineItem(Order order, UpdateLineItem updateLineItem);
 
+    Order deleteOrderLineItem(Order order, String lineItemId);
+
     Order addOrderLineItem(Order order, OrderLineItem orderLineItem);
 
     OrderStateChangeBean performOrderAction(String id, Order.OrderAction orderAction);

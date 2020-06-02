@@ -122,6 +122,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public Order deleteOrderLineItem(final Order order, final String lineItemId) {
+
+        order.deleteOrderLineItem(lineItemId);
+        return orderRepository.save(order);
+    }
+
+    @Override
     public Order addOrderLineItem(final Order order, final OrderLineItem orderLineItem) {
 
         order.addOrderLineItem(orderLineItem);

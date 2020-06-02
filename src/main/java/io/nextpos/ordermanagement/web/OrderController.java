@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -357,6 +358,17 @@ public class OrderController {
 
         return discountValue;
 
+    }
+
+    @DeleteMapping("/{id}/lineitems/{lineItemId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @OrderLogAction
+    public void updateOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                             @PathVariable String id,
+                                             @PathVariable String lineItemId) {
+
+        final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
+        orderService.deleteOrderLineItem(order, lineItemId);
     }
 
     @PostMapping("/{id}/process")
