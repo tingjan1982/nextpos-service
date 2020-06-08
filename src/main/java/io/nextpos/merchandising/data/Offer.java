@@ -56,6 +56,11 @@ public abstract class Offer extends BaseObject implements ClientObject {
         this.effectiveDetails = new EffectiveDetails(false, null, null);
     }
 
+    public void updateDiscountDetails(DiscountType discountType, BigDecimal discountValue) {
+        this.discountDetails.setDiscountType(discountType);
+        this.discountDetails.setDiscountValue(discountValue);
+    }
+
     public void updateOfferEffectiveDetails(boolean active) {
         this.updateOfferEffectiveDetails(active, null, null);
     }

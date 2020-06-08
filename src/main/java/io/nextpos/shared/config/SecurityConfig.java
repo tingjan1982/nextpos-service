@@ -379,15 +379,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         private void authorizeProductRequests(final HttpSecurity http) throws Exception {
 
             http.authorizeRequests()
-                    .antMatchers(DELETE, "/products/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(POST, "/products/**").hasAuthority(Role.MANAGER_ROLE)
                     .antMatchers(GET, "/products/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(POST, "/products/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(DELETE, "/products/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(GET, "/productoptions/**").hasAuthority(Role.USER_ROLE)
                     .antMatchers(POST, "/productoptions/**").hasAuthority(Role.MANAGER_ROLE)
                     .antMatchers(DELETE, "/productoptions/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(GET, "/productoptions/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/labels/**").hasAuthority(Role.MANAGER_ROLE)
                     .antMatchers(GET, "/labels/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers("/searches/**").hasAuthority(Role.USER_ROLE);
+                    .antMatchers(POST, "/labels/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers("/searches/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(GET,"/offers/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(POST,"/offers/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(DELETE,"/offers/**").hasAuthority(Role.MANAGER_ROLE);
         }
 
         private void authorizeShiftAndOrderRequests(final HttpSecurity http) throws Exception {

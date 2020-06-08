@@ -3,23 +3,47 @@ package io.nextpos.merchandising.web.model;
 import io.nextpos.merchandising.data.Offer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.Date;
+import java.util.Map;
 
 @Data
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class OfferResponse {
 
-    private String offerId;
+    private final String offerId;
 
-    private String offerName;
+    private final OfferType offerType;
+
+    private final String offerName;
 
     @Deprecated
-    private String displayName;
+    private final String displayName;
 
-    private Offer.TriggerType triggerType;
+    private final Offer.TriggerType triggerType;
 
-    private Offer.DiscountType discountType;
+    private final Offer.DiscountType discountType;
 
-    private BigDecimal discountValue;
+    private final BigDecimal discountValue;
+
+    private final boolean active;
+
+    private final Date startDate;
+
+    private final Date endDate;
+
+    private ProductOfferDetails productOfferDetails;
+
+    @Data
+    @AllArgsConstructor
+    public static class ProductOfferDetails {
+
+        private boolean appliesToAllProducts;
+
+        private Map<String, String> productIds;
+
+        private Map<String, String> productLabelIds;
+    }
 }

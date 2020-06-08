@@ -26,4 +26,6 @@ public interface OfferService {
     Map<OrderLevelOffer.GlobalOrderDiscount, OrderLevelOffer> getGlobalOrderOffers();
 
     Map<ProductLevelOffer.GlobalProductDiscount, ProductLevelOffer> getGlobalProductOffers();
+
+    void deleteOffer(Offer offer);
 }

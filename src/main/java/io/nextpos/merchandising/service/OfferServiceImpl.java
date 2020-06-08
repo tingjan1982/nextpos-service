@@ -92,4 +92,10 @@ public class OfferServiceImpl implements OfferService {
     public Map<ProductLevelOffer.GlobalProductDiscount, ProductLevelOffer> getGlobalProductOffers() {
         return globalProductLevelOffers;
     }
+
+    @Override
+    public void deleteOffer(final Offer offer) {
+
+        offerRepository.delete(offer);
+    }
 }
