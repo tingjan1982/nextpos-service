@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -132,7 +133,7 @@ class OfferServiceImplTest {
     }
 
     @Test
-    void findActiveOffers() {
+    void findOffers() {
 
         final OrderLevelOffer orderLevelOffer = new OrderLevelOffer(client, "order level promotion", Offer.TriggerType.ALWAYS, Offer.DiscountType.PERCENT_OFF, BigDecimal.valueOf(0.15));
         offerService.saveOffer(orderLevelOffer);
@@ -146,5 +147,11 @@ class OfferServiceImplTest {
 
         assertThat(activeOffers.getOrderLevelOffers()).hasSize(1);
         assertThat(activeOffers.getProductLevelOffers()).hasSize(1);
+
+        final List<Offer> offers = offerService.getOffers(client);
+
+        assertThat(offers).hasSize(2);
+        assertThat(offers.get(0)).isInstanceOf(OrderLevelOffer.class);
+        assertThat(offers.get(1)).isInstanceOf(ProductLevelOffer.class);
     }
 }

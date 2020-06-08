@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -53,6 +54,11 @@ public class OfferServiceImpl implements OfferService {
     public Offer deactivateOffer(Offer offer) {
         offer.updateOfferEffectiveDetails(false);
         return offerRepository.save(offer);
+    }
+
+    @Override
+    public List<Offer> getOffers(final Client client) {
+        return offerRepository.findAllByClientOrderByName(client);
     }
 
     @Override

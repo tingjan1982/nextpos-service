@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.Date;
+import java.util.List;
 import java.util.stream.Stream;
 
 public interface OfferRepository extends JpaRepository<Offer, String> {
@@ -14,4 +15,6 @@ public interface OfferRepository extends JpaRepository<Offer, String> {
             "(o.effectiveDetails.startDate is null or o.effectiveDetails.startDate <= ?3) and " +
             "(o.effectiveDetails.endDate is null or o.effectiveDetails.endDate >= ?3)")
     Stream<Offer> findActiveOffers(Client client, Offer.TriggerType triggerType, Date date);
+
+    List<Offer> findAllByClientOrderByName(Client client);
 }

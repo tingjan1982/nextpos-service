@@ -5,6 +5,7 @@ import io.nextpos.merchandising.data.Offer;
 import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 
+import java.util.List;
 import java.util.Map;
 
 public interface OfferService {
@@ -16,6 +17,8 @@ public interface OfferService {
     Offer activateOffer(Offer offer);
 
     Offer deactivateOffer(Offer offer);
+
+    List<Offer> getOffers(Client client);
 
     GroupedOffers findActiveOffers(Client client);
 

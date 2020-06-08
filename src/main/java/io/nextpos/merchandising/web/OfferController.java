@@ -116,6 +116,15 @@ public class OfferController {
         return toOfferResponse(offerService.deactivateOffer(offer));
     }
 
+    @GetMapping
+    public OffersResponse getOffers(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        List<Offer> offers = offerService.getOffers(client);
+
+        final List<OfferResponse> offerResponses = offers.stream().map(this::toOfferResponse).collect(Collectors.toList());
+        return new OffersResponse(offerResponses);
+    }
+
     @GetMapping("/{id}")
     public OfferResponse getOffer(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                   @PathVariable final String id) {
