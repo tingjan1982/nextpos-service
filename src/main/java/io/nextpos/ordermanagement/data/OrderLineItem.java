@@ -34,6 +34,8 @@ public class OrderLineItem implements OfferApplicableObject {
      */
     private TaxableAmount discountedSubTotal;
 
+    private BigDecimal lineItemSubTotal = BigDecimal.ZERO;
+
     private AppliedOfferInfo appliedOfferInfo;
 
     private Date createdDate;
@@ -112,6 +114,9 @@ public class OrderLineItem implements OfferApplicableObject {
         }
 
         modifiedDate = new Date();
+
+        final TaxableAmount deducedSubTotal = discountedSubTotal != null && !discountedSubTotal.isZero() ? discountedSubTotal : this.subTotal;
+        lineItemSubTotal = deducedSubTotal.getAmount();
     }
 
     /**
@@ -119,11 +124,11 @@ public class OrderLineItem implements OfferApplicableObject {
      * return amountWithoutTax so an Order will aggregate and calculate tax as a whole.
      * @return
      */
-    public BigDecimal getLineItemSubTotal() {
-
-        final TaxableAmount subTotal = discountedSubTotal != null && !discountedSubTotal.isZero() ? discountedSubTotal : this.subTotal;
-        return subTotal.getAmount();
-    }
+//    public BigDecimal getLineItemSubTotal() {
+//
+//        final TaxableAmount subTotal = discountedSubTotal != null && !discountedSubTotal.isZero() ? discountedSubTotal : this.subTotal;
+//        return subTotal.getAmount();
+//    }
 
     public OrderLineItem copy() {
         final OrderLineItem copy = new OrderLineItem();

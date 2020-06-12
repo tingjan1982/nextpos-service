@@ -55,7 +55,7 @@ public class StatsReportServiceImpl implements StatsReportService {
                 .sum("customerCount").as("customerCount")
                 .count().as("orderCount");
 
-        final Integer[] hoursOfDay = IntStream.rangeClosed(0, 24).boxed().toArray(Integer[]::new);
+        final Object[] hoursOfDay = IntStream.rangeClosed(0, 24).boxed().toArray(Integer[]::new);
         final BucketOperation ordersByHour = Aggregation.bucket("hour").withBoundaries(hoursOfDay).withDefaultBucket("Other")
                 .andOutputCount().as("orderCount")
                 .andOutput("customerCount").sum().as("customerCount")
@@ -114,7 +114,8 @@ public class StatsReportServiceImpl implements StatsReportService {
                         .and("modifiedDate").gte(fromDate).lt(toDate));
 
         final LocalDate lastDayOfMonth = dateFilter.atEndOfMonth();
-        final Integer[] daysOfMonth = IntStream.rangeClosed(1, lastDayOfMonth.getDayOfMonth() + 1).boxed().toArray(Integer[]::new);
+        final Object[] daysOfMonth = IntStream.rangeClosed(1, lastDayOfMonth.getDayOfMonth() + 1).boxed().toArray(Integer[]::new);
+
         final BucketOperation groupedCustomerStats = Aggregation.bucket("day").withBoundaries(daysOfMonth).withDefaultBucket("Other")
                 .andOutput(AccumulatorOperators.Sum.sumOf("total")).as("total")
                 .andOutput(AccumulatorOperators.Sum.sumOf("male")).as("maleCount")

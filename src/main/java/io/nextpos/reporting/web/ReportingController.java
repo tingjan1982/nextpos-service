@@ -7,6 +7,7 @@ import io.nextpos.reporting.service.ReportingService;
 import io.nextpos.reporting.service.SalesReportService;
 import io.nextpos.reporting.service.StatsReportService;
 import io.nextpos.reporting.web.model.*;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.timecard.data.TimeCardReport;
 import io.nextpos.timecard.service.TimeCardReportService;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.YearMonth;
 import java.util.Date;
@@ -47,16 +49,29 @@ public class ReportingController {
     @GetMapping("/rangedSalesReport")
     public RangedSalesReportResponse getRangedSalesReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                           @RequestParam(value = "rangeType", defaultValue = "WEEK") RangedSalesReport.RangeType rangeType,
-                                                          @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+                                                          @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                                          @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
+                                                          @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate) {
 
         if (date == null) {
             date = LocalDate.now();
         }
 
-        final RangedSalesReport rangedSalesReport = salesReportService.generateWeeklySalesReport(client.getId(), rangeType, date);
+        if (rangeType == RangedSalesReport.RangeType.CUSTOM && (fromDate == null || toDate == null)) {
+            throw new BusinessLogicException("'from' and 'to' date parameter must be specified for CUSTOM range type");
+        }
+
+        if (fromDate.isAfter(toDate)) {
+            throw new BusinessLogicException("from date cannot be after to date");
+        }
+
+        ReportDateParameter reportDateParameter = new ReportDateParameter(fromDate, toDate);
+
+        final RangedSalesReport rangedSalesReport = salesReportService.generateRangedSalesReport(client.getId(), rangeType, date, reportDateParameter);
 
         return new RangedSalesReportResponse(
                 date,
+                reportDateParameter,
                 rangedSalesReport.getTotalSales().getSalesTotal(),
                 rangedSalesReport.getSalesByRange(),
                 rangedSalesReport.getSalesByProduct());

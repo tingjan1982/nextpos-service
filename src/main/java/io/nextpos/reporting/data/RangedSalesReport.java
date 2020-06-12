@@ -40,6 +40,8 @@ public class RangedSalesReport {
 
         private String id;
 
+        private int dayOfYear;
+
         private LocalDate date;
 
         private BigDecimal total = BigDecimal.ZERO;
@@ -69,6 +71,6 @@ public class RangedSalesReport {
 
 
     public enum RangeType {
-        WEEK, MONTH
+        WEEK, MONTH, CUSTOM
     }
 }
