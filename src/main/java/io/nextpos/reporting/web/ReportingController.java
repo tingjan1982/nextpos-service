@@ -61,7 +61,7 @@ public class ReportingController {
             throw new BusinessLogicException("'from' and 'to' date parameter must be specified for CUSTOM range type");
         }
 
-        if (fromDate.isAfter(toDate)) {
+        if (rangeType == RangedSalesReport.RangeType.CUSTOM && fromDate.isAfter(toDate)) {
             throw new BusinessLogicException("from date cannot be after to date");
         }
 
