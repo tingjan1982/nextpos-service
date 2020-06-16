@@ -16,6 +16,7 @@ import io.nextpos.ordertransaction.service.OrderTransactionService;
 import io.nextpos.ordertransaction.web.model.OrderTransactionResponse;
 import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.reporting.data.ReportDateParameter;
+import io.nextpos.reporting.data.ZonedDateRange;
 import io.nextpos.shared.aspect.OrderLogAction;
 import io.nextpos.shared.aspect.OrderLogParam;
 import io.nextpos.shared.exception.BusinessLogicException;
@@ -36,7 +37,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -87,8 +89,8 @@ public class OrderController {
     public OrdersByRangeResponse getOrdersByDateRange(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                       @RequestParam(name = "dateRange", required = false, defaultValue = "SHIFT") DateParameterType dateParameterType,
                                                       @RequestParam(name = "shiftId", required = false) String shiftId,
-                                                      @RequestParam(name = "fromDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromDate,
-                                                      @RequestParam(name = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date toDate) {
+                                                      @RequestParam(name = "fromDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
+                                                      @RequestParam(name = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate) {
 
         final ReportDateParameter reportDateParameter = resolveDateRange(client, dateParameterType, shiftId, fromDate, toDate);
         final List<Order> orders = orderService.getOrders(client, reportDateParameter.getFromDate(), reportDateParameter.getToDate());
@@ -107,10 +109,14 @@ public class OrderController {
                         o.getTotal(),
                         o.getOrderTotal())).collect(Collectors.toList());
 
-        return new OrdersByRangeResponse(reportDateParameter, orderResponses);
+        ZonedDateRange zonedDateRange = new ZonedDateRange(ZoneId.of("Asia/Taipei"));
+        zonedDateRange.setZonedFromDate(reportDateParameter.getFromDate().atZone(zonedDateRange.getClientTimeZone()));
+        zonedDateRange.setZonedToDate(reportDateParameter.getToDate().atZone(zonedDateRange.getClientTimeZone()));
+
+        return new OrdersByRangeResponse(zonedDateRange, orderResponses);
     }
 
-    private ReportDateParameter resolveDateRange(Client client, DateParameterType dateParameterType, final String shiftId, final Date fromDateParam, final Date toDateParam) {
+    private ReportDateParameter resolveDateRange(Client client, DateParameterType dateParameterType, final String shiftId, final LocalDateTime fromDateParam, final LocalDateTime toDateParam) {
 
         if (dateParameterType != DateParameterType.SHIFT) {
             return DateParameterType.toReportingParameter(dateParameterType, fromDateParam, toDateParam);

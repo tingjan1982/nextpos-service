@@ -22,7 +22,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.YearMonth;
-import java.util.Date;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -70,8 +69,7 @@ public class ReportingController {
         final RangedSalesReport rangedSalesReport = salesReportService.generateRangedSalesReport(client.getId(), rangeType, date, reportDateParameter);
 
         return new RangedSalesReportResponse(
-                date,
-                reportDateParameter,
+                rangedSalesReport.getDateRange(),
                 rangedSalesReport.getTotalSales().getSalesTotal(),
                 rangedSalesReport.getSalesByRange(),
                 rangedSalesReport.getSalesByProduct());
@@ -152,8 +150,8 @@ public class ReportingController {
     @GetMapping("/salesreport")
     public SalesReportResponse getSalesReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                               @RequestParam(name = "date", defaultValue = "TODAY") DateParameterType dateParameterType,
-                                              @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromDate,
-                                              @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date toDate) {
+                                              @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
+                                              @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate) {
 
         ReportDateParameter reportDateParameter = DateParameterType.toReportingParameter(dateParameterType, fromDate, toDate);
 
@@ -174,8 +172,8 @@ public class ReportingController {
     public OrderStateAverageTimeReportResponse getOrderStateAverageTimeReport(
             @RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
             @RequestParam(name = "date", defaultValue = "TODAY") DateParameterType dateParameterType,
-            @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromDate,
-            @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date toDate) {
+            @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
+            @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate) {
 
         ReportDateParameter reportDateParameter = DateParameterType.toReportingParameter(dateParameterType, fromDate, toDate);
 

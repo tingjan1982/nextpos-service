@@ -2,7 +2,7 @@ package io.nextpos.ordermanagement.web.model;
 
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.TaxableAmount;
-import io.nextpos.reporting.data.ReportDateParameter;
+import io.nextpos.reporting.data.ZonedDateRange;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -14,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class OrdersByRangeResponse {
 
-    private ReportDateParameter reportParameter;
+    private ZonedDateRange dateRange;
 
     private List<LightOrderResponse> orders;
 

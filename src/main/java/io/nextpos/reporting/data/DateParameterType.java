@@ -6,9 +6,7 @@ import org.springframework.lang.NonNull;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
-import java.util.Date;
 
 public enum DateParameterType {
     TODAY {
@@ -60,13 +58,10 @@ public enum DateParameterType {
 
     public abstract ReportDateParameter toReportingParameter();
 
-    public static ReportDateParameter toReportingParameter(@NonNull DateParameterType dateParameterType, Date fromDate, Date toDate) {
+    public static ReportDateParameter toReportingParameter(@NonNull DateParameterType dateParameterType, LocalDateTime fromDate, LocalDateTime toDate) {
 
         if (dateParameterType == RANGE && fromDate != null && toDate != null) {
-            final LocalDateTime fromDT = LocalDate.ofInstant(fromDate.toInstant(), ZoneId.systemDefault()).atStartOfDay();
-            final LocalDateTime toDT = LocalDate.ofInstant(toDate.toInstant(), ZoneId.systemDefault()).atStartOfDay().plusDays(1);
-
-            return new ReportDateParameter(fromDT, toDT);
+            return new ReportDateParameter(fromDate, toDate);
         }
 
         return dateParameterType.toReportingParameter();

@@ -1,6 +1,7 @@
 package io.nextpos.reporting.service;
 
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderRepository;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.ordermanagement.service.OrderService;
@@ -47,6 +48,9 @@ class SalesReportServiceImplTest {
     private OrderService orderService;
 
     @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
     private OrderSettings orderSettings;
 
     @Autowired
@@ -69,6 +73,8 @@ class SalesReportServiceImplTest {
             createOrder(date, "coffee", BigDecimal.valueOf(50), 5);
             createOrder(date, "tea", BigDecimal.valueOf(35), 5);
         }
+
+        final Iterable<Order> all = orderRepository.findAll();
 
         final RangedSalesReport results = salesReportService.generateRangedSalesReport("client", RangedSalesReport.RangeType.WEEK, today, null);
 

@@ -32,6 +32,7 @@ public class StatsReportServiceImpl implements StatsReportService {
     public CustomerTrafficReport generateCustomerTrafficReport(String clientId, YearMonth dateFilter) {
 
         final ProjectionOperation projection = Aggregation.project("clientId")
+                .and("state").as("state")
                 .and("orderType").as("orderType")
                 .and("demographicData.ageGroup").as("ageGroup")
                 .and("demographicData.visitFrequency").as("visitFrequency")
@@ -39,14 +40,15 @@ public class StatsReportServiceImpl implements StatsReportService {
                 .and("demographicData.female").as("female")
                 .and("demographicData.kid").as("kid")
                 .andExpression("demographicData.male + demographicData.female + demographicData.kid").as("customerCount")
-                .and(context -> Document.parse("{ $hour: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("hour")
-                .and("modifiedDate").as("modifiedDate");
+                .and(context -> Document.parse("{ $hour: {date: '$createdDate', timezone: 'Asia/Taipei'} }")).as("hour")
+                .and("createdDate").as("createdDate");
 
         LocalDate fromDate = dateFilter.atDay(1);
         LocalDate toDate = dateFilter.plusMonths(1).atDay(1);
         final MatchOperation filter = Aggregation.match(
                 Criteria.where("clientId").is(clientId)
-                        .and("modifiedDate").gte(fromDate).lt(toDate));
+                        .and("state").ne(Order.OrderState.DELETED)
+                        .and("createdDate").gte(fromDate).lt(toDate));
 
         final GroupOperation counts = Aggregation.group("clientId")
                 .sum("male").as("maleCount")
@@ -98,20 +100,22 @@ public class StatsReportServiceImpl implements StatsReportService {
     public CustomerStatsReport generateCustomerStatsReport(final String clientId, YearMonth dateFilter) {
 
         final ProjectionOperation projection = Aggregation.project("clientId")
-                .and(createToDecimal("total.amountWithTax")).as("total")
+                .and("state").as("state")
+                .and(createToDecimal("orderTotal")).as("total")
                 .and("demographicData.male").as("male")
                 .and("demographicData.female").as("female")
                 .and("demographicData.kid").as("kid")
                 .andExpression("demographicData.male + demographicData.female + demographicData.kid").as("customerCount")
                 //.and(context -> Document.parse("{ $divide: [ { $toDecimal: [ '$total.amountWithTax' ] }, { $add: [ '$demographicData.male', '$demographicData.female', '$demographicData.kid' ] } ] }")).as("avgCustomerSpending")
-                .and("modifiedDate").as("modifiedDate")
-                .and(context -> Document.parse("{ $dayOfMonth: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("day");
+                .and("createdDate").as("createdDate")
+                .and(context -> Document.parse("{ $dayOfMonth: {date: '$createdDate', timezone: 'Asia/Taipei'} }")).as("day");
 
         LocalDate fromDate = dateFilter.atDay(1);
         LocalDate toDate = dateFilter.plusMonths(1).atDay(1);
         final MatchOperation filter = Aggregation.match(
                 Criteria.where("clientId").is(clientId)
-                        .and("modifiedDate").gte(fromDate).lt(toDate));
+                        .and("state").ne(Order.OrderState.DELETED)
+                        .and("createdDate").gte(fromDate).lt(toDate));
 
         final LocalDate lastDayOfMonth = dateFilter.atEndOfMonth();
         final Object[] daysOfMonth = IntStream.rangeClosed(1, lastDayOfMonth.getDayOfMonth() + 1).boxed().toArray(Integer[]::new);
@@ -122,7 +126,7 @@ public class StatsReportServiceImpl implements StatsReportService {
                 .andOutput(AccumulatorOperators.Sum.sumOf("female")).as("femaleCount")
                 .andOutput(AccumulatorOperators.Sum.sumOf("kid")).as("kidCount")
                 .andOutput(AccumulatorOperators.Sum.sumOf("customerCount")).as("customerCount")
-                .andOutput(context -> new Document("$first", "$modifiedDate")).as("date");
+                .andOutput(context -> new Document("$first", "$createdDate")).as("date");
 
         final ProjectionOperation test = Aggregation.project("total", "maleCount", "femaleCount", "kidCount", "customerCount", "date")
                 .and(context -> Document.parse("{ $cond: [ {$gt: ['$customerCount', 0]}, {$divide: ['$total', '$customerCount']}, '$total'] }")).as("averageSpending");

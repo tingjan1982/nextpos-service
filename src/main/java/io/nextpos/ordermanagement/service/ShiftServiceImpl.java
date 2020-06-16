@@ -12,13 +12,15 @@ import io.nextpos.shared.exception.ShiftException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -133,8 +135,13 @@ public class ShiftServiceImpl implements ShiftService {
     }
 
     @Override
-    public Page<Shift> getShifts(final String clientId, final Date date, final PageRequest pageRequest) {
-        return shiftRepository.findAllByClientIdAndStartTimestampGreaterThanEqual(clientId, date, pageRequest);
+    public List<Shift> getShifts(final String clientId, final LocalDate date) {
+
+        final ZoneId zone = ZoneId.of("Asia/Taipei");
+        final Date fromDate = Date.from(date.withDayOfMonth(1).atStartOfDay(zone).toInstant());
+        final Date toDate = Date.from(date.withDayOfMonth(1).plusMonths(1).atStartOfDay(zone).toInstant());
+
+        return shiftRepository.findAllByClientIdAndStart_TimestampBetween(clientId, fromDate, toDate, Sort.by(Sort.Order.desc("start.timestamp")));
     }
 
     private Shift getCurrentShiftOrThrows(String clientId) {

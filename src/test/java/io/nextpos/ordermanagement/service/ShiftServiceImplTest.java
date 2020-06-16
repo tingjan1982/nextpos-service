@@ -10,8 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 
@@ -125,7 +123,7 @@ class ShiftServiceImplTest {
         shiftRepository.save(new Shift(clientId, Date.from(now.minus(7, ChronoUnit.DAYS)), "dummy", BigDecimal.ONE));
         shiftRepository.save(new Shift(clientId, Date.from(now.minus(8, ChronoUnit.DAYS)), "dummy", BigDecimal.ONE));
 
-        final Page<Shift> shifts = shiftService.getShifts(clientId, Date.from(now.minus(7, ChronoUnit.DAYS)), PageRequest.of(0, 50, Sort.by(Sort.Order.desc("start.timestamp"))));
+        final Page<Shift> shifts = shiftService.getShifts(clientId, Date.from(now.minus(7, ChronoUnit.DAYS)));
 
         assertThat(shifts.getContent()).hasSize(4);
         final Comparator<Shift> compareByStartDate = Comparator.<Shift, Date>comparing(s -> s.getStart().getTimestamp()).reversed();

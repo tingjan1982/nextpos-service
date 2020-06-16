@@ -13,7 +13,9 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,14 +39,16 @@ public class SalesReportServiceImpl implements SalesReportService {
                                                        final LocalDate date,
                                                        final ReportDateParameter reportDateParameter) {
 
-        ProjectionOperation projection = createProjection(rangeType);
-        final MatchOperation filter = createMatchFilter(clientId, rangeType, date, reportDateParameter);
+        final ZonedDateRange zonedDateRange = new ZonedDateRange(ZoneId.of("Asia/Taipei"));
+
+        ProjectionOperation projection = createProjection();
+        final MatchOperation filter = createMatchFilter(clientId, rangeType, date, reportDateParameter, zonedDateRange);
 
         final GroupOperation salesTotal = Aggregation.group("clientId")
                 .sum("orderTotal").as("salesTotal");
 
         final UnwindOperation flattenLineItems = Aggregation.unwind("lineItems");
-        final BucketOperationSupport<?, ?> salesByRange = createSalesByRangeFacet(rangeType, date, reportDateParameter);
+        final BucketOperationSupport<?, ?> salesByRange = createSalesByRangeFacet(zonedDateRange);
 
         final ConvertOperators.ToDecimal subTotalToDecimal = createToDecimal("lineItems.lineItemSubTotal");
         final GroupOperation salesByProduct = Aggregation.group("lineItems.productSnapshot.name")
@@ -68,38 +72,30 @@ public class SalesReportServiceImpl implements SalesReportService {
         RangedSalesReport results = result.getUniqueMappedResult();
 
         if (results != null) {
-            enhanceResults(results, rangeType, date, reportDateParameter);
+            enhanceResults(results, zonedDateRange);
         } else {
             results = new RangedSalesReport();
         }
         return results;
     }
 
-    private ProjectionOperation createProjection(final RangedSalesReport.RangeType rangeType) {
-        ProjectionOperation projection = Aggregation.project("clientId")
+    private ProjectionOperation createProjection() {
+
+        return Aggregation.project("clientId")
                 .and("state").as("state")
                 .and(createToDecimal("orderTotal")).as("orderTotal")
                 .and("orderLineItems").as("lineItems")
-                .and("modifiedDate").as("modifiedDate");
-
-        switch (rangeType) {
-            case WEEK:
-                projection = projection.and(context -> Document.parse("{ $dayOfWeek: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("day");
-                break;
-            case MONTH:
-                projection = projection.and(context -> Document.parse("{ $dayOfMonth: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("day");
-                break;
-            case CUSTOM:
-                projection = projection.and(context -> Document.parse("{ $dayOfYear: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("day");
-                break;
-        }
-        return projection;
+                .and("createdDate").as("createdDate")
+                .and(context -> Document.parse("{ $dayOfYear: {date: '$createdDate', timezone: 'Asia/Taipei'} }")).as("dayOfYear");
     }
 
-    private MatchOperation createMatchFilter(final String clientId, final RangedSalesReport.RangeType rangeType, final LocalDate date, final ReportDateParameter reportDateParameter) {
+    private MatchOperation createMatchFilter(String clientId,
+                                             RangedSalesReport.RangeType rangeType,
+                                             LocalDate date,
+                                             ReportDateParameter reportDateParameter,
+                                             ZonedDateRange zonedDateRange) {
 
-        Object fromDate;
-        Object toDate;
+        final ZoneId zoneId = zonedDateRange.getClientTimeZone();
 
         switch (rangeType) {
             case WEEK:
@@ -107,18 +103,21 @@ public class SalesReportServiceImpl implements SalesReportService {
                 final LocalDate firstDayOfCurrentWeek = date.with(temporalField, 1);
                 final LocalDate firstDayOfNextWeek = date.with(temporalField, 7).plusDays(1);
 
-                fromDate = firstDayOfCurrentWeek;
-                toDate = firstDayOfNextWeek;
+                zonedDateRange.setZonedFromDate(firstDayOfCurrentWeek.atStartOfDay(zoneId));
+                zonedDateRange.setZonedToDate(firstDayOfNextWeek.atStartOfDay(zoneId));
+
                 break;
 
             case MONTH:
-                fromDate = date.withDayOfMonth(1);
-                toDate = date.plusMonths(1).withDayOfMonth(1);
+                zonedDateRange.setZonedFromDate(date.withDayOfMonth(1).atStartOfDay(zoneId));
+                zonedDateRange.setZonedToDate(date.plusMonths(1).withDayOfMonth(1).atStartOfDay(zoneId));
+
                 break;
 
             case CUSTOM:
-                fromDate = reportDateParameter.getFromDate();
-                toDate = reportDateParameter.getToDate();
+                zonedDateRange.setZonedFromDate(reportDateParameter.getFromDate().atZone(zoneId));
+                zonedDateRange.setZonedToDate(reportDateParameter.getToDate().atZone(zoneId));
+
                 break;
 
             default:
@@ -128,84 +127,29 @@ public class SalesReportServiceImpl implements SalesReportService {
         return Aggregation.match(
                 Criteria.where("clientId").is(clientId)
                         .and("state").ne(Order.OrderState.DELETED)
-                        .and("modifiedDate").gte(fromDate).lt(toDate));
+                        .and("createdDate").gte(zonedDateRange.getFromLocalDateTime()).lt(zonedDateRange.getToLocalDateTime()));
     }
 
-    private BucketOperationSupport<?, ?> createSalesByRangeFacet(RangedSalesReport.RangeType rangeType, LocalDate date, ReportDateParameter reportDateParameter) {
+    private BucketOperationSupport<?, ?> createSalesByRangeFacet(ZonedDateRange zonedDateRange) {
 
-        switch (rangeType) {
-            case WEEK:
-                final Object[] daysInWeek = IntStream.rangeClosed(1, 8).boxed().toArray(Integer[]::new);
+        final Object[] daysOfYear = zonedDateRange.bucketDateRange().boxed().toArray(Integer[]::new);
 
-                return Aggregation.bucket("day").withBoundaries(daysInWeek).withDefaultBucket("Other")
-                        .andOutput("orderTotal").sum().as("total")
-                        .andOutput(context -> new Document("$first", "$modifiedDate")).as("date");
-
-            case MONTH:
-                final LocalDate lastDayOfMonth = date.with(TemporalAdjusters.lastDayOfMonth());
-                final Object[] dayOfMonth = IntStream.rangeClosed(1, lastDayOfMonth.getDayOfMonth() + 1).boxed().toArray(Integer[]::new);
-
-                return Aggregation.bucket("day").withBoundaries(dayOfMonth).withDefaultBucket("Other")
-                        .andOutput("orderTotal").sum().as("total")
-                        .andOutput(context -> new Document("$first", "$modifiedDate")).as("date");
-
-            case CUSTOM:
-                final LocalDateTime fromDate = reportDateParameter.getFromDate();
-                final LocalDateTime toDate = reportDateParameter.getToDate();
-                final long totalDays = Duration.between(fromDate, toDate).toDays();
-
-                return Aggregation.bucketAuto("day", (int) totalDays)
-                        .andOutput("day").first().as("dayOfYear")
-                        .andOutput("orderTotal").sum().as("total")
-                        .andOutput(context -> new Document("$first", "$modifiedDate")).as("date");
-
-            default:
-                throw new GeneralApplicationException("Ensure all RangeType is supported: " + Arrays.toString(RangedSalesReport.RangeType.values()));
-        }
+        return Aggregation.bucket("dayOfYear").withBoundaries(daysOfYear).withDefaultBucket("Other")
+                .andOutput("dayOfYear").last().as("dayOfYear")
+                .andOutput("orderTotal").sum().as("total")
+                .andOutput(context -> new Document("$last", "$createdDate")).as("date");
     }
 
     private void enhanceResults(RangedSalesReport results,
-                                RangedSalesReport.RangeType rangeType,
-                                LocalDate date,
-                                ReportDateParameter reportDateParameter) {
+                                ZonedDateRange zonedDateRange) {
 
-        results.setRangeType(rangeType);
+        results.setDateRange(zonedDateRange);
 
-        switch (rangeType) {
-            case WEEK:
-                final TemporalField temporalField = WeekFields.of(DayOfWeek.MONDAY, 7).dayOfWeek();
-
-                ReportEnhancer.enhanceReportResult(IntStream.rangeClosed(1, 7),
-                        () -> results.getSalesByRange().stream()
-                                .collect(Collectors.toMap(RangedSalesReport.SalesByRange::getId, s -> s)),
-                        id -> RangedSalesReport.SalesByRange.emptyObject(id, date.with(temporalField, Long.parseLong(id))),
-                        results::setSalesByRange);
-
-                break;
-
-            case MONTH:
-                final YearMonth month = YearMonth.from(date);
-
-                ReportEnhancer.enhanceReportResult(IntStream.rangeClosed(1, month.atEndOfMonth().getDayOfMonth()),
-                        () -> results.getSalesByRange().stream()
-                                .collect(Collectors.toMap(RangedSalesReport.SalesByRange::getId, s -> s)),
-                        id -> RangedSalesReport.SalesByRange.emptyObject(id, month.atDay(Integer.parseInt(id))),
-                        results::setSalesByRange);
-
-                break;
-
-            case CUSTOM:
-                final LocalDateTime fromDate = reportDateParameter.getFromDate();
-                final LocalDateTime toDate = reportDateParameter.getToDate();
-
-                ReportEnhancer.enhanceReportResult(IntStream.rangeClosed(fromDate.getDayOfYear() + 1, toDate.getDayOfYear()),
-                        () -> results.getSalesByRange().stream()
-                                .collect(Collectors.toMap(s -> String.valueOf(s.getDayOfYear()), s -> s)),
-                        id -> RangedSalesReport.SalesByRange.emptyObject(id, fromDate.withDayOfYear(Integer.parseInt(id)).toLocalDate()),
-                        results::setSalesByRange);
-
-                break;
-        }
+        ReportEnhancer.enhanceReportResult(zonedDateRange.dateRange(),
+                () -> results.getSalesByRange().stream()
+                        .collect(Collectors.toMap(s -> String.valueOf(s.getDayOfYear()), s -> s)),
+                id -> RangedSalesReport.SalesByRange.emptyObject(id, zonedDateRange.getZonedFromDate().withDayOfYear(Integer.parseInt(id)).toLocalDate()),
+                results::setSalesByRange);
 
         if (results.hasResult()) {
             final BigDecimal salesTotal = results.getTotalSales().getSalesTotal();
@@ -269,9 +213,9 @@ public class SalesReportServiceImpl implements SalesReportService {
         final ProjectionOperation projection = Aggregation.project("clientId")
                 .and("state").as("state")
                 .and(createToDecimal("orderTotal")).as("total") // this is critical to make $sum work.
-                .and("modifiedDate").as("modifiedDate")
-                .and(context -> Document.parse("{ $week: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("week")
-                .and(context -> Document.parse("{ $month: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("month");
+                .and("createdDate").as("createdDate")
+                .and(context -> Document.parse("{ $week: {date: '$createdDate', timezone: 'Asia/Taipei'} }")).as("week")
+                .and(context -> Document.parse("{ $month: {date: '$createdDate', timezone: 'Asia/Taipei'} }")).as("month");
 
         final LocalDate firstDayOfYear = dateFilter.with(TemporalAdjusters.firstDayOfYear());
         final LocalDate firstDayOfNextYear = dateFilter.with(TemporalAdjusters.firstDayOfNextYear());
@@ -279,19 +223,19 @@ public class SalesReportServiceImpl implements SalesReportService {
         final MatchOperation filter = Aggregation.match(
                 Criteria.where("clientId").is(clientId)
                         .and("state").ne(Order.OrderState.DELETED)
-                        .and("modifiedDate").gte(firstDayOfYear).lt(firstDayOfNextYear));
+                        .and("createdDate").gte(firstDayOfYear).lt(firstDayOfNextYear));
 
         final Object[] weeks = IntStream.rangeClosed(0, 53).boxed().toArray(Integer[]::new);
 
         final BucketOperation salesByWeek = Aggregation.bucket("week").withBoundaries(weeks).withDefaultBucket("Other")
                 .andOutput(AccumulatorOperators.Sum.sumOf("total")).as("total")
                 .andOutput(context -> new Document("$first", "$week")).as("week")
-                .andOutput(context -> new Document("$first", "$modifiedDate")).as("date");
+                .andOutput(context -> new Document("$first", "$createdDate")).as("date");
 
         final BucketOperation salesByMonth = Aggregation.bucket("month").withBoundaries(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13).withDefaultBucket("Other")
                 .andOutput(AccumulatorOperators.Sum.sumOf("total")).as("total")
                 .andOutput(context -> new Document("$first", "$month")).as("month")
-                .andOutput(context -> new Document("$first", "$modifiedDate")).as("date");
+                .andOutput(context -> new Document("$first", "$createdDate")).as("date");
 
 
         final FacetOperation facets = Aggregation

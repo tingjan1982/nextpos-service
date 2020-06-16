@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 public class RangedSalesReport {
 
-    private RangeType rangeType;
+    private ZonedDateRange dateRange;
 
     private List<TotalSales> totalSales = new ArrayList<>();
 

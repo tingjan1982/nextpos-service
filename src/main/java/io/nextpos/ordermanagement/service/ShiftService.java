@@ -1,11 +1,10 @@
 package io.nextpos.ordermanagement.service;
 
 import io.nextpos.ordermanagement.data.Shift;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface ShiftService {
@@ -28,6 +27,6 @@ public interface ShiftService {
 
     Shift getShift(String shiftId);
 
-    Page<Shift> getShifts(String clientId, Date date, PageRequest pageRequest);
+    List<Shift> getShifts(String clientId, LocalDate date);
 
 }
