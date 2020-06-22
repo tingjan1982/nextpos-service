@@ -30,14 +30,16 @@ public class ProductLevelOffer extends Offer implements DiscountCalculator<Order
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "client_product_level_offer_products",
             joinColumns = @JoinColumn(name = "offer_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_id"))
+            inverseJoinColumns = @JoinColumn(name = "product_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"offer_id", "product_id"}))
     @Fetch(FetchMode.SUBSELECT)
     private List<Product> appliesToProducts = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "client_product_level_offer_labels",
             joinColumns = @JoinColumn(name = "offer_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_label_id"))
+            inverseJoinColumns = @JoinColumn(name = "product_label_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"offer_id", "product_label_id"}))
     @Fetch(FetchMode.SUBSELECT)
     private List<ProductLabel> appliesToProductLabels = new ArrayList<>();
 
