@@ -45,7 +45,9 @@ public class SalesReportServiceImpl implements SalesReportService {
         final MatchOperation filter = createMatchFilter(clientId, rangeType, date, reportDateParameter, zonedDateRange);
 
         final GroupOperation salesTotal = Aggregation.group("clientId")
-                .sum("orderTotal").as("salesTotal");
+                .sum("orderTotal").as("salesTotal")
+                .sum("serviceCharge").as("serviceChargeTotal")
+                .sum("discount").as("discountTotal");
 
         final UnwindOperation flattenLineItems = Aggregation.unwind("lineItems");
         final BucketOperationSupport<?, ?> salesByRange = createSalesByRangeFacet(zonedDateRange);
@@ -57,10 +59,16 @@ public class SalesReportServiceImpl implements SalesReportService {
                 .first("lineItems.productSnapshot.name").as("productName");
         final SortOperation sortSalesByProduct = Aggregation.sort(Sort.Direction.DESC, "productSales");
 
+        final GroupOperation salesByLabel = Aggregation.group("lineItems.productSnapshot.labelId")
+                .sum(subTotalToDecimal).as("productSales")
+                .sum("lineItems.quantity").as("salesQuantity")
+                .first("lineItems.productSnapshot.label").as("productLabel");
+
         final FacetOperation facets = Aggregation
                 .facet(salesTotal).as("totalSales")
                 .and(salesByRange).as("salesByRange")
-                .and(flattenLineItems, salesByProduct, sortSalesByProduct).as("salesByProduct");
+                .and(flattenLineItems, salesByProduct, sortSalesByProduct).as("salesByProduct")
+                .and(flattenLineItems, salesByLabel, sortSalesByProduct).as("salesByLabel");
 
         final TypedAggregation<Order> aggregations = Aggregation.newAggregation(Order.class,
                 projection,
@@ -79,11 +87,75 @@ public class SalesReportServiceImpl implements SalesReportService {
         return results;
     }
 
+    @Override
+    public RangedSalesReport generateSalesRankingReport(final String clientId,
+                                                        final RangedSalesReport.RangeType rangeType,
+                                                        final LocalDate date,
+                                                        final ReportDateParameter reportDateParameter,
+                                                        final String labelId) {
+
+        final ZonedDateRange zonedDateRange = new ZonedDateRange(ZoneId.of("Asia/Taipei"));
+        final ProjectionOperation projection = Aggregation.project("clientId")
+                .and("state").as("state")
+                .and(createToDecimal("orderTotal")).as("orderTotal")
+                .and("orderLineItems").as("lineItems")
+                .and("createdDate").as("createdDate");
+
+        final UnwindOperation flattenLineItems = Aggregation.unwind("lineItems");
+
+        this.initializeZonedDateRange(zonedDateRange, rangeType, date, reportDateParameter);
+
+        final MatchOperation filter = Aggregation.match(
+                Criteria.where("clientId").is(clientId)
+                        .and("state").ne(Order.OrderState.DELETED)
+                        .and("createdDate").gte(zonedDateRange.getFromLocalDateTime()).lt(zonedDateRange.getToLocalDateTime())
+        );
+
+        final GroupOperation salesTotal = Aggregation.group("clientId")
+                .sum("orderTotal").as("salesTotal");
+
+        final MatchOperation labelFilter = Aggregation.match(Criteria.where("lineItems.productSnapshot.labelId").is(labelId));
+        final ConvertOperators.ToDecimal subTotalToDecimal = createToDecimal("lineItems.lineItemSubTotal");
+        final GroupOperation salesByProduct = Aggregation.group("lineItems.productSnapshot.name")
+                .sum(subTotalToDecimal).as("productSales")
+                .sum("lineItems.quantity").as("salesQuantity")
+                .first("lineItems.productSnapshot.name").as("productName");
+        final SortOperation sortSalesByProduct = Aggregation.sort(Sort.Direction.DESC, "productSales");
+
+        final FacetOperation facets = Aggregation
+                .facet(salesTotal).as("totalSales")
+                .and(flattenLineItems, labelFilter, salesByProduct, sortSalesByProduct).as("salesByProduct");
+
+        final TypedAggregation<Order> aggregations = Aggregation.newAggregation(Order.class,
+                projection,
+                filter,
+                facets);
+
+        final AggregationResults<RangedSalesReport> result = mongoTemplate.aggregate(aggregations, RangedSalesReport.class);
+        final RangedSalesReport results = result.getUniqueMappedResult();
+
+        if (results != null) {
+            if (results.hasResult()) {
+                final BigDecimal total = results.getTotalSales().getSalesTotal();
+
+                results.getSalesByProduct().forEach(s -> {
+                    final BigDecimal productSales = s.getProductSales();
+                    final BigDecimal percentage = productSales.multiply(BigDecimal.valueOf(100)).divide(total, RoundingMode.UP);
+                    s.setPercentage(percentage);
+                });
+            }
+        }
+
+        return results;
+    }
+
     private ProjectionOperation createProjection() {
 
         return Aggregation.project("clientId")
                 .and("state").as("state")
                 .and(createToDecimal("orderTotal")).as("orderTotal")
+                .and(createToDecimal("serviceCharge")).as("serviceCharge")
+                .and(createToDecimal("discount")).as("discount")
                 .and("orderLineItems").as("lineItems")
                 .and("createdDate").as("createdDate")
                 .and(context -> Document.parse("{ $dayOfYear: {date: '$createdDate', timezone: 'Asia/Taipei'} }")).as("dayOfYear");
@@ -94,6 +166,16 @@ public class SalesReportServiceImpl implements SalesReportService {
                                              LocalDate date,
                                              ReportDateParameter reportDateParameter,
                                              ZonedDateRange zonedDateRange) {
+
+        initializeZonedDateRange(zonedDateRange, rangeType, date, reportDateParameter);
+
+        return Aggregation.match(
+                Criteria.where("clientId").is(clientId)
+                        .and("state").ne(Order.OrderState.DELETED)
+                        .and("createdDate").gte(zonedDateRange.getFromLocalDateTime()).lt(zonedDateRange.getToLocalDateTime()));
+    }
+
+    private void initializeZonedDateRange(ZonedDateRange zonedDateRange, RangedSalesReport.RangeType rangeType, LocalDate date, ReportDateParameter reportDateParameter) {
 
         final ZoneId zoneId = zonedDateRange.getClientTimeZone();
 
@@ -123,11 +205,6 @@ public class SalesReportServiceImpl implements SalesReportService {
             default:
                 throw new GeneralApplicationException("Ensure all RangeType is supported: " + Arrays.toString(RangedSalesReport.RangeType.values()));
         }
-
-        return Aggregation.match(
-                Criteria.where("clientId").is(clientId)
-                        .and("state").ne(Order.OrderState.DELETED)
-                        .and("createdDate").gte(zonedDateRange.getFromLocalDateTime()).lt(zonedDateRange.getToLocalDateTime()));
     }
 
     private BucketOperationSupport<?, ?> createSalesByRangeFacet(ZonedDateRange zonedDateRange) {
@@ -155,6 +232,12 @@ public class SalesReportServiceImpl implements SalesReportService {
             final BigDecimal salesTotal = results.getTotalSales().getSalesTotal();
 
             results.getSalesByProduct().forEach(s -> {
+                final BigDecimal productSales = s.getProductSales();
+                final BigDecimal percentage = productSales.multiply(BigDecimal.valueOf(100)).divide(salesTotal, RoundingMode.UP);
+                s.setPercentage(percentage);
+            });
+
+            results.getSalesByLabel().forEach(s -> {
                 final BigDecimal productSales = s.getProductSales();
                 final BigDecimal percentage = productSales.multiply(BigDecimal.valueOf(100)).divide(salesTotal, RoundingMode.UP);
                 s.setPercentage(percentage);

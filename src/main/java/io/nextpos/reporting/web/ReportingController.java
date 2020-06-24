@@ -52,6 +52,48 @@ public class ReportingController {
                                                           @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
                                                           @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate) {
 
+        date = checkDateParameters(rangeType, date, fromDate, toDate);
+
+        ReportDateParameter reportDateParameter = new ReportDateParameter(fromDate, toDate);
+
+        final RangedSalesReport rangedSalesReport = salesReportService.generateRangedSalesReport(client.getId(), rangeType, date, reportDateParameter);
+
+        return new RangedSalesReportResponse(
+                rangedSalesReport.getDateRange(),
+                rangedSalesReport.getTotalSales().getSalesTotal(),
+                rangedSalesReport.getTotalSales(),
+                rangedSalesReport.getSalesByRange(),
+                rangedSalesReport.getSalesByProduct(),
+                rangedSalesReport.getSalesByLabel());
+    }
+
+    @GetMapping("/salesRankingReport")
+    public RangedSalesReportResponse getSalesRankingReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                           @RequestParam(value = "rangeType", defaultValue = "WEEK") RangedSalesReport.RangeType rangeType,
+                                                           @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                                           @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
+                                                           @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
+                                                           @RequestParam(name = "labelId") String labelId) {
+
+        date = checkDateParameters(rangeType, date, fromDate, toDate);
+
+        ReportDateParameter reportDateParameter = new ReportDateParameter(fromDate, toDate);
+
+        final RangedSalesReport rangedSalesReport = salesReportService.generateSalesRankingReport(client.getId(), rangeType, date, reportDateParameter, labelId);
+
+        return new RangedSalesReportResponse(
+                rangedSalesReport.getDateRange(),
+                rangedSalesReport.getTotalSales().getSalesTotal(),
+                rangedSalesReport.getTotalSales(),
+                rangedSalesReport.getSalesByRange(),
+                rangedSalesReport.getSalesByProduct(),
+                rangedSalesReport.getSalesByLabel());
+    }
+
+    private LocalDate checkDateParameters(RangedSalesReport.RangeType rangeType,
+                                          LocalDate date,
+                                          LocalDateTime fromDate,
+                                          LocalDateTime toDate) {
         if (date == null) {
             date = LocalDate.now();
         }
@@ -63,22 +105,13 @@ public class ReportingController {
         if (rangeType == RangedSalesReport.RangeType.CUSTOM && fromDate.isAfter(toDate)) {
             throw new BusinessLogicException("from date cannot be after to date");
         }
-
-        ReportDateParameter reportDateParameter = new ReportDateParameter(fromDate, toDate);
-
-        final RangedSalesReport rangedSalesReport = salesReportService.generateRangedSalesReport(client.getId(), rangeType, date, reportDateParameter);
-
-        return new RangedSalesReportResponse(
-                rangedSalesReport.getDateRange(),
-                rangedSalesReport.getTotalSales().getSalesTotal(),
-                rangedSalesReport.getSalesByRange(),
-                rangedSalesReport.getSalesByProduct());
+        return date;
     }
 
     @GetMapping("/customerStats")
     public CustomerStatsReportResponse getCustomerStatsReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                               @RequestParam(name = "year", required = false) Integer year,
-                                                              @RequestParam(name = "month", required = false) Month month) {
+                                                              @RequestParam(name = "month", required = false) Integer month) {
 
         YearMonth yearMonth = YearMonth.now();
 

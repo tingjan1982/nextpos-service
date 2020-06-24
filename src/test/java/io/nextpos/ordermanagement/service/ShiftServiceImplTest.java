@@ -9,18 +9,19 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -123,11 +124,11 @@ class ShiftServiceImplTest {
         shiftRepository.save(new Shift(clientId, Date.from(now.minus(7, ChronoUnit.DAYS)), "dummy", BigDecimal.ONE));
         shiftRepository.save(new Shift(clientId, Date.from(now.minus(8, ChronoUnit.DAYS)), "dummy", BigDecimal.ONE));
 
-        final Page<Shift> shifts = shiftService.getShifts(clientId, Date.from(now.minus(7, ChronoUnit.DAYS)));
+        final List<Shift> shifts = shiftService.getShifts(clientId, LocalDate.now().minusDays(7));
 
-        assertThat(shifts.getContent()).hasSize(4);
+        assertThat(shifts).hasSize(4);
         final Comparator<Shift> compareByStartDate = Comparator.<Shift, Date>comparing(s -> s.getStart().getTimestamp()).reversed();
 
-        assertThat(shifts.getContent()).isSortedAccordingTo(compareByStartDate);
+        assertThat(shifts).isSortedAccordingTo(compareByStartDate);
     }
 }

@@ -19,6 +19,9 @@ public class RangedSalesReport {
 
     private List<SalesByProduct> salesByProduct;
 
+    private List<SalesByLabel> salesByLabel;
+
+
     public boolean hasResult() {
         return !CollectionUtils.isEmpty(totalSales);
     }
@@ -33,6 +36,10 @@ public class RangedSalesReport {
         private String id;
 
         private BigDecimal salesTotal = BigDecimal.ZERO;
+
+        private BigDecimal serviceChargeTotal = BigDecimal.ZERO;
+
+        private BigDecimal discountTotal = BigDecimal.ZERO;
     }
 
     @Data
@@ -61,6 +68,20 @@ public class RangedSalesReport {
         private String id;
 
         private String productName;
+
+        private int salesQuantity;
+
+        private BigDecimal productSales;
+
+        private BigDecimal percentage;
+    }
+
+    @Data
+    public static class SalesByLabel {
+
+        private String id;
+
+        private String productLabel;
 
         private int salesQuantity;
 

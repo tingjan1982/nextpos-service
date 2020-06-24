@@ -74,8 +74,6 @@ class SalesReportServiceImplTest {
             createOrder(date, "tea", BigDecimal.valueOf(35), 5);
         }
 
-        final Iterable<Order> all = orderRepository.findAll();
-
         final RangedSalesReport results = salesReportService.generateRangedSalesReport("client", RangedSalesReport.RangeType.WEEK, today, null);
 
         assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo("3272.50"); // (50 + 35) * 5 * 7 * 1.1
@@ -88,6 +86,10 @@ class SalesReportServiceImplTest {
             assertThat(byProduct.getProductSales()).isNotZero();
             assertThat(byProduct.getPercentage()).isNotZero();
         });
+
+        final RangedSalesReport salesRankingReport = salesReportService.generateSalesRankingReport("client", RangedSalesReport.RangeType.WEEK, today, null, "default-id");
+
+        LOGGER.info("{}", salesRankingReport);
     }
 
     @Test
@@ -214,6 +216,7 @@ class SalesReportServiceImplTest {
     private void createOrder(final LocalDate orderDate, String productName, BigDecimal price, int quantity) {
 
         final ProductSnapshot productSnapshot = new ProductSnapshot(null, productName, null, price, null);
+        productSnapshot.setLabelInformation("default-id", "default");
         this.createOrder(orderDate, productSnapshot, quantity, false);
     }
 
@@ -241,7 +244,7 @@ class SalesReportServiceImplTest {
 
         // use query to update order.modifiedDate to overwrite the dates that are set by Spring MongoDB auditing feature.
         final Query query = new Query(where("id").is(order.getId()));
-        final Update update = new Update().set("modifiedDate", Date.valueOf(orderDate));
+        final Update update = new Update().set("createdDate", Date.valueOf(orderDate));
         mongoTemplate.updateFirst(query, update, Order.class);
     }
 }

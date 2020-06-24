@@ -14,9 +14,14 @@ public class RangedSalesReportResponse {
 
     private ZonedDateRange dateRange;
 
+    @Deprecated
     private BigDecimal todayTotal;
+
+    private RangedSalesReport.TotalSales totalSales;
 
     private List<RangedSalesReport.SalesByRange> salesByRange;
 
     private List<RangedSalesReport.SalesByProduct> salesByProducts;
+
+    private List<RangedSalesReport.SalesByLabel> salesByLabels;
 }

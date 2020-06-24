@@ -11,6 +11,8 @@ public interface SalesReportService {
 
     RangedSalesReport generateRangedSalesReport(String clientId, RangedSalesReport.RangeType rangeType, LocalDate date, ReportDateParameter reportDateParameter);
 
+    RangedSalesReport generateSalesRankingReport(String clientId, RangedSalesReport.RangeType rangeType, LocalDate date, ReportDateParameter reportDateParameter, String labelId);
+
     SalesProgress generateSalesProgress(String clientId);
 
     SalesDistribution generateSalesDistribution(String clientId, LocalDate dateFilter);
