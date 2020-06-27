@@ -139,7 +139,7 @@ public class Shift extends MongoBaseObject {
                 return DateTimeUtil.toLocalDateTime(zoneId, timestamp);
             }
 
-            return LocalDateTime.now();
+            return LocalDateTime.now().atZone(ZoneId.systemDefault()).withZoneSameInstant(zoneId).toLocalDateTime();
         }
     }
 
