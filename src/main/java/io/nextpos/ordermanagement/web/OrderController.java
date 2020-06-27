@@ -92,6 +92,7 @@ public class OrderController {
                                                       @RequestParam(name = "fromDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
                                                       @RequestParam(name = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate) {
 
+
         final ReportDateParameter reportDateParameter = resolveDateRange(client, dateParameterType, shiftId, fromDate, toDate);
         final List<Order> orders = orderService.getOrders(client, reportDateParameter.getFromDate(), reportDateParameter.getToDate());
 
@@ -122,9 +123,11 @@ public class OrderController {
             return DateParameterType.toReportingParameter(dateParameterType, fromDateParam, toDateParam);
         }
 
+        final ZoneId zoneId = client.getZoneId();
+
         if (shiftId != null) {
             Shift shift = shiftService.getShift(shiftId);
-            return new ReportDateParameter(shift.getStart().toLocalDateTime(), shift.getEnd().toLocalDateTime());
+            return new ReportDateParameter(shift.getStart().toLocalDateTime(zoneId), shift.getEnd().toLocalDateTime(zoneId));
         }
 
         final Optional<Shift> mostRecentShift = shiftService.getMostRecentShift(client.getId());
@@ -132,7 +135,7 @@ public class OrderController {
         if (mostRecentShift.isPresent()) {
             final Shift shift = mostRecentShift.get();
 
-            return new ReportDateParameter(shift.getStart().toLocalDateTime(), shift.getEnd().toLocalDateTime());
+            return new ReportDateParameter(shift.getStart().toLocalDateTime(zoneId), shift.getEnd().toLocalDateTime(zoneId));
         }
 
         throw new BusinessLogicException("No date range specified.");

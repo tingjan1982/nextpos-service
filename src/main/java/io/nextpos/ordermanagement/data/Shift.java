@@ -5,6 +5,7 @@ import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.model.MongoBaseObject;
+import io.nextpos.shared.util.DateTimeUtil;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -96,8 +97,8 @@ public class Shift extends MongoBaseObject {
          */
         private BigDecimal balance;
 
-        public LocalDateTime toLocalDateTime() {
-            return timestamp.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        public LocalDateTime toLocalDateTime(ZoneId zoneId) {
+            return DateTimeUtil.toLocalDateTime(zoneId, timestamp);
         }
     }
 
@@ -132,10 +133,10 @@ public class Shift extends MongoBaseObject {
             return closingBalances.values().stream().allMatch(ClosingBalanceDetails::isBalanced);
         }
 
-        public LocalDateTime toLocalDateTime() {
+        public LocalDateTime toLocalDateTime(ZoneId zoneId) {
 
             if (timestamp != null) {
-                return timestamp.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                return DateTimeUtil.toLocalDateTime(zoneId, timestamp);
             }
 
             return LocalDateTime.now();

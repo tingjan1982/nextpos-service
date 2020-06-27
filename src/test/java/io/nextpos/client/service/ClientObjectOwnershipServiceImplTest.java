@@ -32,8 +32,8 @@ class ClientObjectOwnershipServiceImplTest {
     @Test
     void checkOwnership() {
 
-        Client client1 = new Client("client1", "user1@mail.co", "password", "TW");
-        Client client2 = new Client("client2", "user2@mail.co", "password", "TW");
+        Client client1 = new Client("client1", "user1@mail.co", "password", "TW", "Asia/Taipei");
+        Client client2 = new Client("client2", "user2@mail.co", "password", "TW", "Asia/Taipei");
 
         clientService.createClient(client1);
         clientService.createClient(client2);

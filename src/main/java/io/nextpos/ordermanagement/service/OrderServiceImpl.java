@@ -21,7 +21,9 @@ import org.springframework.util.CollectionUtils;
 import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -77,9 +79,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> getOrders(final Client client, LocalDateTime fromDate, LocalDateTime toDate) {
+    public List<Order> getOrders(final Client client, LocalDateTime fromLocalDt, LocalDateTime toLocalDt) {
 
-        LOGGER.info("Date range used to get orders: {}, {}", fromDate, toDate);
+        LOGGER.info("Date range used to get orders: {}, {}", fromLocalDt, toLocalDt);
+
+        final ZoneId zoneId = client.getZoneId();
+        final Date fromDate = Date.from(fromLocalDt.atZone(zoneId).toInstant());
+        final Date toDate = Date.from(toLocalDt.atZone(zoneId).toInstant());
 
         return orderRepository.findAllByClientAndDateRangeOrderByCreatedDateDesc(client.getId(), fromDate, toDate);
     }

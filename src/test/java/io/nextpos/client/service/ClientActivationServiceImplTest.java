@@ -24,7 +24,7 @@ class ClientActivationServiceImplTest {
     @Test
     void sendActivationNotification() throws Exception {
 
-        final Client client = new Client("Ron", "tingjan1982@gmail.com", "Secret1", "TW");
+        final Client client = new Client("Ron", "tingjan1982@gmail.com", "Secret1", "TW", "Asia/Taipei");
         client.setId("TINGJAN1");
 
         final CompletableFuture<NotificationDetails> future = clientActivationService.sendActivationNotification(client);

@@ -1,7 +1,6 @@
 package io.nextpos.reporting.data;
 
 import io.nextpos.shared.exception.BusinessLogicException;
-import org.springframework.lang.NonNull;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -58,7 +57,7 @@ public enum DateParameterType {
 
     public abstract ReportDateParameter toReportingParameter();
 
-    public static ReportDateParameter toReportingParameter(@NonNull DateParameterType dateParameterType, LocalDateTime fromDate, LocalDateTime toDate) {
+    public static ReportDateParameter toReportingParameter(DateParameterType dateParameterType, LocalDateTime fromDate, LocalDateTime toDate) {
 
         if (dateParameterType == RANGE && fromDate != null && toDate != null) {
             return new ReportDateParameter(fromDate, toDate);

@@ -13,6 +13,7 @@ import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +44,8 @@ public class Client extends BaseObject {
     private String roles;
 
     private String countryCode;
+
+    private String timezone;
 
     @Enumerated(EnumType.STRING)
     private Status status = Status.PENDING_ACTIVE;
@@ -102,11 +105,16 @@ public class Client extends BaseObject {
     private List<Printer> printers;
 
 
-    public Client(final String clientName, final String username, final String masterPassword, final String countryCode) {
+    public Client(final String clientName, final String username, final String masterPassword, final String countryCode, final String timeZone) {
         this.clientName = clientName;
         this.username = username;
         this.masterPassword = masterPassword;
         this.countryCode = countryCode;
+        this.timezone = timeZone;
+    }
+
+    public ZoneId getZoneId() {
+        return ZoneId.of(timezone);
     }
 
     public Client addAttribute(String key, String value) {

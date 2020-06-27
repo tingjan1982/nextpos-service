@@ -1,15 +1,16 @@
 package io.nextpos.reporting.data;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
 
+// todo: rename this class to not be report specific. eg. DateParameters.
 @Data
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ReportDateParameter {
 
-    private LocalDateTime fromDate;
+    private final LocalDateTime fromDate;
 
-    private LocalDateTime toDate;
+    private final LocalDateTime toDate;
 }

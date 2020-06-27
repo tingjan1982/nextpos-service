@@ -37,6 +37,8 @@ public class BootstrapConfig {
 
     public static final String DEFAULT_COUNTRY_CODE = "TW";
 
+    public static final String DEFAULT_TIME_ZONE = "Asia/Taipei";
+
     private final ClientService clientService;
 
     private final SettingsService settingsService;
@@ -56,7 +58,7 @@ public class BootstrapConfig {
         Client defaultClient = clientService.getDefaultClient();
 
         if (defaultClient == null) {
-            defaultClient = new Client(MASTER_CLIENT, MASTER_CLIENT, "1qaz2wsx3edc", DEFAULT_COUNTRY_CODE);
+            defaultClient = new Client(MASTER_CLIENT, MASTER_CLIENT, "1qaz2wsx3edc", DEFAULT_COUNTRY_CODE, DEFAULT_TIME_ZONE);
             defaultClient.setRoles(SecurityConfig.Role.MASTER_ROLE);
             final Client client = clientService.createClient(defaultClient);
 

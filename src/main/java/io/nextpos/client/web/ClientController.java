@@ -145,7 +145,8 @@ public class ClientController {
         final Client client = new Client(clientRequest.getClientName().trim(),
                 clientRequest.getUsername().trim(),
                 clientRequest.getMasterPassword(),
-                BootstrapConfig.DEFAULT_COUNTRY_CODE);
+                BootstrapConfig.DEFAULT_COUNTRY_CODE,
+                BootstrapConfig.DEFAULT_TIME_ZONE);
 
         if (!CollectionUtils.isEmpty(clientRequest.getAttributes())) {
             clientRequest.getAttributes().forEach(client::addAttribute);
