@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.*;
 import java.util.ArrayList;
@@ -108,7 +109,7 @@ public class SalesReportServiceImpl implements SalesReportService {
         final MatchOperation filter = Aggregation.match(
                 Criteria.where("clientId").is(clientId)
                         .and("state").ne(Order.OrderState.DELETED)
-                        .and("createdDate").gte(zonedDateRange.getFromLocalDateTime()).lt(zonedDateRange.getToLocalDateTime())
+                        .and("createdDate").gte(zonedDateRange.getFromDate()).lte(zonedDateRange.getToDate())
         );
 
         final GroupOperation salesTotal = Aggregation.group("clientId")
@@ -158,6 +159,7 @@ public class SalesReportServiceImpl implements SalesReportService {
                 .and(createToDecimal("discount")).as("discount")
                 .and("orderLineItems").as("lineItems")
                 .and("createdDate").as("createdDate")
+                .and(context -> Document.parse("{ $dateToString: {format: '%Y-%m-%d', date: '$createdDate', timezone: 'Asia/Taipei'} }")).as("date")
                 .and(context -> Document.parse("{ $dayOfYear: {date: '$createdDate', timezone: 'Asia/Taipei'} }")).as("dayOfYear");
     }
 
@@ -172,7 +174,7 @@ public class SalesReportServiceImpl implements SalesReportService {
         return Aggregation.match(
                 Criteria.where("clientId").is(clientId)
                         .and("state").ne(Order.OrderState.DELETED)
-                        .and("createdDate").gte(zonedDateRange.getFromLocalDateTime()).lt(zonedDateRange.getToLocalDateTime()));
+                        .and("createdDate").gte(zonedDateRange.getFromDate()).lte(zonedDateRange.getToDate()));
     }
 
     private void initializeZonedDateRange(ZonedDateRange zonedDateRange, RangedSalesReport.RangeType rangeType, LocalDate date, ReportDateParameter reportDateParameter) {
@@ -182,17 +184,17 @@ public class SalesReportServiceImpl implements SalesReportService {
         switch (rangeType) {
             case WEEK:
                 final TemporalField temporalField = WeekFields.of(DayOfWeek.MONDAY, 7).dayOfWeek();
-                final LocalDate firstDayOfCurrentWeek = date.with(temporalField, 1);
-                final LocalDate firstDayOfNextWeek = date.with(temporalField, 7).plusDays(1);
+                final LocalDateTime firstDayOfWeek = date.with(temporalField, 1).atStartOfDay();
+                final LocalDateTime lastDayOfWeek = date.with(temporalField, 7).atTime(23, 59, 59);
 
-                zonedDateRange.setZonedFromDate(firstDayOfCurrentWeek.atStartOfDay(zoneId));
-                zonedDateRange.setZonedToDate(firstDayOfNextWeek.atStartOfDay(zoneId));
+                zonedDateRange.setZonedFromDate(firstDayOfWeek.atZone(zoneId));
+                zonedDateRange.setZonedToDate(lastDayOfWeek.atZone(zoneId));
 
                 break;
 
             case MONTH:
                 zonedDateRange.setZonedFromDate(date.withDayOfMonth(1).atStartOfDay(zoneId));
-                zonedDateRange.setZonedToDate(date.plusMonths(1).withDayOfMonth(1).atStartOfDay(zoneId));
+                zonedDateRange.setZonedToDate(date.with(TemporalAdjusters.lastDayOfMonth()).atTime(23, 59, 59).atZone(zoneId));
 
                 break;
 
@@ -214,7 +216,7 @@ public class SalesReportServiceImpl implements SalesReportService {
         return Aggregation.bucket("dayOfYear").withBoundaries(daysOfYear).withDefaultBucket("Other")
                 .andOutput("dayOfYear").last().as("dayOfYear")
                 .andOutput("orderTotal").sum().as("total")
-                .andOutput(context -> new Document("$last", "$createdDate")).as("date");
+                .andOutput("date").last().as("date");
     }
 
     private void enhanceResults(RangedSalesReport results,
@@ -254,7 +256,7 @@ public class SalesReportServiceImpl implements SalesReportService {
         final ProjectionOperation projection = Aggregation.project("clientId")
                 .and("state").as("state")
                 .and(createToDecimal("orderTotal")).as("total") // this is critical to make $sum work.
-                .and("modifiedDate").as("modifiedDate")
+                .and("createdDate").as("createdDate")
                 .and(context -> Document.parse("{ $dayOfMonth: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("day")
                 .and(context -> Document.parse("{ $week: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("week")
                 .and(context -> Document.parse("{ $month: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("month");
@@ -262,7 +264,7 @@ public class SalesReportServiceImpl implements SalesReportService {
         final MatchOperation filter = Aggregation.match(
                 Criteria.where("clientId").is(clientId)
                         .and("state").ne(Order.OrderState.DELETED)
-                        .and("modifiedDate").gte(LocalDate.now().withDayOfMonth(1)).lt(LocalDate.now().plusMonths(1).withDayOfMonth(1)));
+                        .and("createdDate").gte(LocalDate.now().withDayOfMonth(1)).lt(LocalDate.now().plusMonths(1).withDayOfMonth(1)));
 
         final BucketOperation dailySales = Aggregation.bucket("day").withBoundaries(today, today + 1).withDefaultBucket("Other")
                 .andOutput(AccumulatorOperators.Sum.sumOf("total")).as("total")
@@ -297,29 +299,29 @@ public class SalesReportServiceImpl implements SalesReportService {
                 .and("state").as("state")
                 .and(createToDecimal("orderTotal")).as("total") // this is critical to make $sum work.
                 .and("createdDate").as("createdDate")
+                .and(context -> Document.parse("{ $dateToString: {format: '%Y-%m-%d', date: '$createdDate', timezone: 'Asia/Taipei'} }")).as("date")
                 .and(context -> Document.parse("{ $week: {date: '$createdDate', timezone: 'Asia/Taipei'} }")).as("week")
                 .and(context -> Document.parse("{ $month: {date: '$createdDate', timezone: 'Asia/Taipei'} }")).as("month");
 
         final LocalDate firstDayOfYear = dateFilter.with(TemporalAdjusters.firstDayOfYear());
-        final LocalDate firstDayOfNextYear = dateFilter.with(TemporalAdjusters.firstDayOfNextYear());
+        final LocalDateTime lastDayOfYear = dateFilter.with(TemporalAdjusters.lastDayOfYear()).atTime(23, 59, 59);
 
         final MatchOperation filter = Aggregation.match(
                 Criteria.where("clientId").is(clientId)
                         .and("state").ne(Order.OrderState.DELETED)
-                        .and("createdDate").gte(firstDayOfYear).lt(firstDayOfNextYear));
+                        .and("createdDate").gte(firstDayOfYear).lt(lastDayOfYear));
 
         final Object[] weeks = IntStream.rangeClosed(0, 53).boxed().toArray(Integer[]::new);
 
         final BucketOperation salesByWeek = Aggregation.bucket("week").withBoundaries(weeks).withDefaultBucket("Other")
                 .andOutput(AccumulatorOperators.Sum.sumOf("total")).as("total")
                 .andOutput(context -> new Document("$first", "$week")).as("week")
-                .andOutput(context -> new Document("$first", "$createdDate")).as("date");
+                .andOutput("date").last().as("date");
 
         final BucketOperation salesByMonth = Aggregation.bucket("month").withBoundaries(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13).withDefaultBucket("Other")
                 .andOutput(AccumulatorOperators.Sum.sumOf("total")).as("total")
                 .andOutput(context -> new Document("$first", "$month")).as("month")
-                .andOutput(context -> new Document("$first", "$createdDate")).as("date");
-
+                .andOutput("date").last().as("date");
 
         final FacetOperation facets = Aggregation
                 .facet(salesByMonth).as("salesByMonth")

@@ -89,7 +89,7 @@ public class OrderLineItem implements OfferApplicableObject {
      *  quantity is updated.
      *  product options is updated.
      */
-    private void computeSubTotal() {
+    public void computeSubTotal() {
 
         final BigDecimal productTotal = productSnapshot.getProductPriceWithOptions();
         final BigDecimal lineItemTotal = productTotal.multiply(BigDecimal.valueOf(quantity));

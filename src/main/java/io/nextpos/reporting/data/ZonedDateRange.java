@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.stream.IntStream;
 
 /**
@@ -30,11 +31,23 @@ public class ZonedDateRange {
         return zonedToDate.toLocalDateTime();
     }
 
+    public Date getFromDate() {
+        return Date.from(zonedFromDate.toInstant());
+    }
+
+    public Date getToDate() {
+        return Date.from(zonedToDate.toInstant());
+    }
+
+    /**
+     * Bucket range requires the range to be m .. n + 1 (e.g. range of 3 => 1, 2, 3, 4)
+     * @return
+     */
     public IntStream bucketDateRange() {
-        return IntStream.rangeClosed(zonedFromDate.getDayOfYear(), zonedToDate.getDayOfYear());
+        return IntStream.rangeClosed(zonedFromDate.getDayOfYear(), zonedToDate.getDayOfYear() + 1);
     }
 
     public IntStream dateRange() {
-        return IntStream.rangeClosed(zonedFromDate.getDayOfYear(), zonedToDate.getDayOfYear() - 1);
+        return IntStream.rangeClosed(zonedFromDate.getDayOfYear(), zonedToDate.getDayOfYear());
     }
 }
