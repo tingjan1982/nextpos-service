@@ -1,12 +1,15 @@
 package io.nextpos.ordermanagement.web;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.datetime.data.ZonedDateRange;
+import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.ordermanagement.data.Shift;
 import io.nextpos.ordermanagement.service.ShiftService;
 import io.nextpos.ordermanagement.web.model.CloseShiftRequest;
 import io.nextpos.ordermanagement.web.model.OpenShiftRequest;
 import io.nextpos.ordermanagement.web.model.ShiftResponse;
 import io.nextpos.ordermanagement.web.model.ShiftsResponse;
+import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -54,20 +57,17 @@ public class ShiftController {
         return toShiftResponse(mostRecentShift);
     }
 
-    @GetMapping()
+    @GetMapping
     public ShiftsResponse getShifts(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                     @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
 
-        LocalDate searchDate = date;
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.MONTH)
+                .date(date).build();
 
-        if (searchDate == null) {
-            searchDate = LocalDate.now();
-        }
-
-        final List<ShiftResponse> shifts = shiftService.getShifts(client.getId(), searchDate).stream()
+        final List<ShiftResponse> shifts = shiftService.getShifts(client.getId(), zonedDateRange).stream()
                 .map(this::toShiftResponse).collect(Collectors.toList());
 
-        return new ShiftsResponse(shifts);
+        return new ShiftsResponse(zonedDateRange, shifts);
     }
 
 

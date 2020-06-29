@@ -13,19 +13,14 @@ import io.nextpos.reporting.web.model.*;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.timecard.data.TimeCardReport;
 import io.nextpos.timecard.service.TimeCardReportService;
-import org.apache.commons.lang3.tuple.Pair;
-import org.bson.types.Decimal128;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.YearMonth;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/reporting")
@@ -132,7 +127,10 @@ public class ReportingController {
             yearMonth = YearMonth.of(year, month);
         }
 
-        final CustomerTrafficReport customerTrafficReport = statsReportService.generateCustomerTrafficReport(client.getId(), yearMonth);
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.MONTH)
+                .date(yearMonth.atDay(1)).build();
+
+        final CustomerTrafficReport customerTrafficReport = statsReportService.generateCustomerTrafficReport(client.getId(), zonedDateRange);
 
         if (customerTrafficReport.getTotalCountObject().isPresent()) {
             return new CustomerTrafficReportResponse(
@@ -174,38 +172,18 @@ public class ReportingController {
 
         return timeCardReportService.getTimeCardReport(client, yearMonth);
     }
-
-    @GetMapping("/salesreport")
-    public SalesReportResponse getSalesReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                              @RequestParam(name = "date", defaultValue = "TODAY") DateParameterType dateParameterType,
-                                              @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
-                                              @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate) {
-
-        ReportDateParameter reportDateParameter = DateParameterType.toReportingParameter(dateParameterType, fromDate, toDate);
-
-        final SalesReport salesReport = reportingService.generateSalesReport(client, reportDateParameter);
-        return toSalesReportResponse(salesReport);
-    }
-
-    private SalesReportResponse toSalesReportResponse(final SalesReport salesReport) {
-
-        final Map<String, BigDecimal> salesByProducts = salesReport.getSalesByProducts().stream()
-                .map(doc -> Pair.of(doc.get("name", String.class), doc.get("amount", Decimal128.class).bigDecimalValue()))
-                .collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
-
-        return new SalesReportResponse(salesReport.getId(), salesReport.getFromDate(), salesReport.getToDate(), salesReport.getOrderCount(), salesReport.getSalesTotal(), salesByProducts);
-    }
-
+    
     @GetMapping("/averageDeliveryTime")
     public OrderStateAverageTimeReportResponse getOrderStateAverageTimeReport(
             @RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-            @RequestParam(name = "date", defaultValue = "TODAY") DateParameterType dateParameterType,
+            @RequestParam(name = "date", defaultValue = "MONTH") DateParameterType dateParameterType,
             @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
             @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate) {
 
-        ReportDateParameter reportDateParameter = DateParameterType.toReportingParameter(dateParameterType, fromDate, toDate);
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, dateParameterType)
+                .dateRange(fromDate, toDate).build();
 
-        final OrderStateParameter orderStateParameter = new OrderStateParameter(reportDateParameter, Order.OrderState.OPEN, Order.OrderState.DELIVERED);
+        final OrderStateParameter orderStateParameter = new OrderStateParameter(zonedDateRange, Order.OrderState.OPEN, Order.OrderState.DELIVERED);
         final OrderStateAverageTimeReport report = reportingService.generateStateTransitionAverageTimeReport(client, orderStateParameter);
 
         return toOrderStateAverageTimeReportResponse(report, orderStateParameter);
@@ -214,8 +192,7 @@ public class ReportingController {
     private OrderStateAverageTimeReportResponse toOrderStateAverageTimeReportResponse(final OrderStateAverageTimeReport report, final OrderStateParameter orderStateParameter) {
 
         return new OrderStateAverageTimeReportResponse(report.getId(),
-                orderStateParameter.getDateParameter().getFromDate(),
-                orderStateParameter.getDateParameter().getToDate(),
+                orderStateParameter.getZonedDateRange(),
                 report.getFromState(),
                 report.getToState(),
                 report.getAverageWaitTime() / 1000);

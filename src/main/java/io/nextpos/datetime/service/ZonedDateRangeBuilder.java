@@ -3,8 +3,8 @@ package io.nextpos.datetime.service;
 import io.nextpos.client.data.Client;
 import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.ordermanagement.data.Shift;
+import io.nextpos.reporting.data.DateParameter;
 import io.nextpos.reporting.data.DateParameterType;
-import io.nextpos.reporting.data.ReportDateParameter;
 import io.nextpos.shared.exception.BusinessLogicException;
 
 import java.time.LocalDate;
@@ -52,7 +52,7 @@ public class ZonedDateRangeBuilder {
 
     public ZonedDateRange build() {
 
-        ReportDateParameter dateParameter = null;
+        DateParameter dateParameter = null;
 
         switch (dateParameterType) {
             case TODAY:
@@ -68,7 +68,7 @@ public class ZonedDateRangeBuilder {
                 }
 
                 final ZoneId zoneId = client.getZoneId();
-                dateParameter = new ReportDateParameter(shift.getStart().toLocalDateTime(zoneId), shift.getEnd().toLocalDateTime(zoneId));
+                dateParameter = new DateParameter(shift.getStart().toLocalDateTime(zoneId), shift.getEnd().toLocalDateTime(zoneId));
                 break;
 
             case CUSTOM:
@@ -78,7 +78,7 @@ public class ZonedDateRangeBuilder {
                     throw new BusinessLogicException("from date and to date need to be provided");
                 }
 
-                dateParameter = new ReportDateParameter(fromDate, toDate);
+                dateParameter = new DateParameter(fromDate, toDate);
                 break;
         }
 

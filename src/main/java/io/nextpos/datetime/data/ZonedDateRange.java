@@ -1,6 +1,6 @@
 package io.nextpos.datetime.data;
 
-import io.nextpos.reporting.data.ReportDateParameter;
+import io.nextpos.reporting.data.DateParameter;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
@@ -24,10 +24,10 @@ public class ZonedDateRange {
 
     private ZonedDateTime zonedToDate;
 
-    public void updateDateRange(ReportDateParameter reportDateParameter) {
+    public void updateDateRange(DateParameter dateParameter) {
 
-        zonedFromDate = reportDateParameter.getFromDate().atZone(clientTimeZone);
-        zonedToDate = reportDateParameter.getToDate().atZone(clientTimeZone);
+        zonedFromDate = dateParameter.getFromDate().atZone(clientTimeZone);
+        zonedToDate = dateParameter.getToDate().atZone(clientTimeZone);
     }
 
     public LocalDateTime getFromLocalDateTime() {

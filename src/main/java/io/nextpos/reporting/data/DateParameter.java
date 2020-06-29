@@ -5,10 +5,9 @@ import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
 
-// todo: rename this class to not be report specific. eg. DateParameters.
 @Data
 @RequiredArgsConstructor
-public class ReportDateParameter {
+public class DateParameter {
 
     private final LocalDateTime fromDate;
 

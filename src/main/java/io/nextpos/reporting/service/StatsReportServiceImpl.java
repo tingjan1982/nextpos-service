@@ -1,5 +1,6 @@
 package io.nextpos.reporting.service;
 
+import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.reporting.data.CustomerStatsReport;
 import io.nextpos.reporting.data.CustomerTrafficReport;
@@ -29,7 +30,9 @@ public class StatsReportServiceImpl implements StatsReportService {
     }
 
     @Override
-    public CustomerTrafficReport generateCustomerTrafficReport(String clientId, YearMonth dateFilter) {
+    public CustomerTrafficReport generateCustomerTrafficReport(String clientId, ZonedDateRange zonedDateRange) {
+
+        final String timezone = zonedDateRange.getClientTimeZone().getId();
 
         final ProjectionOperation projection = Aggregation.project("clientId")
                 .and("state").as("state")
@@ -40,15 +43,13 @@ public class StatsReportServiceImpl implements StatsReportService {
                 .and("demographicData.female").as("female")
                 .and("demographicData.kid").as("kid")
                 .andExpression("demographicData.male + demographicData.female + demographicData.kid").as("customerCount")
-                .and(context -> Document.parse("{ $hour: {date: '$createdDate', timezone: 'Asia/Taipei'} }")).as("hour")
+                .and(context -> Document.parse("{ $hour: {date: '$createdDate', timezone: '" + timezone + "'} }")).as("hour")
                 .and("createdDate").as("createdDate");
 
-        LocalDate fromDate = dateFilter.atDay(1);
-        LocalDate toDate = dateFilter.plusMonths(1).atDay(1);
         final MatchOperation filter = Aggregation.match(
                 Criteria.where("clientId").is(clientId)
                         .and("state").ne(Order.OrderState.DELETED)
-                        .and("createdDate").gte(fromDate).lt(toDate));
+                        .and("createdDate").gte(zonedDateRange.getFromDate()).lt(zonedDateRange.getToDate()));
 
         final GroupOperation counts = Aggregation.group("clientId")
                 .sum("male").as("maleCount")

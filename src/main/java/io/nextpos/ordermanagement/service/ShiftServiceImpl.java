@@ -1,5 +1,6 @@
 package io.nextpos.ordermanagement.service;
 
+import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderRepository;
 import io.nextpos.ordermanagement.data.Shift;
@@ -17,8 +18,6 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -135,13 +134,9 @@ public class ShiftServiceImpl implements ShiftService {
     }
 
     @Override
-    public List<Shift> getShifts(final String clientId, final LocalDate date) {
+    public List<Shift> getShifts(final String clientId, final ZonedDateRange zonedDateRange) {
 
-        final ZoneId zone = ZoneId.of("Asia/Taipei");
-        final Date fromDate = Date.from(date.withDayOfMonth(1).atStartOfDay(zone).toInstant());
-        final Date toDate = Date.from(date.withDayOfMonth(1).plusMonths(1).atStartOfDay(zone).toInstant());
-
-        return shiftRepository.findAllByClientIdAndStart_TimestampBetween(clientId, fromDate, toDate, Sort.by(Sort.Order.desc("start.timestamp")));
+        return shiftRepository.findAllByClientIdAndStart_TimestampBetween(clientId, zonedDateRange.getFromDate(), zonedDateRange.getToDate(), Sort.by(Sort.Order.desc("start.timestamp")));
     }
 
     private Shift getCurrentShiftOrThrows(String clientId) {

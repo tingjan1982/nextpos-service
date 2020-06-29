@@ -1,11 +1,10 @@
 package io.nextpos.reporting.web.model;
 
+import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.ordermanagement.data.Order;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -14,9 +13,7 @@ public class OrderStateAverageTimeReportResponse {
 
     private String clientId;
 
-    private LocalDateTime fromDate;
-
-    private LocalDateTime toDate;
+    private ZonedDateRange dateRange;
 
     private Order.OrderState fromState;
 

@@ -1,9 +1,9 @@
 package io.nextpos.ordermanagement.service;
 
+import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.ordermanagement.data.Shift;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,6 +27,6 @@ public interface ShiftService {
 
     Shift getShift(String shiftId);
 
-    List<Shift> getShifts(String clientId, LocalDate date);
+    List<Shift> getShifts(String clientId, ZonedDateRange date);
 
 }

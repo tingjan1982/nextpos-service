@@ -1,6 +1,8 @@
 package io.nextpos.reporting.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.datetime.data.ZonedDateRange;
+import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.OrderStateChange;
@@ -9,7 +11,6 @@ import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.reporting.data.OrderStateAverageTimeReport;
 import io.nextpos.reporting.data.OrderStateParameter;
-import io.nextpos.reporting.data.SalesReport;
 import io.nextpos.shared.DummyObjects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,6 @@ import org.springframework.data.mongodb.core.query.Query;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,26 +53,15 @@ class ReportingServiceImplTest {
     }
 
     @Test
-    void generateSalesReport() {
-
-        final Order createdOrder = this.createOrder(client.getId());
-
-        final SalesReport salesReport = reportingService.generateSalesReport(client, DateParameterType.TODAY.toReportingParameter(LocalDate.now()));
-
-        assertThat(salesReport).isNotNull();
-        assertThat(salesReport.getSalesTotal()).isGreaterThan(BigDecimal.ZERO);
-        assertThat(salesReport.getOrderCount()).isGreaterThan(0);
-
-        orderService.deleteOrder(createdOrder);
-    }
-
-    @Test
     public void generateOrderStateAverageTimeReport() {
 
-        final List<Order> orders = List.of(this.createAndTransitionOrderToDelivered(client.getId()), this.createAndTransitionOrderToDelivered(client.getId()));
+        final List<Order> orders = List.of(
+                this.createAndTransitionOrderToDelivered(client.getId()),
+                this.createAndTransitionOrderToDelivered(client.getId()));
 
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.MONTH).build();
         final OrderStateParameter orderStateParameter = new OrderStateParameter(
-                DateParameterType.TODAY.toReportingParameter(LocalDate.now()),
+                zonedDateRange,
                 Order.OrderState.OPEN,
                 Order.OrderState.DELIVERED
         );
