@@ -1,7 +1,7 @@
 package io.nextpos.reporting.web.model;
 
+import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.reporting.data.RangedSalesReport;
-import io.nextpos.reporting.data.ZonedDateRange;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

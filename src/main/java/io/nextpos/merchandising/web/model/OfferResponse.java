@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -45,5 +46,18 @@ public class OfferResponse {
         private Map<String, String> productIds;
 
         private Map<String, String> productLabelIds;
+
+        private List<ProductOfferProduct> selectedProducts;
+
+        @Data
+        @AllArgsConstructor
+        public static class ProductOfferProduct {
+
+            private String labelId;
+
+            private String productId;
+
+            private String name;
+        }
     }
 }

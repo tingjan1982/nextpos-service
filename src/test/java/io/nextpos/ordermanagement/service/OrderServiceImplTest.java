@@ -2,12 +2,15 @@ package io.nextpos.ordermanagement.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
+import io.nextpos.datetime.data.ZonedDateRange;
+import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
+import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
@@ -184,12 +187,16 @@ class OrderServiceImplTest {
         final Order order = new Order(client.getId(), orderSettings);
         orderService.createOrder(order);
 
-        final List<Order> orders = orderService.getOrders(client, fromDate, toDate);
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.RANGE).dateRange(fromDate, toDate).build();
+
+        final List<Order> orders = orderService.getOrders(client, zonedDateRange);
 
         LOGGER.info("Orders: {}", orders);
         assertThat(orders).isNotEmpty();
 
-        final List<Order> shouldBeEmpty = orderService.getOrders(client, toDate, toDate.plusDays(1));
+        final ZonedDateRange zonedDateRange2 = ZonedDateRangeBuilder.builder(client, DateParameterType.RANGE).dateRange(toDate, toDate.plusDays(1)).build();
+
+        final List<Order> shouldBeEmpty = orderService.getOrders(client, zonedDateRange2);
         assertThat(shouldBeEmpty).isEmpty();
     }
 

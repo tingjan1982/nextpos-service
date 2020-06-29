@@ -1,6 +1,7 @@
 package io.nextpos.ordermanagement.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.merchandising.service.MerchandisingService;
 import io.nextpos.ordermanagement.data.*;
@@ -20,10 +21,7 @@ import org.springframework.util.CollectionUtils;
 
 import javax.transaction.Transactional;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -79,15 +77,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> getOrders(final Client client, LocalDateTime fromLocalDt, LocalDateTime toLocalDt) {
+    public List<Order> getOrders(final Client client, ZonedDateRange zonedDateRange) {
 
-        LOGGER.info("Date range used to get orders: {}, {}", fromLocalDt, toLocalDt);
+        LOGGER.info("Date range used to get orders: {}, {}", zonedDateRange.getFromLocalDateTime(), zonedDateRange.getToLocalDateTime());
 
-        final ZoneId zoneId = client.getZoneId();
-        final Date fromDate = Date.from(fromLocalDt.atZone(zoneId).toInstant());
-        final Date toDate = Date.from(toLocalDt.atZone(zoneId).toInstant());
-
-        return orderRepository.findAllByClientAndDateRangeOrderByCreatedDateDesc(client.getId(), fromDate, toDate);
+        return orderRepository.findAllByClientAndDateRangeOrderByCreatedDateDesc(client.getId(),
+                zonedDateRange.getFromDate(),
+                zonedDateRange.getToDate());
     }
 
     @Override

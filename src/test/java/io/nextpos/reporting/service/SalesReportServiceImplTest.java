@@ -1,17 +1,21 @@
 package io.nextpos.reporting.service;
 
+import io.nextpos.client.data.Client;
+import io.nextpos.datetime.data.ZonedDateRange;
+import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderRepository;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.ordermanagement.service.OrderService;
+import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.reporting.data.RangedSalesReport;
-import io.nextpos.reporting.data.ReportDateParameter;
 import io.nextpos.reporting.data.SalesDistribution;
 import io.nextpos.reporting.data.SalesProgress;
 import io.nextpos.shared.DummyObjects;
 import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +60,12 @@ class SalesReportServiceImplTest {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    private Client client;
+
+    @BeforeEach
+    void setup() {
+        client = DummyObjects.dummyClient();
+    }
 
     @AfterEach
     void removeData() {
@@ -74,7 +84,8 @@ class SalesReportServiceImplTest {
             createOrder(date, "tea", BigDecimal.valueOf(35), 5);
         }
 
-        final RangedSalesReport results = salesReportService.generateRangedSalesReport("client", RangedSalesReport.RangeType.WEEK, today, null);
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.WEEK).build();
+        final RangedSalesReport results = salesReportService.generateRangedSalesReport(client.getClientName(), zonedDateRange);
 
         assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo("3272.50"); // (50 + 35) * 5 * 7 * 1.1
         assertThat(results.getSalesByRange()).hasSize(7);
@@ -87,7 +98,7 @@ class SalesReportServiceImplTest {
             assertThat(byProduct.getPercentage()).isNotZero();
         });
 
-        final RangedSalesReport salesRankingReport = salesReportService.generateSalesRankingReport("client", RangedSalesReport.RangeType.WEEK, today, null, "default-id");
+        final RangedSalesReport salesRankingReport = salesReportService.generateSalesRankingReport(client.getClientName(), zonedDateRange, "default-id");
 
         LOGGER.info("{}", salesRankingReport);
     }
@@ -95,7 +106,8 @@ class SalesReportServiceImplTest {
     @Test
     void generateRangedSalesReport_WithEmptyData() {
 
-        final RangedSalesReport results = salesReportService.generateRangedSalesReport("client", RangedSalesReport.RangeType.WEEK, LocalDate.now(), null);
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.WEEK).build();
+        final RangedSalesReport results = salesReportService.generateRangedSalesReport(client.getClientName(), zonedDateRange);
 
         assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo("0");
         assertThat(results.getSalesByRange()).hasSize(7);
@@ -116,7 +128,8 @@ class SalesReportServiceImplTest {
             createOrder(date, "tea", BigDecimal.valueOf(35), 5);
         }
 
-        final RangedSalesReport results = salesReportService.generateRangedSalesReport("client", RangedSalesReport.RangeType.MONTH, today, null);
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.MONTH).build();
+        final RangedSalesReport results = salesReportService.generateRangedSalesReport(client.getClientName(), zonedDateRange);
 
         assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo("14025"); // (50 + 35) * 5 * lastDayOfMonth.getDayOfMonth() * 1.1;
         assertThat(results.getSalesByRange()).hasSize(lastDayOfMonth.getDayOfMonth());
@@ -143,13 +156,14 @@ class SalesReportServiceImplTest {
 
         createDeletedOrder(today.withDayOfMonth(15)); // since this is a deleted order, it should not be included in the sales report.
 
-        final LocalDateTime fromDate = LocalDateTime.now().withDayOfMonth(10);
-        final LocalDateTime toDate = LocalDateTime.now().withDayOfMonth(20);
+        final LocalDateTime fromDate = LocalDate.now().withDayOfMonth(10).atStartOfDay();
+        final LocalDateTime toDate = LocalDate.now().withDayOfMonth(19).atTime(23, 59, 59);
 
-        final RangedSalesReport results = salesReportService.generateRangedSalesReport("client",
-                RangedSalesReport.RangeType.CUSTOM,
-                today,
-                new ReportDateParameter(fromDate, toDate));
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.CUSTOM)
+                .dateRange(fromDate, toDate)
+                .build();
+
+        final RangedSalesReport results = salesReportService.generateRangedSalesReport(client.getClientName(), zonedDateRange);
 
         assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo(String.valueOf((50 + 35) * 5 * 10 * 1.1));
         assertThat(results.getSalesByRange()).hasSize(10);
@@ -173,7 +187,7 @@ class SalesReportServiceImplTest {
             createOrder(today.with(ChronoField.ALIGNED_WEEK_OF_YEAR, i));
         }
 
-        final SalesDistribution salesDistribution = salesReportService.generateSalesDistribution("client", LocalDate.now());
+        final SalesDistribution salesDistribution = salesReportService.generateSalesDistribution(client.getClientName(), client.getZoneId(), LocalDate.now());
 
         assertThat(salesDistribution.getSalesByMonth()).hasSize(12);
         final BigDecimal sumOfMonthlySales = salesDistribution.getSalesByMonth().stream().map(SalesDistribution.MonthlySales::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -188,7 +202,7 @@ class SalesReportServiceImplTest {
     @Test
     void generateSalesDistribution_WithEmptyData() {
 
-        final SalesDistribution salesDistribution = salesReportService.generateSalesDistribution("client", LocalDate.now());
+        final SalesDistribution salesDistribution = salesReportService.generateSalesDistribution("client", client.getZoneId(), LocalDate.now());
 
         assertThat(salesDistribution.getSalesByMonth()).hasSize(12);
         assertThat(salesDistribution.getSalesByWeek()).hasSize(0);
@@ -206,7 +220,7 @@ class SalesReportServiceImplTest {
             createOrder(today.withDayOfMonth(i));
         }
 
-        final SalesProgress salesProgress = salesReportService.generateSalesProgress("client");
+        final SalesProgress salesProgress = salesReportService.generateSalesProgress(client.getClientName());
 
         assertThat(salesProgress.getDailySalesProgress()).isEqualByComparingTo(BigDecimal.valueOf(550));
         assertThat(salesProgress.getWeeklySalesProgress()).isNotZero(); // for simplicity of not considering week spans across months, just check for non-zero.
@@ -233,7 +247,7 @@ class SalesReportServiceImplTest {
         final OrderSettings newSettings = orderSettings.copy();
         newSettings.setTaxInclusive(true);
 
-        final Order order = new Order("client", newSettings);
+        final Order order = new Order(client.getClientName(), newSettings);
         order.addOrderLineItem(productSnapshot, quantity);
 
         if (deleted) {

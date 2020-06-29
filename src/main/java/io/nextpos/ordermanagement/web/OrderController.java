@@ -2,6 +2,8 @@ package io.nextpos.ordermanagement.web;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
+import io.nextpos.datetime.data.ZonedDateRange;
+import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.merchandising.data.Offer;
 import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.merchandising.data.ProductLevelOffer;
@@ -15,11 +17,8 @@ import io.nextpos.ordermanagement.web.model.*;
 import io.nextpos.ordertransaction.service.OrderTransactionService;
 import io.nextpos.ordertransaction.web.model.OrderTransactionResponse;
 import io.nextpos.reporting.data.DateParameterType;
-import io.nextpos.reporting.data.ReportDateParameter;
-import io.nextpos.reporting.data.ZonedDateRange;
 import io.nextpos.shared.aspect.OrderLogAction;
 import io.nextpos.shared.aspect.OrderLogParam;
-import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.shared.web.model.SimpleObjectResponse;
@@ -38,10 +37,8 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -92,14 +89,13 @@ public class OrderController {
                                                       @RequestParam(name = "fromDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
                                                       @RequestParam(name = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate) {
 
+        final ZonedDateRange zonedDateRange = resolveDateRange(client, dateParameterType, shiftId, fromDate, toDate);
+        final List<Order> orders = orderService.getOrders(client, zonedDateRange);
 
-        final ReportDateParameter reportDateParameter = resolveDateRange(client, dateParameterType, shiftId, fromDate, toDate);
-        final List<Order> orders = orderService.getOrders(client, reportDateParameter.getFromDate(), reportDateParameter.getToDate());
-
-        return toOrdersByRangeResponse(orders, reportDateParameter);
+        return toOrdersByRangeResponse(orders, zonedDateRange);
     }
 
-    private OrdersByRangeResponse toOrdersByRangeResponse(final List<Order> orders, final ReportDateParameter reportDateParameter) {
+    private OrdersByRangeResponse toOrdersByRangeResponse(final List<Order> orders, final ZonedDateRange zonedDateRange) {
 
         final List<OrdersByRangeResponse.LightOrderResponse> orderResponses = orders.stream().
                 map(o -> new OrdersByRangeResponse.LightOrderResponse(o.getId(),
@@ -110,35 +106,22 @@ public class OrderController {
                         o.getTotal(),
                         o.getOrderTotal())).collect(Collectors.toList());
 
-        ZonedDateRange zonedDateRange = new ZonedDateRange(ZoneId.of("Asia/Taipei"));
-        zonedDateRange.setZonedFromDate(reportDateParameter.getFromDate().atZone(zonedDateRange.getClientTimeZone()));
-        zonedDateRange.setZonedToDate(reportDateParameter.getToDate().atZone(zonedDateRange.getClientTimeZone()));
-
         return new OrdersByRangeResponse(zonedDateRange, orderResponses);
     }
 
-    private ReportDateParameter resolveDateRange(Client client, DateParameterType dateParameterType, final String shiftId, final LocalDateTime fromDateParam, final LocalDateTime toDateParam) {
+    private ZonedDateRange resolveDateRange(Client client, DateParameterType dateParameterType, final String shiftId, final LocalDateTime fromDateParam, final LocalDateTime toDateParam) {
 
-        if (dateParameterType != DateParameterType.SHIFT) {
-            return DateParameterType.toReportingParameter(dateParameterType, fromDateParam, toDateParam);
-        }
-
-        final ZoneId zoneId = client.getZoneId();
+        final ZonedDateRangeBuilder builder = ZonedDateRangeBuilder.builder(client, dateParameterType);
+        builder.dateRange(fromDateParam, toDateParam);
 
         if (shiftId != null) {
             Shift shift = shiftService.getShift(shiftId);
-            return new ReportDateParameter(shift.getStart().toLocalDateTime(zoneId), shift.getEnd().toLocalDateTime(zoneId));
+            builder.shift(shift);
+        } else {
+            shiftService.getMostRecentShift(client.getId()).ifPresent(builder::shift);
         }
 
-        final Optional<Shift> mostRecentShift = shiftService.getMostRecentShift(client.getId());
-
-        if (mostRecentShift.isPresent()) {
-            final Shift shift = mostRecentShift.get();
-
-            return new ReportDateParameter(shift.getStart().toLocalDateTime(zoneId), shift.getEnd().toLocalDateTime(zoneId));
-        }
-
-        throw new BusinessLogicException("No date range specified.");
+        return builder.build();
     }
 
     /**

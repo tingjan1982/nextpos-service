@@ -1,6 +1,7 @@
 package io.nextpos.ordermanagement.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderStateChange;
@@ -8,7 +9,6 @@ import io.nextpos.ordermanagement.data.OrderStateChangeBean;
 import io.nextpos.ordermanagement.event.LineItemStateChangeEvent;
 import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,7 +20,7 @@ public interface OrderService {
 
     Order getOrder(String id);
 
-    List<Order> getOrders(Client client, LocalDateTime fromDate, LocalDateTime toDate);
+    List<Order> getOrders(Client client, ZonedDateRange zonedDateRange);
 
     /**
      * todo: more unit tests

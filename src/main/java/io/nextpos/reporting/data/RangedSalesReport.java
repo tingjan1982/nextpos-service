@@ -1,5 +1,6 @@
 package io.nextpos.reporting.data;
 
+import io.nextpos.datetime.data.ZonedDateRange;
 import lombok.Data;
 import org.springframework.util.CollectionUtils;
 
@@ -88,10 +89,5 @@ public class RangedSalesReport {
         private BigDecimal productSales;
 
         private BigDecimal percentage;
-    }
-
-
-    public enum RangeType {
-        WEEK, MONTH, CUSTOM
     }
 }

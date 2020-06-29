@@ -223,9 +223,18 @@ public class OfferController {
             final Map<String, String> productIds = productOffer.getAppliesToProducts().stream().collect(Collectors.toMap(Product::getId, p -> p.getDesignVersion().getProductName()));
             final Map<String, String> productLabelIds = productOffer.getAppliesToProductLabels().stream().collect(Collectors.toMap(ProductLabel::getId, ProductLabel::getName));
 
+            final List<OfferResponse.ProductOfferDetails.ProductOfferProduct> selectedProducts = productOffer.getAppliesToProducts().stream()
+                    .map(p -> new OfferResponse.ProductOfferDetails.ProductOfferProduct(
+                            p.getProductLabel() != null ? p.getProductLabel().getId() : null,
+                            p.getId(),
+                            p.getDesignVersion().getProductName()
+                    )).collect(Collectors.toList());
+
             final OfferResponse.ProductOfferDetails productOfferDetails = new OfferResponse.ProductOfferDetails(productOffer.isAppliesToAllProducts(),
                     productIds,
-                    productLabelIds);
+                    productLabelIds,
+                    selectedProducts);
+
             offerResponse.setProductOfferDetails(productOfferDetails);
         }
 

@@ -1,8 +1,8 @@
 package io.nextpos.ordermanagement.web.model;
 
+import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.TaxableAmount;
-import io.nextpos.reporting.data.ZonedDateRange;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

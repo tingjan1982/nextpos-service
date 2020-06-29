@@ -139,6 +139,7 @@ public class OrderLineItem implements OfferApplicableObject {
         copy.subTotal = subTotal.copy();
         copy.discountedSubTotal = discountedSubTotal.copy();
         copy.appliedOfferInfo = appliedOfferInfo != null ? appliedOfferInfo.copy() : null;
+        copy.lineItemSubTotal = lineItemSubTotal;
 
         return copy;
     }

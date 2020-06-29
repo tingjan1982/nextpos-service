@@ -21,6 +21,7 @@ import org.springframework.data.mongodb.core.query.Query;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,7 +57,7 @@ class ReportingServiceImplTest {
 
         final Order createdOrder = this.createOrder(client.getId());
 
-        final SalesReport salesReport = reportingService.generateSalesReport(client, DateParameterType.TODAY.toReportingParameter());
+        final SalesReport salesReport = reportingService.generateSalesReport(client, DateParameterType.TODAY.toReportingParameter(LocalDate.now()));
 
         assertThat(salesReport).isNotNull();
         assertThat(salesReport.getSalesTotal()).isGreaterThan(BigDecimal.ZERO);
@@ -71,7 +72,7 @@ class ReportingServiceImplTest {
         final List<Order> orders = List.of(this.createAndTransitionOrderToDelivered(client.getId()), this.createAndTransitionOrderToDelivered(client.getId()));
 
         final OrderStateParameter orderStateParameter = new OrderStateParameter(
-                DateParameterType.TODAY.toReportingParameter(),
+                DateParameterType.TODAY.toReportingParameter(LocalDate.now()),
                 Order.OrderState.OPEN,
                 Order.OrderState.DELIVERED
         );

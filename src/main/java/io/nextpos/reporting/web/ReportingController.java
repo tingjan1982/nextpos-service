@@ -1,13 +1,15 @@
 package io.nextpos.reporting.web;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.datetime.data.ZonedDateRange;
+import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.service.ShiftService;
 import io.nextpos.reporting.data.*;
 import io.nextpos.reporting.service.ReportingService;
 import io.nextpos.reporting.service.SalesReportService;
 import io.nextpos.reporting.service.StatsReportService;
 import io.nextpos.reporting.web.model.*;
-import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.timecard.data.TimeCardReport;
 import io.nextpos.timecard.service.TimeCardReportService;
@@ -37,26 +39,33 @@ public class ReportingController {
 
     private final TimeCardReportService timeCardReportService;
 
+    private final ShiftService shiftService;
+
     @Autowired
-    public ReportingController(final ReportingService reportingService, final SalesReportService salesReportService, final StatsReportService statsReportService, final TimeCardReportService timeCardReportService) {
+    public ReportingController(final ReportingService reportingService, final SalesReportService salesReportService, final StatsReportService statsReportService, final TimeCardReportService timeCardReportService, final ShiftService shiftService) {
         this.reportingService = reportingService;
         this.salesReportService = salesReportService;
         this.statsReportService = statsReportService;
         this.timeCardReportService = timeCardReportService;
+        this.shiftService = shiftService;
     }
 
     @GetMapping("/rangedSalesReport")
     public RangedSalesReportResponse getRangedSalesReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                          @RequestParam(value = "rangeType", defaultValue = "WEEK") RangedSalesReport.RangeType rangeType,
+                                                          @RequestParam(value = "rangeType", defaultValue = "WEEK") DateParameterType dateParameterType,
                                                           @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                                                           @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
                                                           @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate) {
 
-        date = checkDateParameters(rangeType, date, fromDate, toDate);
+        final ZonedDateRangeBuilder builder = ZonedDateRangeBuilder.builder(client, dateParameterType)
+                .date(date)
+                .dateRange(fromDate, toDate);
 
-        ReportDateParameter reportDateParameter = new ReportDateParameter(fromDate, toDate);
+        shiftService.getMostRecentShift(client.getId()).ifPresent(builder::shift);
 
-        final RangedSalesReport rangedSalesReport = salesReportService.generateRangedSalesReport(client.getId(), rangeType, date, reportDateParameter);
+        final ZonedDateRange zonedDateRange = builder.build();
+
+        final RangedSalesReport rangedSalesReport = salesReportService.generateRangedSalesReport(client.getId(), zonedDateRange);
 
         return new RangedSalesReportResponse(
                 rangedSalesReport.getDateRange(),
@@ -69,17 +78,21 @@ public class ReportingController {
 
     @GetMapping("/salesRankingReport")
     public RangedSalesReportResponse getSalesRankingReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                           @RequestParam(value = "rangeType", defaultValue = "WEEK") RangedSalesReport.RangeType rangeType,
+                                                           @RequestParam(value = "rangeType", defaultValue = "WEEK") DateParameterType dateParameterType,
                                                            @RequestParam(name = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                                                            @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
                                                            @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
                                                            @RequestParam(name = "labelId") String labelId) {
 
-        date = checkDateParameters(rangeType, date, fromDate, toDate);
+        final ZonedDateRangeBuilder builder = ZonedDateRangeBuilder.builder(client, dateParameterType)
+                .date(date)
+                .dateRange(fromDate, toDate);
 
-        ReportDateParameter reportDateParameter = new ReportDateParameter(fromDate, toDate);
+        shiftService.getMostRecentShift(client.getId()).ifPresent(builder::shift);
 
-        final RangedSalesReport rangedSalesReport = salesReportService.generateSalesRankingReport(client.getId(), rangeType, date, reportDateParameter, labelId);
+        final ZonedDateRange zonedDateRange = builder.build();
+
+        final RangedSalesReport rangedSalesReport = salesReportService.generateSalesRankingReport(client.getId(), zonedDateRange, labelId);
 
         return new RangedSalesReportResponse(
                 rangedSalesReport.getDateRange(),
@@ -88,24 +101,6 @@ public class ReportingController {
                 rangedSalesReport.getSalesByRange(),
                 rangedSalesReport.getSalesByProduct(),
                 rangedSalesReport.getSalesByLabel());
-    }
-
-    private LocalDate checkDateParameters(RangedSalesReport.RangeType rangeType,
-                                          LocalDate date,
-                                          LocalDateTime fromDate,
-                                          LocalDateTime toDate) {
-        if (date == null) {
-            date = LocalDate.now();
-        }
-
-        if (rangeType == RangedSalesReport.RangeType.CUSTOM && (fromDate == null || toDate == null)) {
-            throw new BusinessLogicException("'from' and 'to' date parameter must be specified for CUSTOM range type");
-        }
-
-        if (rangeType == RangedSalesReport.RangeType.CUSTOM && fromDate.isAfter(toDate)) {
-            throw new BusinessLogicException("from date cannot be after to date");
-        }
-        return date;
     }
 
     @GetMapping("/customerStats")
@@ -159,8 +154,8 @@ public class ReportingController {
     public SalesDistributionResponse getSalesDistributionReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
         final LocalDate today = LocalDate.now();
-        final SalesDistribution salesDistribution = salesReportService.generateSalesDistribution(client.getId(), today);
-        final SalesDistribution salesDistributionLastYear = salesReportService.generateSalesDistribution(client.getId(), today.minusYears(1));
+        final SalesDistribution salesDistribution = salesReportService.generateSalesDistribution(client.getId(), client.getZoneId(), today);
+        final SalesDistribution salesDistributionLastYear = salesReportService.generateSalesDistribution(client.getId(), client.getZoneId(), today.minusYears(1));
 
         return new SalesDistributionResponse(salesDistribution.getSalesByMonth(),
                 salesDistributionLastYear.getSalesByMonth());
