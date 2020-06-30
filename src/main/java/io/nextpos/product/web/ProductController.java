@@ -4,10 +4,9 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.product.data.*;
 import io.nextpos.product.service.ProductLabelService;
+import io.nextpos.product.service.ProductSearchService;
 import io.nextpos.product.service.ProductService;
-import io.nextpos.product.web.model.ProductOptionResponse;
-import io.nextpos.product.web.model.ProductRequest;
-import io.nextpos.product.web.model.ProductResponse;
+import io.nextpos.product.web.model.*;
 import io.nextpos.product.web.util.ObjectWithProductOptionVisitorWrapper;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.workingarea.data.WorkingArea;
@@ -26,6 +25,8 @@ public class ProductController {
 
     private final ProductService productService;
 
+    private final ProductSearchService productSearchService;
+
     private final ProductLabelService productLabelService;
 
     private final WorkingAreaService workingAreaService;
@@ -35,8 +36,9 @@ public class ProductController {
     private final ObjectWithProductOptionVisitorWrapper productOptionVisitorWrapper;
 
     @Autowired
-    public ProductController(final ProductService productService, final ProductLabelService productLabelService, final WorkingAreaService workingAreaService, final ClientObjectOwnershipService clientObjectOwnershipService, final ObjectWithProductOptionVisitorWrapper productOptionVisitorWrapper) {
+    public ProductController(final ProductService productService, final ProductSearchService productSearchService, final ProductLabelService productLabelService, final WorkingAreaService workingAreaService, final ClientObjectOwnershipService clientObjectOwnershipService, final ObjectWithProductOptionVisitorWrapper productOptionVisitorWrapper) {
         this.productService = productService;
+        this.productSearchService = productSearchService;
         this.productLabelService = productLabelService;
         this.workingAreaService = workingAreaService;
         this.clientObjectOwnershipService = clientObjectOwnershipService;
@@ -79,6 +81,25 @@ public class ProductController {
         final Product product = clientObjectOwnershipService.checkOwnership(client, () -> productService.getProduct(id));
 
         return toResponse(product, version);
+    }
+
+    @GetMapping
+    public ProductsResponse searchProducts(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                @RequestParam("keyword") String keyword) {
+
+        final List<LightProductResponse> results = productSearchService.getProductsByKeyword(client, Version.DESIGN, keyword).stream()
+                .map(p -> {
+                    ProductLabel productLabel = p.getProduct().getProductLabel();
+                    String productLabelId = productLabel != null ? productLabel.getId() : null;
+
+                    return new LightProductResponse(p.getProduct().getId(),
+                            p.getProductName(),
+                            p.getPrice(),
+                            productLabelId,
+                            p.getProduct().isPinned());
+                }).collect(Collectors.toList());
+
+        return new ProductsResponse(results);
     }
 
     @PostMapping("/{id}")

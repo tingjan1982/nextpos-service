@@ -10,5 +10,7 @@ import java.util.Map;
 
 public interface ProductSearchService {
 
+    List<ProductVersion> getProductsByKeyword(Client client, Version version, String keyword);
+
     Map<ProductLabel, List<ProductVersion>> getAllProductsGroupedByLabels(Client client, Version version);
 }

@@ -5,6 +5,7 @@ import io.nextpos.product.data.ProductLabel;
 import io.nextpos.product.data.ProductVersion;
 import io.nextpos.product.data.Version;
 import io.nextpos.product.service.ProductSearchService;
+import io.nextpos.product.web.model.LightProductResponse;
 import io.nextpos.product.web.model.ProductSearchResponse;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,15 +38,15 @@ public class ProductSearchController {
 
     private ProductSearchResponse toProductSearchResponse(final Map<ProductLabel, List<ProductVersion>> groupedProducts) {
 
-        final TreeMap<String, List<ProductSearchResponse.ProductSearchResult>> results = new TreeMap<>();
+        final TreeMap<String, List<LightProductResponse>> results = new TreeMap<>();
 
         groupedProducts.forEach((key, value) -> {
-            final List<ProductSearchResponse.ProductSearchResult> products = value.stream()
+            final List<LightProductResponse> products = value.stream()
                     .map(product -> {
                         ProductLabel productLabel = product.getProduct().getProductLabel();
                         String productLabelId = productLabel != null ? productLabel.getId() : null;
 
-                        return new ProductSearchResponse.ProductSearchResult(product.getProduct().getId(),
+                        return new LightProductResponse(product.getProduct().getId(),
                                 product.getProductName(),
                                 product.getPrice(),
                                 productLabelId,

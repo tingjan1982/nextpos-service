@@ -1,13 +1,18 @@
 package io.nextpos.reporting.service;
 
+import io.nextpos.client.data.Client;
+import io.nextpos.datetime.data.ZonedDateRange;
+import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderRepository;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.reporting.data.CustomerStatsReport;
 import io.nextpos.reporting.data.CustomerTrafficReport;
+import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.shared.DummyObjects;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +58,14 @@ class StatsReportServiceImplTest {
     @Autowired
     private OrderSettings orderSettings;
 
+    private Client client;
+
+    @BeforeEach
+    void setup() {
+        client = DummyObjects.dummyClient();
+        client.setId("client");
+    }
+
     @AfterEach
     void cleanData() {
         orderRepository.deleteAll();
@@ -69,7 +82,8 @@ class StatsReportServiceImplTest {
             createOrder(date, Order.OrderType.TAKE_OUT, Order.DemographicData.AgeGroup.THIRTIES, Order.DemographicData.VisitFrequency.MORE_THAN_THREE, 1, 1, 1);
         }
 
-        final CustomerTrafficReport results = statsReportService.generateCustomerTrafficReport("client", YearMonth.now());
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.MONTH).build();
+        final CustomerTrafficReport results = statsReportService.generateCustomerTrafficReport("client", zonedDateRange);
 
         assertThat(results.getTotalCountObject()).isNotEmpty();
         results.getTotalCountObject().ifPresent(count -> {
@@ -106,7 +120,8 @@ class StatsReportServiceImplTest {
 
         createOrder(LocalDateTime.now(), Order.OrderType.IN_STORE, Order.DemographicData.AgeGroup.TWENTIES, Order.DemographicData.VisitFrequency.FIRST_TIME, 1, 1, 1);
 
-        final CustomerTrafficReport results = statsReportService.generateCustomerTrafficReport("client", YearMonth.now());
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.MONTH).build();
+        final CustomerTrafficReport results = statsReportService.generateCustomerTrafficReport("client", zonedDateRange);
 
         assertThat(results.getOrdersByHour()).hasSize(24);
         assertThat(results.getOrdersByType()).hasSize(Order.OrderType.values().length);
@@ -117,7 +132,8 @@ class StatsReportServiceImplTest {
     @Test
     void generateEmptyCustomerTrafficReport() {
 
-        final CustomerTrafficReport results = statsReportService.generateCustomerTrafficReport("client", YearMonth.now());
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.MONTH).build();
+        final CustomerTrafficReport results = statsReportService.generateCustomerTrafficReport("client", zonedDateRange);
 
         assertThat(results.getTotalCountObject()).isEmpty();
         assertThat(results.getOrdersByHour()).isEmpty();
@@ -218,7 +234,7 @@ class StatsReportServiceImplTest {
 
         // use query to update order.modifiedDate to overwrite the dates that are set by Spring MongoDB auditing feature.
         final Query query = new Query(where("id").is(order.getId()));
-        final Update update = new Update().set("modifiedDate", Date.valueOf(orderDate));
+        final Update update = new Update().set("createdDate", Date.valueOf(orderDate));
         mongoTemplate.updateFirst(query, update, Order.class);
     }
 }

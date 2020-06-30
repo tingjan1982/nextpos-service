@@ -5,12 +5,14 @@ import io.nextpos.product.data.ProductLabel;
 import io.nextpos.product.data.ProductVersion;
 import io.nextpos.product.data.ProductVersionRepository;
 import io.nextpos.product.data.Version;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.transaction.Transactional;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -30,6 +32,15 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         this.productLabelService = productLabelService;
     }
 
+    @Override
+    public List<ProductVersion> getProductsByKeyword(Client client, Version version, String keyword) {
+
+        if (StringUtils.isBlank(keyword)) {
+            return Collections.emptyList();
+        }
+
+        return productVersionRepository.findAllProductsByKeyword(client, version, keyword.toLowerCase());
+    }
 
     @Override
     public Map<ProductLabel, List<ProductVersion>> getAllProductsGroupedByLabels(final Client client, final Version version) {

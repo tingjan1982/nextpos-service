@@ -1,11 +1,17 @@
 package io.nextpos.ordermanagement.service;
 
+import io.nextpos.client.data.Client;
+import io.nextpos.datetime.data.ZonedDateRange;
+import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.Shift;
 import io.nextpos.ordermanagement.data.ShiftRepository;
+import io.nextpos.reporting.data.DateParameterType;
+import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.BusinessLogicException;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,7 +21,6 @@ import org.springframework.test.context.TestPropertySource;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -44,6 +49,14 @@ class ShiftServiceImplTest {
     private OrderSettings orderSettings;
 
     private final String clientId = "dummyClient";
+
+    private Client client;
+
+    @BeforeEach
+    void setup() {
+        client = DummyObjects.dummyClient();
+        client.setId(clientId);
+    }
 
     @AfterEach
     void cleanData() {
@@ -124,7 +137,10 @@ class ShiftServiceImplTest {
         shiftRepository.save(new Shift(clientId, Date.from(now.minus(7, ChronoUnit.DAYS)), "dummy", BigDecimal.ONE));
         shiftRepository.save(new Shift(clientId, Date.from(now.minus(8, ChronoUnit.DAYS)), "dummy", BigDecimal.ONE));
 
-        final List<Shift> shifts = shiftService.getShifts(clientId, LocalDate.now().minusDays(7));
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.RANGE)
+                .dateRange(LocalDateTime.now().minusDays(7), LocalDateTime.now()).build();
+
+        final List<Shift> shifts = shiftService.getShifts(clientId, zonedDateRange);
 
         assertThat(shifts).hasSize(4);
         final Comparator<Shift> compareByStartDate = Comparator.<Shift, Date>comparing(s -> s.getStart().getTimestamp()).reversed();

@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.transaction.Transactional;
+import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +60,9 @@ class ProductSearchServiceImplTest {
         final Product foodProduct = createProduct("salad", foodLabel);
         final Product pasta = createProduct("carbonara", pastaLabel);
 
+        createProduct(ProductBuilder.builder(client).productName("frappe").sku("coffee"));
+        createProduct(ProductBuilder.builder(client).productName("latte").description("a type of coffee"));
+
         final Product productWithoutLabel = createProduct("productWithoutLabel", null);
     }
 
@@ -68,15 +72,77 @@ class ProductSearchServiceImplTest {
 
     private Product createProduct(String productName, ProductLabel productLabel, boolean pinned) {
 
-        final Product product = new Product(client, DummyObjects.dummyProductVersion(productName));
+        final ProductBuilder builder = ProductBuilder.builder(client)
+                .productName(productName)
+                .productLabel(productLabel)
+                .pinned(pinned);
 
-        if (productLabel != null) {
-            product.setProductLabel(productLabel);
+        return this.createProduct(builder);
+    }
+
+    private Product createProduct(ProductBuilder productBuilder) {
+        return productService.saveProduct(productBuilder.build());
+    }
+
+    private static class ProductBuilder {
+
+        private final Client client;
+
+        private String productName = "dummy";
+
+        private String sku = "sku";
+
+        private String description = "description";
+
+        private ProductLabel productLabel;
+
+        private boolean pinned;
+
+        public ProductBuilder(final Client client) {
+            this.client = client;
         }
 
-        product.setPinned(pinned);
+        static ProductBuilder builder(Client client) {
+            return new ProductBuilder(client);
+        }
 
-        return productService.saveProduct(product);
+        ProductBuilder productName(String productName) {
+            this.productName = productName;
+            return this;
+        }
+
+        ProductBuilder sku(String sku) {
+            this.sku = sku;
+            return this;
+        }
+
+        ProductBuilder description(String description) {
+            this.description = description;
+            return this;
+        }
+
+        ProductBuilder productLabel(ProductLabel productLabel) {
+            this.productLabel = productLabel;
+            return this;
+        }
+
+        ProductBuilder pinned(boolean pinned) {
+            this.pinned = pinned;
+            return this;
+        }
+
+        Product build() {
+            final ProductVersion productVersion = new ProductVersion(productName, sku, description, BigDecimal.ZERO);
+            final Product product = new Product(client, productVersion);
+
+            if (productLabel != null) {
+                product.setProductLabel(productLabel);
+            }
+
+            product.setPinned(pinned);
+
+            return product;
+        }
     }
 
     @Test
@@ -89,6 +155,22 @@ class ProductSearchServiceImplTest {
         assertThat(findProductsByLabel(products, "drink")).isSortedAccordingTo(Comparator.comparing(ProductVersion::getProductName));
         assertThat(findProductsByLabel(products, "ungrouped")).hasSize(1);
         assertThat(findProductsByLabel(products, "pinned")).hasSize(2);
+    }
+
+    @Test
+    void getProductsByKeyword() {
+
+        final List<ProductVersion> products = productSearchService.getProductsByKeyword(client, Version.DESIGN, "COFFEE");
+
+        assertThat(products).hasSize(4);
+    }
+
+    @Test
+    void getProductsByKeyword_EmptyKeyword() {
+
+        final List<ProductVersion> products = productSearchService.getProductsByKeyword(client, Version.DESIGN, "");
+
+        assertThat(products).isEmpty();
     }
 
     private List<ProductVersion> findProductsByLabel(Map<ProductLabel, List<ProductVersion>> products, String label) {
