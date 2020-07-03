@@ -21,7 +21,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -213,7 +212,7 @@ public class OfferController {
                 offer.getName(),
                 offer.getTriggerType(),
                 offer.getDiscountDetails().getDiscountType(),
-                offer.getDiscountDetails().getDiscountValue().multiply(BigDecimal.valueOf(100)),
+                offer.getDiscountDetails().getDiscountValue(),
                 offer.getEffectiveDetails().isActive(),
                 offer.getEffectiveDetails().getStartDate(),
                 offer.getEffectiveDetails().getEndDate());
