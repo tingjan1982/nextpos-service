@@ -1,6 +1,7 @@
 package io.nextpos.merchandising.web.model;
 
 import io.nextpos.merchandising.data.Offer;
+import io.nextpos.merchandising.data.OfferType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

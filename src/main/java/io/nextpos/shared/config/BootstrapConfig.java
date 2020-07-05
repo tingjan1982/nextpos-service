@@ -100,6 +100,7 @@ public class BootstrapConfig {
                             d.getDiscountType(),
                             d.getDiscount());
                     orderLevelOffer.setId(d.name());
+                    orderLevelOffer.updateOfferEffectiveDetails(true);
                     return Pair.of(d, orderLevelOffer);
                 })
                 .collect(Collectors.toMap(Pair::getLeft, Pair::getRight, (existing, replacement) -> existing, LinkedHashMap::new));
@@ -118,6 +119,7 @@ public class BootstrapConfig {
                             d.getDiscount(),
                             true);
                     productLevelOffer.setId(d.name());
+                    productLevelOffer.updateOfferEffectiveDetails(true);
                     return Pair.of(d, productLevelOffer);
                 })
                 .collect(Collectors.toMap(Pair::getLeft, Pair::getRight, (existing, replacement) -> existing, LinkedHashMap::new));

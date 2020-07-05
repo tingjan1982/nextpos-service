@@ -5,7 +5,6 @@ import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.merchandising.data.Offer;
-import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.merchandising.service.MerchandisingService;
 import io.nextpos.ordermanagement.data.*;
@@ -216,15 +215,8 @@ public class OrderController {
                                             @Valid @RequestBody DiscountRequest discountRequest) {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
-        final OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount = OrderLevelOffer.GlobalOrderDiscount.valueOf(discountRequest.getOrderDiscount());
 
-        BigDecimal discount = discountRequest.getDiscount();
-
-        if (globalOrderDiscount.getDiscountType() == Offer.DiscountType.PERCENT_OFF) {
-            discount = discountRequest.getDiscount().divide(BigDecimal.valueOf(100), 2, RoundingMode.CEILING);
-        }
-
-        final Order updatedOrder = merchandisingService.applyGlobalOrderDiscount(order, globalOrderDiscount, discount);
+        final Order updatedOrder = merchandisingService.applyOrderOffer(order, discountRequest.getOfferId(), discountRequest.getDiscount());
 
         return toOrderResponse(updatedOrder);
     }
@@ -236,7 +228,7 @@ public class OrderController {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
-        final Order updatedOrder = merchandisingService.applyGlobalOrderDiscount(order, OrderLevelOffer.GlobalOrderDiscount.NO_DISCOUNT, BigDecimal.ZERO);
+        final Order updatedOrder = merchandisingService.removeOrderOffer(order);
 
         return toOrderResponse(updatedOrder);
     }

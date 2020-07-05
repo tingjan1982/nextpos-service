@@ -10,6 +10,7 @@ import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.shared.DummyObjects;
+import io.nextpos.shared.exception.BusinessLogicException;
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import javax.transaction.Transactional;
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
@@ -74,7 +76,7 @@ class MerchandisingServiceImplTest {
     }
 
     @Test
-    void applyOrderDiscount() {
+    void applyGlobalOrderDiscount() {
 
         final Order order = new Order(client.getId(), orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
@@ -84,6 +86,53 @@ class MerchandisingServiceImplTest {
         assertThat(updatedOrder.getTotal().getAmountWithTax()).isEqualByComparingTo(BigDecimal.valueOf(105));
         assertThat(updatedOrder.getDiscountedTotal().getAmountWithTax()).isEqualByComparingTo(BigDecimal.valueOf(84));
         assertThat(updatedOrder.getAppliedOfferInfo()).isNotNull();
+    }
+
+    @Test
+    void applyOrderDiscount() {
+
+        final Order order = new Order(client.getId(), orderSettings);
+        order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
+
+        final OrderLevelOffer orderLevelOffer = new OrderLevelOffer(client, "order offer", Offer.TriggerType.AT_CHECKOUT, Offer.DiscountType.AMOUNT_OFF, BigDecimal.TEN);
+        offerService.saveOffer(orderLevelOffer);
+
+        assertThatThrownBy(() -> merchandisingService.applyOrderOffer(order, orderLevelOffer.getId(), BigDecimal.ZERO))
+                .isInstanceOf(BusinessLogicException.class);
+
+        offerService.activateOffer(orderLevelOffer);
+
+        final Order updatedOrder = merchandisingService.applyOrderOffer(order, orderLevelOffer.getId(), BigDecimal.ZERO);
+
+        assertThat(updatedOrder.getTotal().getAmountWithTax()).isEqualByComparingTo(BigDecimal.valueOf(105));
+        assertThat(updatedOrder.getDiscountedTotal().getAmountWithTax()).isEqualByComparingTo(BigDecimal.valueOf(94.5));
+        assertThat(updatedOrder.getDiscount()).isEqualByComparingTo("10.5");
+        assertThat(updatedOrder.getOrderTotal()).isEqualByComparingTo("103.95");
+        assertThat(updatedOrder.getAppliedOfferInfo().getOfferId()).isEqualTo(orderLevelOffer.getId());
+
+        final Order orderWithOfferRemoved = merchandisingService.removeOrderOffer(updatedOrder);
+
+        assertThat(orderWithOfferRemoved.getTotal().getAmountWithTax()).isEqualByComparingTo(BigDecimal.valueOf(105));
+        assertThat(orderWithOfferRemoved.getDiscountedTotal().getAmountWithTax()).isZero();
+        assertThat(orderWithOfferRemoved.getDiscount()).isZero();
+        assertThat(orderWithOfferRemoved.getOrderTotal()).isEqualByComparingTo("115.5");
+        assertThat(orderWithOfferRemoved.getAppliedOfferInfo()).isNull();
+    }
+
+    @Test
+    void applyOrderDiscount_GlobalOrderDiscount() {
+
+        final Order order = new Order(client.getId(), orderSettings);
+        order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
+
+        final OrderLevelOffer.GlobalOrderDiscount globalDiscount = OrderLevelOffer.GlobalOrderDiscount.ENTER_DISCOUNT;
+        final Order updatedOrder = merchandisingService.applyOrderOffer(order, globalDiscount.name(), new BigDecimal(10));
+
+        assertThat(updatedOrder.getTotal().getAmountWithTax()).isEqualByComparingTo(BigDecimal.valueOf(105));
+        assertThat(updatedOrder.getDiscountedTotal().getAmountWithTax()).isEqualByComparingTo(BigDecimal.valueOf(94.5));
+        assertThat(updatedOrder.getDiscount()).isEqualByComparingTo("10.5");
+        assertThat(updatedOrder.getOrderTotal()).isEqualByComparingTo("103.95");
+        assertThat(updatedOrder.getAppliedOfferInfo().getOfferId()).isEqualTo(globalDiscount.name());
     }
 
     @Test

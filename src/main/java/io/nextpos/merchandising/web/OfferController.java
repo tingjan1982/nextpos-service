@@ -3,12 +3,12 @@ package io.nextpos.merchandising.web;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.merchandising.data.Offer;
+import io.nextpos.merchandising.data.OfferType;
 import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.merchandising.service.OfferService;
 import io.nextpos.merchandising.web.model.OfferRequest;
 import io.nextpos.merchandising.web.model.OfferResponse;
-import io.nextpos.merchandising.web.model.OfferType;
 import io.nextpos.merchandising.web.model.OffersResponse;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
@@ -184,16 +184,19 @@ public class OfferController {
         offerService.deleteOffer(offer);
     }
 
-    @GetMapping("/globalOrderOffers")
-    public OffersResponse getGlobalOrderOffers() {
+    @GetMapping({"/globalOrderOffers", "/orderOffers"})
+    public OffersResponse getGlobalOrderOffers(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
         final List<OfferResponse> offers = offerService.getGlobalOrderOffers().values().stream()
                 .map(this::toOfferResponse).collect(Collectors.toList());
 
+        offerService.getActiveOffers(client, OfferType.ORDER, Offer.TriggerType.AT_CHECKOUT).stream()
+                .map(this::toOfferResponse).forEach(offers::add);
+
         return new OffersResponse(offers);
     }
 
-    @GetMapping("/globalProductOffers")
+    @GetMapping({"/globalProductOffers", "/productOffers"})
     public OffersResponse getGlobalProductOffers() {
 
         final List<OfferResponse> offers = offerService.getGlobalProductOffers().values().stream()

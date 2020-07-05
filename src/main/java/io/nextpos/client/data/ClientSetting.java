@@ -69,6 +69,8 @@ public class ClientSetting extends BaseObject implements ClientObject {
 
         TAX_INCLUSIVE(ValueType.BOOLEAN),
 
+        APPLY_CUSTOM_OFFER(ValueType.BOOLEAN),
+
         /**
          * This is a placeholder to customize offer application behavior, to determine whether offer discount can be stacked or is exclusive only.
          */

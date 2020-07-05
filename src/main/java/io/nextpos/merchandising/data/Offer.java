@@ -49,7 +49,8 @@ public abstract class Offer extends BaseObject implements ClientObject {
         this.triggerType = triggerType;
 
         if (!supportedDiscountType().contains(discountType)) {
-            throw new ConfigurationException("Discount type is not supported by this class: " + this.getClass().getName());
+            final String errorMsg = String.format("Discount type %s is not supported by this class: %s", discountType, this.getClass().getName());
+            throw new ConfigurationException(errorMsg);
         }
 
         this.discountDetails = new DiscountDetails(discountType, discountValue);

@@ -12,11 +12,16 @@ public interface MerchandisingService {
 
     Order computeOffers(Client client, Order order);
 
+    Order applyOrderOffer(Order order, String orderOfferId, BigDecimal overrideDiscountValue);
+
+    Order removeOrderOffer(Order order);
+
+    @Deprecated
     Order applyGlobalOrderDiscount(Order order, OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount, BigDecimal discount);
 
     OrderLineItem applyGlobalProductDiscount(OrderLineItem lineItem, ProductLevelOffer.GlobalProductDiscount globalProductDiscount, BigDecimal overrideDiscount);
 
-    Order updateServiceCharge(Order order, boolean serviceCharge);
+    Order updateServiceCharge(Order order, boolean waiveServiceCharge);
 
     Order resetOrderOffers(Order order);
 }

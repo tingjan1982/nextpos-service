@@ -2,13 +2,17 @@ package io.nextpos.merchandising.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientRepository;
+import io.nextpos.datetime.data.ZonedDateRange;
+import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.merchandising.data.Offer;
+import io.nextpos.merchandising.data.OfferType;
 import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
 import io.nextpos.product.service.ProductLabelService;
 import io.nextpos.product.service.ProductService;
+import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.ConfigurationException;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +23,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
@@ -139,6 +144,12 @@ class OfferServiceImplTest {
         offerService.saveOffer(orderLevelOffer);
         offerService.activateOffer(orderLevelOffer);
 
+        final OrderLevelOffer inactiveOrderLevelOffer = new OrderLevelOffer(client, "order level promotion", Offer.TriggerType.ALWAYS, Offer.DiscountType.PERCENT_OFF, BigDecimal.valueOf(0.15));
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.RANGE)
+                .dateRange(LocalDateTime.now().minusHours(12), LocalDateTime.now().minusHours(6)).build();
+        inactiveOrderLevelOffer.updateOfferEffectiveDetails(true, zonedDateRange.getFromDate(), zonedDateRange.getToDate());
+        offerService.saveOffer(inactiveOrderLevelOffer);
+
         final ProductLevelOffer productLevelOffer = new ProductLevelOffer(client, "product level promotion", Offer.TriggerType.ALWAYS, Offer.DiscountType.AMOUNT_OFF, BigDecimal.valueOf(50), false);
         offerService.saveOffer(productLevelOffer);
         offerService.activateOffer(productLevelOffer);
@@ -150,8 +161,15 @@ class OfferServiceImplTest {
 
         final List<Offer> offers = offerService.getOffers(client);
 
-        assertThat(offers).hasSize(2);
+        assertThat(offers).hasSize(3);
         assertThat(offers.get(0)).isInstanceOf(OrderLevelOffer.class);
-        assertThat(offers.get(1)).isInstanceOf(ProductLevelOffer.class);
+        assertThat(offers.get(1)).isInstanceOf(OrderLevelOffer.class);
+        assertThat(offers.get(2)).isInstanceOf(ProductLevelOffer.class);
+
+        final List<? extends Offer> orderOffers = offerService.getActiveOffers(client, OfferType.ORDER, Offer.TriggerType.ALWAYS);
+        assertThat(orderOffers).hasSize(1);
+
+        final List<? extends Offer> productOffers = offerService.getActiveOffers(client, OfferType.PRODUCT, Offer.TriggerType.ALWAYS);
+        assertThat(productOffers).hasSize(1);
     }
 }

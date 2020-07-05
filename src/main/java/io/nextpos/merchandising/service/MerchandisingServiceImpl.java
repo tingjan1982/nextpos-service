@@ -1,17 +1,20 @@
 package io.nextpos.merchandising.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.merchandising.data.Offer;
 import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderRepository;
 import io.nextpos.ordermanagement.data.OrderSettings;
+import io.nextpos.shared.exception.BusinessLogicException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Service
 @Transactional
@@ -43,6 +46,40 @@ public class MerchandisingServiceImpl implements MerchandisingService {
         activeOffers.arbitrateBestProductLevelOffer(order);
         activeOffers.arbitrateBestOrderLevelOffer(order);
 
+        return orderRepository.save(order);
+    }
+
+    @Override
+    public Order applyOrderOffer(Order order, String orderOfferId, BigDecimal overrideDiscountValue) {
+
+        final OrderLevelOffer orderLevelOffer = offerService.resolveOrderOffer(orderOfferId);
+
+        if (!orderLevelOffer.isActive()) {
+            throw new BusinessLogicException("message.inactiveOffer", "The resolved offer is not active: " + orderLevelOffer);
+        }
+
+        BigDecimal computedDiscount;
+        BigDecimal convertedDiscountValue = overrideDiscountValue;
+
+        if (orderLevelOffer.isZeroDiscount()) {
+            if (orderLevelOffer.getDiscountDetails().getDiscountType() == Offer.DiscountType.PERCENT_OFF) {
+                convertedDiscountValue = overrideDiscountValue.divide(BigDecimal.valueOf(100), 2, RoundingMode.CEILING);
+            }
+
+            computedDiscount = orderLevelOffer.calculateDiscount(order, convertedDiscountValue);
+        } else {
+            computedDiscount = orderLevelOffer.calculateDiscount(order);
+        }
+
+        order.applyAndRecordOffer(orderLevelOffer, computedDiscount, convertedDiscountValue);
+
+        return orderRepository.save(order);
+    }
+
+    @Override
+    public Order removeOrderOffer(final Order order) {
+
+        order.removeOffer();
         return orderRepository.save(order);
     }
 

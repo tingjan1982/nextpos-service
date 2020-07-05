@@ -7,13 +7,15 @@ import io.nextpos.shared.aspect.OrderLogChangeObject;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
 import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
-@ValidDiscount
+//@ValidDiscount
 public class DiscountRequest implements OrderLogChangeObject {
 
+    @NotBlank
     private String offerId;
 
     private String orderDiscount;

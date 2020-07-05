@@ -14,10 +14,7 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * The 1 to many associations here are declared in case of a force deletion of client that
@@ -140,6 +137,9 @@ public class Client extends BaseObject {
                 });
     }
 
+    public Optional<ClientSetting> getClientSetting(ClientSetting.SettingName settingName) {
+        return clientSettings.stream().filter(cs -> cs.getName() == settingName).findFirst();
+    }
 
     public enum Status {
         /**
