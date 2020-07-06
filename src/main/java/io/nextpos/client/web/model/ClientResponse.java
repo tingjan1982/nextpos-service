@@ -23,6 +23,8 @@ public class ClientResponse {
 
     private String country;
 
+    private String timezone;
+
     private Client.Status status;
 
     private Map<String, String> attributes;

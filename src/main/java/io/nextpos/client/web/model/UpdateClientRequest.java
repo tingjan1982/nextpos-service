@@ -17,6 +17,9 @@ public class UpdateClientRequest {
     @NotBlank
     private String clientName;
 
+    @NotBlank
+    private String timezone;
+
     @ValidAttribute
     private Map<String, String> attributes;
 

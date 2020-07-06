@@ -92,6 +92,7 @@ public class ClientController {
 
     private void updateClientFromRequest(final Client client, final UpdateClientRequest updateClientRequest) {
         client.setClientName(updateClientRequest.getClientName());
+        client.setTimezone(updateClientRequest.getTimezone());
         client.setAttributes(updateClientRequest.getAttributes());
 
         if (updateClientRequest.getClientSettings() != null) {
@@ -166,6 +167,7 @@ public class ClientController {
                 client.getUsername(),
                 client.getMasterPassword(),
                 client.getCountryCode(),
+                client.getTimezone(),
                 client.getStatus(),
                 client.getAttributes(),
                 clientSettings);
