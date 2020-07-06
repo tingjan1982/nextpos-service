@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.Month;
 import java.time.YearMonth;
 
 @RestController
@@ -162,7 +161,7 @@ public class ReportingController {
     @GetMapping("/timeCardReport")
     public TimeCardReport getTimeCardReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                             @RequestParam(name = "year", required = false) Integer year,
-                                            @RequestParam(name = "month", required = false) Month month) {
+                                            @RequestParam(name = "month", required = false) Integer month) {
 
         YearMonth yearMonth = YearMonth.now();
 

@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
-import java.time.Month;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.Date;
@@ -91,7 +90,7 @@ public class UserTimeCardController {
     public UserTimeCardsResponse getUserTimeCardByUsername(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                            @RequestParam(name = "username") String username,
                                                            @RequestParam(name = "year", required = false) Integer year,
-                                                           @RequestParam(name = "month", required = false) Month month) {
+                                                           @RequestParam(name = "month", required = false) Integer month) {
 
         YearMonth yearMonth = YearMonth.now();
 
