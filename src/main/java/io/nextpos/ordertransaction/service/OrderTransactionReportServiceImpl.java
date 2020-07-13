@@ -37,9 +37,18 @@ public class OrderTransactionReportServiceImpl implements OrderTransactionReport
         final MatchOperation filter = Aggregation.match(Criteria.where("clientId").is(shift.getClientId())
                 .and("createdDate").gte(shift.getStart().getTimestamp()).lt(shift.getEnd().getTimestamp()));
 
+        final MatchOperation stateFilter = Aggregation.match(Criteria.where("state").ne(Order.OrderState.DELETED));
+
+        final GroupOperation orderSummary = Aggregation.group("clientId")
+                .sum("orderTotal").as("orderTotal")
+                .sum("serviceCharge").as("serviceCharge")
+                .sum("discount").as("discount")
+                .count().as("orderCount");
+
         final GroupOperation totalByPaymentMethod = Aggregation.group("transactions.paymentDetails.paymentMethod")
                 .first("transactions.paymentDetails.paymentMethod").as("paymentMethod")
-                .sum(createToDecimal("transactions.settleAmount")).as("orderTotal")
+                .sum(createToDecimal("transactions.orderTotal")).as("orderTotal")
+                .sum(createToDecimal("transactions.settleAmount")).as("settleAmount")
                 .sum("serviceCharge").as("serviceCharge")
                 .sum("discount").as("discount")
                 .count().as("orderCount");
@@ -49,7 +58,8 @@ public class OrderTransactionReportServiceImpl implements OrderTransactionReport
                 .first("state").as("orderState")
                 .count().as("orderCount");
 
-        final FacetOperation facets = Aggregation.facet(flattenTransactions, totalByPaymentMethod).as("totalByPaymentMethod")
+        final FacetOperation facets = Aggregation.facet(stateFilter, flattenTransactions, totalByPaymentMethod).as("totalByPaymentMethod")
+                .and(stateFilter, orderSummary).as("orderSummary")
                 .and(totalOrderCount).as("totalOrderCount")
                 .and(orderCountByState).as("orderCountByState");
 

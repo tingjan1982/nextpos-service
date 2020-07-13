@@ -9,6 +9,7 @@ import io.nextpos.ordermanagement.web.model.CloseShiftRequest;
 import io.nextpos.ordermanagement.web.model.OpenShiftRequest;
 import io.nextpos.ordermanagement.web.model.ShiftResponse;
 import io.nextpos.ordermanagement.web.model.ShiftsResponse;
+import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
 import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +71,29 @@ public class ShiftController {
         return new ShiftsResponse(zonedDateRange, shifts);
     }
 
+    @GetMapping("/{shiftId}")
+    public ShiftResponse getShift(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                  @PathVariable final String shiftId) {
+
+        final Shift shift = shiftService.getShift(shiftId);
+
+        return toShiftResponse(shift);
+    }
+
+    @GetMapping("/{shiftId}/report")
+    public ClosingShiftTransactionReport getClosingShiftTransactionReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                                          @PathVariable final String shiftId) {
+        return shiftService.getClosingShiftReport(client.getId(), shiftId);
+    }
+
+    @PostMapping("/{shiftId}")
+    public ShiftResponse balanceShift(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                      @PathVariable final String shiftId) {
+
+        final Shift shift = shiftService.balanceClosingShift(shiftId);
+
+        return toShiftResponse(shift);
+    }
 
     @PostMapping("/open")
     public ShiftResponse openShift(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,

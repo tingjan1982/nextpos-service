@@ -17,6 +17,8 @@ public class ClosingShiftTransactionReport {
 
     private List<PaymentMethodTotal> totalByPaymentMethod;
 
+    private List<OrderSummary> orderSummary;
+
     private List<OrderCount> totalOrderCount;
 
     private List<OrderCount> orderCountByState;
@@ -56,6 +58,23 @@ public class ClosingShiftTransactionReport {
 
     @Data
     @NoArgsConstructor
+    public static class OrderSummary {
+
+        private String id;
+
+        private BigDecimal orderTotal;
+
+        private BigDecimal settleAmount;
+
+        private BigDecimal serviceCharge;
+
+        private BigDecimal discount;
+
+        private int orderCount;
+    }
+
+    @Data
+    @NoArgsConstructor
     public static class PaymentMethodTotal {
 
         private String id;
@@ -63,6 +82,8 @@ public class ClosingShiftTransactionReport {
         private OrderTransaction.PaymentMethod paymentMethod;
 
         private BigDecimal orderTotal;
+
+        private BigDecimal settleAmount;
 
         private BigDecimal serviceCharge;
 

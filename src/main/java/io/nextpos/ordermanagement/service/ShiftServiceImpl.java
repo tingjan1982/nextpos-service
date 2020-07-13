@@ -5,6 +5,7 @@ import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderRepository;
 import io.nextpos.ordermanagement.data.Shift;
 import io.nextpos.ordermanagement.data.ShiftRepository;
+import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
 import io.nextpos.ordertransaction.service.OrderTransactionReportService;
 import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.exception.BusinessLogicException;
@@ -56,6 +57,23 @@ public class ShiftServiceImpl implements ShiftService {
 
         final String currentUser = oAuth2Helper.getCurrentPrincipal();
         final Shift shift = new Shift(clientId, new Date(), currentUser, openingBalance);
+
+        return shiftRepository.save(shift);
+    }
+
+    @Override
+    public ClosingShiftTransactionReport getClosingShiftReport(String clientId, String shiftId) {
+
+        final Shift shift = getShift(shiftId);
+
+        return orderTransactionReportService.getClosingShiftTransactionReport(shift);
+    }
+
+    @Override
+    public Shift balanceClosingShift(String shiftId) {
+
+        final Shift shift = getShift(shiftId);
+        shift.balanceClosingShift(orderTransactionReportService::getClosingShiftTransactionReport);
 
         return shiftRepository.save(shift);
     }

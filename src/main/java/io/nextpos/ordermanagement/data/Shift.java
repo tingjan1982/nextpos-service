@@ -53,6 +53,13 @@ public class Shift extends MongoBaseObject {
         shiftStatus = ShiftStatus.CLOSING;
     }
 
+    public void balanceClosingShift(Function<Shift, ClosingShiftTransactionReport> closingShiftTransactionReport) {
+
+        end.setClosingShiftReport(closingShiftTransactionReport.apply(this));
+        end.balanceClosingShift(OrderTransaction.PaymentMethod.CASH, start.balance);
+        end.balanceClosingShift(OrderTransaction.PaymentMethod.CARD, BigDecimal.ZERO);
+    }
+
     public void closeShift(String closedBy, ClosingBalanceDetails cash, ClosingBalanceDetails card) {
 
         end.setWho(closedBy);
@@ -115,6 +122,19 @@ public class Shift extends MongoBaseObject {
         private Map<OrderTransaction.PaymentMethod, ClosingBalanceDetails> closingBalances = new HashMap<>();
 
         private String closingRemark;
+
+        public void balanceClosingShift(OrderTransaction.PaymentMethod paymentMethod, final BigDecimal startingBalance) {
+
+            closingShiftReport.getTotalByPaymentMethod(paymentMethod).ifPresent(total -> {
+                final BigDecimal orderTotal = total.getOrderTotal();
+
+                if (closingBalances.containsKey(paymentMethod)) {
+                    final ClosingBalanceDetails closingBalanceDetails = closingBalances.get(paymentMethod);
+                    closingBalanceDetails.setClosingBalance(orderTotal.add(startingBalance));
+                    closingBalanceDetails.setDifference(BigDecimal.ZERO);
+                }
+            });
+        }
 
         public void updateClosingBalanceDetails(ClosingBalanceDetails closingBalanceDetails, OrderTransaction.PaymentMethod paymentMethod, final BigDecimal startingBalance) {
 

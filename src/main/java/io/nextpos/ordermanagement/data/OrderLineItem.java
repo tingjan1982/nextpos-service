@@ -140,6 +140,8 @@ public class OrderLineItem implements OfferApplicableObject {
         copy.discountedSubTotal = discountedSubTotal.copy();
         copy.appliedOfferInfo = appliedOfferInfo != null ? appliedOfferInfo.copy() : null;
         copy.lineItemSubTotal = lineItemSubTotal;
+        copy.createdDate = new Date();
+        copy.modifiedDate = new Date();
 
         return copy;
     }
