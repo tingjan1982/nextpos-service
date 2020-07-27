@@ -58,8 +58,17 @@ public class OrderTransactionReportServiceImpl implements OrderTransactionReport
                 .first("state").as("orderState")
                 .count().as("orderCount");
 
+        final ProjectionOperation entries = Aggregation.project()
+                .and("transactions.id").as("txId")
+                .and("transactions.orderId").as("orderId")
+                .and("transactions.orderTotal").as("txOrderTotal")
+                .and("transactions.settleAmount").as("txSettleAmount")
+                .and("orderTotal").as("orderTotal")
+                .and("state").as("state");
+
         final FacetOperation facets = Aggregation.facet(stateFilter, flattenTransactions, totalByPaymentMethod).as("totalByPaymentMethod")
                 .and(stateFilter, orderSummary).as("orderSummary")
+                .and(flattenTransactions, entries).as("entries")
                 .and(totalOrderCount).as("totalOrderCount")
                 .and(orderCountByState).as("orderCountByState");
 

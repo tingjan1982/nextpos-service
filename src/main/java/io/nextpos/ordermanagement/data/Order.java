@@ -151,6 +151,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         return version == null;
     }
 
+    public boolean isClosed() {
+        return EnumSet.of(SETTLED, REFUNDED, COMPLETED).contains(state);
+    }
+
     /**
      * Convenience method to add OrderLineItem.
      */
@@ -468,6 +472,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         SUBMIT(EnumSet.of(OPEN, IN_PROCESS, DELIVERED), IN_PROCESS),
         CANCEL(EnumSet.of(OPEN, IN_PROCESS), CANCELLED),
         DELETE(EnumSet.of(OPEN, CANCELLED, IN_PROCESS, DELIVERED, SETTLED, REFUNDED, COMPLETED), DELETED),
+        PREPARE(EnumSet.of(IN_PROCESS), IN_PROCESS),
         /**
          * Used to mark line item as delivered.
          */

@@ -7,11 +7,12 @@ gcloud config set project helpful-range-236813
 gcloud auth activate-service-account travis-ci-user@helpful-range-236813.iam.gserviceaccount.com --key-file helpful-range-236813-681ca732dc15.json
 gcloud config set compute/zone asia-east1-b
 
+# https://cloud.google.com/kubernetes-engine/docs/quickstart#local-shell
 # enable stackdriver monitoring: https://cloud.google.com/monitoring/kubernetes-engine/installing
 # enable debugging: https://cloud.google.com/debugger/docs/setup/java
 
 # gcloud container clusters create nextpos-cluster --num-nodes=1 --enable-stackdriver-kubernetes --scopes=https://www.googleapis.com/auth/cloud_debugger (--enable-cloud-logging is for legacy cluster 1.14 and prior)
-# kubectl run nextpos-web --image=docker.io/joelin/nextpos-service:latest --port 8080
+# kubectl create deployment nextpos-web --image=docker.io/joelin/nextpos-service:latest
 # kubectl expose deployment nextpos-web --type=LoadBalancer --port 80 --target-port 8080
 
 ## document the environment related steps here for future reference.
@@ -37,7 +38,7 @@ gcloud config set compute/zone asia-east1-b
 #      - key: application-gcp.properties
 #        path: application-gcp.properties
 
-gcloud container clusters get-credentials nextpos-cluster --zone asia-east1-b --project helpful-range-236813
+gcloud container clusters get-credentials rainapp-cluster --zone asia-east1-b --project helpful-range-236813
 kubectl set image deployment nextpos-web nextpos-web=docker.io/joelin/nextpos-service:latest
 kubectl set env deployment/nextpos-web PROFILE=gcp
 kubectl scale deployment nextpos-web --replicas=0

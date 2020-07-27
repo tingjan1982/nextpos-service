@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
@@ -57,6 +58,12 @@ public class OrderLineItem implements OfferApplicableObject {
         this.modifiedDate = new Date();
     }
 
+    public String getProductOptions() {
+        return this.getProductSnapshot().getProductOptions().stream()
+                .map(po -> String.format("%s: %s ($%s)", po.getOptionName(), po.getOptionValue(), po.getOptionPrice()))
+                .collect(Collectors.joining(", "));
+    }
+
     public TaxableAmount getProductPriceWithOptions() {
 
         final BigDecimal productTotal = productSnapshot.getProductPriceWithOptions();
@@ -85,9 +92,9 @@ public class OrderLineItem implements OfferApplicableObject {
 
     /**
      * This method must be called whether line item is changed in the following ways:
-     *  new line item is added.
-     *  quantity is updated.
-     *  product options is updated.
+     * new line item is added.
+     * quantity is updated.
+     * product options is updated.
      */
     public void computeSubTotal() {
 
@@ -122,6 +129,7 @@ public class OrderLineItem implements OfferApplicableObject {
     /**
      * For tax inclusive scenarios, return amountWithTax because tax will not be calculated again, whereas in tax exclusive scenarios,
      * return amountWithoutTax so an Order will aggregate and calculate tax as a whole.
+     *
      * @return
      */
 //    public BigDecimal getLineItemSubTotal() {
@@ -153,6 +161,8 @@ public class OrderLineItem implements OfferApplicableObject {
         IN_PROCESS,
 
         ALREADY_IN_PROCESS,
+
+        PREPARED,
 
         DELIVERED
     }

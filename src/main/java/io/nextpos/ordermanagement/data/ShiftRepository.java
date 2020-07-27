@@ -14,4 +14,6 @@ public interface ShiftRepository extends PagingAndSortingRepository<Shift, Strin
     Optional<Shift> findFirstByClientIdOrderByCreatedDateDesc(String clientId);
 
     List<Shift> findAllByClientIdAndStart_TimestampBetween(String clientId, Date fromDate, Date toDate, Sort sort);
+
+    List<Shift> findAllByClientId(String clientId);
 }

@@ -296,6 +296,20 @@ public class OrderController {
         return toOrderResponse(order);
     }
 
+    @PostMapping("/{id}/lineitems/prepare")
+    @OrderLogAction
+    public SimpleObjectsResponse prepareLineItems(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                  @PathVariable final String id,
+                                                  @Valid @RequestBody UpdateLineItemsRequest updateLineItemsRequest) {
+
+        final List<OrderLineItem> updatedOrderLineItems = orderService.prepareLineItems(id, updateLineItemsRequest.getLineItemIds());
+        final List<SimpleObjectResponse> simpleObjects = updatedOrderLineItems.stream()
+                .map(li -> new SimpleObjectResponse(li.getId(), li.getProductSnapshot().getName()))
+                .collect(Collectors.toList());
+
+        return new SimpleObjectsResponse(simpleObjects);
+    }
+
     @PostMapping("/{id}/lineitems/deliver")
     @OrderLogAction
     public SimpleObjectsResponse deliverLineItems(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
@@ -393,15 +407,11 @@ public class OrderController {
 
         final List<OrderResponse.OrderLineItemResponse> orderLineItems = order.getOrderLineItems().stream()
                 .map(li -> {
-                    final String options = li.getProductSnapshot().getProductOptions().stream()
-                            .map(po -> String.format("%s: %s ($%s)", po.getOptionName(), po.getOptionValue(), po.getOptionPrice()))
-                            .collect(Collectors.joining(", "));
-
                     return new OrderResponse.OrderLineItemResponse(li.getId(),
                             li.getProductSnapshot().getId(),
                             li.getState(),
                             li.getProductSnapshot().getName(),
-                            options,
+                            li.getProductOptions(),
                             li.getProductPriceWithOptions().getAmount(),
                             li.getQuantity(),
                             li.getLineItemSubTotal(),

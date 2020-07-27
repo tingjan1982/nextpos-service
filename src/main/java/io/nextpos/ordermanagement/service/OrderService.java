@@ -31,6 +31,8 @@ public interface OrderService {
      */
     List<Order> getInflightOrders(String clientId);
 
+    List<Order> getOrdersByState(String clientId, Order.OrderState orderState);
+
     void deleteOrder(Order order);
 
     OrderStateChange transitionOrderState(Order order, Order.OrderAction orderAction, final Optional<LineItemStateChangeEvent> lineItemStateChangeEvent);
@@ -44,6 +46,8 @@ public interface OrderService {
     OrderStateChangeBean performOrderAction(String id, Order.OrderAction orderAction);
 
     Optional<OrderStateChange> getOrderStateChangeByOrderId(String orderId);
+
+    List<OrderLineItem> prepareLineItems(String orderId, List<String> lineItemIds);
 
     List<OrderLineItem> deliverLineItems(String orderId, List<String> lineItemIds);
 

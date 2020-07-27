@@ -85,7 +85,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable()
                 .regexMatcher("^\\/(actuator|counters)(\\/[\\w.+]*)*$")
                 .authorizeRequests()
-                .antMatchers("/actuator/health").permitAll()
+                .antMatchers("/actuator/health", "/ws/**").permitAll()
                 .anyRequest().authenticated().and().httpBasic();
     }
 
@@ -322,7 +322,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .cors().and()
                     .addFilterBefore(requestIdContextFilter, WebAsyncManagerIntegrationFilter.class)
                     .authorizeRequests()
-                    .antMatchers("/clients/default", "/activateaccount", "/error", "/favicon.ico").permitAll();
+                    .antMatchers("/clients/default", "/activateaccount", "/error", "/favicon.ico", "/ws/**").permitAll();
 
             this.authorizeClientRequests(http);
             this.authorizeTimeCardRequests(http);

@@ -19,6 +19,8 @@ public class ClosingShiftTransactionReport {
 
     private List<OrderSummary> orderSummary;
 
+    //private transient List<Object> entries;
+
     private List<OrderCount> totalOrderCount;
 
     private List<OrderCount> orderCountByState;

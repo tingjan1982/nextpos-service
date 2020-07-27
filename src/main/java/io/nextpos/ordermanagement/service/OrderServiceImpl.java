@@ -8,6 +8,7 @@ import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.event.LineItemStateChangeEvent;
 import io.nextpos.ordermanagement.event.OrderStateChangeEvent;
 import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.storage.service.DistributedCounterService;
@@ -97,6 +98,15 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<Order> getOrdersByState(final String clientId, final Order.OrderState orderState) {
+
+        LOGGER.info("Getting in process orders for client: {}", clientId);
+
+        final Sort sort = Sort.by(Sort.Order.desc("createdDate"));
+        return orderRepository.findAllByClientIdAndState(clientId, orderState, sort);
+    }
+
+    @Override
     public void deleteOrder(final Order order) {
         orderRepository.delete(order);
     }
@@ -132,6 +142,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Order addOrderLineItem(final Order order, final OrderLineItem orderLineItem) {
+
+        if (order.isClosed()) {
+            throw new BusinessLogicException("message.orderClosed", "Order is closed, cannot add OrderLineItem: " + order.getId());
+        }
 
         order.addOrderLineItem(orderLineItem);
 
@@ -186,7 +200,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<OrderLineItem> prepareLineItems(final String orderId, final List<String> lineItemIds) {
+        return publishLineItemEvent(orderId, lineItemIds, Order.OrderAction.PREPARE);
+
+    }
+
+    @Override
     public List<OrderLineItem> deliverLineItems(String orderId, List<String> lineItemIds) {
+        return publishLineItemEvent(orderId, lineItemIds, Order.OrderAction.PARTIAL_DELIVER);
+    }
+
+    private List<OrderLineItem> publishLineItemEvent(String orderId, List<String> lineItemIds, Order.OrderAction orderAction) {
 
         if (!CollectionUtils.isEmpty(lineItemIds)) {
             final Order order = this.getOrder(orderId);
@@ -195,8 +219,8 @@ public class OrderServiceImpl implements OrderService {
                     .collect(Collectors.toList());
 
             if (!orderLineItems.isEmpty()) {
-                LOGGER.info("Marking line items as delivered: {}", orderLineItems);
-                applicationEventPublisher.publishEvent(new LineItemStateChangeEvent(this, order, Order.OrderAction.PARTIAL_DELIVER, orderLineItems));
+                LOGGER.info("Sending [{}] LineItemStateChangeEvent: {}", orderAction, orderLineItems);
+                applicationEventPublisher.publishEvent(new LineItemStateChangeEvent(this, order, orderAction, orderLineItems));
 
                 this.saveOrder(order);
 

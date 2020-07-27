@@ -2,6 +2,7 @@ package io.nextpos.ordermanagement.event;
 
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
+import io.nextpos.ordermanagement.service.OrderMessagingService;
 import io.nextpos.ordermanagement.service.OrderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +20,12 @@ public class LineItemStateChangeListener {
 
     private final OrderService orderService;
 
+    private final OrderMessagingService orderMessagingService;
+
     @Autowired
-    public LineItemStateChangeListener(final OrderService orderService) {
+    public LineItemStateChangeListener(final OrderService orderService, final OrderMessagingService orderMessagingService) {
         this.orderService = orderService;
+        this.orderMessagingService = orderMessagingService;
     }
 
     /**
@@ -51,6 +55,10 @@ public class LineItemStateChangeListener {
                     }
                 });
                 break;
+            case PREPARE:
+                lineItems.forEach(li -> li.setState(OrderLineItem.LineItemState.PREPARED));
+
+                break;
             case DELIVER:
                 lineItems.forEach(li -> li.setState(OrderLineItem.LineItemState.DELIVERED));
                 break;
@@ -67,6 +75,9 @@ public class LineItemStateChangeListener {
 
                 break;
         }
+
+        orderService.saveOrder(order);
+        orderMessagingService.sendOrders(order.getClientId());
 
         LOGGER.info("Line item state changes are completed: {}", lineItems);
     }
