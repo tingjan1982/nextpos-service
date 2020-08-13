@@ -21,8 +21,7 @@ import org.springframework.test.context.TestPropertySource;
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.Date;
@@ -128,8 +127,7 @@ class ShiftServiceImplTest {
     @Test
     @WithMockUser
     void listShifts() {
-
-        final Instant now = LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant();
+        final Instant now = ZonedDateTime.now().toInstant();
 
         shiftRepository.save(new Shift(clientId, new Date(), "dummy", BigDecimal.ONE));
         shiftRepository.save(new Shift(clientId, Date.from(now.minus(3, ChronoUnit.DAYS)), "dummy", BigDecimal.ONE));
@@ -137,8 +135,9 @@ class ShiftServiceImplTest {
         shiftRepository.save(new Shift(clientId, Date.from(now.minus(7, ChronoUnit.DAYS)), "dummy", BigDecimal.ONE));
         shiftRepository.save(new Shift(clientId, Date.from(now.minus(8, ChronoUnit.DAYS)), "dummy", BigDecimal.ONE));
 
+        final ZonedDateTime zonedNow = ZonedDateTime.now().withZoneSameInstant(client.getZoneId());
         final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.RANGE)
-                .dateRange(LocalDateTime.now().minusDays(7), LocalDateTime.now()).build();
+                .dateRange(zonedNow.minusDays(7).minusSeconds(1).toLocalDateTime(), zonedNow.plusSeconds(1).toLocalDateTime()).build();
 
         final List<Shift> shifts = shiftService.getShifts(clientId, zonedDateRange);
 

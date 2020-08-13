@@ -11,20 +11,20 @@ import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.exception.ShiftException;
+import io.nextpos.shared.service.annotation.MongoTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-@Transactional
+@MongoTransaction
 public class ShiftServiceImpl implements ShiftService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ShiftServiceImpl.class);

@@ -5,15 +5,18 @@ import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordertransaction.data.OrderTransaction;
-import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.BusinessLogicException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -29,12 +32,14 @@ class OrderTransactionServiceImplTest {
     private OrderService orderService;
 
     @Autowired
+    private Client client;
+
+    @Autowired
     private OrderSettings orderSettings;
 
     @Test
     void createOrderTransaction() {
 
-        final Client client = DummyObjects.dummyClient();
         final String clientId = client.getId();
         final Order order = new Order(clientId, orderSettings);
         order.setOrderTotal(BigDecimal.valueOf(150));
@@ -56,5 +61,32 @@ class OrderTransactionServiceImplTest {
         assertThat(retrievedOrder.getState()).isEqualTo(Order.OrderState.SETTLED);
 
         assertThatThrownBy(() -> orderTransactionService.createOrderTransaction(client, orderTransaction)).isInstanceOf(BusinessLogicException.class);
+    }
+
+    @Test
+    void test() throws Exception {
+
+        final String clientId = client.getId();
+        final Order order = new Order(clientId, orderSettings);
+        order.setOrderTotal(BigDecimal.valueOf(150));
+        order.setState(Order.OrderState.DELIVERED);
+        orderService.saveOrder(order);
+
+        ExecutorService executor = Executors.newFixedThreadPool(5);
+
+        final Callable<String> task = () -> {
+            final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), clientId, order.getOrderTotal(), BigDecimal.valueOf(200),
+                    OrderTransaction.PaymentMethod.CARD,
+                    OrderTransaction.BillType.SINGLE,
+                    List.of());
+
+            orderTransactionService.createOrderTransaction(client, orderTransaction);
+
+            return "completed";
+        };
+
+        executor.invokeAll(Arrays.asList(task, task, task, task, task));
+
+        assertThat(orderTransactionService.getOrderTransactionByOrderId(order.getId())).hasSize(1);
     }
 }

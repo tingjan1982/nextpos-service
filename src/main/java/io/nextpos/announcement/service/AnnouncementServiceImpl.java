@@ -3,14 +3,14 @@ package io.nextpos.announcement.service;
 import io.nextpos.announcement.data.Announcement;
 import io.nextpos.announcement.data.AnnouncementRepository;
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import io.nextpos.shared.service.annotation.MongoTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.util.List;
 
 @Service
-@Transactional
+@MongoTransaction
 public class AnnouncementServiceImpl implements AnnouncementService {
 
     private final AnnouncementRepository announcementRepository;

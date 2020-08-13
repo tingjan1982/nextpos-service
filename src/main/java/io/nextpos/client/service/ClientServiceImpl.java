@@ -10,6 +10,7 @@ import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.shared.config.SecurityConfig;
 import io.nextpos.shared.exception.ObjectAlreadyExistsException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import io.nextpos.shared.service.annotation.JpaTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,13 +27,12 @@ import org.springframework.security.oauth2.provider.client.BaseClientDetails;
 import org.springframework.security.oauth2.provider.client.JdbcClientDetailsService;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@JpaTransaction
 public class ClientServiceImpl implements ClientService, UserDetailsService {
 
     private final ClientRepository clientRepository;

@@ -4,14 +4,14 @@ import io.nextpos.client.data.Client;
 import io.nextpos.product.data.*;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import io.nextpos.shared.service.annotation.JpaTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.util.List;
 
 @Service
-@Transactional
+@JpaTransaction
 public class ProductOptionServiceImpl implements ProductOptionService {
 
     private final ProductOptionRepository productOptionRepository;

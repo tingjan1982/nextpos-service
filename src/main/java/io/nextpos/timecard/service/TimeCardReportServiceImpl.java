@@ -3,6 +3,7 @@ package io.nextpos.timecard.service;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientService;
+import io.nextpos.shared.service.annotation.MongoTransaction;
 import io.nextpos.timecard.data.TimeCardReport;
 import io.nextpos.timecard.data.UserTimeCard;
 import org.bson.Document;
@@ -13,7 +14,6 @@ import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@MongoTransaction
 public class TimeCardReportServiceImpl implements TimeCardReportService {
 
     private final MongoTemplate mongoTemplate;

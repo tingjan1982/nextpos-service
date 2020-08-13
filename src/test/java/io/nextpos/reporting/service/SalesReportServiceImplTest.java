@@ -122,16 +122,21 @@ class SalesReportServiceImplTest {
         final LocalDate today = LocalDate.now();
         final LocalDate lastDayOfMonth = today.with(TemporalAdjusters.lastDayOfMonth());
 
+        BigDecimal expectedSalesTotal = BigDecimal.ZERO;
+
         for (int i = 1; i <= lastDayOfMonth.getDayOfMonth(); i++) {
             final LocalDate date = today.withDayOfMonth(i);
-            createOrder(date, "coffee", BigDecimal.valueOf(50), 5);
-            createOrder(date, "tea", BigDecimal.valueOf(35), 5);
+            Order order1 = createOrder(date, "coffee", BigDecimal.valueOf(50), 5);
+            Order order2 = createOrder(date, "tea", BigDecimal.valueOf(35), 5);
+
+            expectedSalesTotal = expectedSalesTotal.add(order1.getOrderTotal());
+            expectedSalesTotal = expectedSalesTotal.add(order2.getOrderTotal());
         }
 
         final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.MONTH).build();
         final RangedSalesReport results = salesReportService.generateRangedSalesReport(client.getClientName(), zonedDateRange);
 
-        assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo("14025"); // (50 + 35) * 5 * lastDayOfMonth.getDayOfMonth() * 1.1;
+        assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo(expectedSalesTotal); // (50 + 35) * 5 * lastDayOfMonth.getDayOfMonth() * 1.1;
         assertThat(results.getSalesByRange()).hasSize(lastDayOfMonth.getDayOfMonth());
         assertThat(results.getSalesByProduct()).hasSize(2);
 
@@ -227,11 +232,12 @@ class SalesReportServiceImplTest {
         assertThat(salesProgress.getMonthlySalesProgress()).isEqualByComparingTo(BigDecimal.valueOf(550 * lastDayOfMonth.getDayOfMonth()));
     }
 
-    private void createOrder(final LocalDate orderDate, String productName, BigDecimal price, int quantity) {
+    private Order createOrder(final LocalDate orderDate, String productName, BigDecimal price, int quantity) {
 
         final ProductSnapshot productSnapshot = new ProductSnapshot(null, productName, null, price, null);
         productSnapshot.setLabelInformation("default-id", "default");
-        this.createOrder(orderDate, productSnapshot, quantity, false);
+
+        return this.createOrder(orderDate, productSnapshot, quantity, false);
     }
 
     private void createOrder(final LocalDate orderDate) {
@@ -242,7 +248,7 @@ class SalesReportServiceImplTest {
         this.createOrder(orderDate, DummyObjects.productSnapshot(), 5, true);
     }
 
-    private void createOrder(final LocalDate orderDate, ProductSnapshot productSnapshot, int quantity, boolean deleted) {
+    private Order createOrder(final LocalDate orderDate, ProductSnapshot productSnapshot, int quantity, boolean deleted) {
 
         final OrderSettings newSettings = orderSettings.copy();
         newSettings.setTaxInclusive(true);
@@ -254,11 +260,13 @@ class SalesReportServiceImplTest {
             order.setState(Order.OrderState.DELETED);
         }
 
-        orderService.createOrder(order);
+        final Order createdOrder = orderService.createOrder(order);
 
         // use query to update order.modifiedDate to overwrite the dates that are set by Spring MongoDB auditing feature.
         final Query query = new Query(where("id").is(order.getId()));
         final Update update = new Update().set("createdDate", Date.valueOf(orderDate));
         mongoTemplate.updateFirst(query, update, Order.class);
+
+        return createdOrder;
     }
 }

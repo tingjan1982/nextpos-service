@@ -3,14 +3,14 @@ package io.nextpos.membership.service;
 import io.nextpos.membership.data.Membership;
 import io.nextpos.membership.data.MembershipRepository;
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import io.nextpos.shared.service.annotation.MongoTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.util.Optional;
 
 @Service
-@Transactional
+@MongoTransaction
 public class MembershipServiceImpl implements MembershipService {
 
     private final MembershipRepository membershipRepository;

@@ -9,6 +9,7 @@ import io.nextpos.notification.data.NotificationDetails;
 import io.nextpos.notification.data.NotificationDetailsRepository;
 import io.nextpos.notification.data.SmsDetails;
 import io.nextpos.shared.exception.GeneralApplicationException;
+import io.nextpos.shared.service.annotation.MongoTransaction;
 import org.apache.commons.codec.Charsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,6 @@ import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import javax.transaction.Transactional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -33,7 +33,7 @@ import java.util.concurrent.CompletableFuture;
  * https://www.baeldung.com/spring-email
  */
 @Service
-@Transactional
+@MongoTransaction
 public class NotificationServiceImpl implements NotificationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NotificationService.class);

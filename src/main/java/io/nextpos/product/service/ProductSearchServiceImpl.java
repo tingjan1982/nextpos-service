@@ -5,13 +5,13 @@ import io.nextpos.product.data.ProductLabel;
 import io.nextpos.product.data.ProductVersion;
 import io.nextpos.product.data.ProductVersionRepository;
 import io.nextpos.product.data.Version;
+import io.nextpos.shared.service.annotation.JpaTransaction;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import javax.transaction.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +19,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@JpaTransaction
 public class ProductSearchServiceImpl implements ProductSearchService {
 
     private final ProductVersionRepository productVersionRepository;

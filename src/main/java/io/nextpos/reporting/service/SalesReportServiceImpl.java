@@ -6,6 +6,7 @@ import io.nextpos.reporting.data.RangedSalesReport;
 import io.nextpos.reporting.data.ReportEnhancer;
 import io.nextpos.reporting.data.SalesDistribution;
 import io.nextpos.reporting.data.SalesProgress;
+import io.nextpos.shared.service.annotation.MongoTransaction;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Service
+@MongoTransaction
 public class SalesReportServiceImpl implements SalesReportService {
 
     private final MongoTemplate mongoTemplate;
@@ -217,7 +219,7 @@ public class SalesReportServiceImpl implements SalesReportService {
                 .and("state").as("state")
                 .and(createToDecimal("orderTotal")).as("total") // this is critical to make $sum work.
                 .and("createdDate").as("createdDate")
-                .and(context -> Document.parse("{ $dayOfMonth: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("day")
+                .and(context -> Document.parse("{ $dayOfMonth: {date: '$createdDate', timezone: 'Asia/Taipei'} }")).as("day")
                 .and(context -> Document.parse("{ $week: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("week")
                 .and(context -> Document.parse("{ $month: {date: '$modifiedDate', timezone: 'Asia/Taipei'} }")).as("month");
 
@@ -234,9 +236,9 @@ public class SalesReportServiceImpl implements SalesReportService {
                 .andOutput(AccumulatorOperators.Sum.sumOf("total")).as("total")
                 .andOutput(context -> new Document("$first", "$week")).as("week");
 
-        final BucketOperation monthSales = Aggregation.bucket("month").withBoundaries(1, 13).withDefaultBucket("Other")
-                .andOutput(AccumulatorOperators.Sum.sumOf("total")).as("total")
-                .andOutput(context -> new Document("$first", "$month")).as("month");
+        final GroupOperation monthSales = Aggregation.group("month")
+                .sum("total").as("total")
+                .first("month").as("month");
 
         final FacetOperation facets = Aggregation.facet(dailySales).as("dailySales")
                 .and(weeklySales).as("weeklySales")

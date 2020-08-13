@@ -9,15 +9,15 @@ import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderRepository;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.shared.exception.BusinessLogicException;
+import io.nextpos.shared.service.annotation.MongoTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 @Service
-@Transactional
+@MongoTransaction
 public class MerchandisingServiceImpl implements MerchandisingService {
 
     private final OfferService offerService;

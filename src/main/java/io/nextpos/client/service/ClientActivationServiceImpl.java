@@ -8,13 +8,13 @@ import io.nextpos.notification.data.NotificationDetails;
 import io.nextpos.notification.service.NotificationService;
 import io.nextpos.shared.config.ApplicationProperties;
 import io.nextpos.shared.exception.GeneralApplicationException;
+import io.nextpos.shared.service.annotation.JpaTransaction;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.io.StringWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
  * https://www.baeldung.com/registration-verify-user-by-email
  */
 @Service
-@Transactional
+@JpaTransaction
 public class ClientActivationServiceImpl implements ClientActivationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientActivationServiceImpl.class);

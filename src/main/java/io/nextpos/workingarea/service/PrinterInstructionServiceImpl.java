@@ -7,6 +7,7 @@ import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.shared.exception.GeneralApplicationException;
+import io.nextpos.shared.service.annotation.JpaTransaction;
 import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.PrinterInstructions;
 import io.nextpos.workingarea.data.WorkingArea;
@@ -15,14 +16,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@JpaTransaction
 public class PrinterInstructionServiceImpl implements PrinterInstructionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PrinterInstructionServiceImpl.class);

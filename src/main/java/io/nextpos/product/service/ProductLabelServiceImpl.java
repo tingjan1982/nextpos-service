@@ -3,6 +3,7 @@ package io.nextpos.product.service;
 import io.nextpos.client.data.Client;
 import io.nextpos.product.data.*;
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import io.nextpos.shared.service.annotation.JpaTransaction;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,16 +12,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@JpaTransaction
 public class ProductLabelServiceImpl implements ProductLabelService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProductLabelServiceImpl.class);
+
     private final ProductLabelRepository productLabelRepository;
 
     private final ProductRepository productRepository;

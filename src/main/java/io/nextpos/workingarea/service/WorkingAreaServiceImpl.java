@@ -2,6 +2,7 @@ package io.nextpos.workingarea.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import io.nextpos.shared.service.annotation.JpaTransaction;
 import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.PrinterRepository;
 import io.nextpos.workingarea.data.WorkingArea;
@@ -9,11 +10,10 @@ import io.nextpos.workingarea.data.WorkingAreaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.util.List;
 
 @Service
-@Transactional
+@JpaTransaction
 public class WorkingAreaServiceImpl implements WorkingAreaService {
 
     private final WorkingAreaRepository workingAreaRepository;

@@ -11,6 +11,7 @@ import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import io.nextpos.shared.service.annotation.MongoTransaction;
 import io.nextpos.storage.service.DistributedCounterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@MongoTransaction
 public class OrderServiceImpl implements OrderService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OrderServiceImpl.class);
@@ -202,7 +202,6 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<OrderLineItem> prepareLineItems(final String orderId, final List<String> lineItemIds) {
         return publishLineItemEvent(orderId, lineItemIds, Order.OrderAction.PREPARE);
-
     }
 
     @Override

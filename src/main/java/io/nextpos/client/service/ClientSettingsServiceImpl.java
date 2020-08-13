@@ -5,16 +5,16 @@ import io.nextpos.client.data.ClientSetting;
 import io.nextpos.client.data.ClientSettingsRepository;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import io.nextpos.shared.service.annotation.JpaTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-@Transactional
+@JpaTransaction
 public class ClientSettingsServiceImpl implements ClientSettingsService {
 
     private final ClientSettingsRepository clientSettingsRepository;

@@ -4,19 +4,19 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import io.nextpos.shared.service.annotation.MongoTransaction;
 import io.nextpos.timecard.data.UserTimeCard;
 import io.nextpos.timecard.data.UserTimeCardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-@Transactional
+@MongoTransaction
 public class UserTimeCardServiceImpl implements UserTimeCardService {
 
     private final UserTimeCardRepository userTimeCardRepository;

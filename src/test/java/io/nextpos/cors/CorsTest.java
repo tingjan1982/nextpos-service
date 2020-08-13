@@ -12,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * https://reflectoring.io/spring-boot-test/
  */
 @SpringBootTest(classes = {CorsTest.TestApplication.class, CorsConfig.class, CorsTest.TestSecurityConfig.class})
+@TestPropertySource(properties = "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration")
 class CorsTest {
 
     @Autowired

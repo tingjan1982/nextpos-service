@@ -153,7 +153,7 @@ class ProductSearchServiceImplTest {
         assertThat(products).hasSize(6);
         assertThat(findProductsByLabel(products, "drink")).hasSize(3);
         assertThat(findProductsByLabel(products, "drink")).isSortedAccordingTo(Comparator.comparing(ProductVersion::getProductName));
-        assertThat(findProductsByLabel(products, "ungrouped")).hasSize(1);
+        assertThat(findProductsByLabel(products, "ungrouped")).hasSize(3);
         assertThat(findProductsByLabel(products, "pinned")).hasSize(2);
     }
 

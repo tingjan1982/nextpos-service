@@ -5,13 +5,12 @@ import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.ordermanagement.data.OrderStateChange;
 import io.nextpos.reporting.data.OrderStateAverageTimeReport;
 import io.nextpos.reporting.data.OrderStateParameter;
+import io.nextpos.shared.service.annotation.MongoTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
-
-import javax.transaction.Transactional;
 
 /**
  * https://stackoverflow.com/questions/50058304/group-by-day-and-item-total-but-output-item-names-as-keys
@@ -23,7 +22,7 @@ import javax.transaction.Transactional;
  * https://stackoverflow.com/questions/39393672/mongodb-aggregate-push-multiple-fields-in-java-spring-data
  */
 @Service
-@Transactional
+@MongoTransaction
 public class ReportingServiceImpl implements ReportingService {
 
     private final MongoTemplate mongoTemplate;

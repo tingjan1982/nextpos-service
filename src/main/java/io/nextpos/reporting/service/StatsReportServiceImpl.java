@@ -5,6 +5,7 @@ import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.reporting.data.CustomerStatsReport;
 import io.nextpos.reporting.data.CustomerTrafficReport;
 import io.nextpos.reporting.data.ReportEnhancer;
+import io.nextpos.shared.service.annotation.MongoTransaction;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -12,14 +13,13 @@ import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Service
-@Transactional
+@MongoTransaction
 public class StatsReportServiceImpl implements StatsReportService {
 
     private final MongoTemplate mongoTemplate;

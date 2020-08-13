@@ -3,16 +3,15 @@ package io.nextpos.ordertransaction.service;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.Shift;
 import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
+import io.nextpos.shared.service.annotation.MongoTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
-
 @Service
-@Transactional
+@MongoTransaction
 public class OrderTransactionReportServiceImpl implements OrderTransactionReportService {
 
     private final MongoTemplate mongoTemplate;
@@ -63,6 +62,7 @@ public class OrderTransactionReportServiceImpl implements OrderTransactionReport
                 .and("transactions.orderId").as("orderId")
                 .and("transactions.orderTotal").as("txOrderTotal")
                 .and("transactions.settleAmount").as("txSettleAmount")
+                .and("transactions.paymentDetails.paymentMethod").as("paymentMethod")
                 .and("orderTotal").as("orderTotal")
                 .and("state").as("state");
 
