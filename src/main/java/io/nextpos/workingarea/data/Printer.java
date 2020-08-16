@@ -37,7 +37,7 @@ public class Printer extends BaseObject implements ClientObject {
 
     private ServiceType serviceType;
 
-    @ManyToMany(mappedBy = "printers")
+    @ManyToMany(mappedBy = "printers", fetch = FetchType.EAGER)
     @Fetch(FetchMode.SUBSELECT)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
