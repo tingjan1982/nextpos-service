@@ -123,6 +123,10 @@ public class Client extends BaseObject {
         return attributes.get(key);
     }
 
+    public void removeAttribute(String key) {
+        attributes.remove(key);
+    }
+
     public void saveClientSettings(ClientSetting.SettingName settingName, String value, boolean enabled) {
 
         clientSettings.stream()
@@ -180,6 +184,10 @@ public class Client extends BaseObject {
 
         TABLE_AVAILABILITY_DISPLAY,
 
-        AES_KEY
+        AES_KEY,
+
+        PASSCODE,
+
+        PASSCODE_VERIFIED
     }
 }

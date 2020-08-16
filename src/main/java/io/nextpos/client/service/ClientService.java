@@ -12,6 +12,8 @@ public interface ClientService {
 
     Client saveClient(Client client);
 
+    ClientUser updateClientUserPassword(Client client, ClientUser clientUser, String newPassword);
+
     void updateDefaultClientUserPassword(Client client, String newPassword);
 
     Optional<Client> getClient(String clientId);

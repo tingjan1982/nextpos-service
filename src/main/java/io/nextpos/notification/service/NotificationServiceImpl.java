@@ -1,5 +1,6 @@
 package io.nextpos.notification.service;
 
+import com.sendgrid.*;
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
@@ -10,16 +11,13 @@ import io.nextpos.notification.data.NotificationDetailsRepository;
 import io.nextpos.notification.data.SmsDetails;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.service.annotation.MongoTransaction;
-import org.apache.commons.codec.Charsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.mail.MailProperties;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -44,11 +42,14 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationProperties notificationProperties;
 
+    private final MailProperties mailProperties;
+
     @Autowired
-    public NotificationServiceImpl(final JavaMailSender javaMailSender, final NotificationDetailsRepository notificationDetailsRepository, final NotificationProperties notificationProperties) {
+    public NotificationServiceImpl(final JavaMailSender javaMailSender, final NotificationDetailsRepository notificationDetailsRepository, final NotificationProperties notificationProperties, final MailProperties mailProperties) {
         this.javaMailSender = javaMailSender;
         this.notificationDetailsRepository = notificationDetailsRepository;
         this.notificationProperties = notificationProperties;
+        this.mailProperties = mailProperties;
     }
 
     @Override
@@ -77,17 +78,25 @@ public class NotificationServiceImpl implements NotificationService {
             try {
                 final EmailDetails emailDetails = (EmailDetails) notificationDetails;
 
-                MimeMessage message = javaMailSender.createMimeMessage();
-                MimeMessageHelper helper = new MimeMessageHelper(message, true, Charsets.UTF_8.name());
+                Email from = new Email("notification-noreply@rain-app.io");
+                Email to = new Email(emailDetails.getRecipientEmail());
+                Content content = new Content("text/plain", emailDetails.getEmailContent());
+                Mail mail = new Mail(from, emailDetails.getSubject(), to, content);
 
-                helper.setTo(emailDetails.getRecipientEmail());
-                helper.setSubject(emailDetails.getSubject());
-                helper.setText(emailDetails.getEmailContent(), true);
+                SendGrid sg = new SendGrid(mailProperties.getPassword());
+                Request request = new Request();
 
-                javaMailSender.send(message);
-            } catch (MessagingException e) {
-                LOGGER.error("Problem with sending email: {}", e.getMessage(), e);
-                throw new GeneralApplicationException("Problem with sending email: " + e.getMessage());
+                request.setMethod(Method.POST);
+                request.setEndpoint("mail/send");
+                request.setBody(mail.build());
+                Response response = sg.api(request);
+
+                LOGGER.info("{}", response);
+
+            } catch (Exception e) {
+                String errorMsg = String.format("Problem with sending email: %s", e.getMessage());
+                LOGGER.error(errorMsg, e);
+                throw new GeneralApplicationException(errorMsg);
             }
 
         } else if (notificationDetails instanceof SmsDetails) {

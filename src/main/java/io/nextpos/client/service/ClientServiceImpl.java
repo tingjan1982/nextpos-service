@@ -125,6 +125,19 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
     }
 
     @Override
+    public ClientUser updateClientUserPassword(Client client, ClientUser clientUser, String newPassword) {
+
+        clientUser.setPassword(newPassword);
+        final ClientUser updatedClientUser = this.saveClientUser(clientUser);
+
+        if (clientUser.isDefaultUser()) {
+            this.updateDefaultClientUserPassword(client, newPassword);
+        }
+
+        return updatedClientUser;
+    }
+
+    @Override
     public void updateDefaultClientUserPassword(Client client, String newPassword) {
         final String username = client.getUsername();
         clientDetailsService.updateClientSecret(username, newPassword);

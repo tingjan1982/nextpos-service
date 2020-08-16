@@ -4,9 +4,13 @@ import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.ClientObject;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 
 @Entity(name = "client_printer")
@@ -32,6 +36,12 @@ public class Printer extends BaseObject implements ClientObject {
     private String ipAddress;
 
     private ServiceType serviceType;
+
+    @ManyToMany(mappedBy = "printers")
+    @Fetch(FetchMode.SUBSELECT)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Set<WorkingArea> workingAreas = new HashSet<>();
 
     public Printer(final Client client, final String name, final String ipAddress, final ServiceType serviceType) {
         this.client = client;

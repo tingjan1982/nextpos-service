@@ -44,6 +44,11 @@ public class WorkingAreaServiceImpl implements WorkingAreaService {
     }
 
     @Override
+    public void deleteWorkingArea(final WorkingArea workingArea) {
+        workingAreaRepository.delete(workingArea);
+    }
+
+    @Override
     public Printer savePrinter(Printer printer) {
         return printerRepository.save(printer);
     }
@@ -58,5 +63,10 @@ public class WorkingAreaServiceImpl implements WorkingAreaService {
     @Override
     public List<Printer> getPrinters(final Client client) {
         return printerRepository.findAllByClient(client);
+    }
+
+    @Override
+    public void deletePrinter(final Printer printer) {
+        printerRepository.delete(printer);
     }
 }

@@ -13,16 +13,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Arrays;
-import java.util.Currency;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.sql.ResultSet;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -45,15 +45,32 @@ public class BootstrapConfig {
 
     private final SettingsConfigurationProperties settingsProperties;
 
+    private final DataSource dataSource;
+
     @Autowired
-    public BootstrapConfig(final ClientService clientService, final SettingsService settingsService, final SettingsConfigurationProperties settingsProperties) {
+    public BootstrapConfig(final ClientService clientService, final SettingsService settingsService, final SettingsConfigurationProperties settingsProperties, final DataSource dataSource) {
         this.clientService = clientService;
         this.settingsService = settingsService;
         this.settingsProperties = settingsProperties;
+        this.dataSource = dataSource;
     }
 
     @PostConstruct
-    public void bootstrap() {
+    public void bootstrap() throws Exception {
+
+        LOGGER.debug("JPA tables");
+
+        JdbcUtils.extractDatabaseMetaData(dataSource, metadata -> {
+            try (ResultSet rs = metadata.getTables(null, null, null, new String[]{"TABLE"})) {
+                List<String> l = new ArrayList<>();
+                while (rs.next()) {
+                    final String tableName = rs.getString(3);
+                    LOGGER.debug("Table: {}", tableName);
+                    l.add(tableName);
+                }
+                return l;
+            }
+        });
 
         Client defaultClient = clientService.getDefaultClient();
 

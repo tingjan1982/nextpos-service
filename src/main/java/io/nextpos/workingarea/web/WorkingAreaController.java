@@ -12,6 +12,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -147,7 +148,7 @@ public class WorkingAreaController {
         return new PrintersResponse(toPrintersResponse(printers));
     }
 
-    private List<PrinterResponse> toPrintersResponse(final List<Printer> printers) {
+    private List<PrinterResponse> toPrintersResponse(final Collection<Printer> printers) {
 
         return printers.stream().map(this::toPrinterResponse).collect(Collectors.toList());
     }

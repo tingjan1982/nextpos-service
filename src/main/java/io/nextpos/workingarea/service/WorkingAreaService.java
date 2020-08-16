@@ -14,9 +14,13 @@ public interface WorkingAreaService {
 
     List<WorkingArea> getWorkingAreas(Client client);
 
+    void deleteWorkingArea(WorkingArea workingArea);
+
     Printer savePrinter(Printer printer);
 
     Printer getPrinter(String id);
 
     List<Printer> getPrinters(Client client);
+
+    void deletePrinter(Printer printer);
 }

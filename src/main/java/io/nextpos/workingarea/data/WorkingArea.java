@@ -9,8 +9,8 @@ import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity(name = "client_working_area")
 @Data
@@ -32,10 +32,12 @@ public class WorkingArea extends BaseObject implements ClientObject {
 
     private int noOfPrintCopies;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade=CascadeType.ALL)
-    @JoinTable(name = "working_area_printers", joinColumns = @JoinColumn(name = "working_area_id"), inverseJoinColumns = @JoinColumn(name = "printer_id"))
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(joinColumns = @JoinColumn(name = "working_area_id"), inverseJoinColumns = @JoinColumn(name = "printer_id"))
     @Fetch(FetchMode.SUBSELECT)
-    private List<Printer> printers = new ArrayList<>();
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Set<Printer> printers = new HashSet<>();
 
     public WorkingArea(final Client client, final String name) {
         this.client = client;
@@ -48,5 +50,6 @@ public class WorkingArea extends BaseObject implements ClientObject {
 
     public void addPrinter(Printer printer) {
         printers.add(printer);
+        printer.getWorkingAreas().add(this);
     }
 }
