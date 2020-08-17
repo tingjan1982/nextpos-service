@@ -72,9 +72,9 @@ public class WorkingAreaController {
         workingArea.setName(workingAreaRequest.getName());
         workingArea.setNoOfPrintCopies(workingAreaRequest.getNoOfPrintCopies());
 
-        if (!CollectionUtils.isEmpty(workingAreaRequest.getPrinterIds())) {
-            workingArea.clearPrinters();
+        workingArea.clearPrinters();
 
+        if (!CollectionUtils.isEmpty(workingAreaRequest.getPrinterIds())) {
             workingAreaRequest.getPrinterIds().stream()
                     .map(id -> clientObjectOwnershipService.checkOwnership(workingArea.getClient(), () -> workingAreaService.getPrinter(id)))
                     .forEach(workingArea::addPrinter);
@@ -83,7 +83,7 @@ public class WorkingAreaController {
 
     /**
      * First persist the WorkingArea object so the subsequent adding printer to its association would work:
-     *
+     * <p>
      * PersistentObjectException: detached entity passed to persist: io.nextpos.workingarea.data.Printer] with root cause
      */
     private WorkingArea fromWorkingAreaRequest(final Client client, final WorkingAreaRequest workingAreaRequest) {

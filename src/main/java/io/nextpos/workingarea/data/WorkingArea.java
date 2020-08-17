@@ -45,6 +45,7 @@ public class WorkingArea extends BaseObject implements ClientObject {
     }
 
     public void clearPrinters() {
+        printers.forEach(p -> p.getWorkingAreas().remove(this));
         printers.clear();
     }
 

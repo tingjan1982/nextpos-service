@@ -283,7 +283,6 @@ public class OrderController {
                                           @PathVariable String id,
                                           @Valid @RequestBody OrderLineItemRequest request) {
 
-        final Order order = orderService.getOrder(id);
         final OrderLineItem orderLineItem = orderCreationFactory.newOrderLineItem(client, request);
 
         if (request.getProductDiscount() != null) {
@@ -291,7 +290,7 @@ public class OrderController {
             merchandisingService.applyGlobalProductDiscount(orderLineItem, request.getProductDiscount(), discountValue);
         }
 
-        orderService.addOrderLineItem(order, orderLineItem);
+        final Order order = orderService.addOrderLineItem(id, orderLineItem);
 
         return toOrderResponse(order);
     }

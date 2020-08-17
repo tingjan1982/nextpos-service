@@ -141,7 +141,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order addOrderLineItem(final Order order, final OrderLineItem orderLineItem) {
+    public Order addOrderLineItem(final String orderId, final OrderLineItem orderLineItem) {
+
+        final Order order = this.getOrder(orderId);
 
         if (order.isClosed()) {
             throw new BusinessLogicException("message.orderClosed", "Order is closed, cannot add OrderLineItem: " + order.getId());
