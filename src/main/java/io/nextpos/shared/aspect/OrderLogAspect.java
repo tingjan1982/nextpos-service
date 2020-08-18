@@ -18,7 +18,11 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.MongoTransactionManager;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.TransactionUsageException;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.lang.reflect.Parameter;
 import java.util.Arrays;
@@ -36,10 +40,16 @@ public class OrderLogAspect {
 
     private final OAuth2Helper oAuth2Helper;
 
+    private final MongoTransactionManager mongoTransactionManager;
+
+    private final RetryTemplate retryTemplate;
+
     @Autowired
-    public OrderLogAspect(final OrderService orderService, final OAuth2Helper oAuth2Helper) {
+    public OrderLogAspect(final OrderService orderService, final OAuth2Helper oAuth2Helper, final MongoTransactionManager mongoTransactionManager, final RetryTemplate retryTemplate) {
         this.orderService = orderService;
         this.oAuth2Helper = oAuth2Helper;
+        this.mongoTransactionManager = mongoTransactionManager;
+        this.retryTemplate = retryTemplate;
     }
 
     @Around(value = "orderLogActionMethodBroaderMatch(orderLogAction, client, id)", argNames = "proceedingJoinPoint,orderLogAction,client,id")
@@ -48,47 +58,51 @@ public class OrderLogAspect {
                                              Client client,
                                              String id) throws Throwable {
 
-        try {
-            final Order orderBeforeChange = orderService.getOrder(id);
-            final Object result = proceedingJoinPoint.proceed();
-            LOGGER.debug("Returns: {}", result);
+        return retryTemplate.execute(retry -> new TransactionTemplate(mongoTransactionManager).execute(a -> {
+            try {
 
-            final Order orderAfterChange = orderService.getOrder(id);
-            final String orderLogActionName = resolveOrderLogActionName(orderLogAction, proceedingJoinPoint.getSignature());
-            final String who = this.resolvePrincipal(client);
-            final OrderLogInformation orderLogInformation = new OrderLogInformation(orderBeforeChange, orderAfterChange);
+                final Order orderBeforeChange = orderService.getOrder(id);
+                final Object result = proceedingJoinPoint.proceed();
+                LOGGER.debug("Returns: {}", result);
 
-            final OrderLogChangeObject orderLogChangeObject = Arrays.stream(proceedingJoinPoint.getArgs())
-                    .filter(arg -> arg instanceof OrderLogChangeObject)
-                    .map(arg -> (OrderLogChangeObject) arg).findFirst().orElse(null);
-            orderLogInformation.setOrderLogChangeObject(orderLogChangeObject);
+                final Order orderAfterChange = orderService.getOrder(id);
+                final String orderLogActionName = resolveOrderLogActionName(orderLogAction, proceedingJoinPoint.getSignature());
+                final String who = this.resolvePrincipal(client);
+                final OrderLogInformation orderLogInformation = new OrderLogInformation(orderBeforeChange, orderAfterChange);
 
-            if (orderLogChangeObject == null) {
-                final MethodSignature signature = (MethodSignature) proceedingJoinPoint.getSignature();
-                final String[] argNames = signature.getParameterNames();
-                Object[] values = proceedingJoinPoint.getArgs();
-                Map<String, Object> orderLogParams = new HashMap<>();
+                final OrderLogChangeObject orderLogChangeObject = Arrays.stream(proceedingJoinPoint.getArgs())
+                        .filter(arg -> arg instanceof OrderLogChangeObject)
+                        .map(arg -> (OrderLogChangeObject) arg).findFirst().orElse(null);
+                orderLogInformation.setOrderLogChangeObject(orderLogChangeObject);
 
-                for (int i = 0; i < values.length; i++) {
-                    final Parameter parameter = signature.getMethod().getParameters()[i];
+                if (orderLogChangeObject == null) {
+                    final MethodSignature signature = (MethodSignature) proceedingJoinPoint.getSignature();
+                    final String[] argNames = signature.getParameterNames();
+                    Object[] values = proceedingJoinPoint.getArgs();
+                    Map<String, Object> orderLogParams = new HashMap<>();
 
-                    if (parameter.getAnnotation(OrderLogParam.class) != null) {
-                        orderLogParams.put(argNames[i], values[i]);
+                    for (int i = 0; i < values.length; i++) {
+                        final Parameter parameter = signature.getMethod().getParameters()[i];
+
+                        if (parameter.getAnnotation(OrderLogParam.class) != null) {
+                            orderLogParams.put(argNames[i], values[i]);
+                        }
                     }
+
+                    orderLogInformation.setOrderLogParams(orderLogParams);
                 }
 
-                orderLogInformation.setOrderLogParams(orderLogParams);
+                this.createOrderLog(orderLogActionName, who, orderLogInformation);
+
+                return result;
+
+
+            } catch (Throwable e) {
+                LOGGER.debug("Caught an exception: {}", e.getMessage(), e);
+
+                throw new TransactionUsageException(e.getMessage(), e);
             }
-
-            this.createOrderLog(orderLogActionName, who, orderLogInformation);
-
-            return result;
-
-        } catch (Throwable e) {
-            LOGGER.debug("Caught an exception: {}", e.getMessage(), e);
-
-            throw e;
-        }
+        }));
     }
 
     private String resolveOrderLogActionName(final OrderLogAction orderLogAction, final Signature signature) {

@@ -9,6 +9,7 @@ import io.nextpos.shared.DummyObjects;
 import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,9 +138,9 @@ class ProductLabelServiceImplTest {
         List<ProductLabel> labels = new ArrayList<>();
 
         for (int i = 0; i < 5; i++) {
-            final ProductLabel productLabel = new ProductLabel("label " + i, client);
-            final ProductLabel savedLabel = productLabelService.saveProductLabel(productLabel);
-            labels.add(savedLabel);
+            final String labelName = "label " + i;
+            final ProductLabel label = addLabel(labels, labelName, labelName);
+            productLabelService.saveProductLabel(label);
         }
 
         // https://stackoverflow.com/questions/50215341/java8-null-safe-comparison
@@ -156,5 +157,32 @@ class ProductLabelServiceImplTest {
         productLabelService.updateProductLabelOrder(labels.get(2).getId(), 2, labels.get(4).getId(), labels.get(3).getId()); // orderKey=1, 12, 12122, 122, 2
         assertThat(productLabelService.getProductLabels(client)).isSortedAccordingTo(comparatorToUse);
         productLabelService.getProductLabels(client).forEach(l -> LOGGER.info("id: {}, name: {}, order: {}", l.getId(), l.getName(), l.getOrderKey()));
+    }
+
+    @Test
+    @Disabled
+    void testOrderingAlgorithm() {
+
+        List<ProductLabel> labels = new ArrayList<>();
+
+        addLabel(labels, "a", "bbcbc");
+        addLabel(labels, "b", "bbcbc4");
+        addLabel(labels, "c", "0b");
+        addLabel(labels, "d", "bbc");
+        addLabel(labels, "e", "00b");
+
+        final Comparator<ProductLabel> comparatorToUse = Comparator.comparing(ProductLabel::getOrderKey, Comparator.nullsLast(Comparator.naturalOrder()));
+        labels.sort(comparatorToUse);
+
+        labels.forEach(System.out::println);
+    }
+
+    private ProductLabel addLabel(List<ProductLabel> labels, String labelName, String orderKey) {
+        final ProductLabel label = new ProductLabel(labelName, client);
+        label.setOrderKey(orderKey);
+
+        labels.add(label);
+
+        return label;
     }
 }

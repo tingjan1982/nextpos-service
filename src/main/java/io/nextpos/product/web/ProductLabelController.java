@@ -127,12 +127,12 @@ public class ProductLabelController {
 
     @PostMapping("/{id}/order")
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
-    public void updateProductLabel(@PathVariable final String id,
-                                   @Valid @RequestBody OrderProductLabelRequest request) {
+    public void updateProductLabelOrder(@PathVariable final String id,
+                                        @Valid @RequestBody OrderProductLabelRequest request) {
 
         final String previousProductLabelId = StringUtils.defaultIfBlank(request.getPreviousProductLabelId(), "");
         final String nextProductLabelId = StringUtils.defaultIfBlank(request.getNextProductLabelId(), "");
-        
+
         productLabelService.updateProductLabelOrder(id, request.getIndex(), previousProductLabelId, nextProductLabelId);
     }
 

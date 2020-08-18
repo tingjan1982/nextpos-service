@@ -17,4 +17,4 @@ ENV GOOGLE_APPLICATION_CREDENTIALS /service_account.json
 #     wget -qO- https://storage.googleapis.com/cloud-debugger/compute-java/debian-wheezy/cdbg_java_agent_gce.tar.gz | \
 #     tar xvz -C /opt/cdbg
 
-ENTRYPOINT ["sh", "-c", "java -Djava.security.egd=file:/dev/./urandom -Dspring.profiles.active=$PROFILE -jar /app.jar"]
+ENTRYPOINT ["sh", "-c", "java -Djava.security.egd=file:/dev/./urandom -Djdk.tls.client.protocols='TLSv1,TLSv1.1,TLSv1.2' -Dspring.profiles.active=$PROFILE -jar /app.jar"]

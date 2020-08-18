@@ -65,6 +65,7 @@ public class ProductLabel extends BaseObject implements ClientObject {
     public ProductLabel(final String name, final Client client) {
         this.name = name;
         this.client = client;
+        this.orderKey = name;
     }
 
     public static ProductLabel dynamicLabel(Client client, String name) {
@@ -103,9 +104,7 @@ public class ProductLabel extends BaseObject implements ClientObject {
         @Override
         public int compare(final ProductLabel o1, final ProductLabel o2) {
 
-            final Comparator<ProductLabel> chainedComparator = Comparator.comparing(ProductLabel::getId)
-                    .thenComparing(ProductLabel::getName)
-                    .thenComparing(l -> l.getOrderKey() != null ? l.getOrderKey() : "");
+            final Comparator<ProductLabel> chainedComparator = Comparator.comparing(ProductLabel::getOrderKey);
 
             return chainedComparator.compare(o1, o2);
         }

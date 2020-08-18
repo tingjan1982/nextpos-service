@@ -4,7 +4,6 @@ import io.nextpos.client.data.Client;
 import io.nextpos.product.data.*;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.JpaTransaction;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,40 +90,42 @@ public class ProductLabelServiceImpl implements ProductLabelService {
         return productsToUpdate.stream().map(productRepository::save).collect(Collectors.toList());
     }
 
+    /**
+     * The logic of implementing product label ordering is as follow.
+     * <p>
+     * if label (e) is moved to the first position then:
+     * orderKey = 0 + (e + 1).orderKey
+     * <p>
+     * The leading 0 is to ensure it will be the first and
+     * the subsequent append is to ensure that subsequent element moving into the first position will surely be the first.
+     * <p>
+     * if (label (e) is moved to the last position then:
+     * e.orderKey = (e - 1).orderKey + last position index
+     * <p>
+     * The trailing position is to ensure it will be the last element and
+     * the prepending of previous element's order key is to ensure it will surely be the last.
+     * <p>
+     * if (label (e) is moved in between two element (e - 1) and (e + 1) then:
+     * e.orderKey = (e - 1).orderKey + (e + 1).orderKey
+     *
+     * This will ensure that the label will be positioned in between the two elements.
+     */
     @Override
-    public ProductLabel updateProductLabelOrder(String productLabelId, final int index, String previousProductLabelId, String nextProductLabelId) {
+    public ProductLabel updateProductLabelOrder(String productLabelId, int index, String previousProductLabelId, String nextProductLabelId) {
 
         final ProductLabel productLabel = productLabelRepository.findById(productLabelId).orElseThrow();
         final Optional<ProductLabel> previousLabelOptional = productLabelRepository.findById(previousProductLabelId);
         final Optional<ProductLabel> nextLabelOptional = productLabelRepository.findById(nextProductLabelId);
 
         if (previousLabelOptional.isEmpty()) {
-            productLabel.setOrderKey("0");
-
-            nextLabelOptional.ifPresent(l -> {
-                l.setOrderKey("01");
-                productLabelRepository.save(l);
-            });
+            nextLabelOptional.ifPresent(l -> productLabel.setOrderKey("" + index + l.getOrderKey()));
 
         } else if (nextLabelOptional.isEmpty()) {
-            productLabel.setOrderKey(String.valueOf(index));
-
-            previousLabelOptional.ifPresent(l -> l.setOrderKey(String.valueOf(index) + 0));
+            previousLabelOptional.ifPresent(l -> productLabel.setOrderKey(l.getOrderKey() + index));
 
         } else {
             final ProductLabel previousLabel = previousLabelOptional.get();
-
-            if (StringUtils.isBlank(previousLabel.getOrderKey())) {
-                previousLabel.setOrderKey(String.valueOf(index - 1));
-                productLabelRepository.save(previousLabel);
-            }
-
             final ProductLabel nextLabel = nextLabelOptional.get();
-
-            if (StringUtils.isBlank(nextLabel.getOrderKey())) {
-                nextLabel.setOrderKey(String.valueOf(index + 1));
-                productLabelRepository.save(nextLabel);
-            }
 
             productLabel.setOrderKey(previousLabel.getOrderKey() + nextLabel.getOrderKey());
         }
