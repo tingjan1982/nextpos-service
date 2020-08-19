@@ -166,7 +166,7 @@ public class ProductController {
         final ProductVersion designVersion = product.getDesignVersion();
 
         if (designVersion.getProductImage() != null) {
-            FileCopyUtils.copy(designVersion.getProductImage().getBinary(), response.getOutputStream());
+            FileCopyUtils.copy(designVersion.getProductImage().getBinaryData(), response.getOutputStream());
         } else {
             response.setStatus(HttpStatus.NO_CONTENT.value());
         }

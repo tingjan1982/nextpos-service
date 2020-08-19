@@ -92,6 +92,6 @@ public class ProductVersion extends BaseObject implements ObjectVersioning<Produ
         @Lob
         @Column(length = 5 * 1024 * 1000)
         @Basic(fetch = FetchType.LAZY)
-        private byte[] binary;
+        private byte[] binaryData;
     }
 }
