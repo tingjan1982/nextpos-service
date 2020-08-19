@@ -13,9 +13,13 @@ import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,6 +64,9 @@ public class ProductController {
                 productRequest.getSku(),
                 productRequest.getDescription(),
                 productRequest.getPrice());
+        productVersion.setInternalProductName(productRequest.getInternalName());
+        productVersion.setCostPrice(productRequest.getCostPrice());
+
         final Product product = new Product(client, productVersion);
 
         final ProductLabel resolvedLabel = resolveProductLabel(client, productRequest.getProductLabelId());
@@ -85,7 +92,7 @@ public class ProductController {
 
     @GetMapping
     public ProductsResponse searchProducts(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                @RequestParam("keyword") String keyword) {
+                                           @RequestParam("keyword") String keyword) {
 
         final List<LightProductResponse> results = productSearchService.getProductsByKeyword(client, Version.DESIGN, keyword).stream()
                 .map(p -> {
@@ -119,9 +126,11 @@ public class ProductController {
 
         final ProductVersion designVersion = product.getDesignVersion();
         designVersion.setProductName(productRequest.getName());
+        designVersion.setInternalProductName(productRequest.getInternalName());
         designVersion.setSku(productRequest.getSku());
         designVersion.setDescription(productRequest.getDescription());
         designVersion.setPrice(productRequest.getPrice());
+        designVersion.setCostPrice(productRequest.getCostPrice());
 
         final ProductLabel resolvedLabel = resolveProductLabel(client, productRequest.getProductLabelId());
         product.setProductLabel(resolvedLabel);
@@ -146,6 +155,47 @@ public class ProductController {
         }
 
         return null;
+    }
+
+    @GetMapping("/{id}/image")
+    public void getProductImage(@PathVariable final String id,
+                                @RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                HttpServletResponse response) throws IOException {
+
+        final Product product = clientObjectOwnershipService.checkOwnership(client, () -> productService.getProduct(id));
+        final ProductVersion designVersion = product.getDesignVersion();
+
+        if (designVersion.getProductImage() != null) {
+            FileCopyUtils.copy(designVersion.getProductImage().getBinary(), response.getOutputStream());
+        } else {
+            response.setStatus(HttpStatus.NO_CONTENT.value());
+        }
+    }
+
+    @PostMapping("/{id}/image")
+    public ProductResponse uploadProductImage(@PathVariable final String id,
+                                              @RequestParam("image") MultipartFile imageFile,
+                                              @RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) throws Exception {
+
+        final Product product = clientObjectOwnershipService.checkOwnership(client, () -> productService.getProduct(id));
+        final ProductVersion designVersion = product.getDesignVersion();
+        designVersion.updateProductImage(imageFile.getBytes());
+
+        final Product updatedProduct = productService.saveProduct(product);
+
+        return toResponse(updatedProduct, Version.DESIGN);
+    }
+
+    @DeleteMapping("/{id}/image")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProductImage(@PathVariable final String id,
+                                   @RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        final Product product = clientObjectOwnershipService.checkOwnership(client, () -> productService.getProduct(id));
+        final ProductVersion designVersion = product.getDesignVersion();
+        designVersion.deleteProductImage();
+
+        productService.saveProduct(product);
     }
 
     @DeleteMapping("/{id}")
@@ -193,11 +243,13 @@ public class ProductController {
         return new ProductResponse(product.getId(),
                 productVersion.getId(),
                 productVersion.getProductName(),
+                productVersion.getInternalProductName(),
                 version,
                 productVersion.getSku(),
                 productVersion.getDescription(),
                 productVersion.getPrice(),
-                productLabel != null? productLabel.getId() : null,
+                productVersion.getCostPrice(),
+                productLabel != null ? productLabel.getId() : null,
                 productLabel != null ? productLabel.getName() : null,
                 workingArea != null ? workingArea.getId() : null,
                 productOptionIds,

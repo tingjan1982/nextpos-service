@@ -15,7 +15,6 @@ import java.util.*;
 /**
  * Information on mapping a a one-to-many relationship with a Map.
  * https://stackoverflow.com/questions/25439813/difference-between-mapkey-mapkeycolumn-and-mapkeyjoincolumn-in-jpa-and-hiber
- *
  */
 @Entity(name = "client_product")
 @Data
@@ -79,7 +78,7 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
 
     /**
      * Clears all existing product option relation and re-add those passed through as parameter.
-     *
+     * <p>
      * Remove existing product options by setting parent to null in ProductOptionOfProduct.
      */
     public void replaceProductOptions(ProductOption... productOptions) {

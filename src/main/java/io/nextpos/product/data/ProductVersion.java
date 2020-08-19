@@ -31,11 +31,22 @@ public class ProductVersion extends BaseObject implements ObjectVersioning<Produ
 
     private String productName;
 
+    /**
+     * Used in order display and working area output for easy recognition.
+     */
+    private String internalProductName;
+
     private String sku;
 
     private String description;
 
     private BigDecimal price;
+
+    private BigDecimal costPrice;
+
+    @Embedded
+    private ProductImage productImage;
+    
 
     public ProductVersion(final String productName, final String sku, final String description, final BigDecimal price) {
         this.productName = productName;
@@ -49,12 +60,38 @@ public class ProductVersion extends BaseObject implements ObjectVersioning<Produ
         return product;
     }
 
+    public void updateProductImage(byte[] imageBinary) {
+        this.productImage = new ProductImage(imageBinary);
+    }
+
+    public void deleteProductImage() {
+        this.productImage = null;
+    }
+
     public ProductVersion copy() {
 
         final ProductVersion copy = new ProductVersion(productName, sku, description, price);
         copy.setVersionNumber(versionNumber + 1);
         copy.setVersion(Version.DESIGN);
+        copy.setInternalProductName(internalProductName);
+        copy.setCostPrice(costPrice);
 
         return copy;
+    }
+
+    @Embeddable
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ProductImage {
+
+        /**
+         * Handles this: org.hsqldb.HsqlException: data exception: string data, right truncation
+         * https://stackoverflow.com/questions/7565280/hsqlexception-data-exception
+         */
+        @Lob
+        @Column(length = 5 * 1024 * 1000)
+        @Basic(fetch = FetchType.LAZY)
+        private byte[] binary;
     }
 }

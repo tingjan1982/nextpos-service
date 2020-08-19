@@ -19,6 +19,8 @@ public class ProductResponse {
 
     private String name;
 
+    private String internalName;
+
     private Version version;
 
     private String sku;
@@ -26,6 +28,8 @@ public class ProductResponse {
     private String description;
 
     private BigDecimal price;
+
+    private BigDecimal costPrice;
 
     private String productLabelId;
 

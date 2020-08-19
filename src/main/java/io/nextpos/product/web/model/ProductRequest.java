@@ -17,12 +17,16 @@ public class ProductRequest {
     @NotBlank
     private String name;
 
+    private String internalName;
+
     private String sku;
 
     private String description;
 
     @PositiveOrZero
     private BigDecimal price;
+
+    private BigDecimal costPrice;
 
     private String productLabelId;
 

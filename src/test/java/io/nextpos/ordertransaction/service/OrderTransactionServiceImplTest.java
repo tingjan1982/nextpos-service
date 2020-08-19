@@ -63,8 +63,11 @@ class OrderTransactionServiceImplTest {
         assertThatThrownBy(() -> orderTransactionService.createOrderTransaction(client, orderTransaction)).isInstanceOf(BusinessLogicException.class);
     }
 
+    /**
+     * https://www.baeldung.com/java-start-thread
+     */
     @Test
-    void test() throws Exception {
+    void ensureOneTransactionIsCreated() throws Exception {
 
         final String clientId = client.getId();
         final Order order = new Order(clientId, orderSettings);
