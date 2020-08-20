@@ -3,10 +3,8 @@ package io.nextpos.tablelayout.web.model;
 import io.nextpos.tablelayout.data.TableLayout;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class TableDetailsResponse {
 

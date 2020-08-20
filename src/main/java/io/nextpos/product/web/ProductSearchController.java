@@ -2,6 +2,7 @@ package io.nextpos.product.web;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.product.data.ProductLabel;
+import io.nextpos.product.data.ProductType;
 import io.nextpos.product.data.ProductVersion;
 import io.nextpos.product.data.Version;
 import io.nextpos.product.service.ProductSearchService;
@@ -47,6 +48,7 @@ public class ProductSearchController {
                         String productLabelId = productLabel != null ? productLabel.getId() : null;
 
                         return new LightProductResponse(product.getProduct().getId(),
+                                ProductType.resolveProductType(product.getProduct()),
                                 product.getProductName(),
                                 product.getPrice(),
                                 productLabelId,

@@ -33,4 +33,6 @@ public class ProductRequest {
     private String workingAreaId;
 
     private List<String> productOptionIds;
+
+    private List<String> childProducts;
 }

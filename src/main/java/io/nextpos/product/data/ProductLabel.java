@@ -50,6 +50,8 @@ public class ProductLabel extends BaseObject implements ClientObject {
     @EqualsAndHashCode.Include
     private String orderKey;
 
+    private String color;
+
     /**
      * https://stackoverflow.com/questions/4334970/hibernate-cannot-simultaneously-fetch-multiple-bags
      */

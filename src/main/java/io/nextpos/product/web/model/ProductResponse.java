@@ -1,46 +1,62 @@
 package io.nextpos.product.web.model;
 
+import io.nextpos.product.data.ProductType;
 import io.nextpos.product.data.Version;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ProductResponse {
 
-    private String id;
+    private final String id;
 
-    private String versionId;
+    private final ProductType productType;
 
-    private String name;
+    private final String versionId;
 
-    private String internalName;
+    private final String name;
 
-    private Version version;
+    private final String internalName;
 
-    private String sku;
+    private final Version version;
 
-    private String description;
+    private final String sku;
 
-    private BigDecimal price;
+    private final String description;
 
-    private BigDecimal costPrice;
+    private final BigDecimal price;
 
-    private String productLabelId;
+    private final BigDecimal costPrice;
 
-    private String productLabel;
+    private final String productLabelId;
+
+    private final String productLabel;
 
     // todo: consolidate working area id and product option ids in product and product label.
-    private String workingAreaId;
+    private final String workingAreaId;
 
-    private List<String> productOptionIds;
+    private final List<String> productOptionIds;
 
-    private List<ProductOptionResponse> productOptions;
+    private final List<ProductOptionResponse> productOptions;
 
-    private boolean pinned;
+    private final boolean pinned;
+
+    private List<ChildProduct> childProducts;
+
+    @Data
+    @AllArgsConstructor
+    public static class ChildProduct {
+
+        private String id;
+
+        private String name;
+
+        private String internalName;
+    }
+
 }

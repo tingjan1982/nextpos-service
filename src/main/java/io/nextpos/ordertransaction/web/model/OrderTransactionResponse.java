@@ -3,7 +3,6 @@ package io.nextpos.ordertransaction.web.model;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
@@ -51,7 +50,6 @@ public class OrderTransactionResponse {
     }
 
     @Data
-    @NoArgsConstructor
     @AllArgsConstructor
     public static class BillLineItemResponse {
 

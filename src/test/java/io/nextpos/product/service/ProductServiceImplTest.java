@@ -101,6 +101,35 @@ class ProductServiceImplTest {
     }
 
     @Test
+    void createProductSet() {
+
+        final Product coffee = Product.builder(createdClient).productNameAndPrice("Coffee", BigDecimal.valueOf(50)).build();
+        productService.saveProduct(coffee);
+
+        final Product bagel = Product.builder(createdClient).productNameAndPrice("Bagel", BigDecimal.valueOf(70)).build();
+        productService.saveProduct(bagel);
+
+        final ProductSet cmb = ProductSet.builder(createdClient).productNameAndPrice("Coffee meets Bagel", BigDecimal.valueOf(100)).build();
+        cmb.addChildProduct(coffee);
+        cmb.addChildProduct(bagel);
+        productService.saveProductSet(cmb);
+
+        assertThat(productService.getProduct(cmb.getId())).satisfies(p -> {
+            assertThat(p).isNotNull();
+            assertThat(p).isInstanceOf(ProductSet.class);
+        });
+
+        assertThat(productService.getProductSet(cmb.getId())).satisfies(p -> {
+            assertThat(p.getChildProducts()).hasSize(2);
+        });
+
+        cmb.removeChildProduct(bagel);
+        productService.saveProductSet(cmb);
+
+        assertThat(productService.getProductSet(cmb.getId())).satisfies(p -> assertThat(p.getChildProducts()).hasSize(1));
+    }
+
+    @Test
     void deployProduct() {
 
         final ProductVersion productVersion = new ProductVersion("Gin Topic", "sku-001", "signature drink", BigDecimal.valueOf(350));

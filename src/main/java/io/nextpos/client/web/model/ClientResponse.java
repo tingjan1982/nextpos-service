@@ -4,12 +4,10 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientSetting;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.Map;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class ClientResponse {
 

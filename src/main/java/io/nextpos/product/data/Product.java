@@ -4,12 +4,16 @@ import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.ParentObject;
 import io.nextpos.workingarea.data.WorkingArea;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -17,9 +21,10 @@ import java.util.*;
  * https://stackoverflow.com/questions/25439813/difference-between-mapkey-mapkeycolumn-and-mapkeyjoincolumn-in-jpa-and-hiber
  */
 @Entity(name = "client_product")
+@Inheritance(strategy = InheritanceType.JOINED)
 @Data
 @EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor
 public class Product extends BaseObject implements ParentObject<String, ProductVersion> {
 
     @Id
@@ -52,6 +57,9 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
     @Fetch(value = FetchMode.SUBSELECT)
     private List<ProductOptionRelation.ProductOptionOfProduct> productOptionOfProducts = new ArrayList<>();
 
+    protected Product(ProductBuilder<?> builder) {
+        this(builder.client, builder.productVersion());
+    }
 
     public Product(final Client client, final ProductVersion latestVersion) {
         this.client = client;
@@ -61,6 +69,10 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
         latestVersion.setProduct(this);
 
         versions.put(Version.DESIGN, latestVersion);
+    }
+
+    public static ProductBuilder<?> builder(Client client) {
+        return new ProductBuilder<>(client);
     }
 
     public ProductVersion getDesignVersion() {
@@ -104,5 +116,61 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
 
         versions.put(Version.LIVE, latestVersion);
         versions.put(Version.DESIGN, newLatest);
+    }
+
+    public static class ProductBuilder<T extends ProductBuilder<T>> {
+
+        private final Client client;
+
+        private String productName;
+
+        private String internalProductName;
+
+        private String sku;
+
+        private String description;
+
+        private BigDecimal price;
+
+        private BigDecimal costPrice;
+
+        protected ProductBuilder(Client client) {
+            this.client = client;
+        }
+
+        public T productNameAndPrice(String productName, BigDecimal price) {
+            this.productName = productName;
+            this.price = price;
+
+            return (T) this;
+        }
+
+        public T internalProductName(String internalProductName) {
+            this.internalProductName = internalProductName;
+            return (T) this;
+        }
+        
+        public T sku(String sku) {
+            this.sku = sku;
+            return (T) this;
+        }
+
+        public T description(String description) {
+            this.description = description;
+            return (T) this;
+        }
+
+        public T costPrice(BigDecimal costPrice) {
+            this.costPrice = costPrice;
+            return (T) this;
+        }
+
+        public ProductVersion productVersion() {
+            return new ProductVersion(productName, sku, description, price);
+        }
+
+        public Product build() {
+            return new Product(this);
+        }
     }
 }

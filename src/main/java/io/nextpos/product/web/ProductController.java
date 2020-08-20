@@ -50,7 +50,8 @@ public class ProductController {
     }
 
     @PostMapping
-    public ProductResponse createProduct(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @Valid @RequestBody ProductRequest productRequest) {
+    public ProductResponse createProduct(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                         @Valid @RequestBody ProductRequest productRequest) {
 
         final Product product = fromRequest(productRequest, client);
         final Product createdProduct = productService.saveProduct(product);
@@ -60,14 +61,22 @@ public class ProductController {
 
     private Product fromRequest(ProductRequest productRequest, Client client) {
 
-        final ProductVersion productVersion = new ProductVersion(productRequest.getName(),
-                productRequest.getSku(),
-                productRequest.getDescription(),
-                productRequest.getPrice());
-        productVersion.setInternalProductName(productRequest.getInternalName());
-        productVersion.setCostPrice(productRequest.getCostPrice());
+        Product.ProductBuilder<?> builder;
 
-        final Product product = new Product(client, productVersion);
+        if (productRequest.getChildProducts() != null) {
+            final ProductSet.ProductSetBuilder productSetBuilder = ProductSet.builder(client);
+            productRequest.getChildProducts().forEach(pid -> productSetBuilder.addChildProduct(productService.getProduct(pid)));
+            builder = productSetBuilder;
+
+        } else {
+            builder = Product.builder(client);
+        }
+
+        final Product product = builder.productNameAndPrice(productRequest.getName(), productRequest.getPrice())
+                .internalProductName(productRequest.getInternalName())
+                .sku(productRequest.getSku())
+                .description(productRequest.getDescription())
+                .costPrice(productRequest.getCostPrice()).build();
 
         final ProductLabel resolvedLabel = resolveProductLabel(client, productRequest.getProductLabelId());
         product.setProductLabel(resolvedLabel);
@@ -100,6 +109,7 @@ public class ProductController {
                     String productLabelId = productLabel != null ? productLabel.getId() : null;
 
                     return new LightProductResponse(p.getProduct().getId(),
+                            ProductType.resolveProductType(p.getProduct()),
                             p.getProductName(),
                             p.getPrice(),
                             productLabelId,
@@ -139,6 +149,15 @@ public class ProductController {
         product.setWorkingArea(resolvedWorkingArea);
 
         productOptionVisitorWrapper.accept(product, productRequest.getProductOptionIds());
+
+        if (product instanceof ProductSet) {
+            final ProductSet productSet = (ProductSet) product;
+            productSet.clearChildProducts();
+
+            if (productRequest.getChildProducts() != null) {
+                productRequest.getChildProducts().forEach(pid -> productSet.addChildProduct(productService.getProduct(pid)));
+            }
+        }
     }
 
     private ProductLabel resolveProductLabel(final Client client, String labelId) {
@@ -240,7 +259,8 @@ public class ProductController {
                 .map(po -> toProductOptionResponse(version, po))
                 .collect(Collectors.toList());
 
-        return new ProductResponse(product.getId(),
+        final ProductResponse productResponse = new ProductResponse(product.getId(),
+                ProductType.resolveProductType(product),
                 productVersion.getId(),
                 productVersion.getProductName(),
                 productVersion.getInternalProductName(),
@@ -255,6 +275,17 @@ public class ProductController {
                 productOptionIds,
                 productOptions,
                 product.isPinned());
+
+        if (product instanceof ProductSet) {
+            final List<ProductResponse.ChildProduct> childProducts = ((ProductSet) product).getChildProducts().stream()
+                    .map(cp -> new ProductResponse.ChildProduct(cp.getId(),
+                            cp.getDesignVersion().getProductName(),
+                            cp.getDesignVersion().getInternalProductName())).collect(Collectors.toList());
+
+            productResponse.setChildProducts(childProducts);
+        }
+
+        return productResponse;
     }
 
     private ProductOptionResponse toProductOptionResponse(final Version version, final ProductOptionRelation.ProductOptionOfProduct po) {
