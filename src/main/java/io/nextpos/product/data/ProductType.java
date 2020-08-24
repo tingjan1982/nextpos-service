@@ -4,7 +4,7 @@ public enum ProductType {
 
     PRODUCT,
     PRODUCT_SET,
-    PRODUCT_WITH_VARIATIONS;
+    PARENT_PRODUCT;
 
     public static ProductType resolveProductType(Product product) {
 

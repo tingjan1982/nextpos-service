@@ -61,7 +61,7 @@ public class ProductController {
 
     private Product fromRequest(ProductRequest productRequest, Client client) {
 
-        Product.ProductBuilder<?> builder;
+        Product.ProductBuilder<?, ?> builder;
 
         if (productRequest.getChildProducts() != null) {
             final ProductSet.ProductSetBuilder productSetBuilder = ProductSet.builder(client);

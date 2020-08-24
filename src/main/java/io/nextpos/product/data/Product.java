@@ -57,7 +57,7 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
     @Fetch(value = FetchMode.SUBSELECT)
     private List<ProductOptionRelation.ProductOptionOfProduct> productOptionOfProducts = new ArrayList<>();
 
-    protected Product(ProductBuilder<?> builder) {
+    protected Product(ProductBuilder<?, ?> builder) {
         this(builder.client, builder.productVersion());
     }
 
@@ -71,7 +71,7 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
         versions.put(Version.DESIGN, latestVersion);
     }
 
-    public static ProductBuilder<?> builder(Client client) {
+    public static ProductBuilder<?, ?> builder(Client client) {
         return new ProductBuilder<>(client);
     }
 
@@ -118,21 +118,21 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
         versions.put(Version.DESIGN, newLatest);
     }
 
-    public static class ProductBuilder<T extends ProductBuilder<T>> {
+    public static class ProductBuilder<T extends ProductBuilder<T, P>, P extends Product> {
 
-        private final Client client;
+        protected final Client client;
 
-        private String productName;
+        protected String productName;
 
-        private String internalProductName;
+        protected String internalProductName;
 
-        private String sku;
+        protected String sku;
 
-        private String description;
+        protected String description;
 
-        private BigDecimal price;
+        protected BigDecimal price;
 
-        private BigDecimal costPrice;
+        protected BigDecimal costPrice;
 
         protected ProductBuilder(Client client) {
             this.client = client;
@@ -160,17 +160,38 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
             return (T) this;
         }
 
+        public T price(BigDecimal price) {
+            this.price = price;
+            return (T) this;
+        }
+
         public T costPrice(BigDecimal costPrice) {
             this.costPrice = costPrice;
             return (T) this;
         }
 
         public ProductVersion productVersion() {
-            return new ProductVersion(productName, sku, description, price);
+            final ProductVersion productVersion = new ProductVersion(productName, sku, description, price);
+            productVersion.setInternalProductName(internalProductName);
+            productVersion.setCostPrice(costPrice);
+
+            return productVersion;
         }
 
-        public Product build() {
-            return new Product(this);
+        public T copyFromProduct(Product product) {
+            final ProductVersion productVersion = product.getDesignVersion();
+            this.productName = productVersion.getProductName();
+            this.internalProductName = productVersion.getInternalProductName();
+            this.sku = productVersion.getSku();
+            this.description = productVersion.getDescription();
+            this.price = productVersion.getPrice();
+            this.costPrice = productVersion.getCostPrice();
+
+            return (T) this;
+        }
+
+        public P build() {
+            return (P) new Product(this);
         }
     }
 }

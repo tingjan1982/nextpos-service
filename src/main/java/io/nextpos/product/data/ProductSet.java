@@ -46,7 +46,7 @@ public class ProductSet extends Product {
     }
 
 
-    public static class ProductSetBuilder extends ProductBuilder<ProductSetBuilder> {
+    public static class ProductSetBuilder extends ProductBuilder<ProductSetBuilder, ProductSet> {
 
         private final Set<Product> childProducts;
 
@@ -60,14 +60,8 @@ public class ProductSet extends Product {
             return this;
         }
 
-        public ProductSetBuilder removeChildProduct(Product childProduct) {
-            childProducts.remove(childProduct);
-            return this;
-        }
-
         public ProductSet build() {
             return new ProductSet(this);
         }
     }
-
 }

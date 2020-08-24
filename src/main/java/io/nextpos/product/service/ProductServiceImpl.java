@@ -16,11 +16,17 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductSetRepository productSetRepository;
 
+    private final ParentProductRepository parentProductRepository;
+
+    private final VariationDefinitionRepository variationDefinitionRepository;
+
     @Autowired
-    public ProductServiceImpl(final ProductRepository productRepository, final ProductVersionRepository productVersionRepository, final ProductSetRepository productSetRepository) {
+    public ProductServiceImpl(final ProductRepository productRepository, final ProductVersionRepository productVersionRepository, final ProductSetRepository productSetRepository, ParentProductRepository parentProductRepository, VariationDefinitionRepository variationDefinitionRepository) {
         this.productRepository = productRepository;
         this.productVersionRepository = productVersionRepository;
         this.productSetRepository = productSetRepository;
+        this.parentProductRepository = parentProductRepository;
+        this.variationDefinitionRepository = variationDefinitionRepository;
     }
 
     @Override
@@ -31,6 +37,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductSet saveProductSet(ProductSet productSet) {
         return productSetRepository.save(productSet);
+    }
+
+    @Override
+    public ParentProduct saveParentProduct(ParentProduct parentProduct) {
+        return parentProductRepository.save(parentProduct);
     }
 
     @Override
@@ -48,6 +59,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public ParentProduct getParentProduct(String id) {
+        return parentProductRepository.findById(id).orElseThrow(() -> {
+            throw new ObjectNotFoundException(id, ParentProduct.class);
+        });
+    }
+
+    @Override
     public void deployProduct(final String id) {
         final Product product = this.getProduct(id);
         product.deploy();
@@ -60,5 +78,17 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void deleteProduct(final Product product) {
         productRepository.delete(product);
+    }
+
+    @Override
+    public VariationDefinition saveVariationDefinition(VariationDefinition variationDefinition) {
+        return variationDefinitionRepository.save(variationDefinition);
+    }
+
+    @Override
+    public VariationDefinition getVariationDefinition(String id) {
+        return variationDefinitionRepository.findById(id).orElseThrow(() -> {
+            throw new ObjectNotFoundException(id, VariationDefinition.class);
+        });
     }
 }

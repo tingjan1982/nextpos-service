@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -127,6 +128,39 @@ class ProductServiceImplTest {
         productService.saveProductSet(cmb);
 
         assertThat(productService.getProductSet(cmb.getId())).satisfies(p -> assertThat(p.getChildProducts()).hasSize(1));
+    }
+
+    @Test
+    void saveProductVariations() {
+
+        final VariationDefinition size = new VariationDefinition(createdClient, "size");
+        size.addAttributes(Arrays.asList("small", "medium", "large"));
+        final VariationDefinition savedVariationDefinition = productService.saveVariationDefinition(size);
+
+        assertThat(savedVariationDefinition).satisfies(v -> {
+            assertThat(v.getId()).isNotNull();
+            assertThat(v.getAttributes()).hasSize(3);
+        });
+
+        final ParentProduct parentProduct = ParentProduct.builder(createdClient, size)
+                .productNameAndPrice("fried noodle", new BigDecimal(100))
+                .addVariation("small", new BigDecimal(80))
+                .addVariation("large", new BigDecimal(120))
+                .build();
+
+        productService.saveParentProduct(parentProduct);
+
+        assertThat(parentProduct).satisfies(p -> {
+            assertThat(p.getId()).isNotNull();
+            assertThat(p.getProductVariations()).hasSize(3);
+            assertThat(p.getProductVariation("small")).isNotEmpty();
+            assertThat(p.getProductVariation("medium")).isNotEmpty();
+            assertThat(p.getProductVariation("large")).isNotEmpty();
+        });
+
+        assertThat(parentProduct.getProductVariation("small").orElseThrow().getDesignVersion().getPrice()).isEqualByComparingTo("80");
+        assertThat(parentProduct.getProductVariation("medium").orElseThrow().getDesignVersion().getPrice()).isEqualByComparingTo("100");
+        assertThat(parentProduct.getProductVariation("large").orElseThrow().getDesignVersion().getPrice()).isEqualByComparingTo("120");
     }
 
     @Test
