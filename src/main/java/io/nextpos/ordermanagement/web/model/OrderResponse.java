@@ -76,6 +76,8 @@ public class OrderResponse {
 
         private String productName;
 
+        private String internalProductName;
+
         private String options;
 
         private BigDecimal price;
@@ -97,5 +99,7 @@ public class OrderResponse {
         private OfferApplicableObject.AppliedOfferInfo appliedOfferInfo;
 
         private Date modifiedDate;
+
+        private List<ProductSnapshot.ChildProductSnapshot> childProducts;
     }
 }

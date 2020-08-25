@@ -12,7 +12,7 @@ import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordermanagement.web.model.OrderLineItemRequest;
 import io.nextpos.ordermanagement.web.model.OrderRequest;
 import io.nextpos.product.data.Product;
-import io.nextpos.product.data.ProductVersion;
+import io.nextpos.product.data.ProductSet;
 import io.nextpos.product.service.ProductService;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.settings.service.SettingsService;
@@ -112,7 +112,6 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
     public OrderLineItem newOrderLineItem(final Client client, final OrderLineItemRequest li) {
 
         final Product product = productService.getProduct(li.getProductId());
-        final ProductVersion productVersion = product.getDesignVersion();
         List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots = Collections.emptyList();
 
         if (!CollectionUtils.isEmpty(li.getProductOptions())) {
@@ -121,11 +120,18 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
                     .collect(Collectors.toList());
         }
 
-        final ProductSnapshot productSnapshot = new ProductSnapshot(product.getId(),
-                productVersion.getProductName(),
-                productVersion.getSku(),
-                productVersion.getPrice(),
-                productOptionSnapshots);
+        final ProductSnapshot productSnapshot = new ProductSnapshot(product);
+        productSnapshot.setProductOptions(productOptionSnapshots);
+
+        if (product instanceof ProductSet) {
+            final List<ProductSnapshot.ChildProductSnapshot> childProducts = ((ProductSet) product).getChildProducts().stream()
+                    .map(p -> new ProductSnapshot.ChildProductSnapshot(p.getId(),
+                            p.getDesignVersion().getProductName(),
+                            p.getDesignVersion().getInternalProductName()))
+                    .collect(Collectors.toList());
+
+            productSnapshot.setChildProducts(childProducts);
+        }
 
         if (li.getOverridePrice().compareTo(BigDecimal.ZERO) > 0) {
             productSnapshot.setOverridePrice(li.getOverridePrice());

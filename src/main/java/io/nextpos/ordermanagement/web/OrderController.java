@@ -406,10 +406,13 @@ public class OrderController {
 
         final List<OrderResponse.OrderLineItemResponse> orderLineItems = order.getOrderLineItems().stream()
                 .map(li -> {
+                    final ProductSnapshot productSnapshot = li.getProductSnapshot();
+
                     return new OrderResponse.OrderLineItemResponse(li.getId(),
-                            li.getProductSnapshot().getId(),
+                            productSnapshot.getId(),
                             li.getState(),
-                            li.getProductSnapshot().getName(),
+                            productSnapshot.getName(),
+                            productSnapshot.getInternalName(),
                             li.getProductOptions(),
                             li.getProductPriceWithOptions().getAmount(),
                             li.getQuantity(),
@@ -417,7 +420,8 @@ public class OrderController {
                             li.getSubTotal(),
                             li.getDiscountedSubTotal(),
                             li.getAppliedOfferInfo(),
-                            li.getModifiedDate());
+                            li.getModifiedDate(),
+                            productSnapshot.getChildProducts());
 
                 }).collect(Collectors.toList());
 

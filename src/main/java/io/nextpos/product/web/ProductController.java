@@ -13,6 +13,7 @@ import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -63,7 +64,7 @@ public class ProductController {
 
         Product.ProductBuilder<?, ?> builder;
 
-        if (productRequest.getChildProducts() != null) {
+        if (!CollectionUtils.isEmpty(productRequest.getChildProducts())) {
             final ProductSet.ProductSetBuilder productSetBuilder = ProductSet.builder(client);
             productRequest.getChildProducts().forEach(pid -> productSetBuilder.addChildProduct(productService.getProduct(pid)));
             builder = productSetBuilder;

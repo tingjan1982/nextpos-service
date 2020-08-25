@@ -1,5 +1,8 @@
 package io.nextpos.ordermanagement.data;
 
+import io.nextpos.product.data.Product;
+import io.nextpos.product.data.ProductVersion;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.util.CollectionUtils;
@@ -16,6 +19,8 @@ public class ProductSnapshot {
     private String id;
 
     private String name;
+
+    private String internalName;
 
     private String sku;
 
@@ -35,7 +40,19 @@ public class ProductSnapshot {
 
     private String label;
 
+    private List<ChildProductSnapshot> childProducts = new ArrayList<>();
+
     private List<ProductOptionSnapshot> productOptions = new ArrayList<>();
+
+    public ProductSnapshot(Product product) {
+        final ProductVersion productVersion = product.getDesignVersion();
+
+        this.id = product.getId();
+        this.name = productVersion.getProductName();
+        this.internalName = productVersion.getInternalProductName();
+        this.sku = productVersion.getSku();
+        this.price = productVersion.getPrice();
+    }
 
     public ProductSnapshot(final String id, final String name, final String sku, final BigDecimal price, final List<ProductOptionSnapshot> productOptions) {
         this.id = id;
@@ -87,6 +104,18 @@ public class ProductSnapshot {
         copy.productOptions = productOptions.stream().map(ProductOptionSnapshot::copy).collect(Collectors.toList());
 
         return copy;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ChildProductSnapshot {
+
+        private String id;
+
+        private String productName;
+
+        private String internalProductName;
     }
 
     @Data
