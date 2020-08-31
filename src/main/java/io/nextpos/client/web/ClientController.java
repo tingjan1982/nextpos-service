@@ -180,7 +180,10 @@ public class ClientController {
         final String roles = String.join(",", clientUserRequest.getRoles());
         final ClientUser.ClientUserId id = new ClientUser.ClientUserId(clientUserRequest.getUsername().trim(), client.getUsername());
         final ClientUser clientUser = new ClientUser(id, clientUserRequest.getPassword(), roles);
-        clientUser.setNickname(clientUserRequest.getNickname().trim());
+
+        if (StringUtils.isNotBlank(clientUserRequest.getNickname())) {
+            clientUser.setNickname(clientUserRequest.getNickname().trim());
+        }
 
         if (StringUtils.isNotBlank(clientUserRequest.getUserRoleId())) {
             final UserRole userRole = userRoleService.loadUserRole(clientUserRequest.getUserRoleId());
