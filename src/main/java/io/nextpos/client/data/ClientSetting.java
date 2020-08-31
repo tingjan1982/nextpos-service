@@ -71,6 +71,8 @@ public class ClientSetting extends BaseObject implements ClientObject {
 
         APPLY_CUSTOM_OFFER(ValueType.BOOLEAN),
 
+        LOCATION_BASED_SERVICE(ValueType.BOOLEAN),
+
         /**
          * This is a placeholder to customize offer application behavior, to determine whether offer discount can be stacked or is exclusive only.
          */
