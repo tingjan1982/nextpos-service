@@ -2,13 +2,15 @@ package io.nextpos.workingarea.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientRepository;
+import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRange;
+import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRangeService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordertransaction.data.ElectronicInvoice;
 import io.nextpos.ordertransaction.data.OrderTransaction;
-import io.nextpos.ordertransaction.util.InvoiceQRCodeEncryptor;
+import io.nextpos.ordertransaction.service.ElectronicInvoiceService;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.PrinterInstructions;
@@ -20,8 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.Base64;
@@ -41,6 +43,12 @@ class PrinterInstructionsServiceImplTest {
     private OrderService orderService;
 
     @Autowired
+    private ElectronicInvoiceService electronicInvoiceService;
+
+    @Autowired
+    private InvoiceNumberRangeService invoiceNumberRangeService;
+
+    @Autowired
     private WorkingAreaService workingAreaService;
 
     @Autowired
@@ -56,12 +64,20 @@ class PrinterInstructionsServiceImplTest {
     @BeforeEach
     void prepare() {
         client = DummyObjects.dummyClient();
+        final String ubn = "22640971";
+        client.addAttribute(Client.ClientAttributes.UBN.name(), ubn);
+        client.addAttribute(Client.ClientAttributes.ADDRESS.name(), "台北市大安區建國南路二段");
+        client.addAttribute(Client.ClientAttributes.AES_KEY.name(), "41BFE9D500D25491650E8B84C3EA3B3C");
+
         clientRepository.save(client);
 
         workingArea = new WorkingArea(client, "main");
         workingArea.setNoOfPrintCopies(1);
         workingArea.addPrinter(new Printer(client, "main printer", "192.168.1.100", Printer.ServiceType.WORKING_AREA));
         workingAreaService.saveWorkingArea(workingArea);
+
+        InvoiceNumberRange invoiceNumberRange = new InvoiceNumberRange(ubn, "1090910", "AG", "00000001", "10000001");
+        invoiceNumberRangeService.saveInvoiceNumberRange(invoiceNumberRange);
     }
 
     @Test
@@ -85,14 +101,11 @@ class PrinterInstructionsServiceImplTest {
     @Test
     void createOrderDetailsPrintInstruction() {
 
-        final Client client = DummyObjects.dummyClient();
-        client.addAttribute(Client.ClientAttributes.UBN.name(), "22640971");
-        client.addAttribute(Client.ClientAttributes.ADDRESS.name(), "台北市大安區建國南路二段");
-        final OrderTransaction orderTransaction = new OrderTransaction(new ObjectId().toString(), client.getId(), BigDecimal.valueOf(150), BigDecimal.valueOf(150),
+        final OrderTransaction orderTransaction = new OrderTransaction(new ObjectId().toString(), client.getId(), BigDecimal.valueOf(195), BigDecimal.valueOf(195),
                 OrderTransaction.PaymentMethod.CARD,
                 OrderTransaction.BillType.SINGLE,
-                List.of(new OrderTransaction.BillLineItem("coffee", 1, BigDecimal.valueOf(55)),
-                        new OrderTransaction.BillLineItem("bagel", 2, BigDecimal.valueOf(70))));
+                List.of(new OrderTransaction.BillLineItem("coffee", 1, BigDecimal.valueOf(55), BigDecimal.valueOf(55)),
+                        new OrderTransaction.BillLineItem("bagel", 2, BigDecimal.valueOf(70), BigDecimal.valueOf(140))));
 
         orderTransaction.setId("dummy-id");
         orderTransaction.setCreatedDate(new Date());
@@ -105,47 +118,28 @@ class PrinterInstructionsServiceImplTest {
     @Test
     void createElectronicInvoiceXML() throws Exception {
 
-        final Client client = DummyObjects.dummyClient();
-        client.addAttribute(Client.ClientAttributes.UBN.name(), "22640971");
-        client.addAttribute(Client.ClientAttributes.ADDRESS.name(), "台北市大安區建國南路二段");
-
         final Order order = new Order(client.getId(), orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot("coffee", BigDecimal.valueOf(55)), 1);
         order.addOrderLineItem(DummyObjects.productSnapshot("bagel", BigDecimal.valueOf(70)), 2);
 
-        ElectronicInvoice electronicInvoice = new ElectronicInvoice(
-                order.getId(),
-                "inv-1001",
-                "1",
-                "AA00000001",
-                new ElectronicInvoice.InvoicePeriod("2020", "3", "6"),
-                "4567",
-                "2020-03-06 00:00:00AM",
-                order.getTotal().getAmountWithoutTax(),
-                order.getTotal().getTax(),
-                "22640971");
+        final OrderTransaction orderTransaction = new OrderTransaction(new ObjectId().toString(), client.getId(), BigDecimal.valueOf(150), BigDecimal.valueOf(150),
+                OrderTransaction.PaymentMethod.CARD,
+                OrderTransaction.BillType.SINGLE,
+                List.of(new OrderTransaction.BillLineItem("coffee", 1, BigDecimal.valueOf(50), BigDecimal.valueOf(50)),
+                        new OrderTransaction.BillLineItem("bagel", 2, BigDecimal.valueOf(50), BigDecimal.valueOf(100))));
 
-        electronicInvoice.generateBarcodeContent();
+        orderTransaction.setId("dummy-id");
+        orderTransaction.setCreatedDate(new Date());
+
+        final ElectronicInvoice electronicInvoice = electronicInvoiceService.createElectronicInvoice(client, order, orderTransaction);
+
+        orderTransaction.getInvoiceDetails().setElectronicInvoice(electronicInvoice);
 
         SecureRandom sr = SecureRandom.getInstanceStrong();
         byte[] salt = new byte[32];
         sr.nextBytes(salt);
         final String aesKey = Base64.getEncoder().encodeToString(salt);
         
-        final InvoiceQRCodeEncryptor invoiceQRCodeEncryptor = new InvoiceQRCodeEncryptor("12341234123412341234123412341234");
-        electronicInvoice.generateQrCode1Content(invoiceQRCodeEncryptor, order);
-        electronicInvoice.generateQrCode2Content(order);
-
-        final OrderTransaction orderTransaction = new OrderTransaction(new ObjectId().toString(), client.getId(), BigDecimal.valueOf(150), BigDecimal.valueOf(150),
-                OrderTransaction.PaymentMethod.CARD,
-                OrderTransaction.BillType.SINGLE,
-                List.of(new OrderTransaction.BillLineItem("coffee", 1, BigDecimal.valueOf(55)),
-                        new OrderTransaction.BillLineItem("bagel", 2, BigDecimal.valueOf(70))));
-
-        orderTransaction.setId("dummy-id");
-        orderTransaction.setCreatedDate(new Date());
-        orderTransaction.getInvoiceDetails().setElectronicInvoice(electronicInvoice);
-
         final String instruction = printerInstructionService.createElectronicInvoiceXML(client, order, orderTransaction);
 
         LOGGER.info("{}", instruction);

@@ -41,7 +41,8 @@ public class WebConfig {
                 "/tablelayouts/*",
                 "/announcements/*",
                 "/roles/*",
-                "/offers/*");
+                "/offers/*",
+                "/invoiceNumbers/*");
 
         return registrationBean;
     }

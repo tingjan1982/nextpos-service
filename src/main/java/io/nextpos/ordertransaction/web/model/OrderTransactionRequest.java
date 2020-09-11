@@ -3,7 +3,6 @@ package io.nextpos.ordertransaction.web.model;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.web.model.validator.ValidBillTypeDetails;
 import io.nextpos.shared.model.validator.ValidEnum;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -16,7 +15,6 @@ import java.util.Map;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @ValidBillTypeDetails
 public class OrderTransactionRequest {
 

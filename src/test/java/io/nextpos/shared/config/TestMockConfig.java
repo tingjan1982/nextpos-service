@@ -41,6 +41,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 
@@ -187,7 +188,7 @@ public class TestMockConfig {
                     final String collection = MongoCollectionUtils.getPreferredCollectionName(Class.forName(b.getBeanClassName()));
 
                     // todo: need to figure out why membership is created beforehand.
-                    if (!collection.equals("membership")) {
+                    if (!List.of("membership", "invoiceNumberRange").contains(collection)) {
                         this.template.createCollection(collection);
                     }
                 } catch (ClassNotFoundException e) {

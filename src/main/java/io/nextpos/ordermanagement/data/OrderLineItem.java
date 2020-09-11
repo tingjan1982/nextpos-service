@@ -122,8 +122,12 @@ public class OrderLineItem implements OfferApplicableObject {
 
         modifiedDate = new Date();
 
-        final TaxableAmount deducedSubTotal = discountedSubTotal != null && !discountedSubTotal.isZero() ? discountedSubTotal : this.subTotal;
+        final TaxableAmount deducedSubTotal = getDeducedSubTotal();
         lineItemSubTotal = deducedSubTotal.getAmount();
+    }
+
+    public TaxableAmount getDeducedSubTotal() {
+        return discountedSubTotal != null && !discountedSubTotal.isZero() ? discountedSubTotal : this.subTotal;
     }
 
     /**

@@ -4,3 +4,9 @@ pluginManagement {
     }
 }
 rootProject.name = 'nextpos-service'
+
+/**
+ * https://stackoverflow.com/questions/19299316/require-gradle-project-from-another-directory
+ */
+include ':einvoice-common'
+project(':einvoice-common').projectDir = file('../einvoice-common')

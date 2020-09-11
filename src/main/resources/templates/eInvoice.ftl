@@ -18,7 +18,7 @@
                 <text>${electronicInvoice.invoiceNumber}&#10;</text>
                 <text align="left"/>
                 <text width="1" height="1"/>
-                <text>${electronicInvoice.invoiceCreatedDate}&#10;</text>
+                <text>${electronicInvoice.invoiceCreatedDate?datetime}&#10;</text>
                 <text>隨機碼:${electronicInvoice.randomNumber}</text>
                 <text x="210"/>
                 <text>總計:${orderTransaction.settleAmount}&#10;</text>

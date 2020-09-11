@@ -1,7 +1,6 @@
 package io.nextpos.ordermanagement.data;
 
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -10,7 +9,6 @@ import java.math.RoundingMode;
  * BigDecimal operations: https://www.baeldung.com/java-bigdecimal-biginteger
  */
 @Data
-@NoArgsConstructor
 public class TaxableAmount {
 
     private BigDecimal taxRate;
@@ -23,7 +21,7 @@ public class TaxableAmount {
 
     private BigDecimal tax = BigDecimal.ZERO;
 
-    TaxableAmount(final BigDecimal taxRate, boolean taxInclusive) {
+    public TaxableAmount(final BigDecimal taxRate, boolean taxInclusive) {
         this.taxRate = taxRate;
         this.taxInclusive = taxInclusive;
     }

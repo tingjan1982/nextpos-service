@@ -141,6 +141,8 @@ public class OrderTransaction extends MongoBaseObject {
 
         private int quantity;
 
+        private BigDecimal unitPrice;
+
         private BigDecimal subTotal;
     }
 

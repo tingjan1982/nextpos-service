@@ -331,6 +331,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             this.authorizeShiftAndOrderRequests(http);
             this.authorizeAnnouncementRequests(http);
             this.authorizeReportingRequests(http);
+            this.authorizeInvoiceNumberRequests(http);
 
             http.authorizeRequests().anyRequest().authenticated();
 
@@ -414,6 +415,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
             http.authorizeRequests()
                     .antMatchers("/reporting/**").hasAuthority(Role.OWNER_ROLE);
+        }
+
+        private void authorizeInvoiceNumberRequests(HttpSecurity http) throws Exception {
+
+            http.authorizeRequests()
+                    .antMatchers("/invoiceNumbers/**").hasAuthority(Role.MANAGER_ROLE);
         }
     }
 

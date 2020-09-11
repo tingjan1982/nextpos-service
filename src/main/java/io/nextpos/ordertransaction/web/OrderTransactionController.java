@@ -126,14 +126,32 @@ public class OrderTransactionController {
 
         switch (billType) {
             case SINGLE:
-                return List.of(new OrderTransaction.BillLineItem("single", 1, order.getOrderTotal()));
+                final List<OrderTransaction.BillLineItem> billLIneItems = order.getOrderLineItems().stream()
+                        .map(li -> new OrderTransaction.BillLineItem(li.getProductSnapshot().getName(),
+                                li.getQuantity(),
+                                li.getProductPriceWithOptions().getAmountWithTax(),
+                                li.getDeducedSubTotal().getAmountWithTax()))
+                        .collect(Collectors.toList());
+
+                if (order.getDiscount().compareTo(BigDecimal.ZERO) > 0) {
+                    billLIneItems.add(new OrderTransaction.BillLineItem("discount", 1, order.getDiscount().negate(), order.getDiscount().negate()));
+                }
+
+                if (order.getServiceCharge().compareTo(BigDecimal.ZERO) > 0) {
+                    billLIneItems.add(new OrderTransaction.BillLineItem("service charge", 1, order.getServiceCharge(), order.getServiceCharge()));
+                }
+
+                return billLIneItems;
 
             case CUSTOM:
                 return orderTransactionRequest.getBillLineItems().stream().map(liRequest -> {
-                    final OrderLineItem orderLineItem = order.getOrderLineItem(liRequest.getLineItemId());
+                    final OrderLineItem li = order.getOrderLineItem(liRequest.getLineItemId());
 
-                    final BigDecimal subTotal = orderLineItem.getProductSnapshot().getProductPriceWithOptions().multiply(BigDecimal.valueOf(liRequest.getQuantity()));
-                    return new OrderTransaction.BillLineItem(orderLineItem.getProductSnapshot().getName(), liRequest.getQuantity(), subTotal);
+                    return new OrderTransaction.BillLineItem(li.getProductSnapshot().getName(),
+                            liRequest.getQuantity(),
+                            li.getProductPriceWithOptions().getAmountWithTax(),
+                            li.getDeducedSubTotal().getAmountWithTax());
+
                 }).collect(Collectors.toList());
 
             case SPLIT:
@@ -143,7 +161,8 @@ public class OrderTransactionController {
                 final BigDecimal splitSubTotal = dividend.divide(divisor, RoundingMode.DOWN);
 
                 // todo: figure i18n
-                return List.of(new OrderTransaction.BillLineItem("split", 1, splitSubTotal));
+                //return List.of(new OrderTransaction.BillLineItem("split", 1, splitSubTotal));
+                return List.of();
 
             default:
                 return List.of();

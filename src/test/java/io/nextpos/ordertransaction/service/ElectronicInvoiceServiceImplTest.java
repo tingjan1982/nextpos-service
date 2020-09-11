@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @SpringBootTest
@@ -34,12 +36,21 @@ class ElectronicInvoiceServiceImplTest {
         final Order order = new Order("client", orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 2);
 
-        final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), "clietnt", order.getOrderTotal(), order.getOrderTotal(), OrderTransaction.PaymentMethod.CARD, OrderTransaction.BillType.SINGLE, List.of());
+        final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), "client", order.getOrderTotal(), order.getOrderTotal(), OrderTransaction.PaymentMethod.CARD, OrderTransaction.BillType.SINGLE, List.of());
         orderTransaction.setTaxIdNumber("27252210");
         orderTransaction.putPaymentDetails(OrderTransaction.PaymentDetailsKey.LAST_FOUR_DIGITS, "1234");
 
         final ElectronicInvoice electronicInvoice = electronicInvoiceService.createElectronicInvoice(client, order, orderTransaction);
 
         LOGGER.info("{}", electronicInvoice);
+    }
+
+    @Test
+    void testRounding() {
+
+        BigDecimal amount = new BigDecimal("150");
+        BigDecimal tax = new BigDecimal("7.5");
+
+        System.out.println(amount.subtract(tax).setScale(0, RoundingMode.UP));
     }
 }

@@ -5,6 +5,7 @@ import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordertransaction.data.OrderTransaction;
+import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.BusinessLogicException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,16 +39,16 @@ class OrderTransactionServiceImplTest {
     private OrderSettings orderSettings;
 
     @Test
-    void createOrderTransaction() {
+    void createSingleOrderTransaction() {
 
         final String clientId = client.getId();
         final Order order = new Order(clientId, orderSettings);
-        order.setOrderTotal(BigDecimal.valueOf(150));
+        order.addOrderLineItem(DummyObjects.productSnapshot("coffee", new BigDecimal("50")), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("sandwich", new BigDecimal("100")), 1);
         order.setState(Order.OrderState.DELIVERED);
         orderService.saveOrder(order);
 
-        // 157.0 settle amount is to accommodate the default 5% tax.
-        final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), clientId, order.getOrderTotal(), BigDecimal.valueOf(200),
+        final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), clientId, order.getOrderTotal(), order.getOrderTotal(),
                 OrderTransaction.PaymentMethod.CARD,
                 OrderTransaction.BillType.SINGLE,
                 List.of());

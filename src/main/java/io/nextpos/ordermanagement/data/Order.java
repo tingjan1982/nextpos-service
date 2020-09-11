@@ -217,6 +217,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
             return false;
         }
 
+        if (orderLineItem.getProductSnapshot().getOverridePrice().compareTo(BigDecimal.ZERO) != 0) {
+            return false;
+        }
+
         return true;
     }
 

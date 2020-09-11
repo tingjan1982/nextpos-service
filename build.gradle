@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '2.2.4.RELEASE'
+    id 'org.springframework.boot' version '2.2.9.RELEASE'
     id 'java'
     id 'com.palantir.docker' version '0.22.1'
 
@@ -23,6 +23,13 @@ configurations {
 
 repositories {
     mavenCentral()
+    maven {
+        url 'https://maven.pkg.github.com/tingjan1982/einvoice-common'
+        credentials {
+            username project.findProperty("gpr.username") as String ?: System.getenv("GPR_USERNAME")
+            password project.findProperty("gpr.password") as String ?: System.getenv("GPR_PASSWORD")
+        }
+    }
 }
 
 ext {
@@ -30,6 +37,12 @@ ext {
 }
 
 dependencies {
+    if (!project.hasProperty('ciBuild')) {
+        implementation project(':einvoice-common')
+    } else {
+        implementation 'io.nextpos.einvoice:einvoice-common:1.1-SNAPSHOT'
+    }
+
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
@@ -66,7 +79,7 @@ dependencies {
     testImplementation 'com.icegreen:greenmail:1.5.10'
     testImplementation 'org.awaitility:awaitility:3.0.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-
+    
     /**
      * https://www.baeldung.com/spring-boot-embedded-mongodb
      */

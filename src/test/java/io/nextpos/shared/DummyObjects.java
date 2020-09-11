@@ -39,7 +39,7 @@ public class DummyObjects {
 
     public static ProductSnapshot productSnapshot(String name, BigDecimal price, ProductSnapshot.ProductOptionSnapshot... productOptions) {
         final List<ProductSnapshot.ProductOptionSnapshot> productOptionsList = productOptions != null ? Arrays.asList(productOptions) : List.of();
-        return new ProductSnapshot("pid", name, "sku", price, productOptionsList);
+        return new ProductSnapshot(name, name, "sku", price, productOptionsList);
     }
 
     public static ProductSnapshot.ProductOptionSnapshot productOptionSnapshot() {

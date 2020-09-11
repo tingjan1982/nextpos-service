@@ -1,14 +1,30 @@
 package io.nextpos.ordertransaction.data;
 
-import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.OrderLineItem;
-import io.nextpos.ordertransaction.util.InvoiceQRCodeEncryptor;
+import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.model.MongoBaseObject;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import javax.xml.bind.DatatypeConverter;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.chrono.ChronoZonedDateTime;
+import java.time.chrono.MinguoChronology;
+import java.time.chrono.MinguoDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -21,7 +37,6 @@ import java.util.List;
 @Document
 @Data
 @EqualsAndHashCode(callSuper = true)
-//@NoArgsConstructor
 @RequiredArgsConstructor
 public class ElectronicInvoice extends MongoBaseObject {
 
@@ -31,16 +46,16 @@ public class ElectronicInvoice extends MongoBaseObject {
     private final String orderId;
 
     /**
-     * vendor's invoice ID
-     */
-    private final String invoiceId;
-
-    private final String invoiceStatus;
-
-    /**
-     * official e-invoice number.
+     * The official electronic invoice number
      */
     private final String invoiceNumber;
+
+    /**
+     * The invoice number without the hyphen separator (i.e. -)
+     */
+    private final String internalInvoiceNumber;
+
+    private final InvoiceStatus invoiceStatus;
 
     /**
      * official invoice number period
@@ -49,7 +64,7 @@ public class ElectronicInvoice extends MongoBaseObject {
 
     private final String randomNumber;
 
-    private final String invoiceCreatedDate;
+    private final Date invoiceCreatedDate;
 
     private final BigDecimal salesAmount;
 
@@ -65,40 +80,62 @@ public class ElectronicInvoice extends MongoBaseObject {
 
     private String qrCode2Content;
 
+    private List<InvoiceItem> invoiceItems;
+
+    public ElectronicInvoice(String orderId, String invoiceNumber, InvoicePeriod invoicePeriod, BigDecimal salesAmount, BigDecimal taxAmount, String sellerUbn, List<InvoiceItem> invoiceItems) {
+        this.orderId = orderId;
+        this.invoiceNumber = invoiceNumber;
+        this.internalInvoiceNumber = invoiceNumber.replace("-", "");
+        this.invoiceStatus = InvoiceStatus.CREATED;
+        this.invoicePeriod = invoicePeriod;
+        this.randomNumber = RandomStringUtils.randomNumeric(4);
+        this.invoiceCreatedDate = new Date();
+        this.salesAmount = salesAmount;
+        this.taxAmount = taxAmount;
+        this.sellerUbn = sellerUbn;
+        this.invoiceItems = invoiceItems;
+    }
+
     public String getFormattedInvoiceDate() {
-        return String.format("%s年%s-%s月", invoicePeriod.getTaiwanYear(), invoicePeriod.getTwoDigitStartMonth(), invoicePeriod.getTwoDigitEndMonth());
+        return String.format("%s年%s-%s月", invoicePeriod.getYear(), invoicePeriod.getStartMonth(), invoicePeriod.getEndMonth());
     }
 
-    public void generateBarcodeContent() {
-        barcodeContent = invoicePeriod.formatInvoicePeriod() + invoiceNumber + randomNumber;
+    public void generateCodeContent(String aesKey) {
+        final InvoiceQRCodeEncryptor invoiceQRCodeEncryptor = new InvoiceQRCodeEncryptor(aesKey);
+
+        this.generateBarcodeContent();
+        this.generateQrCode1Content(invoiceQRCodeEncryptor);
+        this.generateQrCode2Content();
     }
 
-    public void generateQrCode1Content(InvoiceQRCodeEncryptor invoiceQRCodeEncryptor, Order order) {
+    private void generateBarcodeContent() {
+        barcodeContent = invoicePeriod.formatInvoicePeriod() + internalInvoiceNumber + randomNumber;
+    }
+
+    private void generateQrCode1Content(InvoiceQRCodeEncryptor invoiceQRCodeEncryptor) {
 
         final StringBuilder qrCodeContent = new StringBuilder();
-        qrCodeContent.append(invoiceNumber);
+        qrCodeContent.append(internalInvoiceNumber);
         qrCodeContent.append(invoicePeriod.formatLongInvoicePeriod());
         qrCodeContent.append(randomNumber);
+        qrCodeContent.append(toEightDigitHexadecimal(salesAmount.subtract(taxAmount).setScale(0, RoundingMode.UP)));
         qrCodeContent.append(toEightDigitHexadecimal(salesAmount));
-        qrCodeContent.append(toEightDigitHexadecimal(salesAmount.add(taxAmount)));
         qrCodeContent.append(buyerUbn != null ? buyerUbn : "00000000");
         qrCodeContent.append(sellerUbn);
         qrCodeContent.append(encryptInvoiceNumber(invoiceQRCodeEncryptor)).append(":");
         qrCodeContent.append("**********").append(":");
 
-        final List<OrderLineItem> orderLineItems = order.getOrderLineItems();
-
-        qrCodeContent.append(orderLineItems.size()).append(":");
-        qrCodeContent.append(orderLineItems.size()).append(":");
+        qrCodeContent.append(invoiceItems.size()).append(":");
+        qrCodeContent.append(invoiceItems.size()).append(":");
         qrCodeContent.append("1:"); // UTF-8 encoding
 
-        final int splitIndex = orderLineItems.size() / 2;
+        final int splitIndex = invoiceItems.size() / 2;
 
         for (int i = 0; i < splitIndex; i++) {
-            final OrderLineItem lineItem = orderLineItems.get(i);
-            qrCodeContent.append(lineItem.getProductSnapshot().getName()).append(":")
-                    .append(lineItem.getQuantity()).append(":")
-                    .append(lineItem.getLineItemSubTotal());
+            final InvoiceItem invoiceItem = invoiceItems.get(i);
+            qrCodeContent.append(invoiceItem.getProductName()).append(":")
+                    .append(invoiceItem.getQuantity()).append(":")
+                    .append(invoiceItem.getSubTotal());
         }
 
         this.qrCode1Content = qrCodeContent.toString();
@@ -117,22 +154,21 @@ public class ElectronicInvoice extends MongoBaseObject {
     }
     
     private String encryptInvoiceNumber(final InvoiceQRCodeEncryptor invoiceQRCodeEncryptor) {
-        return invoiceQRCodeEncryptor.encode(invoiceNumber + randomNumber);
+        return invoiceQRCodeEncryptor.encode(internalInvoiceNumber + randomNumber);
     }
 
-    public void generateQrCode2Content(Order order) {
+    private void generateQrCode2Content() {
 
         final StringBuilder qrCodeContent = new StringBuilder();
         qrCodeContent.append("**");
 
-        final List<OrderLineItem> orderLineItems = order.getOrderLineItems();
-        final int splitIndex = orderLineItems.size() / 2;
+        final int splitIndex = invoiceItems.size() / 2;
 
-        for (int i = splitIndex; i < orderLineItems.size(); i++) {
-            final OrderLineItem lineItem = orderLineItems.get(i);
-            qrCodeContent.append(lineItem.getProductSnapshot().getName()).append(":")
+        for (int i = splitIndex; i < invoiceItems.size(); i++) {
+            final InvoiceItem lineItem = invoiceItems.get(i);
+            qrCodeContent.append(lineItem.getProductName()).append(":")
                     .append(lineItem.getQuantity()).append(":")
-                    .append(lineItem.getLineItemSubTotal());
+                    .append(lineItem.getSubTotal());
         }
 
         this.qrCode2Content = qrCodeContent.toString();
@@ -144,38 +180,141 @@ public class ElectronicInvoice extends MongoBaseObject {
     }
 
     @Data
-    @NoArgsConstructor
     @AllArgsConstructor
     public static class InvoicePeriod {
 
+        private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("MM");
+
+        /**
+         * Minguo year (e.g. 109 = 2020)
+         */
         private String year;
 
+        /**
+         * Always start in odd month.
+         *
+         * e.g. 09
+         */
         private String startMonth;
 
+        /**
+         * Always end in even month.
+         *
+         * e.g. 10
+         */
         private String endMonth;
 
+        public InvoicePeriod(ZoneId zoneId) {
+
+            final ChronoZonedDateTime<MinguoDate> date = MinguoChronology.INSTANCE.zonedDateTime(Instant.now(), zoneId);
+            this.year = String.valueOf(date.get(ChronoField.YEAR));
+            final int month = date.get(ChronoField.MONTH_OF_YEAR);
+
+            if (month % 2 == 0) {
+                this.startMonth = date.minus(1, ChronoUnit.MONTHS).format(FORMATTER);
+                this.endMonth = date.format(FORMATTER);
+            } else {
+                this.startMonth = date.format(FORMATTER);
+                this.endMonth = date.plus(1, ChronoUnit.MONTHS).format(FORMATTER);
+            }
+        }
+
         public String formatInvoicePeriod() {
-            return getTaiwanYear() + getTwoDigitEndMonth();
+            return getYear() + getEndMonth();
         }
 
         public String formatLongInvoicePeriod() {
-            return getTaiwanYear() + getTwoDigitStartMonth() + getTwoDigitEndMonth();
+            return getYear() + getStartMonth() + getEndMonth();
+        }
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class InvoiceItem {
+
+        private String productName;
+
+        private int quantity;
+
+        private BigDecimal unitPrice;
+
+        private BigDecimal subTotal;
+    }
+
+    public enum InvoiceStatus {
+
+        CREATED,
+
+        ISSUED,
+
+        MIG_CREATED,
+
+        UPLOADED,
+
+        SUCCESS,
+
+        ERROR,
+
+        FAIL
+    }
+
+    /**
+     * @author MrCuteJacky
+     * @version 1.0
+     */
+    public static class InvoiceQRCodeEncryptor {
+
+        /**
+         * The SPEC type
+         */
+        private final static String TYPE_SPEC = "AES";
+
+        /**
+         * The INIT type.
+         */
+        private final static String TYPE_INIT = "AES/CBC/PKCS5Padding";
+
+        /**
+         * The SPEC key.
+         */
+        private final static String SPEC_KEY = "Dt8lyToo17X/XkXaQvihuA==";
+
+        private final SecretKeySpec secretKeySpec;
+
+        private final Cipher cipher;
+
+        private final IvParameterSpec ivParameterSpec;
+
+        public InvoiceQRCodeEncryptor(String aesKey) {
+
+            try {
+                ivParameterSpec = new IvParameterSpec(DatatypeConverter.parseBase64Binary(SPEC_KEY));
+                secretKeySpec = new SecretKeySpec(DatatypeConverter.parseHexBinary(aesKey), TYPE_SPEC);
+                cipher = Cipher.getInstance(TYPE_INIT);
+            } catch (Exception e) {
+                throw new GeneralApplicationException("Unable to create QR Code Encryptor: " + e.getMessage());
+            }
+
         }
 
-        private String getTaiwanYear() {
-            return String.valueOf(Integer.parseInt(year) - 1911);
+        public String encode(String input) {
+
+            try {
+                cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivParameterSpec);
+                byte[] encoded = cipher.doFinal(input.getBytes());
+
+                return DatatypeConverter.printBase64Binary(encoded);
+            } catch (Exception e) {
+                throw new GeneralApplicationException("Unable to encrypt string: " + e.getMessage());
+            }
         }
 
-        private String getTwoDigitStartMonth() {
-            return twoDigitMonth(startMonth);
-        }
+        public String decode(String input) throws Exception {
 
-        private String getTwoDigitEndMonth() {
-            return twoDigitMonth(endMonth);
-        }
+            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
+            byte[] decoded = DatatypeConverter.parseBase64Binary(input);
 
-        private String twoDigitMonth(String month) {
-            return month.length() == 1 ? "0" + month : month;
+            return new String(cipher.doFinal(decoded));
         }
     }
 }
