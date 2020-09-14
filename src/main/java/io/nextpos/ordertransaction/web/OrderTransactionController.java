@@ -138,7 +138,8 @@ public class OrderTransactionController {
                 }
 
                 if (order.getServiceCharge().compareTo(BigDecimal.ZERO) > 0) {
-                    billLIneItems.add(new OrderTransaction.BillLineItem("service charge", 1, order.getServiceCharge(), order.getServiceCharge()));
+                    final BigDecimal serviceCharge = order.deduceRoundingAmount(order::getServiceCharge);
+                    billLIneItems.add(new OrderTransaction.BillLineItem("service charge", 1, serviceCharge, serviceCharge));
                 }
 
                 return billLIneItems;

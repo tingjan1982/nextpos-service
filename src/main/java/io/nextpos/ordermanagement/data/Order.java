@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static io.nextpos.ordermanagement.data.Order.OrderState.*;
@@ -294,6 +295,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         orderSettings.setServiceCharge(serviceCharge);
 
         OperationPipeline.executeDirectly(this);
+    }
+
+    public BigDecimal deduceRoundingAmount(Supplier<BigDecimal> amount) {
+        return amount.get().setScale(orderSettings.getDecimalPlaces(), orderSettings.getRoundingMode());
     }
 
     public static class OperationPipeline {
