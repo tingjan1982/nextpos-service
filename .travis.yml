@@ -11,7 +11,7 @@ before_install:
 
 
 script:
-  - docker run --rm -v $TRAVIS_BUILD_DIR:/source -v artifact_volume:/artifact_volume amazoncorretto:11 /bin/sh -c "cd /source ; ./gradlew clean build -x test -PciBuild"
+  - docker run --rm -v $TRAVIS_BUILD_DIR:/source -v artifact_volume:/artifact_volume -e GPR_USERNAME=$GPR_USERNAME -e GPR_PASSWORD=$GPR_PASSWORD amazoncorretto:11 /bin/sh -c "cd /source ; ./gradlew clean build -x test -PciBuild"
 
 
 after_script:
