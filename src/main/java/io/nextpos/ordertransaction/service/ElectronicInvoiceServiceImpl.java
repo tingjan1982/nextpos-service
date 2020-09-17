@@ -3,6 +3,7 @@ package io.nextpos.ordertransaction.service;
 import io.nextpos.client.data.Client;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoiceRepository;
+import io.nextpos.einvoice.common.invoice.PendingEInvoiceQueueService;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRangeService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.TaxableAmount;
@@ -25,11 +26,14 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
 
     private final InvoiceNumberRangeService invoiceNumberRangeService;
 
+    private final PendingEInvoiceQueueService pendingEInvoiceQueueService;
+
     private final ElectronicInvoiceRepository electronicInvoiceRepository;
 
     @Autowired
-    public ElectronicInvoiceServiceImpl(InvoiceNumberRangeService invoiceNumberRangeService, final ElectronicInvoiceRepository electronicInvoiceRepository) {
+    public ElectronicInvoiceServiceImpl(InvoiceNumberRangeService invoiceNumberRangeService, PendingEInvoiceQueueService pendingEInvoiceQueueService, final ElectronicInvoiceRepository electronicInvoiceRepository) {
         this.invoiceNumberRangeService = invoiceNumberRangeService;
+        this.pendingEInvoiceQueueService = pendingEInvoiceQueueService;
         this.electronicInvoiceRepository = electronicInvoiceRepository;
     }
 
@@ -72,7 +76,11 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
         final String aesKey = getAESKey(client);
         electronicInvoice.generateCodeContent(aesKey);
 
-        return electronicInvoiceRepository.save(electronicInvoice);
+        final ElectronicInvoice createdElectronicInvoice = electronicInvoiceRepository.save(electronicInvoice);
+
+        pendingEInvoiceQueueService.savePendingEInvoiceQueue(createdElectronicInvoice);
+
+        return createdElectronicInvoice;
     }
 
     private String getAESKey(Client client) {

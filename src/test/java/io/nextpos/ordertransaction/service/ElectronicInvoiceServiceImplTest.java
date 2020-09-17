@@ -2,6 +2,7 @@ package io.nextpos.ordertransaction.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
+import io.nextpos.einvoice.common.invoice.PendingEInvoiceQueueService;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRange;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRangeService;
 import io.nextpos.ordermanagement.data.Order;
@@ -31,6 +32,9 @@ class ElectronicInvoiceServiceImplTest {
 
     @Autowired
     private InvoiceNumberRangeService invoiceNumberRangeService;
+
+    @Autowired
+    private PendingEInvoiceQueueService pendingEInvoiceQueueService;
 
     @Autowired
     private OrderSettings orderSettings;
@@ -63,6 +67,8 @@ class ElectronicInvoiceServiceImplTest {
         assertThat(electronicInvoice.getBarcodeContent()).hasSize(19);
         assertThat(StringUtils.substringBefore(electronicInvoice.getQrCode1Content(), ":")).hasSize(77);
         assertThat(electronicInvoice.getQrCode2Content()).startsWith("**");
+
+        assertThat(pendingEInvoiceQueueService.findPendingEInvoicesByUbn(ubn)).hasSize(1);
     }
 
     @Test
