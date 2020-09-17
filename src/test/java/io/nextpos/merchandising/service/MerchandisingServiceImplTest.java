@@ -107,7 +107,7 @@ class MerchandisingServiceImplTest {
         assertThat(updatedOrder.getTotal().getAmountWithTax()).isEqualByComparingTo(BigDecimal.valueOf(105));
         assertThat(updatedOrder.getDiscountedTotal().getAmountWithTax()).isEqualByComparingTo(BigDecimal.valueOf(94.5));
         assertThat(updatedOrder.getDiscount()).isEqualByComparingTo("10.5");
-        assertThat(updatedOrder.getOrderTotal()).isEqualByComparingTo("103.95");
+        assertThat(updatedOrder.getOrderTotal()).isEqualByComparingTo("105");
         assertThat(updatedOrder.getAppliedOfferInfo().getOfferId()).isEqualTo(orderLevelOffer.getId());
 
         final Order orderWithOfferRemoved = merchandisingService.removeOrderOffer(updatedOrder);
@@ -131,7 +131,7 @@ class MerchandisingServiceImplTest {
         assertThat(updatedOrder.getTotal().getAmountWithTax()).isEqualByComparingTo(BigDecimal.valueOf(105));
         assertThat(updatedOrder.getDiscountedTotal().getAmountWithTax()).isEqualByComparingTo(BigDecimal.valueOf(94.5));
         assertThat(updatedOrder.getDiscount()).isEqualByComparingTo("10.5");
-        assertThat(updatedOrder.getOrderTotal()).isEqualByComparingTo("103.95");
+        assertThat(updatedOrder.getOrderTotal()).isEqualByComparingTo("105");
         assertThat(updatedOrder.getAppliedOfferInfo().getOfferId()).isEqualTo(globalDiscount.name());
     }
 

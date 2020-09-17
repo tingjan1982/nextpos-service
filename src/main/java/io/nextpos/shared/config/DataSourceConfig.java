@@ -21,7 +21,7 @@ import org.springframework.boot.autoconfigure.transaction.TransactionManagerCust
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.data.mongodb.MongoDbFactory;
+import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.MongoTransactionManager;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.core.convert.DbRefResolver;
@@ -65,7 +65,7 @@ public class DataSourceConfig {
     }
 
     @Bean("mongoTx")
-    public MongoTransactionManager mongoTransactionManager(MongoDbFactory dbFactory) {
+    public MongoTransactionManager mongoTransactionManager(MongoDatabaseFactory dbFactory) {
         return new MongoTransactionManager(dbFactory);
     }
 
@@ -75,7 +75,7 @@ public class DataSourceConfig {
     }
 
     @Bean
-    public MappingMongoConverter mappingMongoConverter(MongoDbFactory factory, MongoMappingContext context, MongoCustomConversions conversions) {
+    public MappingMongoConverter mappingMongoConverter(MongoDatabaseFactory factory, MongoMappingContext context, MongoCustomConversions conversions) {
         DbRefResolver dbRefResolver = new DefaultDbRefResolver(factory);
         MappingMongoConverter mappingConverter = new MappingMongoConverter(dbRefResolver, context);
         mappingConverter.setCustomConversions(conversions);

@@ -14,7 +14,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.YearMonth;
+import java.time.temporal.TemporalAdjusters;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -98,7 +98,9 @@ public class StatsReportServiceImpl implements StatsReportService {
     }
 
     @Override
-    public CustomerStatsReport generateCustomerStatsReport(final String clientId, YearMonth dateFilter) {
+    public CustomerStatsReport generateCustomerStatsReport(final String clientId, ZonedDateRange zonedDateRange) {
+
+        final String timezone = zonedDateRange.getClientTimeZone().getId();
 
         final ProjectionOperation projection = Aggregation.project("clientId")
                 .and("state").as("state")
@@ -109,16 +111,14 @@ public class StatsReportServiceImpl implements StatsReportService {
                 .andExpression("demographicData.male + demographicData.female + demographicData.kid").as("customerCount")
                 //.and(context -> Document.parse("{ $divide: [ { $toDecimal: [ '$total.amountWithTax' ] }, { $add: [ '$demographicData.male', '$demographicData.female', '$demographicData.kid' ] } ] }")).as("avgCustomerSpending")
                 .and("createdDate").as("createdDate")
-                .and(context -> Document.parse("{ $dayOfMonth: {date: '$createdDate', timezone: 'Asia/Taipei'} }")).as("day");
+                .and(context -> Document.parse("{ $dayOfMonth: {date: '$createdDate', timezone: '" + timezone + "'} }")).as("day");
 
-        LocalDate fromDate = dateFilter.atDay(1);
-        LocalDate toDate = dateFilter.plusMonths(1).atDay(1);
         final MatchOperation filter = Aggregation.match(
                 Criteria.where("clientId").is(clientId)
                         .and("state").ne(Order.OrderState.DELETED)
-                        .and("createdDate").gte(fromDate).lt(toDate));
+                        .and("createdDate").gte(zonedDateRange.getFromDate()).lt(zonedDateRange.getToDate()));
 
-        final LocalDate lastDayOfMonth = dateFilter.atEndOfMonth();
+        final LocalDate lastDayOfMonth = zonedDateRange.getZonedToDate().with(TemporalAdjusters.lastDayOfMonth()).toLocalDate();
         final Object[] daysOfMonth = IntStream.rangeClosed(1, lastDayOfMonth.getDayOfMonth() + 1).boxed().toArray(Integer[]::new);
 
         final BucketOperation groupedCustomerStats = Aggregation.bucket("day").withBoundaries(daysOfMonth).withDefaultBucket("Other")
@@ -143,9 +143,9 @@ public class StatsReportServiceImpl implements StatsReportService {
         final CustomerStatsReport customerStatsReport = results.getUniqueMappedResult();
 
         if (customerStatsReport != null) {
-            ReportEnhancer.enhanceReportResult(IntStream.rangeClosed(1, dateFilter.atEndOfMonth().getDayOfMonth()),
+            ReportEnhancer.enhanceReportResult(IntStream.rangeClosed(1, lastDayOfMonth.getDayOfMonth()),
                     () -> customerStatsReport.getGroupedCustomerStats().stream().collect(Collectors.toMap(CustomerStatsReport.CustomerStats::getId, s -> s)),
-                    (id) -> CustomerStatsReport.CustomerStats.emptyObject(id, dateFilter.atDay(Integer.parseInt(id))),
+                    (id) -> CustomerStatsReport.CustomerStats.emptyObject(id, lastDayOfMonth.withDayOfMonth(Integer.parseInt(id))),
                     customerStatsReport::setGroupedCustomerStats);
         }
 

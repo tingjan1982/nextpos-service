@@ -1,10 +1,9 @@
 package io.nextpos.shared.config;
 
 import com.mongodb.BasicDBList;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.ClientSession;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import de.flapdoodle.embed.mongo.config.*;
 import de.flapdoodle.embed.mongo.distribution.Feature;
@@ -24,14 +23,12 @@ import org.awaitility.Duration;
 import org.bson.Document;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.mongo.MongoProperties;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.mongodb.MongoCollectionUtils;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -41,7 +38,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 
@@ -106,54 +102,54 @@ public class TestMockConfig {
         return InetAddress.getByName(this.properties.getHost());
     }
 
-    /**
-     * Start MongoDb in replica for transaction support. Part of the code is referenced from MongoAutoConfiguration.
-     * <p>
-     * https://github.com/spring-projects/spring-boot/issues/20182
-     * https://github.com/flapdoodle-oss/de.flapdoodle.embed.mongo/issues/257
-     * https://www.programcreek.com/java-api-examples/?api=de.flapdoodle.embed.mongo.config.Storage
-     */
-    @Bean
-    public MongoClient mongo(MongoProperties properties, ObjectProvider<MongoClientOptions> options, Environment environment) {
-
-        //final MongoClient client = new MongoClientFactory(properties, environment).createMongoClient(options.getIfAvailable());
-        MongoClientOptions mongoClientOptions = options.getIfAvailable();
-
-        if (mongoClientOptions == null) {
-            mongoClientOptions = MongoClientOptions.builder().build();
-        }
-
-        int port = 0;
-
-        if (environment != null) {
-            String localPort = environment.getProperty("local.mongo.port");
-            if (localPort != null) {
-                port = Integer.parseInt(localPort);
-            }
-        }
-
-        String host = (this.properties.getHost() != null) ? this.properties.getHost() : "localhost";
-        MongoClient client = new MongoClient(new ServerAddress(host, port), mongoClientOptions);
-
-        ServerAddress address = client.getAllAddress().get(0);
-        BasicDBList members = new BasicDBList();
-        members.add(new Document("_id", 0).append("host", address.getHost() + ":" + address.getPort()));
-        Document config = new Document("_id", "rep0");
-        config.put("members", members);
-        MongoDatabase admin = client.getDatabase("admin");
-        admin.runCommand(new Document("replSetInitiate", config));
-
-        Awaitility.await().atMost(Duration.ONE_MINUTE).until(() -> {
-            try (ClientSession session = client.startSession()) {
-                return true;
-            } catch (Exception ex) {
-                return false;
-            }
-        });
-
-
-        return client;
-    }
+//    /**
+//     * Start MongoDb in replica for transaction support. Part of the code is referenced from MongoAutoConfiguration.
+//     * <p>
+//     * https://github.com/spring-projects/spring-boot/issues/20182
+//     * https://github.com/flapdoodle-oss/de.flapdoodle.embed.mongo/issues/257
+//     * https://www.programcreek.com/java-api-examples/?api=de.flapdoodle.embed.mongo.config.Storage
+//     */
+//    @Bean
+//    public MongoClient mongo(MongoProperties properties, ObjectProvider<MongoClientOptions> options, Environment environment) {
+//
+//        //final MongoClient client = new MongoClientFactory(properties, environment).createMongoClient(options.getIfAvailable());
+//        MongoClientOptions mongoClientOptions = options.getIfAvailable();
+//
+//        if (mongoClientOptions == null) {
+//            mongoClientOptions = MongoClientOptions.builder().build();
+//        }
+//
+//        int port = 0;
+//
+//        if (environment != null) {
+//            String localPort = environment.getProperty("local.mongo.port");
+//            if (localPort != null) {
+//                port = Integer.parseInt(localPort);
+//            }
+//        }
+//
+//        String host = (this.properties.getHost() != null) ? this.properties.getHost() : "localhost";
+//        MongoClient client = new MongoClient(new ServerAddress(host, port), mongoClientOptions);
+//
+//        ServerAddress address = client.getAllAddress().get(0);
+//        BasicDBList members = new BasicDBList();
+//        members.add(new Document("_id", 0).append("host", address.getHost() + ":" + address.getPort()));
+//        Document config = new Document("_id", "rep0");
+//        config.put("members", members);
+//        MongoDatabase admin = client.getDatabase("admin");
+//        admin.runCommand(new Document("replSetInitiate", config));
+//
+//        Awaitility.await().atMost(Duration.ONE_MINUTE).until(() -> {
+//            try (ClientSession session = client.startSession()) {
+//                return true;
+//            } catch (Exception ex) {
+//                return false;
+//            }
+//        });
+//
+//
+//        return client;
+//    }
 
 //    @Bean
 //    public MongoClientOptions mongoClientOptions() {
@@ -161,16 +157,21 @@ public class TestMockConfig {
 //                .requiredReplicaSetName("rep0").build();
 //    }
 
+
+
     @Bean
-    public MongoInitializer mongoInitializer(MongoTemplate mongoTemplate) {
-        return new MongoInitializer(mongoTemplate);
+    public MongoInitializer mongoInitializer(MongoClient mongoClient, MongoTemplate mongoTemplate) {
+        return new MongoInitializer(mongoClient, mongoTemplate);
     }
 
     static class MongoInitializer implements InitializingBean {
 
+        private final MongoClient mongoClient;
+
         private final MongoTemplate template;
 
-        MongoInitializer(MongoTemplate template) {
+        MongoInitializer(MongoClient mongoClient, MongoTemplate template) {
+            this.mongoClient = mongoClient;
             this.template = template;
         }
 
@@ -180,6 +181,22 @@ public class TestMockConfig {
         @Override
         public void afterPropertiesSet() {
 
+            final ServerAddress address = mongoClient.getClusterDescription().getServerDescriptions().get(0).getAddress();
+            BasicDBList members = new BasicDBList();
+            members.add(new Document("_id", 0).append("host", address.getHost() + ":" + address.getPort()));
+            Document config = new Document("_id", "rep0");
+            config.put("members", members);
+            MongoDatabase admin = mongoClient.getDatabase("admin");
+            admin.runCommand(new Document("replSetInitiate", config));
+
+            Awaitility.await().atMost(Duration.ONE_MINUTE).until(() -> {
+                try (ClientSession session = mongoClient.startSession()) {
+                    return true;
+                } catch (Exception ex) {
+                    return false;
+                }
+            });
+
             final ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
             scanner.addIncludeFilter(new AnnotationTypeFilter(org.springframework.data.mongodb.core.mapping.Document.class));
 
@@ -187,9 +204,8 @@ public class TestMockConfig {
                 try {
                     final String collection = MongoCollectionUtils.getPreferredCollectionName(Class.forName(b.getBeanClassName()));
 
-                    // todo: need to figure out why membership is created beforehand.
-                    if (!List.of("membership", "invoiceNumberRange").contains(collection)) {
-                        this.template.createCollection(collection);
+                    if (!template.collectionExists(collection)) {
+                        template.createCollection(collection);
                     }
                 } catch (ClassNotFoundException e) {
                     throw new RuntimeException(e);

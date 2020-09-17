@@ -108,8 +108,15 @@ public class ReportingController {
             yearMonth = YearMonth.of(year, month);
         }
 
-        final CustomerStatsReport customerStatsOfThisMonth = statsReportService.generateCustomerStatsReport(client.getId(), yearMonth);
-        final CustomerStatsReport customerStatsOfThisMonthLastYear = statsReportService.generateCustomerStatsReport(client.getId(), yearMonth.minusYears(1));
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.MONTH)
+                .date(yearMonth.atDay(1)).build();
+
+        final CustomerStatsReport customerStatsOfThisMonth = statsReportService.generateCustomerStatsReport(client.getId(), zonedDateRange);
+
+        final ZonedDateRange zonedDateRangeLastYear = ZonedDateRangeBuilder.builder(client, DateParameterType.MONTH)
+                .date(yearMonth.atDay(1).minusYears(1)).build();
+
+        final CustomerStatsReport customerStatsOfThisMonthLastYear = statsReportService.generateCustomerStatsReport(client.getId(), zonedDateRangeLastYear);
 
         return new CustomerStatsReportResponse(
                 customerStatsOfThisMonth.getGroupedCustomerStats(),

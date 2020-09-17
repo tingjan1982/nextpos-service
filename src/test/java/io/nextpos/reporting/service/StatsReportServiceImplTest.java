@@ -145,7 +145,8 @@ class StatsReportServiceImplTest {
     private void createOrder(final LocalDateTime orderDate,
                              final Order.OrderType orderType,
                              final Order.DemographicData.AgeGroup ageGroup,
-                             final Order.DemographicData.VisitFrequency visitFrequency, final int male, final int female, final int kid) {
+                             final Order.DemographicData.VisitFrequency visitFrequency,
+                             final int male, final int female, final int kid) {
 
         final OrderSettings newSettings = orderSettings.copy();
         newSettings.setTaxInclusive(true);
@@ -167,7 +168,7 @@ class StatsReportServiceImplTest {
         final Query query = new Query(where("id").is(order.getId()));
 
 
-        final Update update = new Update().set("modifiedDate", Date.from(orderDate.atZone(ZoneOffset.systemDefault()).toInstant()));
+        final Update update = new Update().set("createdDate", Date.from(orderDate.atZone(ZoneOffset.systemDefault()).toInstant()));
         mongoTemplate.updateFirst(query, update, Order.class);
     }
 
@@ -183,7 +184,8 @@ class StatsReportServiceImplTest {
             createOrder(date, 1, 1, 1);
         }
 
-        final CustomerStatsReport results = statsReportService.generateCustomerStatsReport("client", YearMonth.now());
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.MONTH).build();
+        final CustomerStatsReport results = statsReportService.generateCustomerStatsReport("client", zonedDateRange);
 
         assertThat(results.getGroupedCustomerStats()).hasSize(lastDayOfMonth.getDayOfMonth());
 
@@ -192,7 +194,7 @@ class StatsReportServiceImplTest {
             assertThat(cc.getFemaleCount()).isEqualTo(3);
             assertThat(cc.getKidCount()).isEqualTo(3);
             assertThat(cc.getCustomerCount()).isEqualTo(9);
-            assertThat(cc.getAverageSpending()).isCloseTo(BigDecimal.valueOf(22), within(BigDecimal.valueOf(1)));
+            assertThat(cc.getAverageSpending()).isCloseTo(BigDecimal.valueOf(24), within(BigDecimal.valueOf(1)));
         });
 
         LOGGER.info("{}", results);
@@ -202,7 +204,8 @@ class StatsReportServiceImplTest {
     void generateEmptyCustomerStatsReport() {
 
         final YearMonth dateFilter = YearMonth.now();
-        final CustomerStatsReport results = statsReportService.generateCustomerStatsReport("client", dateFilter);
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.MONTH).build();
+        final CustomerStatsReport results = statsReportService.generateCustomerStatsReport("client", zonedDateRange);
 
         assertThat(results.getGroupedCustomerStats()).hasSize(dateFilter.atEndOfMonth().getDayOfMonth());
 

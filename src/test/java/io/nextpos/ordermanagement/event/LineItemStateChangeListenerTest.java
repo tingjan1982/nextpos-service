@@ -1,5 +1,6 @@
 package io.nextpos.ordermanagement.event;
 
+import io.nextpos.client.data.Client;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderSettings;
@@ -28,10 +29,13 @@ class LineItemStateChangeListenerTest {
     @Autowired
     private OrderSettings orderSettings;
 
+    @Autowired
+    private Client client;
+
     @Test
     void lineItemStateChange() {
 
-        final Order order = new Order("client", orderSettings);
+        final Order order = new Order(client.getId(), orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 2);
         orderService.saveOrder(order);

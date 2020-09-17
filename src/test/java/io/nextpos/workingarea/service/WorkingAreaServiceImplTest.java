@@ -14,9 +14,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -61,7 +60,6 @@ class WorkingAreaServiceImplTest {
         assertThat(printer.getWorkingAreas()).hasSize(1);
 
         assertThatCode(() -> workingAreaService.getWorkingArea(savedBar.getId())).doesNotThrowAnyException();
-
         assertThat(workingAreaService.getWorkingAreas(client)).hasSize(1);
 
         final Product product = Product.builder(client).productNameAndPrice("p1", new BigDecimal("100")).build();

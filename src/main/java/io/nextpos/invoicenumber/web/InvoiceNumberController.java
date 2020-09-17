@@ -33,8 +33,8 @@ public class InvoiceNumberController {
 
     @PostMapping("/{ubn}/ranges/{rangeIdentifier}")
     public InvoiceNumberRange addNumberRange(@PathVariable String ubn,
-                                                   @PathVariable String rangeIdentifier,
-                                                   @Valid @RequestBody InvoiceNumberRequest.NumberRangeRequest request) {
+                                             @PathVariable String rangeIdentifier,
+                                             @Valid @RequestBody InvoiceNumberRequest.NumberRangeRequest request) {
 
         final InvoiceNumberRange invoiceNumberRange = invoiceNumberRangeService.getInvoiceNumberRangeByRangeIdentifier(ubn, rangeIdentifier);
         invoiceNumberRange.addNumberRange(request.getPrefix(), request.getRangeFrom(), request.getRangeTo());

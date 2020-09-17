@@ -1,5 +1,6 @@
 package io.nextpos.ordermanagement.event;
 
+import io.nextpos.client.data.Client;
 import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.shared.DummyObjects;
@@ -29,13 +30,16 @@ class OrderStateChangeListenerTest {
     private OrderService orderService;
 
     @Autowired
+    private Client client;
+
+    @Autowired
     private OrderSettings orderSettings;
 
     private Order order;
 
     @BeforeEach
     void prepare() {
-        order = new Order("client-id", orderSettings);
+        order = new Order(client.getId(), orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
         orderService.createOrder(order);
     }
