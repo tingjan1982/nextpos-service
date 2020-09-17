@@ -1,11 +1,11 @@
 package io.nextpos.ordertransaction.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
+import io.nextpos.einvoice.common.invoice.ElectronicInvoiceRepository;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRangeService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.TaxableAmount;
-import io.nextpos.ordertransaction.data.ElectronicInvoice;
-import io.nextpos.ordertransaction.data.ElectronicInvoiceRepository;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.shared.service.annotation.MongoTransaction;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +34,15 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
     }
 
     @Override
+    public boolean checkElectronicInvoiceEligibility(Client client) {
+
+        final String aesKey = getAESKey(client);
+        final String ubn = client.getAttribute(Client.ClientAttributes.UBN.name());
+
+        return StringUtils.isNotBlank(aesKey) && invoiceNumberRangeService.getCurrentInvoiceNumberRange(ubn) != null;
+    }
+
+    @Override
     public ElectronicInvoice createElectronicInvoice(final Client client, final Order order, final OrderTransaction orderTransaction) {
 
         final String ubn = client.getAttribute(Client.ClientAttributes.UBN.name());
@@ -53,6 +62,7 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
                 salesAmount.getAmountWithTax(),
                 salesAmount.getTax(),
                 ubn,
+                client.getClientName(),
                 items);
 
         if (StringUtils.isNotBlank(orderTransaction.getInvoiceDetails().getTaxIdNumber())) {

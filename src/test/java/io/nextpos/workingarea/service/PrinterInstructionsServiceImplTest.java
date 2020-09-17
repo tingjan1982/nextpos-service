@@ -2,13 +2,14 @@ package io.nextpos.workingarea.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientRepository;
+import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRange;
+import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRangeRepository;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRangeService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.service.OrderService;
-import io.nextpos.ordertransaction.data.ElectronicInvoice;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.service.ElectronicInvoiceService;
 import io.nextpos.shared.DummyObjects;
@@ -16,6 +17,7 @@ import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.PrinterInstructions;
 import io.nextpos.workingarea.data.WorkingArea;
 import org.bson.types.ObjectId;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -49,6 +51,9 @@ class PrinterInstructionsServiceImplTest {
     private InvoiceNumberRangeService invoiceNumberRangeService;
 
     @Autowired
+    private InvoiceNumberRangeRepository invoiceNumberRangeRepository;
+
+    @Autowired
     private WorkingAreaService workingAreaService;
 
     @Autowired
@@ -78,6 +83,11 @@ class PrinterInstructionsServiceImplTest {
 
         InvoiceNumberRange invoiceNumberRange = new InvoiceNumberRange(ubn, "1090910", "AG", "00000001", "10000001");
         invoiceNumberRangeService.saveInvoiceNumberRange(invoiceNumberRange);
+    }
+
+    @AfterEach
+    void teardown() {
+        invoiceNumberRangeRepository.deleteAll();
     }
 
     @Test

@@ -2,12 +2,12 @@ package io.nextpos.shared.config;
 
 import io.nextpos.announcement.data.Announcement;
 import io.nextpos.client.data.Client;
+import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRange;
 import io.nextpos.membership.data.Membership;
 import io.nextpos.merchandising.data.Offer;
 import io.nextpos.notification.data.NotificationDetails;
 import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordertransaction.data.ElectronicInvoice;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.product.data.Product;
 import io.nextpos.roles.data.UserRole;

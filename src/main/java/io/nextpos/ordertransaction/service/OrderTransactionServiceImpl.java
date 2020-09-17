@@ -2,9 +2,9 @@ package io.nextpos.ordertransaction.service;
 
 import freemarker.template.Configuration;
 import io.nextpos.client.data.Client;
+import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.service.OrderService;
-import io.nextpos.ordertransaction.data.ElectronicInvoice;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.data.OrderTransactionRepository;
 import io.nextpos.shared.exception.BusinessLogicException;
@@ -49,14 +49,12 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
             throw new BusinessLogicException("Cannot create order transaction. The order has been finalized: " + order.getId());
         }
 
-        LOGGER.info("Creating order transaction for order {}.", order.getId());
+        LOGGER.info("Creating order transaction for order {}", order.getId());
 
         // todo: this would change when we connect to external credit card processor
         orderTransaction.getPaymentDetails().setPaymentStatus(OrderTransaction.PaymentStatus.SUCCESS);
 
-        if (orderTransaction.getInvoiceDetails().isNeedElectronicInvoice()) {
-            this.createAndSaveElectronicInvoice(client, order, orderTransaction);
-        }
+        this.createAndSaveElectronicInvoice(client, order, orderTransaction);
 
         final OrderTransaction updatedTransaction = orderTransactionRepository.save(orderTransaction);
 
@@ -72,6 +70,19 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         return updatedTransaction;
     }
 
+    private void createAndSaveElectronicInvoice(final Client client, final Order order, final OrderTransaction orderTransaction) {
+
+        if (!electronicInvoiceService.checkElectronicInvoiceEligibility(client)) {
+            LOGGER.info("Client {} does not have electronic invoice setup.", client.getId());
+            return;
+        }
+
+        final ElectronicInvoice electronicInvoice = electronicInvoiceService.createElectronicInvoice(client, order, orderTransaction);
+
+        final OrderTransaction.InvoiceDetails invoiceDetails = orderTransaction.getInvoiceDetails();
+        invoiceDetails.setElectronicInvoice(electronicInvoice);
+    }
+
     @Override
     public OrderTransaction getOrderTransaction(final String id) {
 
@@ -83,13 +94,5 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
     @Override
     public List<OrderTransaction> getOrderTransactionByOrderId(String orderId) {
         return orderTransactionRepository.findAllByOrderId(orderId);
-    }
-
-    private void createAndSaveElectronicInvoice(final Client client, final Order order, final OrderTransaction orderTransaction) {
-
-        final ElectronicInvoice electronicInvoice = electronicInvoiceService.createElectronicInvoice(client, order, orderTransaction);
-
-        final OrderTransaction.InvoiceDetails invoiceDetails = orderTransaction.getInvoiceDetails();
-        invoiceDetails.setElectronicInvoice(electronicInvoice);
     }
 }

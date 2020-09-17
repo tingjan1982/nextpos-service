@@ -345,11 +345,11 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     private void calculateServiceChargeAndOrderTotal() {
 
-        final BigDecimal totalBeforeServiceCharge = discountedTotal != null && !discountedTotal.isZero() ? discountedTotal.getAmountWithTax() : total.getAmountWithTax();
+        final BigDecimal deducedTotal = discountedTotal != null && !discountedTotal.isZero() ? discountedTotal.getAmountWithTax() : total.getAmountWithTax();
 
-        serviceCharge = orderSettings.hasServiceCharge() ? totalBeforeServiceCharge.multiply(orderSettings.getServiceCharge()) : BigDecimal.ZERO;
+        serviceCharge = orderSettings.hasServiceCharge() ? total.getAmountWithTax().multiply(orderSettings.getServiceCharge()) : BigDecimal.ZERO;
 
-        orderTotal = totalBeforeServiceCharge.add(serviceCharge).setScale(orderSettings.getDecimalPlaces(), orderSettings.getRoundingMode());
+        orderTotal = this.deduceRoundingAmount(() -> deducedTotal.add(serviceCharge));
     }
 
     public OrderDuration getOrderDuration() {

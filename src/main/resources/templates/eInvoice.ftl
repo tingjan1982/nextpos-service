@@ -1,7 +1,7 @@
 <#-- @ftlvariable name="client" type="io.nextpos.client.data.Client" -->
 <#-- @ftlvariable name="order" type="io.nextpos.ordermanagement.data.Order" -->
 <#-- @ftlvariable name="orderTransaction" type="io.nextpos.ordertransaction.data.OrderTransaction" -->
-<#-- @ftlvariable name="electronicInvoice" type="io.nextpos.ordertransaction.data.ElectronicInvoice" -->
+<#-- @ftlvariable name="electronicInvoice" type="io.nextpos.einvoice.common.invoice.ElectronicInvoice" -->
 <#-- reference: https://freemarker.apache.org/docs/dgui_misc_whitespace.html-->
 <@compress single_line=true>
     <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">

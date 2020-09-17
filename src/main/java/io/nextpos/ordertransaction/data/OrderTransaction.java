@@ -115,10 +115,8 @@ public class OrderTransaction extends MongoBaseObject {
 
         private String taxIdNumber;
 
-        private boolean needElectronicInvoice;
-
         @DBRef
-        private ElectronicInvoice electronicInvoice;
+        private io.nextpos.einvoice.common.invoice.ElectronicInvoice electronicInvoice;
     }
 
     @Data

@@ -98,8 +98,6 @@ public class OrderTransactionController {
 
         validateCashChange(orderTransaction);
 
-        orderTransaction.getInvoiceDetails().setNeedElectronicInvoice(orderTransactionRequest.isNeedElectronicInvoice());
-
         return orderTransaction;
     }
 
