@@ -73,8 +73,8 @@ public class OrderLineItem implements OfferApplicableObject {
         return taxableProductPrice;
     }
 
-    public void incrementQuantity() {
-        this.quantity++;
+    public void incrementQuantity(int quantityToAdd) {
+        this.quantity += quantityToAdd;
         modifiedDate = new Date();
 
         computeSubTotal();

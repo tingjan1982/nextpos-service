@@ -127,14 +127,14 @@ class OrderServiceImplTest {
         final Order createdOrder = orderService.createOrder(order);
         final OrderLineItem orderLineItem = new OrderLineItem(DummyObjects.productSnapshot(), 1, orderSettings);
 
-        orderService.addOrderLineItem(createdOrder.getId(), orderLineItem);
+        final Order orderWithLineItem = orderService.addOrderLineItem(createdOrder.getId(), orderLineItem);
 
-        assertThat(createdOrder.getOrderLineItems()).hasSize(1);
+        assertThat(orderWithLineItem.getOrderLineItems()).hasSize(1);
 
         final List<ProductSnapshot.ProductOptionSnapshot> productOptions = List.of(DummyObjects.productOptionSnapshot());
         UpdateLineItem updateLineItem = new UpdateLineItem(orderLineItem.getId(), 5, BigDecimal.ZERO, productOptions, ProductLevelOffer.GlobalProductDiscount.DISCOUNT_AMOUNT_OFF, new BigDecimal(20));
 
-        Order updatedOrder = orderService.updateOrderLineItem(createdOrder, updateLineItem);
+        Order updatedOrder = orderService.updateOrderLineItem(orderWithLineItem, updateLineItem);
 
         assertThat(updatedOrder.getOrderLineItems()).satisfies(li -> {
             assertThat(li.getQuantity()).isEqualTo(5);
@@ -160,7 +160,7 @@ class OrderServiceImplTest {
         });
 
         updateLineItem = new UpdateLineItem(orderLineItem.getId(), 5, new BigDecimal("50"), productOptions, ProductLevelOffer.GlobalProductDiscount.NO_DISCOUNT, BigDecimal.ZERO);
-        updatedOrder = orderService.updateOrderLineItem(createdOrder, updateLineItem);
+        updatedOrder = orderService.updateOrderLineItem(updatedOrder, updateLineItem);
 
         assertThat(updatedOrder.getOrderLineItems()).satisfies(li -> {
             assertThat(li.getProductSnapshot().getProductPriceWithOptions()).isEqualByComparingTo("50");

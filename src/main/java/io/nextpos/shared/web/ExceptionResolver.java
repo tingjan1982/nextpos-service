@@ -34,10 +34,10 @@ public class ExceptionResolver {
     }
 
     @ExceptionHandler(ObjectAlreadyExistsException.class)
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
+    @ResponseStatus(code = HttpStatus.CONFLICT)
     public ErrorResponse handleObjectAlreadyExist(ObjectAlreadyExistsException exception) {
 
-        return ErrorResponse.simpleErrorResponse(exception.getMessage());
+        return ErrorResponse.simpleErrorResponse("message.alreadyExists", exception.getMessage());
     }
 
     @ExceptionHandler(ConfigurationException.class)
@@ -58,7 +58,7 @@ public class ExceptionResolver {
     @ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
     public ErrorResponse handleBusinessLogicException(BusinessLogicException exception) {
 
-        return ErrorResponse.simpleErrorResponse(exception.getMessage(), exception.getLocalizedMessageKey());
+        return ErrorResponse.simpleErrorResponse(exception.getLocalizedMessageKey(), exception.getMessage());
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -81,10 +81,15 @@ public class ExceptionResolver {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleValidationExceptions(MethodArgumentNotValidException ex) {
 
+        LOGGER.error("{}", ex.getMessage(), ex);
+
         final BindingResult bindingResult = ex.getBindingResult();
-        final HashMap<String, String> fieldErrors = bindingResult.getAllErrors().stream()
+        final HashMap<String, ErrorResponse.FieldLevelError> fieldErrors = bindingResult.getAllErrors().stream()
                 .filter(error -> error instanceof FieldError)
-                .map(error -> new AbstractMap.SimpleEntry<>(((FieldError) error).getField(), error.getDefaultMessage()))
+                .map(error -> {
+                    final String fieldName = ((FieldError) error).getField();
+                    return new AbstractMap.SimpleEntry<>(fieldName, new ErrorResponse.FieldLevelError("message." + fieldName, error.getDefaultMessage()));
+                })
                 .collect(HashMap::new,
                         (map, entry) -> map.put(entry.getKey(), entry.getValue()),
                         HashMap::putAll
@@ -109,7 +114,7 @@ public class ExceptionResolver {
 
         private String localizedMessageKey;
 
-        private Map<String, String> fieldErrors;
+        private Map<String, FieldLevelError> fieldErrors;
 
         private String details;
 
@@ -119,8 +124,17 @@ public class ExceptionResolver {
             return new ErrorResponse(message, null, Collections.emptyMap(), "NA", Instant.now());
         }
 
-        static ErrorResponse simpleErrorResponse(String message, String localizedMessageKey) {
+        static ErrorResponse simpleErrorResponse(String localizedMessageKey, String message) {
             return new ErrorResponse(message, localizedMessageKey, Collections.emptyMap(), "NA", Instant.now());
+        }
+
+        @Data
+        @AllArgsConstructor
+        private static class FieldLevelError {
+
+            private String localizedMessageKey;
+            
+            private String message;
         }
     }
 }

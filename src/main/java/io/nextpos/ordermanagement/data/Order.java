@@ -184,8 +184,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     private void addLineItemToOrder(final OrderLineItem orderLineItem) {
 
         findMergeableLineItemByProductId(orderLineItem).ifPresentOrElse(li -> {
-            LOGGER.info("Line item {} is mergeable, incrementing its quantity to {}", li, li.getQuantity() + 1);
-            li.incrementQuantity();
+            LOGGER.info("Line item {} is mergeable, updating its quantity to {}", li, li.getQuantity() + orderLineItem.getQuantity());
+            li.incrementQuantity(orderLineItem.getQuantity());
 
         }, () -> {
             final String orderLineItemId = this.id + "-" + internalCounter.getAndIncrement();
