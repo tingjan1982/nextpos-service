@@ -60,7 +60,7 @@ public class SalesReportServiceImpl implements SalesReportService {
                 .sum(subTotalToDecimal).as("productSales")
                 .sum("lineItems.quantity").as("salesQuantity")
                 .first("lineItems.productSnapshot.name").as("productName");
-        final SortOperation sortSalesByProduct = Aggregation.sort(Sort.Direction.DESC, "productSales");
+        final SortOperation sortSalesByProduct = Aggregation.sort(Sort.Direction.DESC, "salesQuantity");
 
         final GroupOperation salesByLabel = Aggregation.group("lineItems.productSnapshot.labelId")
                 .sum(subTotalToDecimal).as("productSales")
@@ -134,11 +134,12 @@ public class SalesReportServiceImpl implements SalesReportService {
 
         if (results != null) {
             if (results.hasResult()) {
-                final BigDecimal total = results.getTotalSales().getSalesTotal();
+                final int productsTotalQuantity = results.getSalesByProduct().stream()
+                        .mapToInt(RangedSalesReport.SalesByProduct::getSalesQuantity)
+                        .sum();
 
                 results.getSalesByProduct().forEach(s -> {
-                    final BigDecimal productSales = s.getProductSales();
-                    final BigDecimal percentage = productSales.multiply(BigDecimal.valueOf(100)).divide(total, RoundingMode.UP);
+                    final BigDecimal percentage = new BigDecimal((double) s.getSalesQuantity() / productsTotalQuantity * 100).setScale(2, RoundingMode.UP);
                     s.setPercentage(percentage);
                 });
             }
@@ -193,17 +194,21 @@ public class SalesReportServiceImpl implements SalesReportService {
                 results::setSalesByRange);
 
         if (results.hasResult()) {
-            final BigDecimal salesTotal = results.getTotalSales().getSalesTotal();
+            final int productsTotalQuantity = results.getSalesByProduct().stream()
+                    .mapToInt(RangedSalesReport.SalesByProduct::getSalesQuantity)
+                    .sum();
 
             results.getSalesByProduct().forEach(s -> {
-                final BigDecimal productSales = s.getProductSales();
-                final BigDecimal percentage = productSales.multiply(BigDecimal.valueOf(100)).divide(salesTotal, RoundingMode.UP);
+                final BigDecimal percentage = new BigDecimal((double) s.getSalesQuantity() / productsTotalQuantity * 100).setScale(2, RoundingMode.UP);
                 s.setPercentage(percentage);
             });
 
+            final int labelsTotalQuantity = results.getSalesByLabel().stream()
+                    .mapToInt(RangedSalesReport.SalesByLabel::getSalesQuantity)
+                    .sum();
+
             results.getSalesByLabel().forEach(s -> {
-                final BigDecimal productSales = s.getProductSales();
-                final BigDecimal percentage = productSales.multiply(BigDecimal.valueOf(100)).divide(salesTotal, RoundingMode.UP);
+                final BigDecimal percentage = new BigDecimal((double) s.getSalesQuantity() / labelsTotalQuantity * 100).setScale(2, RoundingMode.UP);
                 s.setPercentage(percentage);
             });
         }
