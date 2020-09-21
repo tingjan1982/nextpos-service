@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Supplier;
 
 @Data
 @RequiredArgsConstructor
@@ -28,9 +29,13 @@ public class OrderLog {
           entries.add(new OrderLogEntry(key, from, to));
      }
 
+     public void addChangeOrderLogEntry(Supplier<OrderLogEntry> func) {
+          entries.add(func.get());
+     }
+
      @Data
      @AllArgsConstructor
-     public static class OrderLogEntry {
+     public static class OrderLogEntry {                                     
 
           private String name;
 

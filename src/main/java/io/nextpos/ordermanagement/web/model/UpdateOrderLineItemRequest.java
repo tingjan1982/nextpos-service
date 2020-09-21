@@ -1,6 +1,5 @@
 package io.nextpos.ordermanagement.web.model;
 
-import io.nextpos.merchandising.data.OfferApplicableObject;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
@@ -9,6 +8,7 @@ import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.shared.aspect.OrderLogChangeObject;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
 import javax.validation.constraints.PositiveOrZero;
@@ -31,7 +31,7 @@ public class UpdateOrderLineItemRequest implements OrderLogChangeObject {
 
     private List<OrderProductOptionRequest> productOptions;
 
-    private BigDecimal overridePrice = BigDecimal.ZERO;
+    private BigDecimal overridePrice;
 
     private ProductLevelOffer.GlobalProductDiscount productDiscount;
 
@@ -57,19 +57,13 @@ public class UpdateOrderLineItemRequest implements OrderLogChangeObject {
         orderLog.addChangeOrderLogEntry("quantity", String.valueOf(lineItemBeforeChange.getQuantity()), String.valueOf(lineItemAfterChange.getQuantity()));
 
         orderLog.addChangeOrderLogEntry("overridePrice",
-                String.valueOf(lineItemBeforeChange.getProductSnapshot().getOverridePrice()),
-                String.valueOf(lineItemAfterChange.getProductSnapshot().getOverridePrice()));
+                StringUtils.defaultString(lineItemBeforeChange.getProductSnapshot().getOverridePriceString(), "-"),
+                StringUtils.defaultString(lineItemAfterChange.getProductSnapshot().getOverridePriceString(), "-"));
 
         orderLog.addChangeOrderLogEntry("subtotal",
                 lineItemBeforeChange.getLineItemSubTotal().toString(),
                 lineItemAfterChange.getLineItemSubTotal().toString());
 
-        final OfferApplicableObject.AppliedOfferInfo offerInfoBeforeChange = lineItemBeforeChange.getAppliedOfferInfo();
-        final OfferApplicableObject.AppliedOfferInfo offerInfoAfterChange = lineItemAfterChange.getAppliedOfferInfo();
-
-        String beforeOffer = offerInfoBeforeChange != null ? offerInfoBeforeChange.getOfferDisplayName() : "N/A";
-        String afterOffer = offerInfoAfterChange != null ? offerInfoAfterChange.getOfferDisplayName() : "N/A";
-
-        orderLog.addChangeOrderLogEntry("discount", beforeOffer, afterOffer);
+        orderLog.addChangeOrderLogEntry(() -> OrderLogProvider.appliedOfferInfoLog(lineItemBeforeChange.getAppliedOfferInfo(), lineItemAfterChange.getAppliedOfferInfo()));
     }
 }

@@ -142,7 +142,7 @@ public class OrderController {
         final Map<String, List<OrdersResponse.LightOrderResponse>> orderResponses = orders.stream()
                 .map(o -> {
                     String tableLayoutId = StringUtils.defaultIfBlank(o.getTableInfo().getTableLayoutId(), "NO_LAYOUT");
-                    String tableLayoutName = StringUtils.defaultIfBlank(o.getTableInfo().getTableLayoutName(), "N/A");
+                    String tableLayoutName = StringUtils.defaultIfBlank(o.getTableInfo().getTableLayoutName(), "No Layout");
 
                     return new OrdersResponse.LightOrderResponse(o.getId(),
                             o.getSerialId(),
@@ -224,7 +224,7 @@ public class OrderController {
     @PostMapping("/{id}/removeDiscount")
     @OrderLogAction
     public OrderResponse removeOrderDiscount(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                            @PathVariable final String id) {
+                                             @PathVariable final String id) {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
@@ -354,15 +354,27 @@ public class OrderController {
         }
 
         return discountValue;
+    }
 
+    @PostMapping("/{id}/lineitems/{lineItemId}/free")
+    @OrderLogAction
+    public OrderResponse freeOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                               @PathVariable String id,
+                                               @PathVariable String lineItemId) {
+
+        final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
+
+        final Order updatedOrder = orderService.updateOrderLineItemPrice(order, lineItemId, BigDecimal.ZERO);
+
+        return toOrderResponse(updatedOrder);
     }
 
     @DeleteMapping("/{id}/lineitems/{lineItemId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @OrderLogAction
     public void deleteOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                             @PathVariable String id,
-                                             @PathVariable String lineItemId) {
+                                    @PathVariable String id,
+                                    @PathVariable String lineItemId) {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
         orderService.deleteOrderLineItem(order, lineItemId);

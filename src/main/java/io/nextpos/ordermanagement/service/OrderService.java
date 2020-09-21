@@ -9,6 +9,7 @@ import io.nextpos.ordermanagement.data.OrderStateChangeBean;
 import io.nextpos.ordermanagement.event.LineItemStateChangeEvent;
 import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +39,8 @@ public interface OrderService {
     OrderStateChange transitionOrderState(Order order, Order.OrderAction orderAction, final Optional<LineItemStateChangeEvent> lineItemStateChangeEvent);
 
     Order updateOrderLineItem(Order order, UpdateLineItem updateLineItem);
+
+    Order updateOrderLineItemPrice(Order order, String lineItemId, BigDecimal overridePrice);
 
     Order deleteOrderLineItem(Order order, String lineItemId);
 

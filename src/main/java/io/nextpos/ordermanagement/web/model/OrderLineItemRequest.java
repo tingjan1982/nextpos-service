@@ -43,7 +43,7 @@ public class OrderLineItemRequest implements OrderLogChangeObject {
 
         final BigDecimal overridePrice = last.getProductSnapshot().getOverridePrice();
 
-        if (overridePrice.compareTo(BigDecimal.ZERO) > 0) {
+        if (overridePrice != null) {
             orderLog.addOrderLogEntry("overridePrice", String.valueOf(overridePrice));
         }
 

@@ -132,7 +132,8 @@ public class OrderTransactionController {
                         .collect(Collectors.toList());
 
                 if (order.getDiscount().compareTo(BigDecimal.ZERO) > 0) {
-                    billLIneItems.add(new OrderTransaction.BillLineItem("discount", 1, order.getDiscount().negate(), order.getDiscount().negate()));
+                    final BigDecimal discount = order.deduceRoundingAmount(() -> order.getDiscount().negate());
+                    billLIneItems.add(new OrderTransaction.BillLineItem("discount", 1, discount, discount));
                 }
 
                 if (order.getServiceCharge().compareTo(BigDecimal.ZERO) > 0) {

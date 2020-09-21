@@ -5,10 +5,12 @@ import io.nextpos.shared.exception.BusinessLogicException;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.util.Assert;
 
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Data
@@ -87,6 +89,19 @@ public class OrderLineItem implements OfferApplicableObject {
         this.getProductSnapshot().setOverridePrice(overridePrice);
         modifiedDate = new Date();
 
+        computeSubTotal();
+    }
+
+    /**
+     * This is designed to perform operations on this line item and associated nested classes
+     * and invoke compute subtotal.
+     */
+    public void performOperation(Consumer<OrderLineItem> updateOperation) {
+        Assert.notNull(updateOperation, "Update operation cannot be empty");
+
+        updateOperation.accept(this);
+
+        modifiedDate = new Date();
         computeSubTotal();
     }
 

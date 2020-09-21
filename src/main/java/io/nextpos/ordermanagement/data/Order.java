@@ -218,7 +218,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
             return false;
         }
 
-        if (orderLineItem.getProductSnapshot().getOverridePrice().compareTo(BigDecimal.ZERO) != 0) {
+        if (orderLineItem.getProductSnapshot().getOverridePrice() != null) {
             return false;
         }
 
@@ -240,6 +240,14 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
             // todo: test removing line item and verify discountTotal is reset.
             updateOperation.accept(orderLineItem);
         }
+
+        computeTotal();
+    }
+
+    public void updateOrderLineItem(String lineItemId, Consumer<OrderLineItem> updateOperation) {
+
+        final OrderLineItem orderLineItem = this.getOrderLineItem(lineItemId);
+        orderLineItem.performOperation(updateOperation);
 
         computeTotal();
     }

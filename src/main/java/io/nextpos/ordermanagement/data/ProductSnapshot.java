@@ -28,8 +28,11 @@ public class ProductSnapshot {
 
     /**
      * This will override the original price and option prices.
+     *
+     * null means there is no override price.
+     * zero means this is a free line item, else, it is an override price.
      */
-    private BigDecimal overridePrice = BigDecimal.ZERO;
+    private BigDecimal overridePrice;
 
     /**
      * Stores the discounted price with options after product level offer computation.
@@ -76,9 +79,13 @@ public class ProductSnapshot {
         this.label = label;
     }
 
+    public String getOverridePriceString() {
+        return overridePrice != null ? overridePrice.toString() : null;
+    }
+
     public BigDecimal getProductPriceWithOptions() {
 
-        if (overridePrice.compareTo(BigDecimal.ZERO) > 0) {
+        if (overridePrice != null) {
             return overridePrice;
         }
 

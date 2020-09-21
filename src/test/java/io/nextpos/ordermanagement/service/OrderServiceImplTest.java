@@ -132,7 +132,7 @@ class OrderServiceImplTest {
         assertThat(orderWithLineItem.getOrderLineItems()).hasSize(1);
 
         final List<ProductSnapshot.ProductOptionSnapshot> productOptions = List.of(DummyObjects.productOptionSnapshot());
-        UpdateLineItem updateLineItem = new UpdateLineItem(orderLineItem.getId(), 5, BigDecimal.ZERO, productOptions, ProductLevelOffer.GlobalProductDiscount.DISCOUNT_AMOUNT_OFF, new BigDecimal(20));
+        UpdateLineItem updateLineItem = new UpdateLineItem(orderLineItem.getId(), 5, null, productOptions, ProductLevelOffer.GlobalProductDiscount.DISCOUNT_AMOUNT_OFF, new BigDecimal(20));
 
         Order updatedOrder = orderService.updateOrderLineItem(orderWithLineItem, updateLineItem);
 
@@ -175,6 +175,11 @@ class OrderServiceImplTest {
             assertThat(li.getDiscountedSubTotal().getAmount()).isEqualByComparingTo("0");
             assertThat(li.getLineItemSubTotal()).isEqualByComparingTo("250");
         }, Index.atIndex(0));
+
+        orderService.updateOrderLineItemPrice(updatedOrder, orderLineItem.getId(), BigDecimal.ZERO);
+
+        assertThat(updatedOrder.getOrderLineItem(orderLineItem.getId()).getLineItemSubTotal()).isEqualByComparingTo("0");
+        assertThat(updatedOrder.getOrderTotal()).isEqualByComparingTo("0");
     }
 
     @Test

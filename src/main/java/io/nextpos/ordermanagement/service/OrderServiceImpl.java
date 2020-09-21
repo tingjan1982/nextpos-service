@@ -21,6 +21,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -129,6 +130,14 @@ public class OrderServiceImpl implements OrderService {
 //        final Query query = new Query(where("orderLineItems.id").is(lineItemId));
 //        final Update update = new Update().set("orderLineItems.$.quantity", updateOrderLineItemRequest.getQuantity());
 //        mongoTemplate.updateFirst(query, update, Order.class);
+
+        return orderRepository.save(order);
+    }
+
+    @Override
+    public Order updateOrderLineItemPrice(Order order, String lineItemId, BigDecimal overridePrice) {
+
+        order.updateOrderLineItem(lineItemId, (lineItem) -> lineItem.getProductSnapshot().setOverridePrice(overridePrice));
 
         return orderRepository.save(order);
     }
