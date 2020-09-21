@@ -356,15 +356,17 @@ public class OrderController {
         return discountValue;
     }
 
-    @PostMapping("/{id}/lineitems/{lineItemId}/free")
+    @PatchMapping("/{id}/lineitems/{lineItemId}/price")
     @OrderLogAction
     public OrderResponse freeOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                               @PathVariable String id,
-                                               @PathVariable String lineItemId) {
+                                           @PathVariable String id,
+                                           @PathVariable String lineItemId,
+                                           @RequestParam("free") boolean free) {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
-        final Order updatedOrder = orderService.updateOrderLineItemPrice(order, lineItemId, BigDecimal.ZERO);
+        final BigDecimal price = free ? BigDecimal.ZERO : null;
+        final Order updatedOrder = orderService.updateOrderLineItemPrice(order, lineItemId, price);
 
         return toOrderResponse(updatedOrder);
     }
