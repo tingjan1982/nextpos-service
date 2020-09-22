@@ -100,6 +100,10 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
     @Override
     public String createElectronicInvoiceXML(Client client, Order order, OrderTransaction orderTransaction) {
 
+        if (!orderTransaction.hasElectronicInvoice()) {
+            return null;
+        }
+
         final Template electronicInvoice;
         try {
             electronicInvoice = freeMarkerCfg.getTemplate("eInvoice.ftl");

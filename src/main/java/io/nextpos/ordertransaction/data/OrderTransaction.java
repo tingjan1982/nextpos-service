@@ -69,6 +69,9 @@ public class OrderTransaction extends MongoBaseObject {
         return (T) paymentDetails.values.get(key);
     }
 
+    public boolean hasElectronicInvoice() {
+        return invoiceDetails.electronicInvoice != null;
+    }
 
     @Override
     public boolean isNew() {
@@ -107,7 +110,6 @@ public class OrderTransaction extends MongoBaseObject {
             return valueType;
         }
     }
-
 
 
     @Data
