@@ -64,5 +64,7 @@ class WorkingAreaServiceImplTest {
         assertThatCode(() -> workingAreaService.getPrinter(savedPrinter.getId())).doesNotThrowAnyException();
 
         assertThat(workingAreaService.getPrinters(client)).hasSize(1);
+
+        assertThatCode(() -> workingAreaService.getPrinterByServiceType(client, Printer.ServiceType.CHECKOUT)).doesNotThrowAnyException();
     }
 }

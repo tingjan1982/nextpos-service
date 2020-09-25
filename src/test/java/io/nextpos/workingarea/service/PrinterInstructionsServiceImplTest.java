@@ -76,9 +76,12 @@ class PrinterInstructionsServiceImplTest {
 
         clientRepository.save(client);
 
+        final Printer printer = new Printer(client, "main printer", "192.168.1.100", Printer.ServiceType.WORKING_AREA);
+        workingAreaService.savePrinter(printer);
+
         workingArea = new WorkingArea(client, "main");
         workingArea.setNoOfPrintCopies(1);
-        workingArea.addPrinter(new Printer(client, "main printer", "192.168.1.100", Printer.ServiceType.WORKING_AREA));
+        workingArea.addPrinter(printer);
         workingAreaService.saveWorkingArea(workingArea);
 
         InvoiceNumberRange invoiceNumberRange = new InvoiceNumberRange(ubn, "1090910", "AG", "00000001", "10000001");

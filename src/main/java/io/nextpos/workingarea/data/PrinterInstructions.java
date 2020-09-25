@@ -4,13 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.List;
-import java.util.Map;
 
 @Data
 @AllArgsConstructor
 public class PrinterInstructions {
 
-    private Map<WorkingArea, PrinterInstruction> printerInstructions;
+    private List<PrinterInstruction> printerInstructions;
 
     @Data
     @AllArgsConstructor

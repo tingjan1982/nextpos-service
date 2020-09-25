@@ -12,7 +12,6 @@ import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.shared.exception.ClientAccountException;
 import io.nextpos.shared.exception.GeneralApplicationException;
-import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.web.ClientResolver;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,9 +66,7 @@ public class ClientController {
     @GetMapping("/{id}")
     public ClientResponse getClient(@PathVariable String id) {
 
-        final Client client = clientService.getClient(id).orElseThrow(() -> {
-            throw new ObjectNotFoundException(id, Client.class);
-        });
+        final Client client = clientService.getClientOrThrows(id);
 
         return toClientResponse(client);
     }

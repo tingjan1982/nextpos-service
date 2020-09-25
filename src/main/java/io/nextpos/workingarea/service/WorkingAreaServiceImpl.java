@@ -61,6 +61,14 @@ public class WorkingAreaServiceImpl implements WorkingAreaService {
     }
 
     @Override
+    public Printer getPrinterByServiceType(Client client, Printer.ServiceType serviceType) {
+
+        return printerRepository.findByClientAndServiceType(client, serviceType).orElseThrow(() -> {
+            throw new ObjectNotFoundException(serviceType.name(), Printer.class);
+        });
+    }
+
+    @Override
     public List<Printer> getPrinters(final Client client) {
         return printerRepository.findAllByClient(client);
     }

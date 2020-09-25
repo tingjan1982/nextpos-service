@@ -149,6 +149,13 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
     }
 
     @Override
+    public Client getClientOrThrows(String clientId) {
+        return this.getClient(clientId).orElseThrow(() -> {
+            throw new ObjectNotFoundException(clientId, Client.class);
+        });
+    }
+
+    @Override
     public Optional<Client> getClientByStatuses(final String clientId, final Client.Status... status) {
         return clientRepository.findByIdAndStatusIn(clientId, status);
     }

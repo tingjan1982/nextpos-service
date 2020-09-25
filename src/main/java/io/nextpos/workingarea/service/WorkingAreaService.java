@@ -20,6 +20,8 @@ public interface WorkingAreaService {
 
     Printer getPrinter(String id);
 
+    Printer getPrinterByServiceType(Client client, Printer.ServiceType serviceType);
+
     List<Printer> getPrinters(Client client);
 
     void deletePrinter(Printer printer);

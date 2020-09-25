@@ -18,6 +18,8 @@ public interface ClientService {
 
     Optional<Client> getClient(String clientId);
 
+    Client getClientOrThrows(String clientId);
+
     Optional<Client> getClientByStatuses(String clientId, Client.Status... status);
 
     Optional<Client> getClientByUsername(String username);

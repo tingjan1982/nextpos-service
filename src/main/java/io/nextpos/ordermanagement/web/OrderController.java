@@ -403,10 +403,11 @@ public class OrderController {
         List<OrderStateChangeResponse.PrinterInstructionResponse> printerInstructions = List.of();
 
         if (orderStateChangeBean.getPrinterInstructions().isPresent()) {
-            printerInstructions = orderStateChangeBean.getPrinterInstructions().get().getPrinterInstructions().values().stream()
-                    .map(pi -> new OrderStateChangeResponse.PrinterInstructionResponse(pi.getPrinterIpAddresses(),
-                            pi.getNoOfPrintCopies(),
-                            pi.getPrintInstruction())).collect(Collectors.toList());
+            printerInstructions = orderStateChangeBean.getPrinterInstructions().get().getPrinterInstructions().stream()
+                    .map(pi -> new OrderStateChangeResponse.PrinterInstructionResponse(
+                            pi.getPrintInstruction(),
+                            pi.getPrinterIpAddresses(),
+                            pi.getNoOfPrintCopies())).collect(Collectors.toList());
         }
 
         return new OrderStateChangeResponse(orderStateChange.getOrderId(),
