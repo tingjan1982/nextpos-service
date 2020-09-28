@@ -1,6 +1,7 @@
 package io.nextpos.product.data;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.workingarea.data.WorkingArea;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -12,4 +13,6 @@ public interface ProductLabelRepository extends JpaRepository<ProductLabel, Stri
     Optional<ProductLabel> findByNameAndClient(String name, Client client);
 
     List<ProductLabel> findAllByClientAndParentLabelIsNull(Client client, Sort sort);
+
+    boolean existsAllByWorkingArea(WorkingArea workingArea);
 }

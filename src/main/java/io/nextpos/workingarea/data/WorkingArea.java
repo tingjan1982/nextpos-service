@@ -4,6 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.ClientObject;
 import lombok.*;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
@@ -45,7 +46,8 @@ public class WorkingArea extends BaseObject implements ClientObject {
     }
 
     public void clearPrinters() {
-        printers.forEach(p -> p.getWorkingAreas().remove(this));
+        // todo: this is workaround because Hibernate's PersistentSet doesn't perform remove(obj) properly.
+        printers.forEach(p -> p.getWorkingAreas().removeIf(next -> StringUtils.equals(next.getId(), this.getId())));
         printers.clear();
     }
 

@@ -1,6 +1,9 @@
 package io.nextpos.workingarea.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.product.data.ProductLabelRepository;
+import io.nextpos.product.data.ProductRepository;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.JpaTransaction;
 import io.nextpos.workingarea.data.Printer;
@@ -9,6 +12,7 @@ import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.data.WorkingAreaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
@@ -20,10 +24,16 @@ public class WorkingAreaServiceImpl implements WorkingAreaService {
 
     private final PrinterRepository printerRepository;
 
+    private final ProductRepository productRepository;
+
+    private final ProductLabelRepository productLabelRepository;
+
     @Autowired
-    public WorkingAreaServiceImpl(final WorkingAreaRepository workingAreaRepository, final PrinterRepository printerRepository) {
+    public WorkingAreaServiceImpl(final WorkingAreaRepository workingAreaRepository, final PrinterRepository printerRepository, ProductRepository productRepository, ProductLabelRepository productLabelRepository) {
         this.workingAreaRepository = workingAreaRepository;
         this.printerRepository = printerRepository;
+        this.productRepository = productRepository;
+        this.productLabelRepository = productLabelRepository;
     }
 
     @Override
@@ -45,7 +55,18 @@ public class WorkingAreaServiceImpl implements WorkingAreaService {
 
     @Override
     public void deleteWorkingArea(final WorkingArea workingArea) {
+
+        if (!checkWorkingAreaDeletable(workingArea)) {
+            throw new BusinessLogicException("message.workingAreaInUse", "Working area is used by at least one product or category.");
+        }
+
+        workingArea.clearPrinters();
+
         workingAreaRepository.delete(workingArea);
+    }
+
+    private boolean checkWorkingAreaDeletable(WorkingArea workingArea) {
+        return !productRepository.existsAllByWorkingArea(workingArea) && !productLabelRepository.existsAllByWorkingArea(workingArea);
     }
 
     @Override
@@ -75,6 +96,11 @@ public class WorkingAreaServiceImpl implements WorkingAreaService {
 
     @Override
     public void deletePrinter(final Printer printer) {
+
+        if (!CollectionUtils.isEmpty(printer.getWorkingAreas())) {
+            throw new BusinessLogicException("message.printerHasWorkingArea", "Printer is associated with at least 1 working area");
+        }
+
         printerRepository.delete(printer);
     }
 }

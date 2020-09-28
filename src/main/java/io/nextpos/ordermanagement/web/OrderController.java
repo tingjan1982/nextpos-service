@@ -358,10 +358,10 @@ public class OrderController {
 
     @PatchMapping("/{id}/lineitems/{lineItemId}/price")
     @OrderLogAction
-    public OrderResponse freeOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                           @PathVariable String id,
-                                           @PathVariable String lineItemId,
-                                           @RequestParam("free") boolean free) {
+    public OrderResponse updateOrderLineItemPrice(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                  @PathVariable String id,
+                                                  @PathVariable String lineItemId,
+                                                  @RequestParam("free") boolean free) {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 

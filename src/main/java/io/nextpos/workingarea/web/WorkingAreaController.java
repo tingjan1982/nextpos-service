@@ -8,6 +8,7 @@ import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
 import io.nextpos.workingarea.web.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,6 +38,26 @@ public class WorkingAreaController {
         final WorkingArea savedWorkingArea = workingAreaService.saveWorkingArea(workingArea);
 
         return toWorkingAreaResponse(savedWorkingArea);
+    }
+
+    /**
+     * First persist the WorkingArea object so the subsequent adding printer to its association would work:
+     * <p>
+     * PersistentObjectException: detached entity passed to persist: io.nextpos.workingarea.data.Printer] with root cause
+     */
+    private WorkingArea fromWorkingAreaRequest(final Client client, final WorkingAreaRequest workingAreaRequest) {
+        final WorkingArea workingArea = new WorkingArea(client, workingAreaRequest.getName());
+        workingArea.setNoOfPrintCopies(workingAreaRequest.getNoOfPrintCopies());
+
+        workingAreaService.saveWorkingArea(workingArea);
+
+        if (!CollectionUtils.isEmpty(workingAreaRequest.getPrinterIds())) {
+            workingAreaRequest.getPrinterIds().stream()
+                    .map(id -> clientObjectOwnershipService.checkOwnership(workingArea.getClient(), () -> workingAreaService.getPrinter(id)))
+                    .forEach(workingArea::addPrinter);
+        }
+
+        return workingArea;
     }
 
     @GetMapping("/workingareas/{id}")
@@ -81,26 +102,6 @@ public class WorkingAreaController {
         }
     }
 
-    /**
-     * First persist the WorkingArea object so the subsequent adding printer to its association would work:
-     * <p>
-     * PersistentObjectException: detached entity passed to persist: io.nextpos.workingarea.data.Printer] with root cause
-     */
-    private WorkingArea fromWorkingAreaRequest(final Client client, final WorkingAreaRequest workingAreaRequest) {
-        final WorkingArea workingArea = new WorkingArea(client, workingAreaRequest.getName());
-        workingArea.setNoOfPrintCopies(workingAreaRequest.getNoOfPrintCopies());
-
-        workingAreaService.saveWorkingArea(workingArea);
-
-        if (!CollectionUtils.isEmpty(workingAreaRequest.getPrinterIds())) {
-            workingAreaRequest.getPrinterIds().stream()
-                    .map(id -> clientObjectOwnershipService.checkOwnership(workingArea.getClient(), () -> workingAreaService.getPrinter(id)))
-                    .forEach(workingArea::addPrinter);
-        }
-
-        return workingArea;
-    }
-
     private WorkingAreaResponse toWorkingAreaResponse(final WorkingArea savedWorkingArea) {
 
         final List<String> printerIds = savedWorkingArea.getPrinters().stream()
@@ -112,6 +113,16 @@ public class WorkingAreaController {
                 savedWorkingArea.getNoOfPrintCopies(),
                 printerIds,
                 printerResponses);
+    }
+
+    @DeleteMapping("/workingareas/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteWorkingArea(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                  @PathVariable String id) {
+
+        final WorkingArea workingArea = clientObjectOwnershipService.checkOwnership(client, () -> workingAreaService.getWorkingArea(id));
+
+        workingAreaService.deleteWorkingArea(workingArea);
     }
 
     @PostMapping("/printers")
@@ -181,4 +192,15 @@ public class WorkingAreaController {
     private PrinterResponse toPrinterResponse(final Printer savedPrinter) {
         return new PrinterResponse(savedPrinter.getId(), savedPrinter.getName(), savedPrinter.getIpAddress(), savedPrinter.getServiceType());
     }
+
+    @DeleteMapping("/printers/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deletePrinter(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                              @PathVariable String id) {
+
+        final Printer printer = clientObjectOwnershipService.checkOwnership(client, () -> workingAreaService.getPrinter(id));
+
+        workingAreaService.deletePrinter(printer);
+    }
+
 }

@@ -6,10 +6,12 @@ import io.nextpos.ordermanagement.data.Shift;
 import io.nextpos.reporting.data.DateParameter;
 import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.shared.exception.BusinessLogicException;
+import io.nextpos.shared.util.DateTimeUtil;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Date;
 
 public class ZonedDateRangeBuilder {
 
@@ -63,12 +65,15 @@ public class ZonedDateRangeBuilder {
                 break;
 
             case SHIFT:
-                if (shift == null) {
-                    throw new BusinessLogicException("A valid shift needs to be provided");
+                final ZoneId zoneId = client.getZoneId();
+
+                if (shift != null) {
+                    dateParameter = new DateParameter(shift.getStart().toLocalDateTime(zoneId), shift.getEnd().toLocalDateTime(zoneId));
+                } else {
+                    final LocalDateTime now = DateTimeUtil.toLocalDateTime(zoneId, new Date());
+                    dateParameter = new DateParameter(now, now);
                 }
 
-                final ZoneId zoneId = client.getZoneId();
-                dateParameter = new DateParameter(shift.getStart().toLocalDateTime(zoneId), shift.getEnd().toLocalDateTime(zoneId));
                 break;
 
             case CUSTOM:

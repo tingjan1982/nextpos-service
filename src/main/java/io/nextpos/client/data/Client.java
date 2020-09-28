@@ -64,6 +64,11 @@ public class Client extends BaseObject {
     @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    private List<ClientStatus> clientStatuses;
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<UserRole> userRoles;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)

@@ -137,7 +137,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order updateOrderLineItemPrice(Order order, String lineItemId, BigDecimal overridePrice) {
 
-        order.updateOrderLineItem(lineItemId, (lineItem) -> lineItem.getProductSnapshot().setOverridePrice(overridePrice));
+        order.updateOrderLineItem(lineItemId, (lineItem) -> {
+            lineItem.removeOffer();
+            lineItem.getProductSnapshot().setOverridePrice(overridePrice);
+        });
 
         return orderRepository.save(order);
     }
