@@ -2,7 +2,6 @@ package io.nextpos.workingarea.service;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
-import io.micrometer.core.instrument.util.StringUtils;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.ordermanagement.data.Order;
@@ -13,6 +12,7 @@ import io.nextpos.shared.service.annotation.JpaTransaction;
 import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.PrinterInstructions;
 import io.nextpos.workingarea.data.WorkingArea;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,11 +79,11 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
             orderToWorkingArea.process(Map.of("order", order, "lineItems", lineItems), writer);
             final String printInstruction = writer.toString();
 
-            final WorkingArea workingArea = workingAreaService.getWorkingArea(workingAreaId);
+            WorkingArea workingArea = null;
             List<String> printerIps = new ArrayList<>();
             int noOfPrintCopies = 1;
 
-            if (workingArea != null && !CollectionUtils.isEmpty(workingArea.getPrinters())) {
+            if (!NO_WORKING_AREA.equals(workingAreaId) && (workingArea = workingAreaService.getWorkingArea(workingAreaId)) != null && !CollectionUtils.isEmpty(workingArea.getPrinters())) {
                 workingArea.getPrinters().stream()
                         .map(Printer::getIpAddress)
                         .forEach(printerIps::add);
