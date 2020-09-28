@@ -28,6 +28,9 @@ public class TableLayoutServiceImpl implements TableLayoutService {
 
     @Override
     public TableLayout saveTableLayout(final TableLayout tableLayout) {
+
+        tableLayout.checkForDuplicateTableName();
+
         return tableLayoutRepository.save(tableLayout);
     }
 

@@ -1,6 +1,7 @@
 package io.nextpos.tablelayout.data;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.shared.exception.ObjectAlreadyExistsException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.ClientObject;
@@ -11,7 +12,9 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Entity(name = "client_table_layout")
@@ -67,6 +70,17 @@ public class TableLayout extends BaseObject implements ClientObject {
 
         return tables.stream().filter(t -> t.getId().equals(tableId)).findFirst().orElseThrow(() -> {
             throw new ObjectNotFoundException(tableId, TableDetails.class);
+        });
+    }
+
+    public void checkForDuplicateTableName() {
+
+        Set<String> tableNames = new HashSet<>();
+
+        tables.forEach(td -> {
+            if (!tableNames.add(td.getTableName())) {
+                throw new ObjectAlreadyExistsException(td.getTableName(), TableDetails.class);
+            }
         });
     }
 
