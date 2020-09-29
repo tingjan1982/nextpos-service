@@ -18,26 +18,22 @@
                 <text>${electronicInvoice.invoiceNumber}&#10;</text>
                 <text align="left"/>
                 <text width="1" height="1"/>
-                <text>${electronicInvoice.invoiceCreatedDate?datetime}&#10;</text>
+                <text>${electronicInvoice.invoiceCreatedDate?string('MM/dd/yyyy HH:mm:ss')}&#10;</text>
                 <text>隨機碼:${electronicInvoice.randomNumber}</text>
                 <text x="210"/>
                 <text>總計:${orderTransaction.settleAmount}&#10;</text>
                 <text>賣方:${client.attributes["UBN"]!"NA"}&#10;</text>
-                <barcode type="code39" hri="none" font="font_a" width="2" height="45">${electronicInvoice.barcodeContent}</barcode>
+                <barcode type="code39" align="center" width="1" height="45">${electronicInvoice.barcodeContent}</barcode>
                 <page>
                     <area x="0" y="0" width="420" height="220"/>
                     <direction dir="left_to_right"/>
-                    <text x="20"/>
-                    <symbol type="qrcode_model_2" level="level_l" width="4" height="0" size="0">
-                        ${electronicInvoice.qrCode1Content}
-                    </symbol>
+                    <text x="5"/>
+                    <symbol type="qrcode_model_2" level="level_l" width="4">${electronicInvoice.qrCode1Content}</symbol>
                     <text x="230"/>
-                    <symbol type="qrcode_model_1" level="level_l" width="4" height="0" size="0">
-                        ${electronicInvoice.qrCode2Content}
-                    </symbol>
+                    <symbol type="qrcode_model_2" level="level_l" width="4">${electronicInvoice.qrCode2Content}</symbol>
                 </page>
-
-                <text>卡號：${orderTransaction.paymentDetails.values['LAST_FOUR_DIGITS']!"NA"}&#10;</text>
+                <text align="left"/>
+                <text>卡號：${orderTransaction.paymentDetails.values['LAST_FOUR_DIGITS']!""}&#10;</text>
                 <text>訂單號碼：${order.serialId!"NA"}&#10;</text>
                 <cut type="feed"/>
             </epos-print>

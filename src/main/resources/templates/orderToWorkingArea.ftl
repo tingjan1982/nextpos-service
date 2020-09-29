@@ -10,18 +10,19 @@
             <text width="2" height="2"/>
             <text linespc="45"/>
             <text>工作單&#10;</text>
-            <text linespc="35"/>
+            <feed line="1"/>
             <text align="left"/>
             <text width="1" height="1"/>
             <text linespc="35"/>
             <text>${order.createdDate?string('MM/dd/yyyy HH:mm:ss')!"NA"}&#10;</text>
-            <text>訂單: ${order.id!"NA"}&#10;</text>
-            <text>桌號: ${order.tableId!"NA"}&#10;</text>
+            <text>訂單: ${order.serialId!"NA"}&#10;</text>
+            <text>桌號: ${order.tableInfo.displayName!"外帶"}&#10;</text>
             <text linespc="65"/>
             <#list lineItems as li>
+                <text width="2" height="2"/>
                 <text>${li.productSnapshot.name}</text><text x="250">${li.quantity}&#10;</text>
                 <#list li.productSnapshot.productOptions as option>
-                    <text>${option.optionName}: ${option.optionValue}&#10;</text>
+                    <text> &gt; ${option.optionName}: ${option.optionValue}&#10;</text>
                 </#list>
             </#list>
             <text linespc="35"/>

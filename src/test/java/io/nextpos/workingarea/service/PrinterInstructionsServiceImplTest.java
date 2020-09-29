@@ -69,7 +69,7 @@ class PrinterInstructionsServiceImplTest {
     @BeforeEach
     void prepare() {
         client = DummyObjects.dummyClient();
-        final String ubn = "22640971";
+        final String ubn = "83515813";
         client.addAttribute(Client.ClientAttributes.UBN.name(), ubn);
         client.addAttribute(Client.ClientAttributes.ADDRESS.name(), "台北市大安區建國南路二段");
         client.addAttribute(Client.ClientAttributes.AES_KEY.name(), "41BFE9D500D25491650E8B84C3EA3B3C");
@@ -107,7 +107,7 @@ class PrinterInstructionsServiceImplTest {
 
         final PrinterInstructions orderToWorkingArea = printerInstructionService.createOrderToWorkingArea(order);
 
-        System.out.println(orderToWorkingArea);
+        LOGGER.info("{}", orderToWorkingArea);
     }
 
 
