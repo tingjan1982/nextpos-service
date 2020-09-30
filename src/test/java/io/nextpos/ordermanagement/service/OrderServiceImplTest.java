@@ -253,12 +253,21 @@ class OrderServiceImplTest {
     @Test
     void generateSerialId() {
 
-        final String idPrefix = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        final String todayIdPrefix = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
         
-        assertThat(orderService.generateSerialId(client.getId())).isEqualTo("%s-%s", idPrefix, 1);
-        assertThat(orderService.generateSerialId(client.getId())).isEqualTo("%s-%s", idPrefix, 2);
-        assertThat(orderService.generateSerialId(client.getId())).isEqualTo("%s-%s", idPrefix, 3);
+        assertThat(orderService.generateSerialId(client.getId())).isEqualTo("%s-%s", todayIdPrefix, 1);
+        assertThat(orderService.generateSerialId(client.getId())).isEqualTo("%s-%s", todayIdPrefix, 2);
+        assertThat(orderService.generateSerialId(client.getId())).isEqualTo("%s-%s", todayIdPrefix, 3);
 
-        assertThat(orderIdCounterRepository.findAll()).hasSize(1);
+        final OrderIdCounter shouldBeSaved = new OrderIdCounter(client.getId(), todayIdPrefix, 1);
+        orderIdCounterRepository.save(shouldBeSaved);
+
+        assertThat(shouldBeSaved.getId()).isNotNull();
+
+        assertThat(orderService.generateSerialId(client.getId())).isEqualTo("%s-%s", todayIdPrefix, 4);
+
+        assertThat(orderIdCounterRepository.findAll()).hasSize(2);
+        assertThat(orderIdCounterRepository.findAll().get(0).getId()).isNotNull();
+
     }
 }

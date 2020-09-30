@@ -12,8 +12,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.data.mongodb.MongoCollectionUtils;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.jdbc.support.JdbcUtils;
+import org.springframework.jdbc.support.MetaDataAccessException;
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
 import org.springframework.stereotype.Component;
 
@@ -45,32 +50,24 @@ public class BootstrapConfig {
 
     private final SettingsConfigurationProperties settingsProperties;
 
+    private final MongoTemplate mongoTemplate;
+
     private final DataSource dataSource;
 
     @Autowired
-    public BootstrapConfig(final ClientService clientService, final SettingsService settingsService, final SettingsConfigurationProperties settingsProperties, final DataSource dataSource) {
+    public BootstrapConfig(final ClientService clientService, final SettingsService settingsService, final SettingsConfigurationProperties settingsProperties, MongoTemplate mongoTemplate, final DataSource dataSource) {
         this.clientService = clientService;
         this.settingsService = settingsService;
         this.settingsProperties = settingsProperties;
+        this.mongoTemplate = mongoTemplate;
         this.dataSource = dataSource;
     }
 
     @PostConstruct
     public void bootstrap() throws Exception {
 
-        LOGGER.debug("JPA tables");
-
-        JdbcUtils.extractDatabaseMetaData(dataSource, metadata -> {
-            try (ResultSet rs = metadata.getTables(null, null, null, new String[]{"TABLE"})) {
-                List<String> l = new ArrayList<>();
-                while (rs.next()) {
-                    final String tableName = rs.getString(3);
-                    LOGGER.debug("Table: {}", tableName);
-                    l.add(tableName);
-                }
-                return l;
-            }
-        });
+        createMongoTables();
+        logJpaTables();
 
         Client defaultClient = clientService.getDefaultClient();
 
@@ -87,7 +84,7 @@ public class BootstrapConfig {
         settingsService.findCountrySettings(DEFAULT_COUNTRY_CODE).ifPresentOrElse(settings -> {
             settings.setDecimalPlaces(0);
             settings.setRoundingMode(RoundingMode.HALF_UP);
-
+            
             LOGGER.info("Updating default country settings: {}", settings);
             settingsService.saveCountrySettings(settings);
 
@@ -102,6 +99,40 @@ public class BootstrapConfig {
 
             LOGGER.info("Creating default country settings: {}", defaultCountrySettings);
             settingsService.saveCountrySettings(defaultCountrySettings);
+        });
+    }
+
+    private void createMongoTables() {
+
+        final ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
+        scanner.addIncludeFilter(new AnnotationTypeFilter(org.springframework.data.mongodb.core.mapping.Document.class));
+
+        scanner.findCandidateComponents("io.nextpos").forEach(b -> {
+            try {
+                final String collection = MongoCollectionUtils.getPreferredCollectionName(Class.forName(b.getBeanClassName()));
+
+                if (!mongoTemplate.collectionExists(collection)) {
+                    mongoTemplate.createCollection(collection);
+                }
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException("Error while creating mongo tables: " + e.getMessage(), e);
+            }
+        });
+    }
+
+    private void logJpaTables() throws MetaDataAccessException {
+        LOGGER.debug("JPA tables");
+
+        JdbcUtils.extractDatabaseMetaData(dataSource, metadata -> {
+            try (ResultSet rs = metadata.getTables(null, null, null, new String[]{"TABLE"})) {
+                List<String> l = new ArrayList<>();
+                while (rs.next()) {
+                    final String tableName = rs.getString(3);
+                    LOGGER.debug("Table: {}", tableName);
+                    l.add(tableName);
+                }
+                return l;
+            }
         });
     }
 

@@ -265,7 +265,7 @@ public class OrderServiceImpl implements OrderService {
     public String generateSerialId(String clientId) {
 
         final String orderIdPrefix = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        OrderIdCounter orderIdCounter = mongoTemplate.findAndModify(Query.query(where("id").is(clientId).and("orderIdPrefix").is(orderIdPrefix)),
+        OrderIdCounter orderIdCounter = mongoTemplate.findAndModify(Query.query(where("clientId").is(clientId).and("orderIdPrefix").is(orderIdPrefix)),
                 new Update().inc("counter", 1L),
                 FindAndModifyOptions.options().returnNew(true),
                 OrderIdCounter.class);
