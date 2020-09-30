@@ -5,6 +5,7 @@ import io.nextpos.product.data.*;
 import io.nextpos.shared.exception.ObjectAlreadyExistsException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.JpaTransaction;
+import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,11 +36,12 @@ public class ProductLabelServiceImpl implements ProductLabelService {
     @Override
     public ProductLabel saveProductLabel(final ProductLabel productLabel) {
 
-        productLabelRepository.findByNameAndClient(productLabel.getName(), productLabel.getClient()).ifPresent(l -> {
-            throw new ObjectAlreadyExistsException(productLabel.getName(), ProductLabel.class);
-        });
+        try {
+            return productLabelRepository.save(productLabel);
 
-        return productLabelRepository.save(productLabel);
+        } catch (ConstraintViolationException e) {
+            throw new ObjectAlreadyExistsException(productLabel.getId(), ProductLabel.class);
+        }
     }
 
     @Override

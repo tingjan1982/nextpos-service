@@ -12,12 +12,15 @@ import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.MongoTransaction;
-import io.nextpos.storage.service.DistributedCounterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -30,6 +33,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+
 @Service
 @MongoTransaction
 public class OrderServiceImpl implements OrderService {
@@ -40,21 +45,21 @@ public class OrderServiceImpl implements OrderService {
 
     private final MerchandisingService merchandisingService;
 
-    private final DistributedCounterService distributedCounterService;
-
     private final OrderRepository orderRepository;
 
     private final OrderStateChangeRepository orderStateChangeRepository;
 
+    private final MongoTemplate mongoTemplate;
+
     private final ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
-    public OrderServiceImpl(final ShiftService shiftService, final MerchandisingService merchandisingService, final DistributedCounterService distributedCounterService, final OrderRepository orderRepository, final OrderStateChangeRepository orderStateChangeRepository, final ApplicationEventPublisher applicationEventPublisher) {
+    public OrderServiceImpl(final ShiftService shiftService, final MerchandisingService merchandisingService, final OrderRepository orderRepository, final OrderStateChangeRepository orderStateChangeRepository, MongoTemplate mongoTemplate, final ApplicationEventPublisher applicationEventPublisher) {
         this.shiftService = shiftService;
         this.merchandisingService = merchandisingService;
-        this.distributedCounterService = distributedCounterService;
         this.orderRepository = orderRepository;
         this.orderStateChangeRepository = orderStateChangeRepository;
+        this.mongoTemplate = mongoTemplate;
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
@@ -258,7 +263,18 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public String generateSerialId(String clientId) {
-        final int counter = distributedCounterService.getNextRotatingCounter(clientId);
-        return LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE) + "-" + counter;
+
+        final String orderIdPrefix = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        OrderIdCounter orderIdCounter = mongoTemplate.findAndModify(Query.query(where("id").is(clientId).and("orderIdPrefix").is(orderIdPrefix)),
+                new Update().inc("counter", 1L),
+                FindAndModifyOptions.options().returnNew(true),
+                OrderIdCounter.class);
+
+        if (orderIdCounter == null) {
+            orderIdCounter = new OrderIdCounter(clientId, orderIdPrefix, 1);
+            mongoTemplate.save(orderIdCounter);
+        }
+
+        return orderIdCounter.getOrderId();
     }
 }

@@ -5,10 +5,7 @@ import io.nextpos.client.service.ClientService;
 import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.merchandising.data.ProductLevelOffer;
-import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.OrderLineItem;
-import io.nextpos.ordermanagement.data.OrderSettings;
-import io.nextpos.ordermanagement.data.ProductSnapshot;
+import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
 import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.shared.DummyObjects;
@@ -25,7 +22,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
@@ -48,6 +47,9 @@ class OrderServiceImplTest {
 
     @Autowired
     private TableLayoutService tableLayoutService;
+
+    @Autowired
+    private OrderIdCounterRepository orderIdCounterRepository;
 
     private Client client;
 
@@ -246,5 +248,17 @@ class OrderServiceImplTest {
         order.computeTotal();
 
         assertThat(order.getOrderTotal()).isEqualTo("11");
+    }
+
+    @Test
+    void generateSerialId() {
+
+        final String idPrefix = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        
+        assertThat(orderService.generateSerialId(client.getId())).isEqualTo("%s-%s", idPrefix, 1);
+        assertThat(orderService.generateSerialId(client.getId())).isEqualTo("%s-%s", idPrefix, 2);
+        assertThat(orderService.generateSerialId(client.getId())).isEqualTo("%s-%s", idPrefix, 3);
+
+        assertThat(orderIdCounterRepository.findAll()).hasSize(1);
     }
 }

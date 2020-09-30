@@ -1,11 +1,13 @@
 package io.nextpos.tablelayout.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.shared.exception.ObjectAlreadyExistsException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.JpaTransaction;
 import io.nextpos.tablelayout.data.TableDetailsRepository;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.data.TableLayoutRepository;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,9 +31,13 @@ public class TableLayoutServiceImpl implements TableLayoutService {
     @Override
     public TableLayout saveTableLayout(final TableLayout tableLayout) {
 
-        tableLayout.checkForDuplicateTableName();
+        try {
+            tableLayout.checkForDuplicateTableName();
+            return tableLayoutRepository.save(tableLayout);
 
-        return tableLayoutRepository.save(tableLayout);
+        } catch (ConstraintViolationException e) {
+            throw new ObjectAlreadyExistsException(tableLayout.getId(), TableLayout.class);
+        }
     }
 
     @Override
