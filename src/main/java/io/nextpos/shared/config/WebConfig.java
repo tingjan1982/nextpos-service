@@ -33,6 +33,7 @@ public class WebConfig {
                 "/clients/me/users/*",
                 "/clientstatus/*",
                 "/orders/*",
+                "/ordersets/*",
                 "/shifts/*",
                 "/timecards/*",
                 "/reporting/*",

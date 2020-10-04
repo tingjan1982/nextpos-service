@@ -1,7 +1,9 @@
 package io.nextpos.ordermanagement.event;
 
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderSet;
 import io.nextpos.ordermanagement.data.OrderStateChangeBean;
+import io.nextpos.ordermanagement.service.OrderSetService;
 import io.nextpos.workingarea.data.PrinterInstructions;
 import io.nextpos.workingarea.service.PrinterInstructionService;
 import org.slf4j.Logger;
@@ -17,9 +19,12 @@ public class PostOrderStateChangeListener {
 
     private final PrinterInstructionService printerInstructionService;
 
+    private final OrderSetService orderSetService;
+
     @Autowired
-    public PostOrderStateChangeListener(final PrinterInstructionService printerInstructionService) {
+    public PostOrderStateChangeListener(final PrinterInstructionService printerInstructionService, OrderSetService orderSetService) {
         this.printerInstructionService = printerInstructionService;
+        this.orderSetService = orderSetService;
     }
 
     @EventListener
@@ -36,6 +41,16 @@ public class PostOrderStateChangeListener {
 
             final PrinterInstructions printInstructions = printerInstructionService.createOrderToWorkingArea(order);
             orderStateChangeBean.setPrinterInstructions(printInstructions);
+        }
+
+        if (order.getState() == Order.OrderState.COMPLETED) {
+            if (order.isOrderSetOrder()) {
+                final OrderSet orderSet = orderSetService.getOrderSetByOrderId(order.getId());
+
+                LOGGER.info("Completing the order set {}", orderSet);
+
+                orderSetService.completeOrderSet(orderSet);
+            }
         }
 
         postStateChangeEvent.getFuture().complete(orderStateChangeBean);

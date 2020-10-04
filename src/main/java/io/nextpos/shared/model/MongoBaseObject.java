@@ -22,4 +22,9 @@ public abstract class MongoBaseObject implements Persistable<String> {
     @Temporal(TemporalType.TIMESTAMP)
     @LastModifiedDate
     private Date modifiedDate;
+
+    @Override
+    public boolean isNew() {
+        return getId() == null;
+    }
 }

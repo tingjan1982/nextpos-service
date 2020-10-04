@@ -66,7 +66,7 @@ public class BootstrapConfig {
     @PostConstruct
     public void bootstrap() throws Exception {
 
-        createMongoTables();
+        //createMongoTables();
         logJpaTables();
 
         Client defaultClient = clientService.getDefaultClient();

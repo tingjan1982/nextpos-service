@@ -22,7 +22,6 @@ import org.awaitility.Awaitility;
 import org.awaitility.Duration;
 import org.bson.Document;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.mongo.MongoProperties;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoProperties;
@@ -33,6 +32,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.data.mongodb.MongoCollectionUtils;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -164,7 +164,7 @@ public class TestMockConfig {
         return new MongoInitializer(mongoClient, mongoTemplate);
     }
 
-    static class MongoInitializer implements InitializingBean {
+    static class MongoInitializer {
 
         private final MongoClient mongoClient;
 
@@ -178,7 +178,7 @@ public class TestMockConfig {
         /**
          * Create collections dynamically.
          */
-        @Override
+        @PostConstruct
         public void afterPropertiesSet() {
 
             final ServerAddress address = mongoClient.getClusterDescription().getServerDescriptions().get(0).getAddress();

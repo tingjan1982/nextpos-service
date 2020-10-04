@@ -45,6 +45,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     public static final String ORIGINAL_ORDER_SETTINGS = "originalOrderSettings";
 
+    public static final String ORDER_SET_ORDER = "orderSetOrder";
+
     @Id
     private String id;
 
@@ -260,6 +262,12 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         computeTotal();
     }
 
+    public void deleteAllOrderLineItems() {
+        orderLineItems.clear();
+
+        computeTotal();
+    }
+
     public OrderLineItem getOrderLineItem(String lineItemId) {
         return orderLineItems.stream()
                 .filter(li -> StringUtils.equals(li.getId(), lineItemId))
@@ -380,6 +388,14 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     public void addOrderLog(OrderLog orderLog) {
         orderLogs.add(orderLog);
+    }
+
+    public void markOrderSetOrder() {
+        this.addMetadata(ORDER_SET_ORDER, Boolean.TRUE);
+    }
+
+    public boolean isOrderSetOrder() {
+        return getMetadata(ORDER_SET_ORDER) != null;
     }
 
     public Order copy() {
