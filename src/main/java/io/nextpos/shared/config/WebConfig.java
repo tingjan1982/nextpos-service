@@ -29,6 +29,7 @@ public class WebConfig {
                 "/productoptions/*",
                 "/labels/*",
                 "/clients/me",
+                "/clients/me/aeskey",
                 "/clients/me/settings/*",
                 "/clients/me/users/*",
                 "/clientstatus/*",
@@ -44,6 +45,7 @@ public class WebConfig {
                 "/announcements/*",
                 "/roles/*",
                 "/offers/*",
+                "/einvoices/*",
                 "/invoiceNumbers/*");
 
         return registrationBean;

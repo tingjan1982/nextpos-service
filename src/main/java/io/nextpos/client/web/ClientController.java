@@ -6,6 +6,7 @@ import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientActivationService;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.client.web.model.*;
+import io.nextpos.einvoice.common.encryption.EncryptionService;
 import io.nextpos.roles.data.UserRole;
 import io.nextpos.roles.service.UserRoleService;
 import io.nextpos.shared.auth.OAuth2Helper;
@@ -35,13 +36,16 @@ public class ClientController {
 
     private final ClientActivationService clientActivationService;
 
+    private final EncryptionService encryptionService;
+
     private final OAuth2Helper oAuth2Helper;
 
     @Autowired
-    public ClientController(final ClientService clientService, final UserRoleService userRoleService, final ClientActivationService clientActivationService, final OAuth2Helper oAuth2Helper) {
+    public ClientController(final ClientService clientService, final UserRoleService userRoleService, final ClientActivationService clientActivationService, EncryptionService encryptionService, final OAuth2Helper oAuth2Helper) {
         this.clientService = clientService;
         this.userRoleService = userRoleService;
         this.clientActivationService = clientActivationService;
+        this.encryptionService = encryptionService;
         this.oAuth2Helper = oAuth2Helper;
     }
 
@@ -55,6 +59,21 @@ public class ClientController {
 
         return toClientResponse(createdClient);
 
+    }
+
+    private Client fromClientRequest(ClientRequest clientRequest) {
+
+        final Client client = new Client(clientRequest.getClientName().trim(),
+                clientRequest.getUsername().trim(),
+                clientRequest.getMasterPassword(),
+                BootstrapConfig.DEFAULT_COUNTRY_CODE,
+                BootstrapConfig.DEFAULT_TIME_ZONE);
+
+        if (!CollectionUtils.isEmpty(clientRequest.getAttributes())) {
+            clientRequest.getAttributes().forEach(client::addAttribute);
+        }
+
+        return client;
     }
 
     @GetMapping("/me")
@@ -97,6 +116,17 @@ public class ClientController {
         }
     }
 
+    @PostMapping("/me/aeskey")
+    public ClientResponse generateAESKey(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                         @RequestBody String password) {
+
+        final String aesKey = encryptionService.generateAESKey(password);
+        client.addAttribute(Client.ClientAttributes.AES_KEY.name(), aesKey);
+        clientService.saveClient(client);
+
+        return toClientResponse(client);
+    }
+
     @PostMapping("/{id}/deactivate")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void deactivateClient(@PathVariable String id) {
@@ -129,21 +159,6 @@ public class ClientController {
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
     public void hardDeleteClient(@PathVariable String id) {
         clientService.deleteClient(id);
-    }
-
-    private Client fromClientRequest(ClientRequest clientRequest) {
-
-        final Client client = new Client(clientRequest.getClientName().trim(),
-                clientRequest.getUsername().trim(),
-                clientRequest.getMasterPassword(),
-                BootstrapConfig.DEFAULT_COUNTRY_CODE,
-                BootstrapConfig.DEFAULT_TIME_ZONE);
-
-        if (!CollectionUtils.isEmpty(clientRequest.getAttributes())) {
-            clientRequest.getAttributes().forEach(client::addAttribute);
-        }
-
-        return client;
     }
 
     private ClientResponse toClientResponse(final Client client) {
