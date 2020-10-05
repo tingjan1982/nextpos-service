@@ -25,6 +25,8 @@ public class OrderTransaction extends MongoBaseObject {
 
     private String clientId;
 
+    private OrderTransactionStatus status;
+
     private BigDecimal orderTotal;
 
     private BigDecimal settleAmount;
@@ -45,6 +47,7 @@ public class OrderTransaction extends MongoBaseObject {
 
         this.orderId = orderId;
         this.clientId = clientId;
+        this.status = OrderTransactionStatus.CREATED;
         this.orderTotal = orderTotal;
         this.settleAmount = settleAmount;
         this.paymentDetails = new PaymentDetails(paymentMethod);
@@ -76,6 +79,12 @@ public class OrderTransaction extends MongoBaseObject {
     @Override
     public boolean isNew() {
         return id == null;
+    }
+
+    public enum OrderTransactionStatus {
+
+        CREATED,
+        CANCELLED
     }
 
     @Data

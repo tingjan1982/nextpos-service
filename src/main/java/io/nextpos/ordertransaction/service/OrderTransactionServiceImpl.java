@@ -1,6 +1,5 @@
 package io.nextpos.ordertransaction.service;
 
-import freemarker.template.Configuration;
 import io.nextpos.client.data.Client;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.ordermanagement.data.Order;
@@ -30,14 +29,11 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
 
     private final OrderService orderService;
 
-    private final Configuration freeMarkerCfg;
-
     @Autowired
-    public OrderTransactionServiceImpl(final ElectronicInvoiceService electronicInvoiceService, final OrderTransactionRepository orderTransactionRepository, final OrderService orderService, final Configuration freeMarkerCfg) {
+    public OrderTransactionServiceImpl(final ElectronicInvoiceService electronicInvoiceService, final OrderTransactionRepository orderTransactionRepository, final OrderService orderService) {
         this.electronicInvoiceService = electronicInvoiceService;
         this.orderTransactionRepository = orderTransactionRepository;
         this.orderService = orderService;
-        this.freeMarkerCfg = freeMarkerCfg;
     }
 
     @Override
@@ -92,7 +88,36 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
     }
 
     @Override
+    public OrderTransaction getOrderTransactionByInvoiceNumber(String invoiceNumber) {
+
+        return orderTransactionRepository.findByInvoiceDetails_ElectronicInvoice_InvoiceNumber(invoiceNumber).orElseThrow(() -> {
+            throw new ObjectNotFoundException(invoiceNumber, OrderTransaction.class);
+        });
+    }
+    @Override
     public List<OrderTransaction> getOrderTransactionByOrderId(String orderId) {
         return orderTransactionRepository.findAllByOrderId(orderId);
+    }
+
+    @Override
+    public void voidOrderTransaction(String id) {
+
+        final OrderTransaction orderTransaction = this.getOrderTransaction(id);
+
+        if (orderTransaction.getInvoiceDetails().getElectronicInvoice() == null) {
+            throw new ObjectNotFoundException(id, ElectronicInvoice.class);
+        }
+
+        electronicInvoiceService.voidElectronicInvoice(orderTransaction.getInvoiceDetails().getElectronicInvoice());
+
+        orderTransaction.setStatus(OrderTransaction.OrderTransactionStatus.CANCELLED);
+        orderTransactionRepository.save(orderTransaction);
+
+        final boolean hasNonCancelledTransactions = orderTransactionRepository.existsAllByOrderIdAndStatusNot(orderTransaction.getOrderId(), OrderTransaction.OrderTransactionStatus.CANCELLED);
+
+        if (!hasNonCancelledTransactions) {
+            LOGGER.info("All transactions are cancelled, mark associated order as deleted: {}", orderTransaction.getOrderId());
+            orderService.performOrderAction(orderTransaction.getOrderId(), Order.OrderAction.DELETE);
+        }
     }
 }

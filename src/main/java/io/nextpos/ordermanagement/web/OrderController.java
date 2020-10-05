@@ -13,6 +13,7 @@ import io.nextpos.ordermanagement.service.ShiftService;
 import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
 import io.nextpos.ordermanagement.web.factory.OrderCreationFactory;
 import io.nextpos.ordermanagement.web.model.*;
+import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.service.OrderTransactionService;
 import io.nextpos.ordertransaction.web.model.OrderTransactionResponse;
 import io.nextpos.reporting.data.DateParameterType;
@@ -176,6 +177,14 @@ public class OrderController {
                         Collectors.mapping(TableDetailsResponse::fromTableDetails, Collectors.toList())));
 
         return new TablesResponse(availableTables);
+    }
+
+    @GetMapping("/search")
+    public OrderResponse getOrderByInvoiceNumber(@RequestParam("invoiceNumber") String invNumber) {
+
+        final OrderTransaction orderTransaction = orderTransactionService.getOrderTransactionByInvoiceNumber(invNumber);
+
+        return this.getOrder(orderTransaction.getOrderId());
     }
 
     @GetMapping("/{id}")

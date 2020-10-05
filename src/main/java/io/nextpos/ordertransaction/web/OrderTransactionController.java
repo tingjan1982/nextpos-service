@@ -14,6 +14,7 @@ import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.workingarea.service.PrinterInstructionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -71,6 +72,13 @@ public class OrderTransactionController {
         response.setInvoiceXML(electronicInvoiceXML);
 
         return response;
+    }
+
+    @PostMapping("{id}/void")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void voidOrderTransaction(@PathVariable String id) {
+
+        orderTransactionService.voidOrderTransaction(id);
     }
 
     private OrderTransaction fromOrderTransactionRequest(final Order order, final OrderTransactionRequest orderTransactionRequest) {

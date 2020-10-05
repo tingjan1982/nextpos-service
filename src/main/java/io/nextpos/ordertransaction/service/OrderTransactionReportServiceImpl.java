@@ -36,6 +36,7 @@ public class OrderTransactionReportServiceImpl implements OrderTransactionReport
         final MatchOperation filter = Aggregation.match(Criteria.where("clientId").is(shift.getClientId())
                 .and("createdDate").gte(shift.getStart().getTimestamp()).lt(shift.getEnd().getTimestamp()));
 
+        // todo: refactor by considering void order transaction scenarios to reflect correct amount.
         final MatchOperation stateFilter = Aggregation.match(Criteria.where("state").ne(Order.OrderState.DELETED));
 
         final GroupOperation orderSummary = Aggregation.group("clientId")

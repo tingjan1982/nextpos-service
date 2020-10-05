@@ -11,5 +11,9 @@ public interface OrderTransactionService {
 
     OrderTransaction getOrderTransaction(String id);
 
+    OrderTransaction getOrderTransactionByInvoiceNumber(String invoiceNumber);
+
     List<OrderTransaction> getOrderTransactionByOrderId(String orderId);
+
+    void voidOrderTransaction(String id);
 }

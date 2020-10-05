@@ -69,6 +69,10 @@ class ElectronicInvoiceServiceImplTest {
         assertThat(electronicInvoice.getQrCode2Content()).startsWith("**");
 
         assertThat(pendingEInvoiceQueueService.findPendingEInvoicesByUbn(ubn)).hasSize(1);
+
+        electronicInvoiceService.voidElectronicInvoice(electronicInvoice);
+
+        assertThat(pendingEInvoiceQueueService.findPendingEInvoicesByUbn(ubn)).hasSize(2);
     }
 
     @Test

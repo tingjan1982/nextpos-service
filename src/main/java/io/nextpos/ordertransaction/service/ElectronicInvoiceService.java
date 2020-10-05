@@ -10,4 +10,6 @@ public interface ElectronicInvoiceService {
     boolean checkElectronicInvoiceEligibility(Client client);
 
     ElectronicInvoice createElectronicInvoice(Client client, Order order, OrderTransaction orderTransaction);
+
+    void voidElectronicInvoice(ElectronicInvoice electronicInvoice);
 }
