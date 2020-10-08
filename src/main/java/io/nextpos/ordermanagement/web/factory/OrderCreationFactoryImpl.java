@@ -64,9 +64,6 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
         final OrderSettings orderSettings = createOrderSettings(client);
 
         final Order order = Order.newOrder(client.getId(), orderRequest.getOrderType(), orderSettings);
-        String serialId = orderService.generateSerialId(client.getId());
-        order.setSerialId(serialId);
-
         updateTableInfoAndDemographicData(order, orderRequest);
 
         final ClientUser clientUser = oAuth2Helper.resolveCurrentClientUser(client);

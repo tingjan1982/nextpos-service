@@ -6,11 +6,10 @@ import io.nextpos.shared.model.validator.ValidEnum;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Positive;
+import java.math.BigDecimal;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Data
@@ -27,24 +26,10 @@ public class OrderTransactionRequest {
     @ValidEnum(enumType = OrderTransaction.BillType.class)
     private String billType;
 
+    @Positive
+    private BigDecimal settleAmount;
+
     private String taxIdNumber;
 
-    private Integer splitWith;
-
-    @Valid
-    private List<BillLineItemRequest> billLineItems;
-
     private Map<OrderTransaction.PaymentDetailsKey, Object> paymentDetails = new HashMap<>();
-
-    private boolean needElectronicInvoice;
-
-    @Data
-    public static class BillLineItemRequest {
-
-        @NotEmpty
-        private String lineItemId;
-
-        @Positive
-        private int quantity;
-    }
 }

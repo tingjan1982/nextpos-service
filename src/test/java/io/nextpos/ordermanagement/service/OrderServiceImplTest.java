@@ -1,7 +1,6 @@
 package io.nextpos.ordermanagement.service;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.client.service.ClientService;
 import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.merchandising.data.ProductLevelOffer;
@@ -31,13 +30,10 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@Transactional
+@Transactional(transactionManager = "chainedTransactionManager")
 class OrderServiceImplTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OrderServiceImplTest.class);
-
-    @Autowired
-    private ClientService clientService;
 
     @Autowired
     private OrderService orderService;
@@ -51,6 +47,7 @@ class OrderServiceImplTest {
     @Autowired
     private OrderIdCounterRepository orderIdCounterRepository;
 
+    @Autowired
     private Client client;
 
     private TableLayout.TableDetails tableDetails;
@@ -58,10 +55,7 @@ class OrderServiceImplTest {
 
     @BeforeEach
     void prepare() {
-        client = DummyObjects.dummyClient();
-        clientService.saveClient(client);
-
-        final TableLayout tableLayout = DummyObjects.dummyTableLayout(this.client);
+        final TableLayout tableLayout = DummyObjects.dummyTableLayout(client);
         tableLayoutService.saveTableLayout(tableLayout);
 
         tableDetails = tableLayout.getTables().get(0);

@@ -166,18 +166,13 @@ public class OrderTransaction extends MongoBaseObject {
 
     public enum BillType {
         /**
-         * Single bill
+         * Single bill - applies to single order and split order.
          */
         SINGLE,
 
         /**
-         * Split bill equally amongst participants.
+         * Split order by head count.
          */
         SPLIT,
-
-        /**
-         * Split bill by order line items. (i.e. pay for what one ordered)
-         */
-        CUSTOM
     }
 }

@@ -69,7 +69,6 @@ class OrderCreationFactoryImplTest {
         final Order order = orderCreationFactory.newOrder(client, request);
 
         assertThat(order.getId()).isNotNull();
-        assertThat(order.getSerialId()).isNotNull();
         assertThat(order.getTableInfo()).satisfies(ti -> {
             assertThat(ti).isNotNull();
             assertThat(ti.getTableId()).isEqualTo(tableDetails.getId());

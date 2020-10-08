@@ -76,10 +76,11 @@ public class OrderLineItem implements OfferApplicableObject {
     }
 
     public void incrementQuantity(int quantityToAdd) {
-        this.quantity += quantityToAdd;
-        modifiedDate = new Date();
+        this.performOperation(li -> li.quantity += quantityToAdd);
+    }
 
-        computeSubTotal();
+    public void decrementQuantity(int quantityToSubtract) {
+        this.performOperation(li -> li.quantity -= quantityToSubtract);
     }
 
     public void updateQuantityAndProductOptions(int quantity, BigDecimal overridePrice, List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots) {
@@ -156,6 +157,15 @@ public class OrderLineItem implements OfferApplicableObject {
 //        final TaxableAmount subTotal = discountedSubTotal != null && !discountedSubTotal.isZero() ? discountedSubTotal : this.subTotal;
 //        return subTotal.getAmount();
 //    }
+
+    public OrderLineItem splitCopy() {
+
+        final OrderLineItem lineItem = this.copy();
+        lineItem.id = this.id; // use the same id as source to be able to move quantity between source and target order.
+        lineItem.performOperation(li -> li.quantity = 1);
+
+        return lineItem;
+    }
 
     public OrderLineItem copy() {
         final OrderLineItem copy = new OrderLineItem();

@@ -189,7 +189,7 @@ public class TestMockConfig {
             MongoDatabase admin = mongoClient.getDatabase("admin");
             admin.runCommand(new Document("replSetInitiate", config));
 
-            Awaitility.await().atMost(Duration.ONE_MINUTE).until(() -> {
+            Awaitility.await().atMost(Duration.TWO_MINUTES).until(() -> {
                 try (ClientSession session = mongoClient.startSession()) {
                     return true;
                 } catch (Exception ex) {

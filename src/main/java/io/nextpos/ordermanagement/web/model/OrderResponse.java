@@ -12,6 +12,7 @@ import java.util.Currency;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Data
 @RequiredArgsConstructor
@@ -62,6 +63,53 @@ public class OrderResponse {
     private OrderDuration orderPreparationTime;
 
     private List<OrderTransactionResponse> transactions;
+
+
+    public static OrderResponse toOrderResponse(final Order order) {
+
+        final List<OrderLineItemResponse> orderLineItems = order.getOrderLineItems().stream()
+                .map(li -> {
+                    final ProductSnapshot productSnapshot = li.getProductSnapshot();
+
+                    return new OrderLineItemResponse(li.getId(),
+                            productSnapshot.getId(),
+                            li.getState(),
+                            productSnapshot.getName(),
+                            productSnapshot.getInternalName(),
+                            li.getProductOptions(),
+                            li.getProductPriceWithOptions().getAmount(),
+                            li.getQuantity(),
+                            li.getLineItemSubTotal(),
+                            li.getSubTotal(),
+                            li.getDiscountedSubTotal(),
+                            li.getAppliedOfferInfo(),
+                            li.getModifiedDate(),
+                            productSnapshot.getChildProducts());
+
+                }).collect(Collectors.toList());
+
+        return new OrderResponse(order.getId(),
+                order.getSerialId(),
+                order.getOrderType(),
+                order.getTableInfo(),
+                order.getTableInfo().getDisplayName(),
+                order.getServedBy(),
+                order.getCreatedDate(),
+                order.getModifiedDate(),
+                order.getState(),
+                order.getTotal(),
+                order.getDiscountedTotal(),
+                order.getDiscount(),
+                order.getServiceCharge(),
+                order.getOrderTotal(),
+                order.getCurrency(),
+                orderLineItems,
+                order.getMetadata(),
+                order.getOrderLogs(),
+                order.getDemographicData(),
+                order.getAppliedOfferInfo(),
+                order.getOrderDuration());
+    }
 
 
     @Data

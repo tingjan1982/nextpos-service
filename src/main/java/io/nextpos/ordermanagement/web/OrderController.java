@@ -79,7 +79,7 @@ public class OrderController {
         Order order = orderCreationFactory.newOrder(client, orderRequest);
         final Order createdOrder = orderService.createOrder(order);
 
-        return toOrderResponse(createdOrder);
+        return OrderResponse.toOrderResponse(createdOrder);
     }
 
     @GetMapping
@@ -191,7 +191,7 @@ public class OrderController {
     public OrderResponse getOrder(@PathVariable String id) {
 
         final Order order = orderService.getOrder(id);
-        final OrderResponse orderResponse = toOrderResponse(order);
+        final OrderResponse orderResponse = OrderResponse.toOrderResponse(order);
 
         orderService.getOrderStateChangeByOrderId(id).flatMap(OrderStateChange::getOrderPreparationDuration).ifPresent(orderResponse::setOrderPreparationTime);
 
@@ -214,7 +214,7 @@ public class OrderController {
 
         orderCreationFactory.updateTableInfoAndDemographicData(order, orderRequest);
 
-        return toOrderResponse(orderService.saveOrder(order));
+        return OrderResponse.toOrderResponse(orderService.saveOrder(order));
     }
 
     @PostMapping("/{id}/applyDiscount")
@@ -227,7 +227,7 @@ public class OrderController {
 
         final Order updatedOrder = merchandisingService.applyOrderOffer(order, discountRequest.getOfferId(), discountRequest.getDiscount());
 
-        return toOrderResponse(updatedOrder);
+        return OrderResponse.toOrderResponse(updatedOrder);
     }
 
     @PostMapping("/{id}/removeDiscount")
@@ -239,7 +239,7 @@ public class OrderController {
 
         final Order updatedOrder = merchandisingService.removeOrderOffer(order);
 
-        return toOrderResponse(updatedOrder);
+        return OrderResponse.toOrderResponse(updatedOrder);
     }
 
     @PostMapping("/{id}/waiveServiceCharge")
@@ -252,7 +252,7 @@ public class OrderController {
 
         final Order updatedOrder = merchandisingService.updateServiceCharge(order, apply);
 
-        return toOrderResponse(updatedOrder);
+        return OrderResponse.toOrderResponse(updatedOrder);
     }
 
     @PostMapping("/{id}/resetOrderOffers")
@@ -263,7 +263,7 @@ public class OrderController {
 
         final Order updatedOrder = merchandisingService.resetOrderOffers(order);
 
-        return toOrderResponse(updatedOrder);
+        return OrderResponse.toOrderResponse(updatedOrder);
     }
 
     @PostMapping("/{id}/copy")
@@ -272,7 +272,7 @@ public class OrderController {
                                    @PathVariable final String id) {
 
         Order copiedOrder = orderService.copyOrder(id);
-        return toOrderResponse(copiedOrder);
+        return OrderResponse.toOrderResponse(copiedOrder);
     }
 
     @DeleteMapping("/{id}")
@@ -301,7 +301,7 @@ public class OrderController {
 
         final Order order = orderService.addOrderLineItem(id, orderLineItem);
 
-        return toOrderResponse(order);
+        return OrderResponse.toOrderResponse(order);
     }
 
     @PostMapping("/{id}/lineitems/prepare")
@@ -353,7 +353,7 @@ public class OrderController {
 
         final Order updatedOrder = orderService.updateOrderLineItem(order, updateLineItem);
 
-        return toOrderResponse(updatedOrder);
+        return OrderResponse.toOrderResponse(updatedOrder);
     }
 
     private BigDecimal resolveProductDiscountValue(ProductLevelOffer.GlobalProductDiscount productDiscount, BigDecimal discountValue) {
@@ -377,7 +377,7 @@ public class OrderController {
         final BigDecimal price = free ? BigDecimal.ZERO : null;
         final Order updatedOrder = orderService.updateOrderLineItemPrice(order, lineItemId, price);
 
-        return toOrderResponse(updatedOrder);
+        return OrderResponse.toOrderResponse(updatedOrder);
     }
 
     @DeleteMapping("/{id}/lineitems/{lineItemId}")
@@ -389,6 +389,21 @@ public class OrderController {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
         orderService.deleteOrderLineItem(order, lineItemId);
+    }
+
+    @PostMapping("/{id}/quickCheckout")
+    @OrderLogAction
+    public OrderStateChangeResponse quickCheckout(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                  @PathVariable String id,
+                                                  @RequestParam(name = "print", defaultValue = "true") boolean print) {
+
+        OrderStateChangeBean inProcessStateChange = orderService.performOrderAction(id, Order.OrderAction.SUBMIT);
+
+        if (!print) {
+            inProcessStateChange.setPrinterInstructions(null);
+        }
+
+        return toOrderStateChangeResponse(inProcessStateChange);
     }
 
     @PostMapping("/{id}/process")
@@ -424,52 +439,6 @@ public class OrderController {
                 orderStateChangeEntry.getToState(),
                 orderStateChangeEntry.getTimestamp(),
                 printerInstructions);
-    }
-
-    private OrderResponse toOrderResponse(final Order order) {
-
-        final List<OrderResponse.OrderLineItemResponse> orderLineItems = order.getOrderLineItems().stream()
-                .map(li -> {
-                    final ProductSnapshot productSnapshot = li.getProductSnapshot();
-
-                    return new OrderResponse.OrderLineItemResponse(li.getId(),
-                            productSnapshot.getId(),
-                            li.getState(),
-                            productSnapshot.getName(),
-                            productSnapshot.getInternalName(),
-                            li.getProductOptions(),
-                            li.getProductPriceWithOptions().getAmount(),
-                            li.getQuantity(),
-                            li.getLineItemSubTotal(),
-                            li.getSubTotal(),
-                            li.getDiscountedSubTotal(),
-                            li.getAppliedOfferInfo(),
-                            li.getModifiedDate(),
-                            productSnapshot.getChildProducts());
-
-                }).collect(Collectors.toList());
-
-        return new OrderResponse(order.getId(),
-                order.getSerialId(),
-                order.getOrderType(),
-                order.getTableInfo(),
-                order.getTableInfo().getDisplayName(),
-                order.getServedBy(),
-                order.getCreatedDate(),
-                order.getModifiedDate(),
-                order.getState(),
-                order.getTotal(),
-                order.getDiscountedTotal(),
-                order.getDiscount(),
-                order.getServiceCharge(),
-                order.getOrderTotal(),
-                order.getCurrency(),
-                orderLineItems,
-                order.getMetadata(),
-                order.getOrderLogs(),
-                order.getDemographicData(),
-                order.getAppliedOfferInfo(),
-                order.getOrderDuration());
     }
 
 }

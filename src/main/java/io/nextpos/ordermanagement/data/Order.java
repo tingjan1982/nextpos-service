@@ -47,6 +47,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     public static final String ORDER_SET_ORDER = "orderSetOrder";
 
+    public static final String HEAD_COUNT = "headCount";
+
     @Id
     private String id;
 
@@ -251,6 +253,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         final OrderLineItem orderLineItem = this.getOrderLineItem(lineItemId);
         orderLineItem.performOperation(updateOperation);
 
+        if (orderLineItem.getQuantity() == 0) {
+            orderLineItems.remove(orderLineItem);
+        }
+
         computeTotal();
     }
 
@@ -274,6 +280,12 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
                 .findFirst().orElseThrow(() -> {
                     throw new ObjectNotFoundException(lineItemId, OrderLineItem.class);
                 });
+    }
+
+    public Optional<OrderLineItem> findOrderLineItem(String lineItemId) {
+        return orderLineItems.stream()
+                .filter(li -> StringUtils.equals(li.getId(), lineItemId))
+                .findFirst();
     }
 
     public void computeTotal() {
@@ -511,7 +523,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
          */
         PARTIAL_DELIVER(IN_PROCESS, DELIVERED),
         DELIVER(IN_PROCESS, DELIVERED),
-        SETTLE(DELIVERED, SETTLED),
+        SETTLE(EnumSet.of(IN_PROCESS, DELIVERED), SETTLED),
+        VOID(SETTLED, CANCELLED),
         REFUND(SETTLED, REFUNDED),
 
         /**

@@ -3,7 +3,6 @@ package io.nextpos.ordertransaction.web;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.service.OrderTransactionService;
@@ -19,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -146,32 +144,13 @@ public class OrderTransactionController {
 
                 if (order.getServiceCharge().compareTo(BigDecimal.ZERO) > 0) {
                     final BigDecimal serviceCharge = order.deduceRoundingAmount(order::getServiceCharge);
-                    billLIneItems.add(new OrderTransaction.BillLineItem("service charge", 1, serviceCharge, serviceCharge));
+                    billLIneItems.add(new OrderTransaction.BillLineItem("serviceCharge", 1, serviceCharge, serviceCharge));
                 }
 
                 return billLIneItems;
 
-            case CUSTOM:
-                return orderTransactionRequest.getBillLineItems().stream().map(liRequest -> {
-                    final OrderLineItem li = order.getOrderLineItem(liRequest.getLineItemId());
-
-                    return new OrderTransaction.BillLineItem(li.getProductSnapshot().getName(),
-                            liRequest.getQuantity(),
-                            li.getProductPriceWithOptions().getAmountWithTax(),
-                            li.getDeducedSubTotal().getAmountWithTax());
-
-                }).collect(Collectors.toList());
-
             case SPLIT:
-                // todo: figure out rounding problem.
-                final BigDecimal dividend = order.getOrderTotal();
-                final BigDecimal divisor = BigDecimal.valueOf(orderTransactionRequest.getSplitWith());
-                final BigDecimal splitSubTotal = dividend.divide(divisor, RoundingMode.DOWN);
-
-                // todo: figure i18n
-                //return List.of(new OrderTransaction.BillLineItem("split", 1, splitSubTotal));
-                return List.of();
-
+                return List.of(new OrderTransaction.BillLineItem("split", 1, orderTransactionRequest.getSettleAmount(), orderTransactionRequest.getSettleAmount()));
             default:
                 return List.of();
         }

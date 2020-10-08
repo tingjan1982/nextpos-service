@@ -68,6 +68,10 @@ public class OrderServiceImpl implements OrderService {
     public Order createOrder(final Order order) {
 
         shiftService.getActiveShiftOrThrows(order.getClientId());
+
+        final String serialId = this.generateSerialId(order.getClientId());
+        order.setSerialId(serialId);
+
         return orderRepository.save(order);
     }
 
@@ -131,10 +135,6 @@ public class OrderServiceImpl implements OrderService {
                     updateLineItem.getOverridePrice(),
                     updateLineItem.getProductOptionSnapshots());
         });
-
-//        final Query query = new Query(where("orderLineItems.id").is(lineItemId));
-//        final Update update = new Update().set("orderLineItems.$.quantity", updateOrderLineItemRequest.getQuantity());
-//        mongoTemplate.updateFirst(query, update, Order.class);
 
         return orderRepository.save(order);
     }

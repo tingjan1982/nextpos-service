@@ -35,6 +35,8 @@ public class WebConfig {
                 "/clientstatus/*",
                 "/orders/*",
                 "/ordersets/*",
+                "/splitOrders/*",
+                "/splitOrders/headcount/*",
                 "/shifts/*",
                 "/timecards/*",
                 "/reporting/*",

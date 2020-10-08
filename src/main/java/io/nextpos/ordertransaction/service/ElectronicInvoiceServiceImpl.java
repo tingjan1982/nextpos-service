@@ -44,7 +44,7 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
         final String aesKey = getAESKey(client);
         final String ubn = client.getAttribute(Client.ClientAttributes.UBN.name());
 
-        return StringUtils.isNotBlank(aesKey) && invoiceNumberRangeService.getCurrentInvoiceNumberRange(ubn) != null;
+        return StringUtils.isNotBlank(aesKey) && invoiceNumberRangeService.hasCurrentInvoiceNumberRange(ubn);
     }
 
     @Override
