@@ -13,6 +13,7 @@ import io.nextpos.product.data.Product;
 import io.nextpos.roles.data.UserRole;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.converter.Decimal128ToBigDecimal;
+import io.nextpos.subscription.data.SubscriptionPlan;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.timecard.data.UserTimeCard;
 import io.nextpos.workingarea.data.WorkingArea;
@@ -50,7 +51,16 @@ import java.util.List;
  */
 @Configuration
 @EnableJpaRepositories(basePackageClasses = {Client.class, Product.class, Offer.class, CountrySettings.class, WorkingArea.class, TableLayout.class, UserRole.class})
-@EnableMongoRepositories(basePackageClasses = {Order.class, OrderTransaction.class, NotificationDetails.class, UserTimeCard.class, Membership.class, Announcement.class, ElectronicInvoice.class, InvoiceNumberRange.class})
+@EnableMongoRepositories(basePackageClasses = {
+        Order.class,
+        OrderTransaction.class,
+        NotificationDetails.class,
+        UserTimeCard.class,
+        Membership.class,
+        Announcement.class,
+        ElectronicInvoice.class,
+        InvoiceNumberRange.class,
+        SubscriptionPlan.class})
 @EnableMongoAuditing
 @EnableRetry
 public class DataSourceConfig {

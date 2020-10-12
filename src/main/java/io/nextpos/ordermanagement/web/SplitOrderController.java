@@ -40,6 +40,15 @@ public class SplitOrderController {
         return OrderResponse.toOrderResponse(targetOrder);
     }
 
+    @PostMapping("/{targetOrderId}/revert")
+    public OrderResponse revertSplitOrder(@PathVariable String targetOrderId,
+                                          @RequestParam("sourceOrderId") String sourceOrderId) {
+
+        final Order sourceOrder = splitOrderService.revertSplitOrderLineItems(targetOrderId, sourceOrderId);
+
+        return OrderResponse.toOrderResponse(sourceOrder);
+    }
+
     @PostMapping("/headcount/{sourceOrderId}")
     public List<SplitAmountDetails> splitByHeadCount(@PathVariable String sourceOrderId,
                                                      @Valid @RequestBody SplitOrderByHeadCountRequest request) {

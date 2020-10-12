@@ -57,6 +57,19 @@ public class SplitOrderServiceImpl implements SplitOrderService {
         return updateSourceAndTargetOrder(sourceOrder, targetOrder, sourceLineItemId);
     }
 
+    @Override
+    public Order revertSplitOrderLineItems(String splitOrderId, String sourceOrderId) {
+
+        final Order sourceOrder = orderService.getOrder(sourceOrderId);
+        final Order splitOrder = orderService.getOrder(splitOrderId);
+
+        splitOrder.getOrderLineItems().forEach(li -> sourceOrder.getOrderLineItem(li.getId()).performOperation(l -> l.incrementQuantity(li.getQuantity())));
+
+        orderService.deleteOrder(splitOrder);
+
+        return orderService.saveOrder(sourceOrder);
+    }
+
     private Order updateSourceAndTargetOrder(Order sourceOrder, Order targetOrder, String sourceLineItemId) {
 
         final OrderLineItem sourceOrderLineItem = sourceOrder.getOrderLineItem(sourceLineItemId);

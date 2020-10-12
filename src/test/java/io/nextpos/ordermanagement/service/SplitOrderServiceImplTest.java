@@ -8,6 +8,7 @@ import io.nextpos.ordermanagement.data.SplitAmountDetails;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.service.OrderTransactionService;
 import io.nextpos.shared.DummyObjects;
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @Transactional
@@ -79,6 +81,28 @@ class SplitOrderServiceImplTest {
         });
 
         assertThat(orderService.getOrder(targetOrder.getId()).getOrderLineItems()).isEmpty();
+    }
+
+    @Test
+    void revertSplitOrderLineItems() {
+
+        final Order sourceOrder = new Order(client.getId(), orderSettings);
+        sourceOrder.addOrderLineItem(DummyObjects.productSnapshot(), 3);
+        orderService.saveOrder(sourceOrder);
+
+        final OrderLineItem sourceLineItem = sourceOrder.getOrderLineItems().get(0);
+
+        final Order newSplitOrder = splitOrderService.newSplitOrder(sourceOrder.getId(), sourceLineItem.getId());
+
+        splitOrderService.revertSplitOrderLineItems(newSplitOrder.getId(), sourceOrder.getId());
+
+        assertThat(orderService.getOrder(sourceOrder.getId())).satisfies(o -> {
+            assertThat(o).isNotNull();
+            assertThat(o.getOrderLineItems()).hasSize(1);
+            assertThat(o.getOrderLineItem(sourceLineItem.getId())).satisfies(li -> assertThat(li.getQuantity()).isEqualTo(3));
+        });
+
+        assertThatThrownBy(() -> orderService.getOrder(newSplitOrder.getId())).isInstanceOf(ObjectNotFoundException.class);
     }
 
     @Test

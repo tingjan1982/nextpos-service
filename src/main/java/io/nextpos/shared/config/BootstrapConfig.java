@@ -1,5 +1,6 @@
 package io.nextpos.shared.config;
 
+import com.mongodb.client.MongoClient;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.merchandising.data.Offer;
@@ -50,15 +51,18 @@ public class BootstrapConfig {
 
     private final SettingsConfigurationProperties settingsProperties;
 
+    private final MongoClient mongoClient;
+
     private final MongoTemplate mongoTemplate;
 
     private final DataSource dataSource;
 
     @Autowired
-    public BootstrapConfig(final ClientService clientService, final SettingsService settingsService, final SettingsConfigurationProperties settingsProperties, MongoTemplate mongoTemplate, final DataSource dataSource) {
+    public BootstrapConfig(final ClientService clientService, final SettingsService settingsService, final SettingsConfigurationProperties settingsProperties, MongoClient mongoClient, MongoTemplate mongoTemplate, final DataSource dataSource) {
         this.clientService = clientService;
         this.settingsService = settingsService;
         this.settingsProperties = settingsProperties;
+        this.mongoClient = mongoClient;
         this.mongoTemplate = mongoTemplate;
         this.dataSource = dataSource;
     }
@@ -66,7 +70,7 @@ public class BootstrapConfig {
     @PostConstruct
     public void bootstrap() throws Exception {
 
-        //createMongoTables();
+        createMongoTables();
         logJpaTables();
 
         Client defaultClient = clientService.getDefaultClient();
@@ -104,13 +108,17 @@ public class BootstrapConfig {
 
     private void createMongoTables() {
 
+        if (!checkMongoDbSessionSupport()) {
+            return;
+        }
+
         final ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
         scanner.addIncludeFilter(new AnnotationTypeFilter(org.springframework.data.mongodb.core.mapping.Document.class));
 
         scanner.findCandidateComponents("io.nextpos").forEach(b -> {
             try {
                 final String collection = MongoCollectionUtils.getPreferredCollectionName(Class.forName(b.getBeanClassName()));
-
+                
                 if (!mongoTemplate.collectionExists(collection)) {
                     mongoTemplate.createCollection(collection);
                 }
@@ -118,6 +126,16 @@ public class BootstrapConfig {
                 throw new RuntimeException("Error while creating mongo tables: " + e.getMessage(), e);
             }
         });
+    }
+
+    private boolean checkMongoDbSessionSupport() {
+
+        try {
+            mongoClient.startSession();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void logJpaTables() throws MetaDataAccessException {

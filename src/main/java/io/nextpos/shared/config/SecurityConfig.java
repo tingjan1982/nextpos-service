@@ -83,9 +83,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
 
         http.csrf().disable()
-                .regexMatcher("^\\/(actuator|counters)(\\/[\\w.+]*)*$")
+                .regexMatcher("^\\/(actuator|counters|admin)(\\/[\\w.+]*)*$")
                 .authorizeRequests()
-                .antMatchers("/actuator/health", "/ws/**").permitAll()
+                .antMatchers("/actuator/health", "/ws/**", "/admin/**").permitAll()
                 .anyRequest().authenticated().and().httpBasic();
     }
 

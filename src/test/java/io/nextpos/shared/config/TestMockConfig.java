@@ -22,6 +22,7 @@ import org.awaitility.Awaitility;
 import org.awaitility.Duration;
 import org.bson.Document;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.mongo.MongoProperties;
 import org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoProperties;
@@ -50,6 +51,7 @@ public class TestMockConfig {
 
     private final MongoProperties properties;
 
+    @Autowired
     public TestMockConfig(final MongoProperties properties) {
         this.properties = properties;
     }
