@@ -9,6 +9,7 @@ import io.nextpos.product.data.ProductOptionRelation;
 import io.nextpos.product.service.ProductLabelService;
 import io.nextpos.product.web.model.*;
 import io.nextpos.product.web.util.ObjectWithProductOptionVisitorWrapper;
+import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.shared.web.model.SimpleObjectResponse;
 import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
@@ -208,5 +209,15 @@ public class ProductLabelController {
         }
 
         childLabel.getChildLabels().forEach(subLabel -> addSubLabelsRecursively(subLabel, subLabelResponse));
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProductLabel(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                   @PathVariable String id) {
+
+        final ProductLabel productLabel = clientObjectOwnershipService.checkOwnership(client, () -> productLabelService.getProductLabelOrThrows(id));
+
+        productLabelService.deleteProductLabel(productLabel);
     }
 }

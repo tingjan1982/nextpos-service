@@ -2,6 +2,7 @@ package io.nextpos.product.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.product.data.*;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectAlreadyExistsException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.JpaTransaction;
@@ -139,5 +140,19 @@ public class ProductLabelServiceImpl implements ProductLabelService {
         }
 
         return productLabelRepository.save(productLabel);
+    }
+
+    @Override
+    public void deleteProductLabel(ProductLabel productLabel) {
+
+        if (!checkProductLabelDeletable(productLabel)) {
+            throw new BusinessLogicException("message.categoryInUse", "Product label is used by at least one product.");
+        }
+
+        productLabelRepository.delete(productLabel);
+    }
+
+    private boolean checkProductLabelDeletable(ProductLabel productLabel) {
+        return !productRepository.existsAllByProductLabel(productLabel);
     }
 }

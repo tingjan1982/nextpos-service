@@ -11,4 +11,6 @@ public interface ProductRepository extends JpaRepository<Product, String> {
     List<Product> findAllByClientAndProductLabel(Client client, ProductLabel productLabel);
 
     boolean existsAllByWorkingArea(WorkingArea workingArea);
+    
+    boolean existsAllByProductLabel(ProductLabel productLabel);
 }

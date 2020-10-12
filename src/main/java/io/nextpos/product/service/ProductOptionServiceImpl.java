@@ -18,7 +18,7 @@ public class ProductOptionServiceImpl implements ProductOptionService {
 
     private final ProductOptionVersionRepository productOptionVersionRepository;
 
-    private final ProductOptionRelationRepository productOptionRelationRepository;
+    private final ProductOptionRelationRepository<?> productOptionRelationRepository;
 
     @Autowired
     public ProductOptionServiceImpl(final ProductOptionRepository productOptionRepository, final ProductOptionVersionRepository productOptionVersionRepository, final ProductOptionRelationRepository productOptionRelationRepository) {
@@ -40,6 +40,11 @@ public class ProductOptionServiceImpl implements ProductOptionService {
     }
 
     @Override
+    public List<? extends ProductOptionRelation> getProductOptionRelationsByProductOption(ProductOption productOption) {
+        return productOptionRelationRepository.findAllByProductOption(productOption);
+    }
+
+    @Override
     public List<ProductOptionVersion> getProductOptions(final Client client, final Version version) {
 
         return productOptionVersionRepository.findAllByProductOptionClientAndVersionOrderByOptionName(client, version);
@@ -57,7 +62,7 @@ public class ProductOptionServiceImpl implements ProductOptionService {
         final Long relationCount = productOptionRelationRepository.countByProductOption(productOption);
 
         if (relationCount > 0) {
-            throw new BusinessLogicException("Product option is in use: " + productOption.getId());
+            throw new BusinessLogicException("message.optionInUse", "Product option is in use: " + productOption.getId());
         }
 
         productOptionRepository.delete(productOption);

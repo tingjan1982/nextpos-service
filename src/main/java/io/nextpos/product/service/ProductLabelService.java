@@ -22,4 +22,6 @@ public interface ProductLabelService {
     List<Product> applyProductLabelChangesToProducts(ProductLabel productLabel);
 
     ProductLabel updateProductLabelOrder(String productLabelId, final int index, String previousProductLabelId, String nextProductLabelId);
+
+    void deleteProductLabel(ProductLabel productLabel);
 }

@@ -25,6 +25,8 @@ import io.nextpos.shared.web.model.SimpleObjectResponse;
 import io.nextpos.shared.web.model.SimpleObjectsResponse;
 import io.nextpos.tablelayout.service.TableLayoutService;
 import io.nextpos.tablelayout.web.model.TableDetailsResponse;
+import io.nextpos.workingarea.data.PrinterInstructions;
+import io.nextpos.workingarea.service.PrinterInstructionService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,8 +63,10 @@ public class OrderController {
 
     private final ShiftService shiftService;
 
+    private final PrinterInstructionService printerInstructionService;
+
     @Autowired
-    public OrderController(final OrderService orderService, final OrderTransactionService orderTransactionService, final ClientObjectOwnershipService clientObjectOwnershipService, final TableLayoutService tableLayoutService, final OrderCreationFactory orderCreationFactory, final MerchandisingService merchandisingService, final ShiftService shiftService) {
+    public OrderController(final OrderService orderService, final OrderTransactionService orderTransactionService, final ClientObjectOwnershipService clientObjectOwnershipService, final TableLayoutService tableLayoutService, final OrderCreationFactory orderCreationFactory, final MerchandisingService merchandisingService, final ShiftService shiftService, PrinterInstructionService printerInstructionService) {
         this.orderService = orderService;
         this.orderTransactionService = orderTransactionService;
         this.clientObjectOwnershipService = clientObjectOwnershipService;
@@ -70,6 +74,7 @@ public class OrderController {
         this.orderCreationFactory = orderCreationFactory;
         this.merchandisingService = merchandisingService;
         this.shiftService = shiftService;
+        this.printerInstructionService = printerInstructionService;
     }
 
     @PostMapping
@@ -273,6 +278,15 @@ public class OrderController {
 
         Order copiedOrder = orderService.copyOrder(id);
         return OrderResponse.toOrderResponse(copiedOrder);
+    }
+
+    @GetMapping("/{id}/printOrder")
+    public PrinterInstructions printOrderDetails(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                  @PathVariable final String id) {
+
+        final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
+
+        return printerInstructionService.createOrderToWorkingArea(order);
     }
 
     @DeleteMapping("/{id}")

@@ -3,10 +3,7 @@ package io.nextpos.product.web;
 import io.micrometer.core.instrument.util.StringUtils;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
-import io.nextpos.product.data.ProductLabel;
-import io.nextpos.product.data.ProductOption;
-import io.nextpos.product.data.ProductOptionVersion;
-import io.nextpos.product.data.Version;
+import io.nextpos.product.data.*;
 import io.nextpos.product.service.ProductLabelService;
 import io.nextpos.product.service.ProductOptionService;
 import io.nextpos.product.web.model.ProductOptionRequest;
@@ -56,8 +53,25 @@ public class ProductOptionController {
                                                   @RequestParam(value = "version", required = false, defaultValue = "DESIGN") Version version) {
 
         final ProductOption productOption = clientObjectOwnershipService.checkOwnership(client, () -> productOptionService.getProductOption(id));
+        final ProductOptionResponse response = toProductOptionResponse(productOption, version);
 
-        return toProductOptionResponse(productOption, version);
+        final List<? extends ProductOptionRelation> relations = productOptionService.getProductOptionRelationsByProductOption(productOption);
+
+        final List<SimpleObjectResponse> usedByLabels = relations.stream()
+                .filter(r -> r instanceof ProductOptionRelation.ProductOptionOfLabel)
+                .map(r -> ((ProductOptionRelation.ProductOptionOfLabel) r))
+                .map(r -> new SimpleObjectResponse(r.getProductLabel().getId(), r.getProductLabel().getName()))
+                .collect(Collectors.toList());
+        response.setUsedByProductLabels(usedByLabels);
+
+        final List<SimpleObjectResponse> usedByProducts = relations.stream()
+                .filter(r -> r instanceof ProductOptionRelation.ProductOptionOfProduct)
+                .map(r -> ((ProductOptionRelation.ProductOptionOfProduct) r))
+                .map(r -> new SimpleObjectResponse(r.getProduct().getId(), r.getProduct().getDesignVersion().getProductName()))
+                .collect(Collectors.toList());
+        response.setUsedByProducts(usedByProducts);
+
+        return response;
     }
 
     @GetMapping

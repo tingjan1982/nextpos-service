@@ -2,31 +2,36 @@ package io.nextpos.product.web.model;
 
 import io.nextpos.product.data.ProductOptionVersion;
 import io.nextpos.product.data.Version;
-import lombok.AllArgsConstructor;
+import io.nextpos.shared.web.model.SimpleObjectResponse;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Data
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ProductOptionResponse {
 
-    private String id;
+    private final String id;
 
-    private String versionId;
+    private final String versionId;
 
-    private String optionName;
+    private final String optionName;
 
-    private Version version;
+    private final Version version;
 
-    private boolean required;
+    private final boolean required;
 
-    private boolean multipleChoice;
+    private final boolean multipleChoice;
 
-    private ProductOptionVersion.OptionType optionType;
+    private final ProductOptionVersion.OptionType optionType;
 
-    private List<ProductOptionValueModel> optionValues;
+    private final List<ProductOptionValueModel> optionValues;
+
+    private List<SimpleObjectResponse> usedByProducts;
+
+    private List<SimpleObjectResponse> usedByProductLabels;
 
 
     public static ProductOptionResponse fromProductOptionVersion(ProductOptionVersion productOptionVersion) {
