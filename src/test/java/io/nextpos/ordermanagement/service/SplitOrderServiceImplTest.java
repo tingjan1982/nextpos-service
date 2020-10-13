@@ -61,6 +61,7 @@ class SplitOrderServiceImplTest {
         assertThat(targetOrder).satisfies(o -> {
             assertThat(o.getSerialId()).isNotNull();
             assertThat(o.getTableInfo().getDisplayName()).isEqualTo("splitOrder");
+            assertThat(o.getOrderTotal()).isNotZero();
             assertThat(o.getOrderLineItems()).hasSize(1);
             assertThat(o.getOrderLineItem(sourceLineItem.getId())).satisfies(li -> {
                 assertThat(li).isNotNull();
