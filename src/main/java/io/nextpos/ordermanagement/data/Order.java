@@ -251,6 +251,11 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     public void updateOrderLineItem(String lineItemId, Consumer<OrderLineItem> updateOperation) {
 
         final OrderLineItem orderLineItem = this.getOrderLineItem(lineItemId);
+        this.updateOrderLineItem(orderLineItem, updateOperation);
+    }
+
+    public void updateOrderLineItem(OrderLineItem orderLineItem, Consumer<OrderLineItem> updateOperation) {
+
         orderLineItem.performOperation(updateOperation);
 
         if (orderLineItem.getQuantity() == 0) {

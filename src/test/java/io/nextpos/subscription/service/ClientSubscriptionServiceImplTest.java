@@ -105,14 +105,14 @@ class ClientSubscriptionServiceImplTest {
     }
 
     @Test
-    void findSubscriptionsForRenewal() {
+    void findSubscriptionInvoicesForRenewal() {
 
         final ClientSubscription clientSubscription = createClientSubscription();
 
         createSubscriptionInvoice(clientSubscription, ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID);
         createSubscriptionInvoice(clientSubscription, ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PENDING);
 
-        final List<ClientSubscriptionInvoice> newSubscriptionInvoices = clientSubscriptionService.findSubscriptionsForRenewal();
+        final List<ClientSubscriptionInvoice> newSubscriptionInvoices = clientSubscriptionService.findSubscriptionInvoicesForRenewal();
 
         assertThat(newSubscriptionInvoices).hasSize(1);
     }

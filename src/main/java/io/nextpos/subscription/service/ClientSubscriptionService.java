@@ -21,7 +21,7 @@ public interface ClientSubscriptionService {
 
     ClientSubscription saveClientSubscription(ClientSubscription clientSubscription);
 
-    List<ClientSubscriptionInvoice> findSubscriptionsForRenewal();
+    List<ClientSubscriptionInvoice> findSubscriptionInvoicesForRenewal();
 
     List<ClientSubscriptionInvoice> findUnpaidSubscriptionInvoices();
 }

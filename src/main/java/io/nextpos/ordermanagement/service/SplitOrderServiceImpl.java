@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -69,14 +68,12 @@ public class SplitOrderServiceImpl implements SplitOrderService {
         final Order splitOrder = orderService.getOrder(splitOrderId);
 
         splitOrder.getOrderLineItems().forEach(li -> {
-            final Optional<OrderLineItem> orderLineItem = sourceOrder.findOrderLineItem(li.getId());
-
-            if (orderLineItem.isPresent()) {
-                sourceOrder.updateOrderLineItem(li.getId(), l -> l.incrementQuantity(li.getQuantity()));
-            } else {
+            sourceOrder.findOrderLineItem(li.getId()).ifPresentOrElse(l1 -> {
+                sourceOrder.updateOrderLineItem(l1, l2 -> l2.incrementQuantity(li.getQuantity()));
+            }, () -> {
                 sourceOrder.getOrderLineItems().add(li);
                 sourceOrder.computeTotal();
-            }
+            });
         });
 
         orderService.deleteOrder(splitOrder);
@@ -89,7 +86,7 @@ public class SplitOrderServiceImpl implements SplitOrderService {
         final OrderLineItem sourceOrderLineItem = sourceOrder.getOrderLineItem(sourceLineItemId);
 
         targetOrder.findOrderLineItem(sourceLineItemId).ifPresentOrElse(li -> {
-            li.performOperation((l -> l.incrementQuantity(1)));
+            targetOrder.updateOrderLineItem(li, l -> l.incrementQuantity(1));
 
         }, () -> {
             targetOrder.getOrderLineItems().add(sourceOrderLineItem.splitCopy());

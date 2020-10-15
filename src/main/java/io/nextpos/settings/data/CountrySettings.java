@@ -1,10 +1,7 @@
 package io.nextpos.settings.data;
 
 import io.nextpos.shared.model.BaseObject;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -12,6 +9,7 @@ import java.math.RoundingMode;
 import java.util.Currency;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Supplier;
 
 @Entity(name = "country_settings")
 @Data
@@ -51,5 +49,26 @@ public class CountrySettings extends BaseObject {
     public CountrySettings addCommonAttribute(String attribute) {
         this.commonAttributes.add(attribute);
         return this;
+    }
+
+    public RoundingAmountHelper roundingAmountHelper() {
+        return new RoundingAmountHelper(decimalPlaces, roundingMode);
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class RoundingAmountHelper {
+
+        private int decimalPlaces;
+
+        private RoundingMode roundingMode;
+
+        public BigDecimal roundAmount(Supplier<BigDecimal> amount) {
+            return amount.get().setScale(decimalPlaces, roundingMode);
+        }
+
+        public String roundAmountAsString(Supplier<BigDecimal> amount) {
+            return amount.get().setScale(decimalPlaces, roundingMode).toString();
+        }
     }
 }

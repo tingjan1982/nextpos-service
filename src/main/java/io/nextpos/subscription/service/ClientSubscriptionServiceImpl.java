@@ -4,6 +4,8 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.notification.data.DynamicEmailDetails;
 import io.nextpos.notification.service.NotificationService;
+import io.nextpos.settings.data.CountrySettings;
+import io.nextpos.settings.service.SettingsService;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.subscription.data.*;
 import org.slf4j.Logger;
@@ -29,15 +31,18 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
 
     private final ClientService clientService;
 
+    private final SettingsService settingsService;
+
     private final ClientSubscriptionRepository clientSubscriptionRepository;
 
     private final ClientSubscriptionInvoiceRepository clientSubscriptionInvoiceRepository;
 
     @Autowired
-    public ClientSubscriptionServiceImpl(SubscriptionPlanService subscriptionPlanService, NotificationService notificationService, ClientService clientService, ClientSubscriptionRepository clientSubscriptionRepository, ClientSubscriptionInvoiceRepository clientSubscriptionInvoiceRepository) {
+    public ClientSubscriptionServiceImpl(SubscriptionPlanService subscriptionPlanService, NotificationService notificationService, ClientService clientService, SettingsService settingsService, ClientSubscriptionRepository clientSubscriptionRepository, ClientSubscriptionInvoiceRepository clientSubscriptionInvoiceRepository) {
         this.subscriptionPlanService = subscriptionPlanService;
         this.notificationService = notificationService;
         this.clientService = clientService;
+        this.settingsService = settingsService;
         this.clientSubscriptionRepository = clientSubscriptionRepository;
         this.clientSubscriptionInvoiceRepository = clientSubscriptionInvoiceRepository;
     }
@@ -61,13 +66,16 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
         final SubscriptionPlan subscriptionPlanSnapshot = clientSubscription.getSubscriptionPlanSnapshot();
         final SubscriptionPaymentInstruction instruction = subscriptionPlanService.getSubscriptionPaymentInstructionByCountryOrThrows(subscriptionPlanSnapshot.getCountryCode());
 
+        final CountrySettings countrySettings = settingsService.getCountrySettings(client.getCountryCode());
+        final CountrySettings.RoundingAmountHelper helper = countrySettings.roundingAmountHelper();
+
         final DynamicEmailDetails dynamicEmailDetails = new DynamicEmailDetails(client.getId(), client.getUsername(), instruction.getEmailTemplateId());
         dynamicEmailDetails.addTemplateData("client", client.getClientName());
         dynamicEmailDetails.addTemplateData("subscriptionPlan", subscriptionPlanSnapshot.getPlanName());
         dynamicEmailDetails.addTemplateData("subscriptionPlanPeriod", subscriptionInvoice.getSubscriptionPeriod(client.getZoneId()));
-        dynamicEmailDetails.addTemplateData("subscriptionAmount", subscriptionInvoice.getDueAmount().getAmountWithoutTax().toString());
-        dynamicEmailDetails.addTemplateData("subscriptionTax", subscriptionInvoice.getDueAmount().getTax().toString());
-        dynamicEmailDetails.addTemplateData("subscriptionAmountWithTax", subscriptionInvoice.getDueAmount().getAmountWithTax().toString());
+        dynamicEmailDetails.addTemplateData("subscriptionAmount", helper.roundAmountAsString(() -> subscriptionInvoice.getDueAmount().getAmountWithoutTax()));
+        dynamicEmailDetails.addTemplateData("subscriptionTax", helper.roundAmountAsString(() -> subscriptionInvoice.getDueAmount().getTax()));
+        dynamicEmailDetails.addTemplateData("subscriptionAmountWithTax", helper.roundAmountAsString(() -> subscriptionInvoice.getDueAmount().getAmountWithTax()));
 
         notificationService.sendNotification(dynamicEmailDetails);
 
@@ -126,7 +134,7 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
      */
 
     @Override
-    public List<ClientSubscriptionInvoice> findSubscriptionsForRenewal() {
+    public List<ClientSubscriptionInvoice> findSubscriptionInvoicesForRenewal() {
 
         final Date tenDaysFromNow = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).plusDays(10).toInstant());
         final List<ClientSubscriptionInvoice> lapsingInvoices = clientSubscriptionInvoiceRepository.findAllByValidToBetweenAndStatus(

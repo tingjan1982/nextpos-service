@@ -7,6 +7,7 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.Instant;
 import java.util.AbstractMap;
 import java.util.Collections;
@@ -62,14 +64,22 @@ public class ExceptionResolver {
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    @ResponseStatus(code = HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleConstraintViolationException(ConstraintViolationException exception) {
+    public ResponseEntity<ErrorResponse> handleConstraintViolationException(ConstraintViolationException exception) {
 
         LOGGER.error("{}", exception.getMessage(), exception);
-        final ErrorResponse errorResponse = ErrorResponse.simpleErrorResponse("Request cannot be completed. Please check your payload or provide x-request-id to support team for further diagnosis.");
-        errorResponse.setDetails(exception.getSQLException().getMessage());
 
-        return errorResponse;
+        if (exception.getCause() instanceof SQLIntegrityConstraintViolationException) {
+            final ErrorResponse errorResponse = ErrorResponse.simpleErrorResponse("message.alreadyExists", "Object with name already exists");
+            errorResponse.setDetails(exception.getSQLException().getMessage());
+
+            return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+
+        } else {
+            final ErrorResponse errorResponse = ErrorResponse.simpleErrorResponse("Database constraint violation.");
+            errorResponse.setDetails(exception.getSQLException().getMessage());
+
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
     }
 
     /**
