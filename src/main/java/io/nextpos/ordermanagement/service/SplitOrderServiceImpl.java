@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -38,6 +39,7 @@ public class SplitOrderServiceImpl implements SplitOrderService {
         final Order sourceOrder = orderService.getOrder(sourceOrderId);
 
         final Order targetOrder = Order.newOrder(sourceOrder.getClientId(), sourceOrder.getOrderType(), sourceOrder.getOrderSettings());
+        targetOrder.setState(sourceOrder.getState());
         targetOrder.getTableInfo().setTableNote("splitOrder");
 
         orderService.createOrder(targetOrder);
@@ -57,13 +59,25 @@ public class SplitOrderServiceImpl implements SplitOrderService {
         return updateSourceAndTargetOrder(sourceOrder, targetOrder, sourceLineItemId);
     }
 
+    /**
+     * Move all split line items back to source order.
+     */
     @Override
     public Order revertSplitOrderLineItems(String splitOrderId, String sourceOrderId) {
 
         final Order sourceOrder = orderService.getOrder(sourceOrderId);
         final Order splitOrder = orderService.getOrder(splitOrderId);
 
-        splitOrder.getOrderLineItems().forEach(li -> sourceOrder.getOrderLineItem(li.getId()).performOperation(l -> l.incrementQuantity(li.getQuantity())));
+        splitOrder.getOrderLineItems().forEach(li -> {
+            final Optional<OrderLineItem> orderLineItem = sourceOrder.findOrderLineItem(li.getId());
+
+            if (orderLineItem.isPresent()) {
+                sourceOrder.updateOrderLineItem(li.getId(), l -> l.incrementQuantity(li.getQuantity()));
+            } else {
+                sourceOrder.getOrderLineItems().add(li);
+                sourceOrder.computeTotal();
+            }
+        });
 
         orderService.deleteOrder(splitOrder);
 

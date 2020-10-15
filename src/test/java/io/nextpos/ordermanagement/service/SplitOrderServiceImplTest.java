@@ -51,6 +51,7 @@ class SplitOrderServiceImplTest {
     void newSplitOrder() {
 
         final Order sourceOrder = new Order(client.getId(), orderSettings);
+        sourceOrder.setState(Order.OrderState.DELIVERED);
         sourceOrder.addOrderLineItem(DummyObjects.productSnapshot(), 3);
         orderService.saveOrder(sourceOrder);
 
@@ -61,6 +62,7 @@ class SplitOrderServiceImplTest {
         assertThat(targetOrder).satisfies(o -> {
             assertThat(o.getSerialId()).isNotNull();
             assertThat(o.getTableInfo().getDisplayName()).isEqualTo("splitOrder");
+            assertThat(o.getState()).isEqualByComparingTo(Order.OrderState.DELIVERED);
             assertThat(o.getOrderTotal()).isNotZero();
             assertThat(o.getOrderLineItems()).hasSize(1);
             assertThat(o.getOrderLineItem(sourceLineItem.getId())).satisfies(li -> {
@@ -89,18 +91,22 @@ class SplitOrderServiceImplTest {
 
         final Order sourceOrder = new Order(client.getId(), orderSettings);
         sourceOrder.addOrderLineItem(DummyObjects.productSnapshot(), 3);
+        sourceOrder.addOrderLineItem(DummyObjects.productSnapshot(), 1);
         orderService.saveOrder(sourceOrder);
 
         final OrderLineItem sourceLineItem = sourceOrder.getOrderLineItems().get(0);
+        final OrderLineItem sourceLineItem2 = sourceOrder.getOrderLineItems().get(1);
 
         final Order newSplitOrder = splitOrderService.newSplitOrder(sourceOrder.getId(), sourceLineItem.getId());
+        splitOrderService.updateLineItem(sourceOrder.getId(), newSplitOrder.getId(), sourceLineItem2.getId());
 
         splitOrderService.revertSplitOrderLineItems(newSplitOrder.getId(), sourceOrder.getId());
 
         assertThat(orderService.getOrder(sourceOrder.getId())).satisfies(o -> {
             assertThat(o).isNotNull();
-            assertThat(o.getOrderLineItems()).hasSize(1);
+            assertThat(o.getOrderLineItems()).hasSize(2);
             assertThat(o.getOrderLineItem(sourceLineItem.getId())).satisfies(li -> assertThat(li.getQuantity()).isEqualTo(3));
+            assertThat(o.getOrderLineItem(sourceLineItem2.getId())).satisfies(li -> assertThat(li.getQuantity()).isEqualTo(1));
         });
 
         assertThatThrownBy(() -> orderService.getOrder(newSplitOrder.getId())).isInstanceOf(ObjectNotFoundException.class);
