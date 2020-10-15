@@ -48,7 +48,8 @@ public class WebConfig {
                 "/roles/*",
                 "/offers/*",
                 "/einvoices/*",
-                "/invoiceNumbers/*");
+                "/invoiceNumbers/*",
+                "/clientSubscriptions/*");
 
         return registrationBean;
     }

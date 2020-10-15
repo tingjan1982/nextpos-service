@@ -1,7 +1,9 @@
 package io.nextpos.subscription.web;
 
+import io.nextpos.settings.data.CountrySettings;
+import io.nextpos.settings.service.SettingsService;
 import io.nextpos.subscription.data.SubscriptionPlan;
-import io.nextpos.subscription.service.SubscriptionService;
+import io.nextpos.subscription.service.SubscriptionPlanService;
 import io.nextpos.subscription.web.model.SubscriptionPlanRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,11 +16,14 @@ import java.util.List;
 @RequestMapping("/admin/subscriptionPlans")
 public class SubscriptionPlanController {
 
-    private final SubscriptionService subscriptionService;
+    private final SubscriptionPlanService subscriptionPlanService;
+
+    private final SettingsService settingsService;
 
     @Autowired
-    public SubscriptionPlanController(SubscriptionService subscriptionService) {
-        this.subscriptionService = subscriptionService;
+    public SubscriptionPlanController(SubscriptionPlanService subscriptionPlanService, SettingsService settingsService) {
+        this.subscriptionPlanService = subscriptionPlanService;
+        this.settingsService = settingsService;
     }
 
     @PostMapping
@@ -26,12 +31,13 @@ public class SubscriptionPlanController {
 
         SubscriptionPlan subscriptionPlan = fromSubscriptionPlanRequest(request);
 
-        return subscriptionService.saveSubscriptionPlan(subscriptionPlan);
+        return subscriptionPlanService.saveSubscriptionPlan(subscriptionPlan);
     }
 
     private SubscriptionPlan fromSubscriptionPlanRequest(SubscriptionPlanRequest request) {
 
-        final SubscriptionPlan subscriptionPlan = new SubscriptionPlan(request.getCountryCode(), request.getPlanGroup(), request.getPlanName());
+        final CountrySettings countrySettings = settingsService.getCountrySettings(request.getCountryCode());
+        final SubscriptionPlan subscriptionPlan = new SubscriptionPlan(request.getCountryCode(), request.getPlanGroup(), request.getPlanName(), countrySettings);
         request.getPlanPrices().forEach((planPeriod, price) -> subscriptionPlan.addPlanPrice(planPeriod, new SubscriptionPlan.PlanPrice(price)));
         subscriptionPlan.setRestrictedFeatures(request.getRestrictedFeatures());
 
@@ -41,23 +47,23 @@ public class SubscriptionPlanController {
     @GetMapping
     public List<SubscriptionPlan> getSubscriptionPlans(@RequestParam("country") String countryCode) {
 
-        return subscriptionService.getSubscriptionPlans(countryCode);
+        return subscriptionPlanService.getSubscriptionPlans(countryCode);
     }
 
     @GetMapping("/{id}")
     public SubscriptionPlan getSubscription(@PathVariable String id) {
 
-        return subscriptionService.getSubscription(id);
+        return subscriptionPlanService.getSubscription(id);
     }
 
     @PostMapping("/{id}")
     public SubscriptionPlan updateSubscriptionPlan(@PathVariable String id,
                                                    @Valid @RequestBody SubscriptionPlanRequest request) {
 
-        final SubscriptionPlan subscription = subscriptionService.getSubscription(id);
+        final SubscriptionPlan subscription = subscriptionPlanService.getSubscription(id);
         updateFromRequest(subscription, request);
 
-        return subscriptionService.saveSubscriptionPlan(subscription);
+        return subscriptionPlanService.saveSubscriptionPlan(subscription);
     }
 
     private void updateFromRequest(SubscriptionPlan subscriptionPlan, SubscriptionPlanRequest request) {
@@ -74,7 +80,7 @@ public class SubscriptionPlanController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteSubscriptionPlan(@PathVariable String id) {
 
-        final SubscriptionPlan subscription = subscriptionService.getSubscription(id);
-        subscriptionService.deleteSubscriptionPlan(subscription);
+        final SubscriptionPlan subscription = subscriptionPlanService.getSubscription(id);
+        subscriptionPlanService.deleteSubscriptionPlan(subscription);
     }
 }

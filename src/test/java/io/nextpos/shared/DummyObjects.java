@@ -17,7 +17,7 @@ import java.util.List;
 public class DummyObjects {
 
     public static Client dummyClient() {
-        return new Client("test", "admin@nextpos.io", "secret", "TW", "Asia/Taipei");
+        return new Client("test", "rain.io.app@gmail.com", "secret", "TW", "Asia/Taipei");
     }
 
     public static ClientUser dummyClientUser() {

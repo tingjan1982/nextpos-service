@@ -4,7 +4,6 @@ import io.nextpos.shared.model.MongoBaseObject;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
@@ -20,8 +19,7 @@ public class ClientSubscription extends MongoBaseObject {
 
     private String clientId;
 
-    @DBRef
-    private SubscriptionPlan subscriptionPlan;
+    private SubscriptionPlan subscriptionPlanSnapshot;
 
     private SubscriptionStatus status;
 
@@ -29,12 +27,29 @@ public class ClientSubscription extends MongoBaseObject {
 
     private SubscriptionPlan.PlanPeriod planPeriod;
 
-    private Date startDate;
+    private Date submittedDate;
 
-    private Date endDate;
+    private Date planStartDate;
 
+    private Date planEndDate;
+    
+
+    public ClientSubscription(String clientId, SubscriptionPlan subscriptionPlanSnapshot, SubscriptionPlan.PlanPeriod planPeriod) {
+        this.clientId = clientId;
+        this.subscriptionPlanSnapshot = subscriptionPlanSnapshot;
+        this.planPeriod = planPeriod;
+        this.planPrice = subscriptionPlanSnapshot.getPlanPrice(planPeriod).getPlanMonthlyPrice();
+
+        this.status = SubscriptionStatus.SUBMITTED;
+        this.submittedDate = new Date();
+    }
 
     public enum SubscriptionStatus {
+
+        /**
+         * Subscription request is sent, not yet received payment.
+         */
+        SUBMITTED,
 
         /**
          * This plan is in use. At most one active plan for a client id.
@@ -42,7 +57,12 @@ public class ClientSubscription extends MongoBaseObject {
         ACTIVE,
 
         /**
-         * This plan is stopped for whatever reason. (e.g. non payment)
+         * This plan is active but client decides to not renew in the next cycle.
+         */
+        ACTIVE_LAPSING,
+
+        /**
+         * This plan is suspended for whatever reason. (e.g. non payment)
          */
         INACTIVE,
 

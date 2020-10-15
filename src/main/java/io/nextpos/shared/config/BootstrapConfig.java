@@ -8,6 +8,8 @@ import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.settings.service.SettingsService;
+import io.nextpos.subscription.data.SubscriptionPaymentInstruction;
+import io.nextpos.subscription.service.SubscriptionPlanService;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +51,8 @@ public class BootstrapConfig {
 
     private final SettingsService settingsService;
 
+    private final SubscriptionPlanService subscriptionPlanService;
+
     private final SettingsConfigurationProperties settingsProperties;
 
     private final MongoClient mongoClient;
@@ -58,9 +62,10 @@ public class BootstrapConfig {
     private final DataSource dataSource;
 
     @Autowired
-    public BootstrapConfig(final ClientService clientService, final SettingsService settingsService, final SettingsConfigurationProperties settingsProperties, MongoClient mongoClient, MongoTemplate mongoTemplate, final DataSource dataSource) {
+    public BootstrapConfig(final ClientService clientService, final SettingsService settingsService, SubscriptionPlanService subscriptionPlanService, final SettingsConfigurationProperties settingsProperties, MongoClient mongoClient, MongoTemplate mongoTemplate, final DataSource dataSource) {
         this.clientService = clientService;
         this.settingsService = settingsService;
+        this.subscriptionPlanService = subscriptionPlanService;
         this.settingsProperties = settingsProperties;
         this.mongoClient = mongoClient;
         this.mongoTemplate = mongoTemplate;
@@ -86,15 +91,17 @@ public class BootstrapConfig {
         }
 
         settingsService.findCountrySettings(DEFAULT_COUNTRY_CODE).ifPresentOrElse(settings -> {
+            settings.setTaxInclusive(true);
             settings.setDecimalPlaces(0);
             settings.setRoundingMode(RoundingMode.HALF_UP);
-            
+
             LOGGER.info("Updating default country settings: {}", settings);
             settingsService.saveCountrySettings(settings);
 
         }, () -> {
             final CountrySettings defaultCountrySettings = new CountrySettings(DEFAULT_COUNTRY_CODE,
                     BigDecimal.valueOf(0.05),
+                    true,
                     Currency.getInstance("TWD"),
                     0,
                     RoundingMode.HALF_UP);
@@ -104,6 +111,16 @@ public class BootstrapConfig {
             LOGGER.info("Creating default country settings: {}", defaultCountrySettings);
             settingsService.saveCountrySettings(defaultCountrySettings);
         });
+
+        if (checkMongoDbSessionSupport()) {
+            final SubscriptionPaymentInstruction paymentInstruction = subscriptionPlanService.getSubscriptionPaymentInstructionByCountry(DEFAULT_COUNTRY_CODE).orElseGet(() -> {
+
+                final SubscriptionPaymentInstruction newInstruction = new SubscriptionPaymentInstruction(DEFAULT_COUNTRY_CODE, "d-dd8bd80c86c74ea9a9ff2a96dcfb462d");
+                return subscriptionPlanService.saveSubscriptionPaymentInstruction(newInstruction);
+            });
+
+            LOGGER.info("Default subscription payment instruction: {}", paymentInstruction);
+        }
     }
 
     private void createMongoTables() {
@@ -118,7 +135,7 @@ public class BootstrapConfig {
         scanner.findCandidateComponents("io.nextpos").forEach(b -> {
             try {
                 final String collection = MongoCollectionUtils.getPreferredCollectionName(Class.forName(b.getBeanClassName()));
-                
+
                 if (!mongoTemplate.collectionExists(collection)) {
                     mongoTemplate.createCollection(collection);
                 }

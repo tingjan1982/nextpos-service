@@ -1,9 +1,12 @@
 package io.nextpos.subscription.data;
 
+import io.nextpos.ordermanagement.data.TaxableAmount;
+import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.model.MongoBaseObject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -21,6 +24,7 @@ import java.util.Map;
 @Document
 @Data
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class SubscriptionPlan extends MongoBaseObject {
 
     @Id
@@ -33,18 +37,25 @@ public class SubscriptionPlan extends MongoBaseObject {
 
     private String planName;
 
+    private TaxableAmount taxableAmount;
+
     private Map<PlanPeriod, PlanPrice> planPrices = new HashMap<>();
 
     private List<String> restrictedFeatures = new ArrayList<>();
 
-    public SubscriptionPlan(String countryCode, PlanGroup planGroup, String planName) {
+    public SubscriptionPlan(String countryCode, PlanGroup planGroup, String planName, CountrySettings countrySettings) {
         this.countryCode = countryCode;
         this.planGroup = planGroup;
         this.planName = planName;
+        this.taxableAmount = new TaxableAmount(countrySettings.getTaxRate(), countrySettings.getTaxInclusive());
     }
 
     public void addPlanPrice(PlanPeriod planPeriod, PlanPrice planPrice) {
         planPrices.put(planPeriod, planPrice);
+    }
+
+    public PlanPrice getPlanPrice(PlanPeriod planPeriod) {
+        return planPrices.get(planPeriod);
     }
 
     @Data
@@ -60,6 +71,19 @@ public class SubscriptionPlan extends MongoBaseObject {
     }
 
     public enum PlanPeriod {
-        MONTHLY, HALF_YEARLY, YEARLY
+        MONTHLY(1),
+        QUARTERLY(3),
+        HALF_YEARLY(6),
+        YEARLY(12);
+
+        private final int numberOfMonths;
+
+        PlanPeriod(int numberOfMonths) {
+            this.numberOfMonths = numberOfMonths;
+        }
+
+        public int getNumberOfMonths() {
+            return numberOfMonths;
+        }
     }
 }

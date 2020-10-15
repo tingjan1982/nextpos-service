@@ -24,6 +24,8 @@ public class CountrySettings extends BaseObject {
 
     private BigDecimal taxRate;
 
+    private Boolean taxInclusive;
+
     private Currency currency;
 
     private int decimalPlaces;
@@ -37,8 +39,9 @@ public class CountrySettings extends BaseObject {
     private Set<String> commonAttributes = new HashSet<>();
 
 
-    public CountrySettings(String isoCountryCode, BigDecimal taxRate, Currency currency, int decimalPlaces, RoundingMode roundingMode) {
+    public CountrySettings(String isoCountryCode, BigDecimal taxRate, boolean taxInclusive, Currency currency, int decimalPlaces, RoundingMode roundingMode) {
         this.isoCountryCode = isoCountryCode;
+        this.taxInclusive = taxInclusive;
         this.taxRate = taxRate;
         this.currency = currency;
         this.decimalPlaces = decimalPlaces;

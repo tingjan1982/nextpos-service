@@ -1,14 +1,18 @@
 package io.nextpos.notification.service;
 
-import com.sendgrid.*;
+import com.sendgrid.Method;
+import com.sendgrid.Request;
+import com.sendgrid.Response;
+import com.sendgrid.SendGrid;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
+import com.sendgrid.helpers.mail.objects.Personalization;
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
 import com.twilio.type.PhoneNumber;
 import io.nextpos.notification.config.NotificationProperties;
-import io.nextpos.notification.data.EmailDetails;
-import io.nextpos.notification.data.NotificationDetails;
-import io.nextpos.notification.data.NotificationDetailsRepository;
-import io.nextpos.notification.data.SmsDetails;
+import io.nextpos.notification.data.*;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.service.annotation.MongoTransaction;
 import org.slf4j.Logger;
@@ -56,65 +60,109 @@ public class NotificationServiceImpl implements NotificationService {
     public CompletableFuture<NotificationDetails> sendNotification(final NotificationDetails notificationDetails) {
 
         return CompletableFuture.supplyAsync(() -> {
-            LOGGER.info("Notification is on its way");
+            LOGGER.info("Sending notification to client {}", notificationDetails.getClientId());
             return this.determineSendStrategyAndSend(notificationDetails);
+
         }).whenComplete((d, t) -> {
             if (t == null) {
-                LOGGER.info("Notification has been sent");
+                LOGGER.info("Notification has been sent to client {}", notificationDetails.getClientId());
                 notificationDetails.setDeliveryStatus(NotificationDetails.DeliveryStatus.SUCCESS);
                 notificationDetailsRepository.save(notificationDetails);
             }
         }).exceptionally(ex -> {
-            LOGGER.error("There were some problems while sending out notification: {}", ex.getMessage(), ex);
+            LOGGER.error("Error while sending notification to client {}: {}", notificationDetails.getClientId(), ex.getMessage(), ex);
+            notificationDetails.setDeliveryStatus(NotificationDetails.DeliveryStatus.FAIL);
+            notificationDetailsRepository.save(notificationDetails);
+
             return null;
         });
     }
 
     private NotificationDetails determineSendStrategyAndSend(NotificationDetails notificationDetails) {
-        LOGGER.info("Preparing to send notification: {}", notificationDetails.getId());
+        LOGGER.info("Preparing to send {} notification", notificationDetails.getClass().getSimpleName());
 
-        // todo: try out the Rest API implementation
-        if (notificationDetails instanceof EmailDetails) {
-            try {
-                final EmailDetails emailDetails = (EmailDetails) notificationDetails;
+        if (notificationDetails instanceof DynamicEmailDetails) {
+            sendDynamicEmailNotification(((DynamicEmailDetails) notificationDetails));
 
-                Email from = new Email("notification-noreply@rain-app.io");
-                Email to = new Email(emailDetails.getRecipientEmail());
-                Content content = new Content("text/plain", emailDetails.getEmailContent());
-                Mail mail = new Mail(from, emailDetails.getSubject(), to, content);
-
-                SendGrid sg = new SendGrid(mailProperties.getPassword());
-                Request request = new Request();
-
-                request.setMethod(Method.POST);
-                request.setEndpoint("mail/send");
-                request.setBody(mail.build());
-                Response response = sg.api(request);
-
-                LOGGER.info("{}", response);
-
-            } catch (Exception e) {
-                String errorMsg = String.format("Problem with sending email: %s", e.getMessage());
-                LOGGER.error(errorMsg, e);
-                throw new GeneralApplicationException(errorMsg);
-            }
+        } else if (notificationDetails instanceof EmailDetails) {
+            sendEmailNotification((EmailDetails) notificationDetails);
 
         } else if (notificationDetails instanceof SmsDetails) {
-
-            final SmsDetails smsDetails = (SmsDetails) notificationDetails;
-            final String ACCOUNT_SID = notificationProperties.getAccountSid();
-            final String AUTH_TOKEN = notificationProperties.getAuthToken();
-            Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
-
-            Message message = Message.creator(
-                    new PhoneNumber(smsDetails.getToNumber()),
-                    new PhoneNumber("+15103808519"),
-                    smsDetails.getMessage())
-                    .create();
-
-            LOGGER.info("SMS Message: {}", message);
+            sendSmsNotification((SmsDetails) notificationDetails);
         }
 
         return notificationDetails;
+    }
+
+    private void sendDynamicEmailNotification(DynamicEmailDetails notificationDetails) {
+
+        try {
+            Email from = new Email("notification-noreply@rain-app.io");
+            Email to = new Email(notificationDetails.getRecipientEmail());
+            Mail mail = new Mail();
+            mail.setTemplateId(notificationDetails.getTemplateId());
+            mail.setFrom(from);
+
+            final Personalization personalization = new Personalization();
+            personalization.addTo(to);
+
+            notificationDetails.getTemplateData().forEach(personalization::addDynamicTemplateData);
+            mail.addPersonalization(personalization);
+
+            SendGrid sg = new SendGrid(mailProperties.getPassword());
+            Request request = new Request();
+
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            Response response = sg.api(request);
+
+            LOGGER.info("{}", response);
+
+        } catch (Exception e) {
+            String errorMsg = String.format("Error while sending email: %s", e.getMessage());
+            LOGGER.error(errorMsg, e);
+            throw new GeneralApplicationException(errorMsg);
+        }
+    }
+
+    private void sendEmailNotification(EmailDetails notificationDetails) {
+
+        try {
+            Email from = new Email("notification-noreply@rain-app.io");
+            Email to = new Email(notificationDetails.getRecipientEmail());
+            Content content = new Content("text/html", notificationDetails.getEmailContent());
+            Mail mail = new Mail(from, notificationDetails.getSubject(), to, content);
+
+            SendGrid sg = new SendGrid(mailProperties.getPassword());
+            Request request = new Request();
+
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            Response response = sg.api(request);
+
+            LOGGER.info("{}", response);
+
+        } catch (Exception e) {
+            String errorMsg = String.format("Error while sending email: %s", e.getMessage());
+            LOGGER.error(errorMsg, e);
+            throw new GeneralApplicationException(errorMsg);
+        }
+    }
+
+    private void sendSmsNotification(SmsDetails notificationDetails) {
+
+        final String ACCOUNT_SID = notificationProperties.getAccountSid();
+        final String AUTH_TOKEN = notificationProperties.getAuthToken();
+        Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
+
+        Message message = Message.creator(
+                new PhoneNumber(notificationDetails.getToNumber()),
+                new PhoneNumber("+15103808519"),
+                notificationDetails.getMessage())
+                .create();
+
+        LOGGER.info("SMS Message: {}", message);
     }
 }

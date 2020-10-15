@@ -24,14 +24,10 @@ public class NotificationDetails extends MongoBaseObject {
 
     public NotificationDetails(final String clientId) {
         this.clientId = clientId;
-    }
-
-    @Override
-    public boolean isNew() {
-        return id == null;
+        this.deliveryStatus = DeliveryStatus.PENDING;
     }
 
     public enum DeliveryStatus {
-        SUCCESS, FAIL
+        PENDING, SUCCESS, FAIL
     }
 }

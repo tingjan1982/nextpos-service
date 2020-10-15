@@ -23,7 +23,7 @@ class SettingsServiceImplTest {
     @Test
     void createCountrySettings() {
 
-        final CountrySettings countrySettings = new CountrySettings("US", BigDecimal.valueOf(0.08), Currency.getInstance("USD"), 2, RoundingMode.HALF_UP);
+        final CountrySettings countrySettings = new CountrySettings("US", BigDecimal.valueOf(0.08), false, Currency.getInstance("USD"), 2, RoundingMode.HALF_UP);
         countrySettings.addCommonAttribute("UBN");
 
         settingsService.saveCountrySettings(countrySettings);
@@ -39,6 +39,7 @@ class SettingsServiceImplTest {
 
         final CountrySettings taiwanSettings = new CountrySettings("TW",
                 BigDecimal.valueOf(0.05),
+                true,
                 Currency.getInstance("TWD"),
                 0,
                 RoundingMode.HALF_UP);
