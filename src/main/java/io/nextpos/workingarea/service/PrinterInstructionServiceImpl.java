@@ -16,11 +16,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -114,13 +117,21 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
     }
 
     @Override
-    public String createOrderDetailsPrintInstruction(Client client, OrderTransaction orderTransaction) {
+    public String createOrderDetailsPrintInstruction(Client client, Order order, OrderTransaction orderTransaction) {
 
         final Template orderDetails;
         try {
             orderDetails = freeMarkerCfg.getTemplate("orderDetails.ftl");
             final StringWriter writer = new StringWriter();
-            orderDetails.process(Map.of("client", client, "orderTransaction", orderTransaction), writer);
+            final Map<String, Object> dataModel = new HashMap<>();
+            dataModel.put("client", client);
+            dataModel.put("order", order);
+            
+            if (orderTransaction != null) {
+                dataModel.put("orderTransaction", orderTransaction);
+            }
+
+            orderDetails.process(dataModel, writer);
 
             return writer.toString();
 
@@ -150,5 +161,23 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
             LOGGER.error(e.getMessage(), e);
             throw new GeneralApplicationException("Error while generating electronic invoice XML template: " + e.getMessage());
         }
+    }
+
+    @Override
+    public ResponseEntity<String> outputToPrinter(String printerIp, String contentXML) {
+
+        final RestTemplate restTemplate = new RestTemplate();
+
+        String url = "http://" + printerIp + "/cgi-bin/epos/service.cgi?devid=local_printer&timeout=5000";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/xml; charset=utf-8"));
+        headers.add("SOAPAction", "");
+
+        HttpEntity<String> request = new HttpEntity<>(contentXML, headers);
+
+        final ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+        LOGGER.info("Status: {}, body: {}", response.getStatusCode(), response.getBody());
+
+        return response;
     }
 }

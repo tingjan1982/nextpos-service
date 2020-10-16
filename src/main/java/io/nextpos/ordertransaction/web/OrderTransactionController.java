@@ -62,7 +62,7 @@ public class OrderTransactionController {
         final OrderTransaction orderTransaction = orderTransactionService.getOrderTransaction(transactionId);
         final Order order = orderService.getOrder(orderTransaction.getOrderId());
 
-        final String receiptXML = printerInstructionService.createOrderDetailsPrintInstruction(client, orderTransaction);
+        final String receiptXML = printerInstructionService.createOrderDetailsPrintInstruction(client, order, orderTransaction);
         final String electronicInvoiceXML = printerInstructionService.createElectronicInvoiceXML(client, order, orderTransaction);
 
         final OrderTransactionResponse response = OrderTransactionResponse.toOrderTransactionResponse(orderTransaction);

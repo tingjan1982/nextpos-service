@@ -9,15 +9,16 @@
             <epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">
                 <text lang="zh-tw"/>
                 <text align="center"/>
-                <text width="1" height="2"/>
+                <text font="font_a"/>
+                <text width="2" height="2"/>
                 <text>${client.clientName!"NA"}&#10;</text>
                 <feed line="1"/>
-                <text dw="true" dh="true"/>
+                <text dw="true" dh="true" linespc="60"/>
                 <text>電子發票證明聯&#10;</text>
                 <text>${electronicInvoice.formattedInvoiceDate}&#10;</text>
                 <text>${electronicInvoice.invoiceNumber}&#10;</text>
                 <text align="left"/>
-                <text width="1" height="1"/>
+                <text width="1" height="1" linespc="30"/>
                 <text>${electronicInvoice.invoiceCreatedDate?string('MM/dd/yyyy HH:mm:ss')}&#10;</text>
                 <text>隨機碼:${electronicInvoice.randomNumber}</text>
                 <text x="210"/>
@@ -30,11 +31,11 @@
                     <text x="5"/>
                     <symbol type="qrcode_model_2" level="level_l" width="4">${electronicInvoice.qrCode1Content}</symbol>
                     <text x="230"/>
-                    <symbol type="qrcode_model_2" level="level_l" width="4">${electronicInvoice.qrCode2Content}</symbol>
+                    <symbol type="qrcode_model_2" level="level_l" width="6">${electronicInvoice.qrCode2Content}</symbol>
                 </page>
                 <text align="left"/>
-                <text>卡號：${orderTransaction.paymentDetails.values['LAST_FOUR_DIGITS']!""}&#10;</text>
                 <text>訂單號碼：${order.serialId!"NA"}&#10;</text>
+                <text>卡號：${orderTransaction.paymentDetails.values['LAST_FOUR_DIGITS']!""}&#10;</text>
                 <cut type="feed"/>
             </epos-print>
         </s:Body>

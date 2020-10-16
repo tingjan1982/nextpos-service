@@ -27,8 +27,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.security.SecureRandom;
-import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
@@ -76,7 +74,7 @@ class PrinterInstructionsServiceImplTest {
 
         clientRepository.save(client);
 
-        final Printer printer = new Printer(client, "main printer", "192.168.1.100", Printer.ServiceType.WORKING_AREA);
+        final Printer printer = new Printer(client, "main printer", "192.168.2.231", Printer.ServiceType.WORKING_AREA);
         workingAreaService.savePrinter(printer);
 
         workingArea = new WorkingArea(client, "main");
@@ -97,41 +95,53 @@ class PrinterInstructionsServiceImplTest {
     void createOrderToWorkingArea() {
 
         final Order order = new Order(client.getId(), orderSettings);
+        final OrderLineItem coffee = order.addOrderLineItem(DummyObjects.productSnapshot("Coffee", new BigDecimal("100")), 2);
+        coffee.setState(OrderLineItem.LineItemState.IN_PROCESS);
+        coffee.setWorkingAreaId(workingArea.getId());
 
-        final OrderLineItem item1 = new OrderLineItem(DummyObjects.productSnapshot(), 2, orderSettings);
-        item1.setState(OrderLineItem.LineItemState.IN_PROCESS);
-        item1.setWorkingAreaId(workingArea.getId());
-        order.addOrderLineItem(item1);
+        final OrderLineItem friedRice = order.addOrderLineItem(DummyObjects.productSnapshot("蛋炒飯", new BigDecimal("100"), DummyObjects.productOptionSnapshot()), 5);
+        friedRice.setState(OrderLineItem.LineItemState.IN_PROCESS);
+        friedRice.setWorkingAreaId(workingArea.getId());
 
         orderService.createOrder(order);
 
         final PrinterInstructions orderToWorkingArea = printerInstructionService.createOrderToWorkingArea(order);
 
         LOGGER.info("{}", orderToWorkingArea);
-    }
 
+        printInstruction(orderToWorkingArea.getPrinterInstructions().get(0).getPrintInstruction());
+    }
 
     @Test
     void createOrderDetailsPrintInstruction() {
 
+        final Order order = new Order(client.getId(), orderSettings);
+        order.addOrderLineItem(DummyObjects.productSnapshot("coffee", new BigDecimal("55")), 3);
+        order.addOrderLineItem(DummyObjects.productSnapshot("apple juice", new BigDecimal("70")), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("什錦炒麵", new BigDecimal("120")), 2);
+        order.addOrderLineItem(DummyObjects.productSnapshot("菲力牛排", new BigDecimal("550")), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("義大利麵", new BigDecimal("320")), 1);
+        orderService.saveOrder(order);
+
         final OrderTransaction orderTransaction = new OrderTransaction(new ObjectId().toString(), client.getId(), BigDecimal.valueOf(195), BigDecimal.valueOf(195),
                 OrderTransaction.PaymentMethod.CARD,
                 OrderTransaction.BillType.SINGLE,
-                List.of(new OrderTransaction.BillLineItem("coffee", 1, BigDecimal.valueOf(55), BigDecimal.valueOf(55)),
-                        new OrderTransaction.BillLineItem("bagel", 2, BigDecimal.valueOf(70), BigDecimal.valueOf(140))));
+                List.of());
 
-        orderTransaction.setId("dummy-id");
+        orderTransaction.setId(ObjectId.get().toString());
+        orderTransaction.setOrderId(order.getId());
         orderTransaction.setCreatedDate(new Date());
 
-        final String instruction = printerInstructionService.createOrderDetailsPrintInstruction(client, orderTransaction);
+        final String instruction = printerInstructionService.createOrderDetailsPrintInstruction(client, order, orderTransaction);
 
-        LOGGER.info("{}", instruction);
+        logAndPrint(instruction);
     }
 
     @Test
-    void createElectronicInvoiceXML() throws Exception {
+    void createElectronicInvoiceXML() {
 
         final Order order = new Order(client.getId(), orderSettings);
+        order.setSerialId("20201010-150");
         order.addOrderLineItem(DummyObjects.productSnapshot("coffee", BigDecimal.valueOf(55)), 1);
         order.addOrderLineItem(DummyObjects.productSnapshot("bagel", BigDecimal.valueOf(70)), 2);
 
@@ -141,20 +151,25 @@ class PrinterInstructionsServiceImplTest {
                 List.of(new OrderTransaction.BillLineItem("coffee", 1, BigDecimal.valueOf(50), BigDecimal.valueOf(50)),
                         new OrderTransaction.BillLineItem("bagel", 2, BigDecimal.valueOf(50), BigDecimal.valueOf(100))));
 
-        orderTransaction.setId("dummy-id");
+        orderTransaction.setId(ObjectId.get().toString());
         orderTransaction.setCreatedDate(new Date());
 
         final ElectronicInvoice electronicInvoice = electronicInvoiceService.createElectronicInvoice(client, order, orderTransaction);
 
         orderTransaction.getInvoiceDetails().setElectronicInvoice(electronicInvoice);
 
-        SecureRandom sr = SecureRandom.getInstanceStrong();
-        byte[] salt = new byte[32];
-        sr.nextBytes(salt);
-        final String aesKey = Base64.getEncoder().encodeToString(salt);
-        
         final String instruction = printerInstructionService.createElectronicInvoiceXML(client, order, orderTransaction);
 
+        logAndPrint(instruction);
+    }
+
+    private void logAndPrint(String instruction) {
         LOGGER.info("{}", instruction);
+
+        printInstruction(instruction);
+    }
+
+    private void printInstruction(String printInstruction) {
+        //printerInstructionService.outputToPrinter("192.168.2.231", printInstruction);
     }
 }

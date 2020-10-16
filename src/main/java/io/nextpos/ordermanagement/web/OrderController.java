@@ -280,14 +280,24 @@ public class OrderController {
         return OrderResponse.toOrderResponse(copiedOrder);
     }
 
-    @GetMapping("/{id}/printOrder")
-    public PrinterInstructions printOrderDetails(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                  @PathVariable final String id) {
+    @GetMapping("/{id}/orderToWorkingArea")
+    public PrinterInstructions printOrderToWorkingArea(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                       @PathVariable final String id) {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
         return printerInstructionService.createOrderToWorkingArea(order);
     }
+
+    @GetMapping("/{id}/orderDetails")
+    public String printOrderDetails(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                    @PathVariable final String id) {
+
+        final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
+
+        return printerInstructionService.createOrderDetailsPrintInstruction(client, order, null);
+    }
+
 
     @DeleteMapping("/{id}")
     @OrderLogAction

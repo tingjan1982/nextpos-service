@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.sql.SQLIntegrityConstraintViolationException;
 import java.time.Instant;
 import java.util.AbstractMap;
 import java.util.Collections;
@@ -68,18 +67,10 @@ public class ExceptionResolver {
 
         LOGGER.error("{}", exception.getMessage(), exception);
 
-        if (exception.getCause() instanceof SQLIntegrityConstraintViolationException) {
-            final ErrorResponse errorResponse = ErrorResponse.simpleErrorResponse("message.alreadyExists", "Object with name already exists");
-            errorResponse.setDetails(exception.getSQLException().getMessage());
+        final ErrorResponse errorResponse = ErrorResponse.simpleErrorResponse("message.alreadyExists", "Object with name already exists");
+        errorResponse.setDetails(exception.getSQLException().getMessage());
 
-            return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
-
-        } else {
-            final ErrorResponse errorResponse = ErrorResponse.simpleErrorResponse("Database constraint violation.");
-            errorResponse.setDetails(exception.getSQLException().getMessage());
-
-            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-        }
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     /**
