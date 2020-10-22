@@ -21,8 +21,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
@@ -38,7 +38,6 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 @SpringBootTest
 @Transactional
-//@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD) use this sparingly as it is not good for performance.
 class StatsReportServiceImplTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StatsReportServiceImplTest.class);

@@ -1,7 +1,6 @@
 package io.nextpos.tablelayout.service;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.client.data.ClientRepository;
 import io.nextpos.shared.exception.ObjectAlreadyExistsException;
 import io.nextpos.tablelayout.data.TableLayout;
 import org.assertj.core.data.Index;
@@ -21,9 +20,6 @@ class TableLayoutServiceImplTest {
     private TableLayoutService tableLayoutService;
 
     @Autowired
-    private ClientRepository clientRepository;
-
-    @Autowired
     private Client client;
 
     @Test
@@ -37,7 +33,7 @@ class TableLayoutServiceImplTest {
 
         savedLayout.addTableDetails(tableA).addTableDetails(tableB);
         tableLayoutService.saveTableLayout(savedLayout);
-        
+
         final TableLayout tableLayoutToCheck = tableLayoutService.getTableLayout(savedLayout.getId());
 
         assertThat(tableLayoutToCheck.getId()).isNotNull();

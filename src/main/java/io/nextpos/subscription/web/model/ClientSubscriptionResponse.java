@@ -2,29 +2,31 @@ package io.nextpos.subscription.web.model;
 
 import io.nextpos.subscription.data.ClientSubscription;
 import io.nextpos.subscription.data.SubscriptionPlan;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ClientSubscriptionResponse {
 
-    private String id;
+    private final String id;
 
-    private String planName;
+    private final String planName;
 
-    private ClientSubscription.SubscriptionStatus status;
+    private final ClientSubscription.SubscriptionStatus status;
 
-    private BigDecimal planPrice;
+    private final BigDecimal planPrice;
 
-    private SubscriptionPlan.PlanPeriod planPeriod;
+    private final SubscriptionPlan.PlanPeriod planPeriod;
 
-    private Date submittedDate;
+    private final Date submittedDate;
 
-    private Date planStartDate;
+    private final Date planStartDate;
 
-    private Date planEndDate;
+    private final Date planEndDate;
+
+    private String invoiceIdentifier;
 }

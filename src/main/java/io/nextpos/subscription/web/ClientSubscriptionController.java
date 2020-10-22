@@ -3,6 +3,7 @@ package io.nextpos.subscription.web;
 import io.nextpos.client.data.Client;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.subscription.data.ClientSubscription;
+import io.nextpos.subscription.data.ClientSubscriptionInvoice;
 import io.nextpos.subscription.service.ClientSubscriptionService;
 import io.nextpos.subscription.web.model.ClientSubscriptionRequest;
 import io.nextpos.subscription.web.model.ClientSubscriptionResponse;
@@ -24,9 +25,11 @@ public class ClientSubscriptionController {
     public ClientSubscriptionResponse submitClientSubscription(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                                @RequestBody ClientSubscriptionRequest request) {
 
-        final ClientSubscription clientSubscription = clientSubscriptionService.createClientSubscription(client, request.getSubscriptionPlanId(), request.getPlanPeriod());
+        final ClientSubscriptionInvoice invoice = clientSubscriptionService.createClientSubscription(client, request.getSubscriptionPlanId(), request.getPlanPeriod());
+        final ClientSubscriptionResponse response = toResponse(invoice.getClientSubscription());
+        response.setInvoiceIdentifier(invoice.getInvoiceIdentifier());
 
-        return toResponse(clientSubscription);
+        return response;
     }
 
     @GetMapping("/current")
@@ -36,6 +39,7 @@ public class ClientSubscriptionController {
     }
 
     private ClientSubscriptionResponse toResponse(ClientSubscription clientSubscription) {
+
         return new ClientSubscriptionResponse(clientSubscription.getId(),
                 clientSubscription.getSubscriptionPlanSnapshot().getPlanName(),
                 clientSubscription.getStatus(),

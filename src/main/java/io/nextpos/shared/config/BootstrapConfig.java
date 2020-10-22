@@ -8,6 +8,7 @@ import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.settings.service.SettingsService;
+import io.nextpos.shared.service.annotation.JpaTransaction;
 import io.nextpos.subscription.data.SubscriptionPaymentInstruction;
 import io.nextpos.subscription.service.SubscriptionPlanService;
 import org.apache.commons.lang3.tuple.Pair;
@@ -37,6 +38,7 @@ import java.util.stream.Collectors;
  * https://www.baeldung.com/running-setup-logic-on-startup-in-spring
  */
 @Component
+@JpaTransaction
 public class BootstrapConfig {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapConfig.class);

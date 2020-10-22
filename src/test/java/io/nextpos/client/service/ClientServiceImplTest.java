@@ -11,8 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.test.context.support.WithMockUser;
-
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -47,7 +46,7 @@ class ClientServiceImplTest {
     }
 
     @Test
-    @WithMockUser("admin@nextpos.io")
+    @WithMockUser("rain.io.app@gmail.com")
     void crudClientUser() {
 
         final String username = "user@nextpos.io";

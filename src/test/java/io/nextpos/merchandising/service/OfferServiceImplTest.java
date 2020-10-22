@@ -1,7 +1,7 @@
 package io.nextpos.merchandising.service;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.client.data.ClientRepository;
+import io.nextpos.client.service.ClientService;
 import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.merchandising.data.Offer;
@@ -19,8 +19,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -45,14 +45,14 @@ class OfferServiceImplTest {
     private ProductLabelService productLabelService;
 
     @Autowired
-    private ClientRepository clientRepository;
+    private ClientService clientService;
 
     private Client client;
 
     @BeforeEach
     void prepare() {
         client = DummyObjects.dummyClient();
-        clientRepository.save(client);
+        clientService.saveClient(client);
     }
 
     @Test
@@ -124,7 +124,7 @@ class OfferServiceImplTest {
         final ProductLevelOffer productLevelOffer = new ProductLevelOffer(client, "product level promotion", Offer.TriggerType.MEMBER, Offer.DiscountType.AMOUNT_OFF, BigDecimal.valueOf(50), false);
         productLevelOffer.addProduct(product);
         productLevelOffer.addProductLabel(drink);
-        
+
         offerService.saveOffer(productLevelOffer);
 
         assertThat(productLevelOffer.getId()).isNotNull();

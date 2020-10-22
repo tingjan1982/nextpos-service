@@ -1,7 +1,7 @@
 package io.nextpos.merchandising.service;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.client.data.ClientRepository;
+import io.nextpos.client.service.ClientService;
 import io.nextpos.merchandising.data.Offer;
 import io.nextpos.merchandising.data.OrderLevelOffer;
 import io.nextpos.merchandising.data.ProductLevelOffer;
@@ -16,8 +16,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +34,7 @@ class MerchandisingServiceImplTest {
     private OfferService offerService;
 
     @Autowired
-    private ClientRepository clientRepository;
+    private ClientService clientService;
 
     @Autowired
     private OrderSettings orderSettings;
@@ -45,7 +45,7 @@ class MerchandisingServiceImplTest {
     @BeforeEach
     void prepare() {
         client = DummyObjects.dummyClient();
-        clientRepository.save(client);
+        clientService.saveClient(client);
 
         final OrderLevelOffer orderDiscount = new OrderLevelOffer(client, "order discount", Offer.TriggerType.ALWAYS, Offer.DiscountType.PERCENT_OFF, BigDecimal.valueOf(.1));
         offerService.activateOffer(orderDiscount);

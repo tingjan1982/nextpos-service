@@ -6,7 +6,6 @@ import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
 import io.nextpos.product.data.ProductOption;
 import io.nextpos.shared.DummyObjects;
-import io.nextpos.shared.exception.ObjectAlreadyExistsException;
 import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,14 +15,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Optional assertions:
@@ -132,13 +130,6 @@ class ProductLabelServiceImplTest {
         final List<ProductLabel> productLabels = productLabelService.getProductLabels(client);
 
         assertThat(productLabels).hasSize(3);
-    }
-
-    @Test
-    void saveLabelWithSameNames() {
-
-        productLabelService.saveProductLabel(new ProductLabel("label", client));
-        assertThatThrownBy(() -> productLabelService.saveProductLabel(new ProductLabel("label", client))).isInstanceOf(ObjectAlreadyExistsException.class);
     }
 
     @Test

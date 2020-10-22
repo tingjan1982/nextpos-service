@@ -4,7 +4,6 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
-import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.subscription.data.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,13 +13,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @ChainedTransaction
@@ -68,20 +68,19 @@ class ClientSubscriptionServiceImplTest {
     @Test
     void createAndActivateClientSubscription() {
 
-        final ClientSubscription clientSubscription = clientSubscriptionService.createClientSubscription(client, subscriptionPlan.getId(), SubscriptionPlan.PlanPeriod.MONTHLY);
-
+        final ClientSubscriptionInvoice clientSubscriptionInvoice = clientSubscriptionService.createClientSubscription(client, subscriptionPlan.getId(), SubscriptionPlan.PlanPeriod.MONTHLY);
+        final ClientSubscription clientSubscription = clientSubscriptionInvoice.getClientSubscription();
         assertThat(clientSubscription.getId()).isNotNull();
         assertThat(clientSubscription.getSubscriptionPlanSnapshot()).isNotNull();
         assertThat(clientSubscription.getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.SUBMITTED);
         assertThat(clientSubscription.getSubmittedDate()).isNotNull();
         assertThat(clientSubscription.getPlanPrice()).isEqualByComparingTo("490");
 
-        final ClientSubscriptionInvoice clientSubscriptionInvoice = clientSubscriptionService.getClientSubscriptionInvoiceByStatus(clientSubscription);
         assertThat(clientSubscriptionInvoice).satisfies(inv -> {
             final Date now = new Date();
             assertThat(inv.getValidFrom()).isEqualToIgnoringMinutes(now);
 
-            final Date oneMonthAfter = Date.from(now.toInstant().plus(1, ChronoUnit.MONTHS));
+            final Date oneMonthAfter = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).plusMonths(1).toInstant());
 
             assertThat(inv.getValidTo()).isEqualToIgnoringMinutes(oneMonthAfter);
             assertThat(inv.getDueAmount().getAmount()).isNotZero();
@@ -163,18 +162,5 @@ class ClientSubscriptionServiceImplTest {
         subscriptionInvoice.setStatus(status);
 
         clientSubscriptionInvoiceRepository.save(subscriptionInvoice);
-    }
-
-    @Test
-    void createClientSubscriptionWithoutInstruction() {
-
-        final Client client = DummyObjects.dummyClient();
-        clientService.saveClient(client);
-
-        final SubscriptionPlan subscriptionPlan = new SubscriptionPlan(Locale.TAIWAN.getCountry(), SubscriptionPlan.PlanGroup.DEFAULT, "standard", countrySettings);
-        subscriptionPlan.addPlanPrice(SubscriptionPlan.PlanPeriod.MONTHLY, new SubscriptionPlan.PlanPrice(new BigDecimal("490")));
-        subscriptionPlanService.saveSubscriptionPlan(subscriptionPlan);
-
-        assertThatThrownBy(() -> clientSubscriptionService.createClientSubscription(client, subscriptionPlan.getId(), SubscriptionPlan.PlanPeriod.MONTHLY)).isInstanceOf(ObjectNotFoundException.class);
     }
 }

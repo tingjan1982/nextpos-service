@@ -1,12 +1,12 @@
 package io.nextpos.subscription.service;
 
 import io.nextpos.settings.data.CountrySettings;
-import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.subscription.data.SubscriptionPaymentInstruction;
 import io.nextpos.subscription.data.SubscriptionPlan;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Locale;
@@ -14,7 +14,7 @@ import java.util.Locale;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@ChainedTransaction
+@Transactional
 class SubscriptionPlanServiceImplTest {
 
     private final SubscriptionPlanService subscriptionPlanService;

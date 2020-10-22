@@ -14,8 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -45,14 +45,14 @@ class TimeCardReportServiceImplTest {
     void setup() {
         client = clientService.saveClient(DummyObjects.dummyClient());
     }
-    
+
     @Test
     void getTimeCardReport() {
 
         final String username = "user-1";
         final String username2 = "user-2";
         final LocalDateTime now = LocalDateTime.now();
-        
+
         final LocalDateTime firstOfMonth = now.withDayOfMonth(1);
         final LocalDateTime lastOfMonth = YearMonth.now().atEndOfMonth().atStartOfDay();
 

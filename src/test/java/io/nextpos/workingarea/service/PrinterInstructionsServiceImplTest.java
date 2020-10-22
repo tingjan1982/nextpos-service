@@ -1,7 +1,7 @@
 package io.nextpos.workingarea.service;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.client.data.ClientRepository;
+import io.nextpos.client.service.ClientService;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRange;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRangeRepository;
@@ -58,7 +58,7 @@ class PrinterInstructionsServiceImplTest {
     private OrderSettings orderSettings;
 
     @Autowired
-    private ClientRepository clientRepository;
+    private ClientService clientService;
 
     private Client client;
 
@@ -72,7 +72,7 @@ class PrinterInstructionsServiceImplTest {
         client.addAttribute(Client.ClientAttributes.ADDRESS.name(), "台北市大安區建國南路二段");
         client.addAttribute(Client.ClientAttributes.AES_KEY.name(), "41BFE9D500D25491650E8B84C3EA3B3C");
 
-        clientRepository.save(client);
+        clientService.saveClient(client);
 
         final Printer printer = new Printer(client, "main printer", "192.168.2.231", Printer.ServiceType.WORKING_AREA);
         workingAreaService.savePrinter(printer);

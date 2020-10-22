@@ -9,19 +9,26 @@ import java.util.List;
 
 public interface ClientSubscriptionService {
 
-    ClientSubscription createClientSubscription(Client client, String subscriptionPlanId, SubscriptionPlan.PlanPeriod planPeriod);
+    ClientSubscriptionInvoice createClientSubscription(Client client, String subscriptionPlanId, SubscriptionPlan.PlanPeriod planPeriod);
 
     ClientSubscription getCurrentClientSubscription(String clientId);
-
-    ClientSubscriptionInvoice getClientSubscriptionInvoiceByStatus(ClientSubscription clientSubscription);
-
-    ClientSubscriptionInvoice activateClientSubscription(ClientSubscriptionInvoice invoice);
 
     ClientSubscription lapseClientSubscription(ClientSubscription clientSubscription);
 
     ClientSubscription saveClientSubscription(ClientSubscription clientSubscription);
 
+    ClientSubscriptionInvoice activateClientSubscription(String invoiceIdentifier);
+
+    ClientSubscriptionInvoice activateClientSubscription(ClientSubscriptionInvoice invoice);
+
+    ClientSubscriptionInvoice getClientSubscriptionInvoice(String id);
+
+    ClientSubscriptionInvoice getClientSubscriptionInvoiceByInvoiceIdentifier(String invoiceIdentifier);
+
+    List<ClientSubscriptionInvoice> getClientSubscriptionInvoicesByStatus(ClientSubscriptionInvoice.SubscriptionInvoiceStatus pending);
+
     List<ClientSubscriptionInvoice> findSubscriptionInvoicesForRenewal();
 
     List<ClientSubscriptionInvoice> findUnpaidSubscriptionInvoices();
+
 }

@@ -8,6 +8,7 @@ import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
 import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.shared.DummyObjects;
+import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
 import org.assertj.core.data.Index;
@@ -18,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -30,7 +30,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@Transactional(transactionManager = "chainedTransactionManager")
+@ChainedTransaction
 class OrderServiceImplTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OrderServiceImplTest.class);
@@ -237,7 +237,7 @@ class OrderServiceImplTest {
         final OrderSettings copiedOrderSettings = orderSettings.copy();
         copiedOrderSettings.setDecimalPlaces(0);
         copiedOrderSettings.setRoundingMode(null);
-        
+
         order.setOrderSettings(copiedOrderSettings);
         order.computeTotal();
 
@@ -248,7 +248,7 @@ class OrderServiceImplTest {
     void generateSerialId() {
 
         final String todayIdPrefix = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
-        
+
         assertThat(orderService.generateSerialId(client.getId())).isEqualTo("%s-%s", todayIdPrefix, 1);
         assertThat(orderService.generateSerialId(client.getId())).isEqualTo("%s-%s", todayIdPrefix, 2);
         assertThat(orderService.generateSerialId(client.getId())).isEqualTo("%s-%s", todayIdPrefix, 3);

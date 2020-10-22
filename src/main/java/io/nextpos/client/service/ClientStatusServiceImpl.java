@@ -6,7 +6,7 @@ import io.nextpos.client.data.ClientStatusRepository;
 import io.nextpos.ordertransaction.service.ElectronicInvoiceService;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
-import io.nextpos.shared.service.annotation.JpaTransaction;
+import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
 import io.nextpos.workingarea.data.Printer;
@@ -21,7 +21,7 @@ import javax.persistence.EntityManager;
 import java.util.List;
 
 @Service
-@JpaTransaction
+@ChainedTransaction
 public class ClientStatusServiceImpl implements ClientStatusService {
 
     private final ClientStatusRepository clientStatusRepository;

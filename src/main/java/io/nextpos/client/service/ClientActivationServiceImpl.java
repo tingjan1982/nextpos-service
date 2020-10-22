@@ -11,7 +11,7 @@ import io.nextpos.shared.config.ApplicationProperties;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
-import io.nextpos.shared.service.annotation.JpaTransaction;
+import io.nextpos.shared.service.annotation.ChainedTransaction;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
  * https://www.baeldung.com/registration-verify-user-by-email
  */
 @Service
-@JpaTransaction
+@ChainedTransaction
 public class ClientActivationServiceImpl implements ClientActivationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientActivationServiceImpl.class);

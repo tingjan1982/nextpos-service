@@ -1,7 +1,7 @@
 package io.nextpos.ordermanagement.event;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.client.data.ClientRepository;
+import io.nextpos.client.service.ClientService;
 import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.shared.DummyObjects;
@@ -12,8 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,7 +32,7 @@ class PostOrderStateChangeListenerTest {
     private WorkingAreaService workingAreaService;
 
     @Autowired
-    private ClientRepository clientRepository;
+    private ClientService clientService;
 
     @Autowired
     private OrderSettings orderSettings;
@@ -45,7 +45,7 @@ class PostOrderStateChangeListenerTest {
     @BeforeEach
     void prepare() {
         client = DummyObjects.dummyClient();
-        clientRepository.save(client);
+        clientService.saveClient(client);
 
         final WorkingArea workingArea = new WorkingArea(client, "bar");
         workingAreaService.saveWorkingArea(workingArea);

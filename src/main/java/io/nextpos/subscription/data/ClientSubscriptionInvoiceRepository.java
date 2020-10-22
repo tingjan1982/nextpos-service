@@ -11,6 +11,11 @@ public interface ClientSubscriptionInvoiceRepository extends MongoRepository<Cli
 
     List<ClientSubscriptionInvoice> findAllByDueDateBeforeAndStatus(Date date, ClientSubscriptionInvoice.SubscriptionInvoiceStatus status);
 
-    ClientSubscriptionInvoice findFirstByClientSubscriptionAndStatusOrderByCreatedDateDesc(ClientSubscription clientSubscription, ClientSubscriptionInvoice.SubscriptionInvoiceStatus status);
+    List<ClientSubscriptionInvoice> findAllByStatus(ClientSubscriptionInvoice.SubscriptionInvoiceStatus status);
 
+    ClientSubscriptionInvoice findByInvoiceIdentifier(String invoiceIdentifier);
+
+    ClientSubscriptionInvoice findFirstByClientSubscriptionOrderByCreatedDateDesc(ClientSubscription clientSubscription);
+
+    ClientSubscriptionInvoice findFirstByClientSubscriptionAndStatusOrderByCreatedDateDesc(ClientSubscription clientSubscription, ClientSubscriptionInvoice.SubscriptionInvoiceStatus status);
 }

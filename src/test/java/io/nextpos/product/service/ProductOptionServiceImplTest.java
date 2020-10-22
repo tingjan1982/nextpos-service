@@ -1,7 +1,7 @@
 package io.nextpos.product.service;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.client.data.ClientRepository;
+import io.nextpos.client.service.ClientService;
 import io.nextpos.product.data.*;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.ObjectNotFoundException;
@@ -9,8 +9,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -32,14 +32,14 @@ class ProductOptionServiceImplTest {
     private ProductLabelService productlabelService;
 
     @Autowired
-    private ClientRepository clientRepository;
+    private ClientService clientService;
 
     private Client client;
 
     @BeforeEach
     void prepare() {
         client = DummyObjects.dummyClient();
-        clientRepository.save(client);
+        clientService.saveClient(client);
     }
 
     @Test

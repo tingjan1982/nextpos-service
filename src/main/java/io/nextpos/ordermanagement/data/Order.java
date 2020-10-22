@@ -477,7 +477,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         SETTLED,
 
         /**
-         * When order is cancelled.
+         * When order is voided/cancelled.
          */
         CANCELLED,
 

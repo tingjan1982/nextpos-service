@@ -1,7 +1,7 @@
 package io.nextpos.workingarea.service;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.client.data.ClientRepository;
+import io.nextpos.client.service.ClientService;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
 import io.nextpos.product.data.ProductLabelRepository;
@@ -14,8 +14,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import java.math.BigDecimal;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -27,7 +28,7 @@ class WorkingAreaServiceImplTest {
     private WorkingAreaService workingAreaService;
 
     @Autowired
-    private ClientRepository clientRepository;
+    private ClientService clientService;
 
     @Autowired
     private ProductLabelRepository productLabelRepository;
@@ -40,12 +41,12 @@ class WorkingAreaServiceImplTest {
     @BeforeEach
     void prepare() {
         client = DummyObjects.dummyClient();
-        clientRepository.save(client);
+        clientService.saveClient(client);
     }
 
     @Test
     void crudWorkingArea() {
-        
+
         final Printer printer = new Printer(client, "main", "192.168.1.125", Printer.ServiceType.WORKING_AREA);
         workingAreaService.savePrinter(printer);
 

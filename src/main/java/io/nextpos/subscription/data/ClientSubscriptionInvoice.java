@@ -5,6 +5,7 @@ import io.nextpos.shared.model.MongoBaseObject;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -31,6 +32,8 @@ public class ClientSubscriptionInvoice extends MongoBaseObject {
     @DBRef
     private ClientSubscription clientSubscription;
 
+    private String invoiceIdentifier;
+
     private Date validFrom;
 
     private Date validTo;
@@ -48,7 +51,9 @@ public class ClientSubscriptionInvoice extends MongoBaseObject {
 
 
     public ClientSubscriptionInvoice(ZoneId zoneId, ClientSubscription clientSubscription, Date validFrom) {
+
         this.clientSubscription = clientSubscription;
+        this.invoiceIdentifier = RandomStringUtils.randomNumeric(6);
 
         this.validFrom = validFrom;
         final int numberOfMonths = clientSubscription.getPlanPeriod().getNumberOfMonths();
