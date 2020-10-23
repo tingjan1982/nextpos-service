@@ -50,6 +50,7 @@ public class ProductSearchController {
                         return new LightProductResponse(product.getProduct().getId(),
                                 ProductType.resolveProductType(product.getProduct()),
                                 product.getProductName(),
+                                product.getDescription(),
                                 product.getPrice(),
                                 productLabelId,
                                 product.getProduct().isPinned());

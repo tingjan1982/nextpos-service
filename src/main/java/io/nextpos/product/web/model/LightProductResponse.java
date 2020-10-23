@@ -16,6 +16,8 @@ public class LightProductResponse {
 
     private String name;
 
+    private String description;
+
     private BigDecimal price;
 
     private String productLabelId;

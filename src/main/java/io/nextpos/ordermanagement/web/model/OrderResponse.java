@@ -46,6 +46,8 @@ public class OrderResponse {
 
     private final BigDecimal orderTotal;
 
+    private final BigDecimal orderTotalWithoutServiceCharge;
+
     private final Currency currency;
 
     private final List<OrderLineItemResponse> lineItems;
@@ -102,6 +104,7 @@ public class OrderResponse {
                 order.getDiscount(),
                 order.getServiceCharge(),
                 order.getOrderTotal(),
+                order.getOrderTotalWithoutServiceCharge(),
                 order.getCurrency(),
                 orderLineItems,
                 order.getMetadata(),

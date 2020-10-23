@@ -112,6 +112,7 @@ public class ProductController {
                     return new LightProductResponse(p.getProduct().getId(),
                             ProductType.resolveProductType(p.getProduct()),
                             p.getProductName(),
+                            p.getDescription(),
                             p.getPrice(),
                             productLabelId,
                             p.getProduct().isPinned());
