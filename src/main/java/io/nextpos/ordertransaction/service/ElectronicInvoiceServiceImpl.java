@@ -85,9 +85,9 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
     }
 
     @Override
-    public void voidElectronicInvoice(ElectronicInvoice electronicInvoice) {
+    public void cancelElectronicInvoice(ElectronicInvoice electronicInvoice) {
 
-        pendingEInvoiceQueueService.createPendingEInvoiceQueue(electronicInvoice, PendingEInvoiceQueue.PendingEInvoiceType.VOID);
+        pendingEInvoiceQueueService.createPendingEInvoiceQueue(electronicInvoice, PendingEInvoiceQueue.PendingEInvoiceType.CANCEL);
     }
 
     private String getAESKey(Client client) {

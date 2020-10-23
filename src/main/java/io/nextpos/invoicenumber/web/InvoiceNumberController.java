@@ -103,6 +103,14 @@ public class InvoiceNumberController {
                 numberRange.getRemainingNumberInRange());
     }
 
+    @DeleteMapping("/{ubn}/ranges/{rangeIdentifier}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteInvoiceNumber(@PathVariable String ubn,
+                                    @PathVariable String rangeIdentifier) {
+
+        invoiceNumberRangeService.deleteInvoiceNumberRange(ubn, rangeIdentifier);
+    }
+
     @DeleteMapping("/{ubn}/ranges/{rangeIdentifier}/numberRanges/{rangeFrom}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteInvoiceNumberRange(@PathVariable String ubn,

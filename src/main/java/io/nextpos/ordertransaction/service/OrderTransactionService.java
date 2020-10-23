@@ -15,5 +15,5 @@ public interface OrderTransactionService {
 
     List<OrderTransaction> getOrderTransactionByOrderId(String orderId);
 
-    void voidOrderTransaction(String id);
+    void cancelOrderTransaction(String id);
 }

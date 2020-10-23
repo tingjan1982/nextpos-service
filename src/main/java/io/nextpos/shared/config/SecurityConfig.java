@@ -420,7 +420,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         private void authorizeInvoiceNumberRequests(HttpSecurity http) throws Exception {
 
             http.authorizeRequests()
-                    .antMatchers("/invoiceNumbers/**").hasAuthority(Role.MANAGER_ROLE);
+                    .antMatchers("/invoiceNumbers/**").hasAuthority(Role.OWNER_ROLE);
         }
     }
 

@@ -70,7 +70,7 @@ class ElectronicInvoiceServiceImplTest {
 
         assertThat(pendingEInvoiceQueueService.findPendingEInvoicesByUbn(ubn)).hasSize(1);
 
-        electronicInvoiceService.voidElectronicInvoice(electronicInvoice);
+        electronicInvoiceService.cancelElectronicInvoice(electronicInvoice);
 
         assertThat(pendingEInvoiceQueueService.findPendingEInvoicesByUbn(ubn)).hasSize(2);
     }

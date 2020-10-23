@@ -98,6 +98,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<Order> getOrders(final Client client, ZonedDateRange zonedDateRange, String table) {
+
+        LOGGER.info("Date range used to get orders: {}, {}", zonedDateRange.getFromLocalDateTime(), zonedDateRange.getToLocalDateTime());
+
+        return orderRepository.findAllByClientAndDateRangeAndTableNameOrderByCreatedDateDesc(client.getId(),
+                zonedDateRange.getFromDate(),
+                zonedDateRange.getToDate(),
+                table);
+    }
+
+    @Override
     public List<Order> getInflightOrders(final String clientId) {
         final List<Order.OrderState> states = Order.OrderState.inflightStates();
 

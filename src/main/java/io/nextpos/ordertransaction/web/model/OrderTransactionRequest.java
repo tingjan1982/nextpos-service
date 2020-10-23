@@ -31,5 +31,7 @@ public class OrderTransactionRequest {
 
     private String taxIdNumber;
 
+    private String carrierId;
+
     private Map<OrderTransaction.PaymentDetailsKey, Object> paymentDetails = new HashMap<>();
 }

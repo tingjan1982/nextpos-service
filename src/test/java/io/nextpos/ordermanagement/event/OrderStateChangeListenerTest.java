@@ -142,4 +142,15 @@ class OrderStateChangeListenerTest {
         assertThatThrownBy(future::get).isInstanceOf(ExecutionException.class)
                 .hasCauseInstanceOf(BusinessLogicException.class);
     }
+
+    @Test
+    void orderStateChange_DeleteCancelledOrder() {
+
+        order.setState(Order.OrderState.CANCELLED);
+        final CompletableFuture<OrderStateChangeBean> future = new CompletableFuture<>();
+        eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.DELETE, future));
+
+        assertThatThrownBy(future::get).isInstanceOf(ExecutionException.class)
+                .hasCauseInstanceOf(BusinessLogicException.class);
+    }
 }

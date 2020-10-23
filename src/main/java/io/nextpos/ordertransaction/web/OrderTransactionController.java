@@ -72,11 +72,11 @@ public class OrderTransactionController {
         return response;
     }
 
-    @PostMapping("{id}/void")
+    @PostMapping("{id}/cancel")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void voidOrderTransaction(@PathVariable String id) {
+    public void cancelOrderTransaction(@PathVariable String id) {
 
-        orderTransactionService.voidOrderTransaction(id);
+        orderTransactionService.cancelOrderTransaction(id);
     }
 
     private OrderTransaction fromOrderTransactionRequest(final Order order, final OrderTransactionRequest orderTransactionRequest) {
@@ -95,6 +95,8 @@ public class OrderTransactionController {
                 billLineItems);
 
         orderTransaction.setTaxIdNumber(orderTransactionRequest.getTaxIdNumber());
+        orderTransaction.setCarrierId(orderTransactionRequest.getCarrierId());
+        orderTransaction.setCarrierId2(orderTransactionRequest.getCarrierId());
 
         orderTransactionRequest.getPaymentDetails().forEach((key, value) -> {
             final Class<?> targetValueType = key.getValueType();

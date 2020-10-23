@@ -64,6 +64,14 @@ public class OrderTransaction extends MongoBaseObject {
         this.invoiceDetails.setTaxIdNumber(taxIdNumber);
     }
 
+    public void setCarrierId(String carrierId) {
+        this.invoiceDetails.setCarrierId(carrierId);
+    }
+
+    public void setCarrierId2(String carrierId2) {
+        this.invoiceDetails.setCarrierId2(carrierId2);
+    }
+
     public void putPaymentDetails(PaymentDetailsKey key, Object value) {
         paymentDetails.values.put(key, value);
     }
@@ -125,6 +133,10 @@ public class OrderTransaction extends MongoBaseObject {
     public static class InvoiceDetails {
 
         private String taxIdNumber;
+
+        private String carrierId;
+
+        private String carrierId2;
 
         @DBRef
         private io.nextpos.einvoice.common.invoice.ElectronicInvoice electronicInvoice;

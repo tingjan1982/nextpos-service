@@ -100,7 +100,7 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
     }
 
     @Override
-    public void voidOrderTransaction(String id) {
+    public void cancelOrderTransaction(String id) {
 
         final OrderTransaction orderTransaction = this.getOrderTransaction(id);
 
@@ -108,7 +108,7 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
             throw new ObjectNotFoundException(id, ElectronicInvoice.class);
         }
 
-        electronicInvoiceService.voidElectronicInvoice(orderTransaction.getInvoiceDetails().getElectronicInvoice());
+        electronicInvoiceService.cancelElectronicInvoice(orderTransaction.getInvoiceDetails().getElectronicInvoice());
 
         orderTransaction.setStatus(OrderTransaction.OrderTransactionStatus.CANCELLED);
         orderTransactionRepository.save(orderTransaction);
@@ -117,7 +117,7 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
 
         if (!hasNonCancelledTransactions) {
             LOGGER.info("All transactions are cancelled, mark associated order as deleted: {}", orderTransaction.getOrderId());
-            orderService.performOrderAction(orderTransaction.getOrderId(), Order.OrderAction.DELETE);
+            orderService.performOrderAction(orderTransaction.getOrderId(), Order.OrderAction.CANCEL);
         }
     }
 }

@@ -11,5 +11,5 @@ public interface ElectronicInvoiceService {
 
     ElectronicInvoice createElectronicInvoice(Client client, Order order, OrderTransaction orderTransaction);
 
-    void voidElectronicInvoice(ElectronicInvoice electronicInvoice);
+    void cancelElectronicInvoice(ElectronicInvoice electronicInvoice);
 }

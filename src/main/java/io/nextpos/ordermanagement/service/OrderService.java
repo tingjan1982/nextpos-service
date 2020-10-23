@@ -23,6 +23,8 @@ public interface OrderService {
 
     List<Order> getOrders(Client client, ZonedDateRange zonedDateRange);
 
+    List<Order> getOrders(Client client, ZonedDateRange zonedDateRange, String table);
+
     /**
      * todo: more unit tests
      * Inflight orders are orders that are still not closed in the current active shift.

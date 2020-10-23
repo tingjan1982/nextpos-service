@@ -323,6 +323,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         OperationPipeline.executeDirectly(this);
     }
 
+    public BigDecimal getOrderTotalWithoutServiceCharge() {
+        return deduceRoundingAmount(() -> orderTotal.subtract(serviceCharge));
+    }
+
     public void updateServiceCharge(BigDecimal serviceCharge) {
 
         orderSettings.setServiceCharge(serviceCharge);
@@ -486,6 +490,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
          */
         REFUNDED,
 
+        VOIDED,
+
         /**
          * When order is deleted, possibly due to testing or mistake.
          */
@@ -520,8 +526,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
          * This includes scenarios of submitting the initial order, customer adding more orders during and after delivery.
          */
         SUBMIT(EnumSet.of(OPEN, IN_PROCESS, DELIVERED), IN_PROCESS),
-        CANCEL(EnumSet.of(OPEN, IN_PROCESS), CANCELLED),
-        DELETE(EnumSet.of(OPEN, CANCELLED, IN_PROCESS, DELIVERED, SETTLED, REFUNDED, COMPLETED), DELETED),
+        DELETE(EnumSet.of(OPEN, IN_PROCESS, DELIVERED, SETTLED, REFUNDED, COMPLETED), DELETED),
         PREPARE(EnumSet.of(IN_PROCESS), IN_PROCESS),
         /**
          * Used to mark line item as delivered.
@@ -529,7 +534,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         PARTIAL_DELIVER(IN_PROCESS, DELIVERED),
         DELIVER(IN_PROCESS, DELIVERED),
         SETTLE(EnumSet.of(IN_PROCESS, DELIVERED), SETTLED),
-        VOID(SETTLED, CANCELLED),
+        CANCEL(SETTLED, CANCELLED),
+        VOID(SETTLED, VOIDED),
         REFUND(SETTLED, REFUNDED),
 
         /**

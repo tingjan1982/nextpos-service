@@ -17,4 +17,7 @@ public interface OrderRepository extends PagingAndSortingRepository<Order, Strin
 
     @Query(value = "{$and: [{ 'clientId': ?0 }, { 'createdDate': { $gte: ?1, $lt: ?2 } }]}")
     List<Order> findAllByClientAndDateRangeOrderByCreatedDateDesc(String clientId, Date fromDate, Date toDate);
+
+    @Query(value = "{$and: [{ 'clientId': ?0 }, { 'createdDate': { $gte: ?1, $lt: ?2 } }, { 'tableInfo.tableName': ?3 }]}")
+    List<Order> findAllByClientAndDateRangeAndTableNameOrderByCreatedDateDesc(String clientId, Date fromDate, Date toDate, String tableName);
 }

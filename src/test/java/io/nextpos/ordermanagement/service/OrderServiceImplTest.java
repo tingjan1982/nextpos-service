@@ -186,6 +186,7 @@ class OrderServiceImplTest {
         LOGGER.info("Date range: {}, {}", fromDate, toDate);
 
         final Order order = new Order(client.getId(), orderSettings);
+        order.getTableInfo().setTableName("A1");
         orderService.createOrder(order);
 
         final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.RANGE).dateRange(fromDate, toDate).build();
@@ -194,6 +195,8 @@ class OrderServiceImplTest {
 
         LOGGER.info("Orders: {}", orders);
         assertThat(orders).isNotEmpty();
+
+        assertThat(orderService.getOrders(client, zonedDateRange, "A1")).isNotEmpty();
 
         final ZonedDateRange zonedDateRange2 = ZonedDateRangeBuilder.builder(client, DateParameterType.RANGE).dateRange(toDate, toDate.plusDays(1)).build();
 

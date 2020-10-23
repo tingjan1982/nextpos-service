@@ -92,10 +92,17 @@ public class OrderController {
                                                       @RequestParam(name = "dateRange", required = false, defaultValue = "SHIFT") DateParameterType dateParameterType,
                                                       @RequestParam(name = "shiftId", required = false) String shiftId,
                                                       @RequestParam(name = "fromDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
-                                                      @RequestParam(name = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate) {
+                                                      @RequestParam(name = "toDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
+                                                      @RequestParam(name = "table", required = false) String table) {
 
         final ZonedDateRange zonedDateRange = resolveDateRange(client, dateParameterType, shiftId, fromDate, toDate);
-        final List<Order> orders = orderService.getOrders(client, zonedDateRange);
+        List<Order> orders;
+
+        if (StringUtils.isNotBlank(table)) {
+            orders = orderService.getOrders(client, zonedDateRange, table);
+        } else {
+            orders = orderService.getOrders(client, zonedDateRange);
+        }
 
         return toOrdersByRangeResponse(orders, zonedDateRange);
     }

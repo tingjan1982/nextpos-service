@@ -97,7 +97,7 @@ class OrderTransactionServiceImplTest {
     }
 
     @Test
-    void voidOrderTransaction() {
+    void cancelOrderTransaction() {
 
         final Order order = createMockOrder();
 
@@ -110,13 +110,13 @@ class OrderTransactionServiceImplTest {
         orderTransaction.getInvoiceDetails().setElectronicInvoice(electronicInvoice);
         orderTransactionService.createOrderTransaction(client, orderTransaction);
 
-        orderTransactionService.voidOrderTransaction(orderTransaction.getId());
+        orderTransactionService.cancelOrderTransaction(orderTransaction.getId());
 
         final OrderTransaction updatedTransaction = orderTransactionService.getOrderTransaction(orderTransaction.getId());
         assertThat(updatedTransaction.getStatus()).isEqualByComparingTo(OrderTransaction.OrderTransactionStatus.CANCELLED);
 
         final Order updatedOrder = orderService.getOrder(order.getId());
-        assertThat(updatedOrder.getState()).isEqualByComparingTo(Order.OrderState.DELETED);
+        assertThat(updatedOrder.getState()).isEqualByComparingTo(Order.OrderState.CANCELLED);
     }
 
     private ElectronicInvoice createMockElectronicInvoice(Order order) {
