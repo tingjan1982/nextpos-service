@@ -22,14 +22,4 @@ public class OrderStateChangeResponse {
     private List<PrinterInstructionResponse> printerInstructions;
 
 
-    @Data
-    @AllArgsConstructor
-    public static class PrinterInstructionResponse {
-
-        private String printInstruction;
-
-        private List<String> ipAddresses;
-
-        private int noOfPrintCopies;
-    }
 }

@@ -25,8 +25,10 @@ import io.nextpos.shared.web.model.SimpleObjectResponse;
 import io.nextpos.shared.web.model.SimpleObjectsResponse;
 import io.nextpos.tablelayout.service.TableLayoutService;
 import io.nextpos.tablelayout.web.model.TableDetailsResponse;
+import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.PrinterInstructions;
 import io.nextpos.workingarea.service.PrinterInstructionService;
+import io.nextpos.workingarea.service.WorkingAreaService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,8 +67,10 @@ public class OrderController {
 
     private final PrinterInstructionService printerInstructionService;
 
+    private final WorkingAreaService workingAreaService;
+
     @Autowired
-    public OrderController(final OrderService orderService, final OrderTransactionService orderTransactionService, final ClientObjectOwnershipService clientObjectOwnershipService, final TableLayoutService tableLayoutService, final OrderCreationFactory orderCreationFactory, final MerchandisingService merchandisingService, final ShiftService shiftService, PrinterInstructionService printerInstructionService) {
+    public OrderController(final OrderService orderService, final OrderTransactionService orderTransactionService, final ClientObjectOwnershipService clientObjectOwnershipService, final TableLayoutService tableLayoutService, final OrderCreationFactory orderCreationFactory, final MerchandisingService merchandisingService, final ShiftService shiftService, PrinterInstructionService printerInstructionService, WorkingAreaService workingAreaService) {
         this.orderService = orderService;
         this.orderTransactionService = orderTransactionService;
         this.clientObjectOwnershipService = clientObjectOwnershipService;
@@ -75,6 +79,7 @@ public class OrderController {
         this.merchandisingService = merchandisingService;
         this.shiftService = shiftService;
         this.printerInstructionService = printerInstructionService;
+        this.workingAreaService = workingAreaService;
     }
 
     @PostMapping
@@ -288,21 +293,26 @@ public class OrderController {
     }
 
     @GetMapping("/{id}/orderToWorkingArea")
-    public PrinterInstructions printOrderToWorkingArea(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                       @PathVariable final String id) {
+    public List<PrinterInstructionResponse> printOrderToWorkingArea(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                                    @PathVariable final String id) {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
-        return printerInstructionService.createOrderToWorkingArea(order);
+        final PrinterInstructions orderToWorkingArea = printerInstructionService.createOrderToWorkingArea(order, true);
+
+        return toPrinterInstructionResponses(orderToWorkingArea);
     }
 
     @GetMapping("/{id}/orderDetails")
-    public String printOrderDetails(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                    @PathVariable final String id) {
+    public PrinterInstructionResponse printOrderDetails(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                        @PathVariable final String id) {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
-        return printerInstructionService.createOrderDetailsPrintInstruction(client, order, null);
+        final String printInstruction = printerInstructionService.createOrderDetailsPrintInstruction(client, order, null);
+        final Printer checkoutPrinter = workingAreaService.getPrinterByServiceTypeOrThrows(client, Printer.ServiceType.CHECKOUT);
+
+        return new PrinterInstructionResponse(printInstruction, List.of(checkoutPrinter.getIpAddress()), 1);
     }
 
 
@@ -455,14 +465,10 @@ public class OrderController {
             throw new ObjectNotFoundException(orderStateChange.getOrderId(), OrderStateChange.class);
         });
 
-        List<OrderStateChangeResponse.PrinterInstructionResponse> printerInstructions = List.of();
+        List<PrinterInstructionResponse> printerInstructions = List.of();
 
         if (orderStateChangeBean.getPrinterInstructions().isPresent()) {
-            printerInstructions = orderStateChangeBean.getPrinterInstructions().get().getPrinterInstructions().stream()
-                    .map(pi -> new OrderStateChangeResponse.PrinterInstructionResponse(
-                            pi.getPrintInstruction(),
-                            pi.getPrinterIpAddresses(),
-                            pi.getNoOfPrintCopies())).collect(Collectors.toList());
+            printerInstructions = toPrinterInstructionResponses(orderStateChangeBean.getPrinterInstructions().get());
         }
 
         return new OrderStateChangeResponse(orderStateChange.getOrderId(),
@@ -470,6 +476,15 @@ public class OrderController {
                 orderStateChangeEntry.getToState(),
                 orderStateChangeEntry.getTimestamp(),
                 printerInstructions);
+    }
+
+    private List<PrinterInstructionResponse> toPrinterInstructionResponses(PrinterInstructions printerInstructions) {
+
+        return printerInstructions.getPrinterInstructions().stream()
+                .map(pi -> new PrinterInstructionResponse(
+                        pi.getPrintInstruction(),
+                        pi.getPrinterIpAddresses(),
+                        pi.getNoOfPrintCopies())).collect(Collectors.toList());
     }
 
 }

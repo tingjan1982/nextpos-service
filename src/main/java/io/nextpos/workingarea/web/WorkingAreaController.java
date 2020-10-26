@@ -153,7 +153,7 @@ public class WorkingAreaController {
 
     @GetMapping("/printers/checkout")
     public PrinterResponse getCheckoutPrinter(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
-        return toPrinterResponse(workingAreaService.getPrinterByServiceType(client, Printer.ServiceType.CHECKOUT));
+        return toPrinterResponse(workingAreaService.getPrinterByServiceTypeOrThrows(client, Printer.ServiceType.CHECKOUT));
     }
 
     @GetMapping("/printers")

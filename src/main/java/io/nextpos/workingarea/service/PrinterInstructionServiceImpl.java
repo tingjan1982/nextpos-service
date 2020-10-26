@@ -52,6 +52,12 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
     @Override
     public PrinterInstructions createOrderToWorkingArea(final Order order) {
 
+        return this.createOrderToWorkingArea(order, false);
+    }
+
+    @Override
+    public PrinterInstructions createOrderToWorkingArea(final Order order, boolean bypassStateCheck) {
+
         final Client client = clientService.getClientOrThrows(order.getClientId());
         final List<Printer> printers = workingAreaService.getPrinters(client);
 
@@ -61,7 +67,7 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
         }
 
         final Map<String, List<OrderLineItem>> lineItemsGroupedByWorkingArea = order.getOrderLineItems().stream()
-                .filter(oli -> oli.getState() == OrderLineItem.LineItemState.IN_PROCESS)
+                .filter(oli -> bypassStateCheck || oli.getState() == OrderLineItem.LineItemState.IN_PROCESS)
                 .collect(Collectors.groupingBy(oli -> StringUtils.isNotBlank(oli.getWorkingAreaId()) ? oli.getWorkingAreaId() : NO_WORKING_AREA,
                         Collectors.toList()
                 ));
@@ -95,11 +101,9 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
             } else {
                 LOGGER.warn("Order line item is not associated with a valid working area, using default printer.");
 
-                Printer printer = workingAreaService.getPrinterByServiceType(client, Printer.ServiceType.WORKING_AREA);
-
-                if (printer == null) {
-                    printer = workingAreaService.getPrinterByServiceType(client, Printer.ServiceType.CHECKOUT);
-                }
+                Printer printer = workingAreaService.getPrinterByServiceType(client, Printer.ServiceType.WORKING_AREA).orElseGet(() -> {
+                    return workingAreaService.getPrinterByServiceTypeOrThrows(client, Printer.ServiceType.CHECKOUT);
+                });
 
                 LOGGER.warn("Found printer {}, ip={}", printer.getName(), printer.getIpAddress());
                 printerIps.add(printer.getIpAddress());

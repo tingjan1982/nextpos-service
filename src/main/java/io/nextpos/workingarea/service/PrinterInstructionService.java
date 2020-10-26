@@ -13,6 +13,8 @@ public interface PrinterInstructionService {
 
     PrinterInstructions createOrderToWorkingArea(Order order);
 
+    PrinterInstructions createOrderToWorkingArea(Order order, boolean bypassStateCheck);
+
     String createOrderDetailsPrintInstruction(Client client, Order order, OrderTransaction orderTransaction);
 
     String createElectronicInvoiceXML(Client client, Order order, OrderTransaction orderTransaction);

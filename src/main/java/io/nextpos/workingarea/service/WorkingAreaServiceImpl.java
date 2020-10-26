@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @JpaTransaction
@@ -82,7 +83,12 @@ public class WorkingAreaServiceImpl implements WorkingAreaService {
     }
 
     @Override
-    public Printer getPrinterByServiceType(Client client, Printer.ServiceType serviceType) {
+    public Optional<Printer> getPrinterByServiceType(Client client, Printer.ServiceType serviceType) {
+        return printerRepository.findByClientAndServiceType(client, serviceType);
+    }
+
+    @Override
+    public Printer getPrinterByServiceTypeOrThrows(Client client, Printer.ServiceType serviceType) {
 
         return printerRepository.findByClientAndServiceType(client, serviceType).orElseThrow(() -> {
             throw new ObjectNotFoundException(serviceType.name(), Printer.class);
