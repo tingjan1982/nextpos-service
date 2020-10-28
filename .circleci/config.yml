@@ -70,7 +70,7 @@ jobs:
     working_directory: ~/repo
     steps:
       - attach_workspace:
-          at: /source/libs
+          at: /source
       - checkout
       - run: ls -l /source/libs
       - run: |
