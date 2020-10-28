@@ -59,7 +59,7 @@ jobs:
 
       - run: ./gradlew clean build -x test -PciBuild
       - run: ls -l build/libs
-      - run: cp build/libs/*.jar /source/libs
+      - run: mkdir -p /source/libs ; cp build/libs/*.jar /source/libs
       - persist_to_workspace:
           root: /source
           paths:
