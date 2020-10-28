@@ -40,6 +40,7 @@ jobs:
 
     steps:
       - checkout
+      # required by persist_to_space step
       - run: yum install -y tar
       - run: yum install -y gzip
       # Download and cache dependencies
@@ -64,6 +65,7 @@ jobs:
 
   docker:
     machine: true
+    working_directory: ~/repo
     steps:
       - attach_workspace:
           at: ~/repo/build
