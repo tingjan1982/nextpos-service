@@ -68,7 +68,7 @@ jobs:
 
   docker:
     machine: true
-    working_directory: ~/repo
+    working_directory: ~/repo1
     steps:
       - attach_workspace:
           at: source/libs
