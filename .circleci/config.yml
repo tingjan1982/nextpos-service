@@ -68,7 +68,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          - at: /tmp/build
+          at: /tmp/build
       - run: |
           echo $GOOGLE_SERVICE_ACCOUNT_JSON | base64 -d | docker build -t joelin/nextpos-service:latest --build-arg JAR_FILE=/tmp/build/libs/nextpos-service-0.0.1-SNAPSHOT.jar --build-arg SERVICE_ACCOUNT_JSON=- $CIRCLE_WORKING_DIRECTORY
       - run:
