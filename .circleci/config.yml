@@ -58,7 +58,6 @@ jobs:
           key: v1-dependencies-{{ checksum "build.gradle" }}
 
       - run: ./gradlew clean build -x test -PciBuild
-      - run: ls -l build/libs
       - run: mkdir -p source/libs ; cp build/libs/*.jar source/libs ; cp Dockerfile source/libs
       - run: ls -l source/libs
       - persist_to_workspace:
@@ -86,5 +85,15 @@ jobs:
     docker:
       - image: google/cloud-sdk:249.0.0-alpine
     steps:
-      - checkout
-      - run: ls -l ; sh deploy_gcp.sh
+      - run:
+          name: deploy to gcp
+          command: |
+            gcloud components install kubectl --quiet
+            gcloud config set project helpful-range-236813
+            echo $GOOGLE_SERVICE_ACCOUNT_JSON | base64 -d > service_account.json
+            gcloud auth activate-service-account travis-ci-user@helpful-range-236813.iam.gserviceaccount.com --key-file=service_account.json
+            gcloud config set compute/zone asia-east1-b
+            gcloud container clusters get-credentials rainapp-cluster --zone asia-east1-b --project helpful-range-236813
+            kubectl scale deployment nextpos-service --replicas=0
+            kubectl scale deployment nextpos-service --replicas=1
+            kubectl get services nextpos-service-nodeport
