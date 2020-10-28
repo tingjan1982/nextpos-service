@@ -52,13 +52,8 @@ jobs:
           key: v1-dependencies-{{ checksum "build.gradle" }}
 
       - run: ./gradlew clean build -x test -PciBuild
-
-  deploy:
-    docker:
-      - image: google/cloud-sdk:249.0.0-alpine
-        auth:
-          username: $DOCKER_USERNAME
-          password: $DOCKER_PASSWORD
+  docker:
+    machine: true
     steps:
       - run:
           name: build docker image
@@ -69,6 +64,17 @@ jobs:
           command: |
             echo $DOCKER_PASSWORD | docker login -u "$DOCKER_USERNAME" --password-stdin
       - run:
-          name: build docker image
+          name: push docker image
           command: |
             docker push joelin/nextpos-service:latest
+  deploy:
+    docker:
+      - image: google/cloud-sdk:249.0.0-alpine
+        auth:
+          username: $DOCKER_USERNAME
+          password: $DOCKER_PASSWORD
+    steps:
+      - checkout
+      - setup_remote_docker:
+        version: 19.03.13
+      - run: sh deploy_gcp.sh
