@@ -5,17 +5,20 @@
 version: 2.1
 
 workflows:
-  test-env-vars:
+  build-and-deploy:
     jobs:
       - build:
-          context:
-            - "GitHub Release Credentials"
-            - "Docker"
+          context: "GitHub Release Credentials"
+      - deploy:
+          context: "Docker"
 
 jobs:
   build:
     docker:
       - image: amazoncorretto:11
+        auth:
+          -username: $DOCKER_USERNAME
+          -password: $DOCKER_PASSWORD
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -47,9 +50,15 @@ jobs:
           key: v1-dependencies-{{ checksum "build.gradle" }}
 
       - run: ./gradlew clean build -x test -PciBuild
+      - store_artifacts:
+          path: build/libs
+
   deploy:
     docker:
       - image: google/cloud-sdk:249.0.0-alpine
+        auth:
+          -username: $DOCKER_USERNAME
+          -password: $DOCKER_PASSWORD
     steps:
       - run:
           name: build docker image
