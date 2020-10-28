@@ -59,7 +59,7 @@ jobs:
 
       - run: ./gradlew clean build -x test -PciBuild
       - run: ls -l build/libs
-      - run: mkdir -p source/libs ; cp build/libs/*.jar source/libs
+      - run: mkdir -p source/libs ; cp build/libs/*.jar source/libs ; cp Dockerfile source/libs
       - run: ls -l source/libs
       - persist_to_workspace:
           root: source
@@ -71,12 +71,11 @@ jobs:
     steps:
       - attach_workspace:
           at: source/libs
-      - checkout
       - run: ls -l /
       - run: ls -l source/libs
-      - run: pwd ; ls -l $CIRCLE_WORKING_DIRECTORY
+      - run: pwd
       - run: |
-          echo $GOOGLE_SERVICE_ACCOUNT_JSON | base64 -d | docker build -t joelin/nextpos-service:latest --build-arg JAR_FILE=source/libs/nextpos-service-0.0.1-SNAPSHOT.jar --build-arg SERVICE_ACCOUNT_JSON=- $CIRCLE_WORKING_DIRECTORY
+          echo $GOOGLE_SERVICE_ACCOUNT_JSON | base64 -d | docker build -t joelin/nextpos-service:latest --build-arg JAR_FILE=source/libs/nextpos-service-0.0.1-SNAPSHOT.jar --build-arg SERVICE_ACCOUNT_JSON=- source/libs
       - run:
           name: docker login
           command: |
