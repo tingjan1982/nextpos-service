@@ -31,7 +31,7 @@ jobs:
       # documented at https://circleci.com/docs/2.0/circleci-images/
       # - image: circleci/postgres:9.4
 
-    working_directory: ~/repo
+    working_directory: /tmp
 
     environment:
       # Customize the JVM maximum heap limit
@@ -56,12 +56,22 @@ jobs:
           key: v1-dependencies-{{ checksum "build.gradle" }}
 
       - run: ./gradlew clean build -x test -PciBuild
+      - store_artifacts:
+        path: build/libs
+      - persist_to_workspace:
+          root: build
+          paths:
+            - libs
+
   docker:
     machine: true
+    working_directory: /tmp
     steps:
       - checkout
+      - attach_workspace:
+          - at: /tmp/build
       - run: |
-          echo $GOOGLE_SERVICE_ACCOUNT_JSON | base64 -d | docker build -t joelin/nextpos-service:latest --build-arg JAR_FILE=$CIRCLE_WORKING_DIRECTORY/build/libs/nextpos-service-0.0.1-SNAPSHOT.jar --build-arg SERVICE_ACCOUNT_JSON=- $CIRCLE_WORKING_DIRECTORY
+          echo $GOOGLE_SERVICE_ACCOUNT_JSON | base64 -d | docker build -t joelin/nextpos-service:latest --build-arg JAR_FILE=/tmp/build/libs/nextpos-service-0.0.1-SNAPSHOT.jar --build-arg SERVICE_ACCOUNT_JSON=- $CIRCLE_WORKING_DIRECTORY
       - run:
           name: docker login
           command: |
