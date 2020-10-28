@@ -9,9 +9,13 @@ workflows:
     jobs:
       - build:
           context: "GitHub Release Credentials"
-      - deploy:
+      - docker:
           requires:
             - build
+          context: "Docker"
+      - deploy:
+          requires:
+            - deploy
           context: "Docker"
 
 jobs:
@@ -52,16 +56,12 @@ jobs:
           key: v1-dependencies-{{ checksum "build.gradle" }}
 
       - run: ./gradlew clean build -x test -PciBuild
-  deploy:
-    docker:
-      - image: google/cloud-sdk:249.0.0-alpine
+  docker:
+    machine: true
     steps:
       - checkout
-      - run:
-          name: Install Docker client
-          command: apk add docker-cli
       - run: |
-          echo $GOOGLE_SERVICE_ACCOUNT_JSON | base64 -d | docker build -t joelin/nextpos-service:latest --build-arg JAR_FILE=build/libs/nextpos-service-0.0.1-SNAPSHOT.jar --build-arg SERVICE_ACCOUNT_JSON=- .
+          echo $GOOGLE_SERVICE_ACCOUNT_JSON | base64 -d | docker build -t joelin/nextpos-service:latest --build-arg JAR_FILE=$CIRCLE_WORKING_DIRECTORY/build/libs/nextpos-service-0.0.1-SNAPSHOT.jar --build-arg SERVICE_ACCOUNT_JSON=- $CIRCLE_WORKING_DIRECTORY
       - run:
           name: docker login
           command: |
@@ -70,4 +70,9 @@ jobs:
           name: push docker image
           command: |
             docker push joelin/nextpos-service:latest
-      - run: sh deploy_gcp.sh
+  deploy:
+    docker:
+      - image: google/cloud-sdk:249.0.0-alpine
+    steps:
+      - checkout
+      - run: ls -l ; sh deploy_gcp.sh
