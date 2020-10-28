@@ -1,5 +1,6 @@
 package io.nextpos.ordertransaction.web.model;
 
+import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -33,6 +34,8 @@ public class OrderTransactionResponse {
 
     private String invoiceNumber;
 
+    private ElectronicInvoice.InvoiceStatus invoiceStatus;
+
     private String invoiceXML;
 
     public static OrderTransactionResponse toOrderTransactionResponse(final OrderTransaction orderTransaction) {
@@ -50,8 +53,11 @@ public class OrderTransactionResponse {
                 orderTransaction.getPaymentDetails(),
                 billLineItems);
 
-        if (orderTransaction.getInvoiceDetails().getElectronicInvoice() != null) {
-            response.setInvoiceNumber(orderTransaction.getInvoiceDetails().getElectronicInvoice().getInternalInvoiceNumber());
+        final ElectronicInvoice electronicInvoice = orderTransaction.getInvoiceDetails().getElectronicInvoice();
+
+        if (electronicInvoice != null) {
+            response.setInvoiceNumber(electronicInvoice.getInternalInvoiceNumber());
+            response.setInvoiceStatus(electronicInvoice.getInvoiceStatus());
         }
 
         return response;
