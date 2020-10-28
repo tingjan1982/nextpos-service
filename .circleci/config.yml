@@ -41,6 +41,7 @@ jobs:
     steps:
       - checkout
       - run: yum install -y tar
+      - run: yum install -y gzip
       # Download and cache dependencies
       - restore_cache:
           keys:
