@@ -1,5 +1,6 @@
 package io.nextpos.ordertransaction.data;
 
+import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.shared.model.MongoBaseObject;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -139,7 +140,7 @@ public class OrderTransaction extends MongoBaseObject {
         private String carrierId2;
 
         @DBRef
-        private io.nextpos.einvoice.common.invoice.ElectronicInvoice electronicInvoice;
+        private ElectronicInvoice electronicInvoice;
     }
 
     @Data

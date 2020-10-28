@@ -9,6 +9,7 @@ import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRangeService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.TaxableAmount;
 import io.nextpos.ordertransaction.data.OrderTransaction;
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.MongoTransaction;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -82,6 +83,13 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
         pendingEInvoiceQueueService.createPendingEInvoiceQueue(createdElectronicInvoice, PendingEInvoiceQueue.PendingEInvoiceType.CREATE);
 
         return createdElectronicInvoice;
+    }
+
+    @Override
+    public ElectronicInvoice getElectronicInvoiceByInvoiceNumber(String internalInvoiceNumber) {
+        return electronicInvoiceRepository.findByInternalInvoiceNumber(internalInvoiceNumber).orElseThrow(() -> {
+            throw new ObjectNotFoundException(internalInvoiceNumber, ElectronicInvoice.class);
+        });
     }
 
     @Override

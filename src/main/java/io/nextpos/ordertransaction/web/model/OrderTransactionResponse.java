@@ -31,6 +31,8 @@ public class OrderTransactionResponse {
 
     private String receiptXML;
 
+    private String invoiceNumber;
+
     private String invoiceXML;
 
     public static OrderTransactionResponse toOrderTransactionResponse(final OrderTransaction orderTransaction) {
@@ -39,7 +41,7 @@ public class OrderTransactionResponse {
                 .map(li -> new OrderTransactionResponse.BillLineItemResponse(li.getName(), li.getQuantity(), li.getSubTotal()))
                 .collect(Collectors.toList());
 
-        return new OrderTransactionResponse(orderTransaction.getId(),
+        final OrderTransactionResponse response = new OrderTransactionResponse(orderTransaction.getId(),
                 orderTransaction.getOrderId(),
                 orderTransaction.getBillDetails().getBillType(),
                 orderTransaction.getOrderTotal(),
@@ -47,6 +49,12 @@ public class OrderTransactionResponse {
                 orderTransaction.getPaymentMethod(),
                 orderTransaction.getPaymentDetails(),
                 billLineItems);
+
+        if (orderTransaction.getInvoiceDetails().getElectronicInvoice() != null) {
+            response.setInvoiceNumber(orderTransaction.getInvoiceDetails().getElectronicInvoice().getInternalInvoiceNumber());
+        }
+
+        return response;
     }
 
     @Data

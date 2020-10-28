@@ -22,8 +22,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
@@ -117,6 +116,23 @@ class OrderTransactionServiceImplTest {
 
         final Order updatedOrder = orderService.getOrder(order.getId());
         assertThat(updatedOrder.getState()).isEqualByComparingTo(Order.OrderState.CANCELLED);
+    }
+
+    @Test
+    void getOrderByInvoiceNumber() {
+
+        final Order order = createMockOrder();
+
+        final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), client.getId(), order.getOrderTotal(), BigDecimal.valueOf(150),
+                OrderTransaction.PaymentMethod.CARD,
+                OrderTransaction.BillType.SINGLE,
+                List.of());
+
+        final ElectronicInvoice electronicInvoice = createMockElectronicInvoice(order);
+        orderTransaction.getInvoiceDetails().setElectronicInvoice(electronicInvoice);
+        orderTransactionService.createOrderTransaction(client, orderTransaction);
+
+        assertThatCode(() -> orderTransactionService.getOrderByInvoiceNumber(electronicInvoice.getInternalInvoiceNumber())).doesNotThrowAnyException();
     }
 
     private ElectronicInvoice createMockElectronicInvoice(Order order) {

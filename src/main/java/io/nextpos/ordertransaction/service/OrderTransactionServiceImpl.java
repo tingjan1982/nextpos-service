@@ -88,12 +88,12 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
     }
 
     @Override
-    public OrderTransaction getOrderTransactionByInvoiceNumber(String invoiceNumber) {
+    public Order getOrderByInvoiceNumber(String internalInvoiceNumber) {
 
-        return orderTransactionRepository.findByInvoiceDetails_ElectronicInvoice_InvoiceNumber(invoiceNumber).orElseThrow(() -> {
-            throw new ObjectNotFoundException(invoiceNumber, OrderTransaction.class);
-        });
+        final ElectronicInvoice electronicInvoice = electronicInvoiceService.getElectronicInvoiceByInvoiceNumber(internalInvoiceNumber);
+        return orderService.getOrder(electronicInvoice.getOrderId());
     }
+
     @Override
     public List<OrderTransaction> getOrderTransactionByOrderId(String orderId) {
         return orderTransactionRepository.findAllByOrderId(orderId);

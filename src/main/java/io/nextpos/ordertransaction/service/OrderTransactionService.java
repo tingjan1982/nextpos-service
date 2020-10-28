@@ -1,6 +1,7 @@
 package io.nextpos.ordertransaction.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 
 import java.util.List;
@@ -11,7 +12,7 @@ public interface OrderTransactionService {
 
     OrderTransaction getOrderTransaction(String id);
 
-    OrderTransaction getOrderTransactionByInvoiceNumber(String invoiceNumber);
+    Order getOrderByInvoiceNumber(String invoiceNumber);
 
     List<OrderTransaction> getOrderTransactionByOrderId(String orderId);
 
