@@ -17,8 +17,8 @@ jobs:
     docker:
       - image: amazoncorretto:11
         auth:
-          -username: $DOCKER_USERNAME
-          -password: $DOCKER_PASSWORD
+          username: $DOCKER_USERNAME
+          password: $DOCKER_PASSWORD
 
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -57,8 +57,8 @@ jobs:
     docker:
       - image: google/cloud-sdk:249.0.0-alpine
         auth:
-          -username: $DOCKER_USERNAME
-          -password: $DOCKER_PASSWORD
+          username: $DOCKER_USERNAME
+          password: $DOCKER_PASSWORD
     steps:
       - run:
           name: build docker image
