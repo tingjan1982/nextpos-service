@@ -53,6 +53,8 @@ jobs:
 
       - run: ./gradlew clean build -x test -PciBuild
   deploy:
+    docker:
+      -image: google/cloud-sdk:249.0.0-alpine
     steps:
       - checkout
       - setup_remote_docker:
