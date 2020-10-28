@@ -9,9 +9,13 @@ workflows:
     jobs:
       - build:
           context: "GitHub Release Credentials"
-      - deploy:
+      - docker:
           requires:
             - build
+          context: "Docker"
+      - deploy:
+          requires:
+            - docker
           context: "Docker"
 
 jobs:
@@ -76,5 +80,5 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-        version: 19.03.13
+          version: 19.03.13
       - run: sh deploy_gcp.sh
