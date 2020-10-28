@@ -70,7 +70,7 @@ jobs:
     machine: true
     steps:
       - attach_workspace:
-          at: source/libs
+          at: source
       - run: ls -l /
       - run: ls -l source/libs
       - run: pwd
