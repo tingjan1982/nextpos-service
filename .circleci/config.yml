@@ -71,9 +71,8 @@ jobs:
     steps:
       - attach_workspace:
           at: source
-      - run: ls -l source/libs
       - run: |
-          echo $GOOGLE_SERVICE_ACCOUNT_JSON | base64 -d > service_account.json
+          echo $GOOGLE_SERVICE_ACCOUNT_JSON | base64 -d > source/libs/service_account.json
           docker build -t joelin/nextpos-service:latest --build-arg JAR_FILE=nextpos-service-0.0.1-SNAPSHOT.jar --build-arg SERVICE_ACCOUNT_JSON=service_account.json source/libs
       - run:
           name: docker login
