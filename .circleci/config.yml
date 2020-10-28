@@ -68,16 +68,15 @@ jobs:
 
   docker:
     machine: true
-    working_directory: ~/repo1
     steps:
       - attach_workspace:
           at: source/libs
       - checkout
       - run: ls -l /
-      - run: ls -l /repo
       - run: ls -l source/libs
+      - run: pwd ; ls -l $CIRCLE_WORKING_DIRECTORY
       - run: |
-          echo $GOOGLE_SERVICE_ACCOUNT_JSON | base64 -d | docker build -t joelin/nextpos-service:latest --build-arg JAR_FILE=/source/libs/nextpos-service-0.0.1-SNAPSHOT.jar --build-arg SERVICE_ACCOUNT_JSON=- $CIRCLE_WORKING_DIRECTORY
+          echo $GOOGLE_SERVICE_ACCOUNT_JSON | base64 -d | docker build -t joelin/nextpos-service:latest --build-arg JAR_FILE=source/libs/nextpos-service-0.0.1-SNAPSHOT.jar --build-arg SERVICE_ACCOUNT_JSON=- $CIRCLE_WORKING_DIRECTORY
       - run:
           name: docker login
           command: |
