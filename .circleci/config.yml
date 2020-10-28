@@ -9,13 +9,9 @@ workflows:
     jobs:
       - build:
           context: "GitHub Release Credentials"
-      - docker:
-          requires:
-            - build
-          context: "Docker"
       - deploy:
           requires:
-            - docker
+            - build
           context: "Docker"
 
 jobs:
@@ -56,9 +52,16 @@ jobs:
           key: v1-dependencies-{{ checksum "build.gradle" }}
 
       - run: ./gradlew clean build -x test -PciBuild
-  docker:
-    machine: true
+  deploy:
+    docker:
+      - image: google/cloud-sdk:249.0.0-alpine
+        auth:
+          username: $DOCKER_USERNAME
+          password: $DOCKER_PASSWORD
     steps:
+      - checkout
+      - setup_remote_docker:
+          version: 19.03.13
       - run:
           name: build docker image
           command: |
@@ -71,14 +74,4 @@ jobs:
           name: push docker image
           command: |
             docker push joelin/nextpos-service:latest
-  deploy:
-    docker:
-      - image: google/cloud-sdk:249.0.0-alpine
-        auth:
-          username: $DOCKER_USERNAME
-          password: $DOCKER_PASSWORD
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 19.03.13
       - run: sh deploy_gcp.sh
