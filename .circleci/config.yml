@@ -65,7 +65,6 @@ jobs:
 
   docker:
     machine: true
-    working_directory: /tmp
     steps:
       - checkout
       - attach_workspace:
