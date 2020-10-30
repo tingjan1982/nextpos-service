@@ -1,6 +1,7 @@
-# Java Gradle CircleCI 2.0 configuration file
 #
-# Check https://circleci.com/docs/2.0/language-java/ for more details
+# Configuration reference: https://circleci.com/docs/2.0/configuration-reference/
+# Java config: https://circleci.com/docs/2.0/language-java/
+# GCP howto: https://localghost.dev/2019/12/deploying-your-google-appengine-app-with-circleci/
 #
 version: 2.1
 
@@ -59,7 +60,6 @@ jobs:
 
       - run: ./gradlew clean build -x test -PciBuild
       - run: mkdir -p source/libs ; cp build/libs/*.jar source/libs ; cp Dockerfile source/libs
-      - run: ls -l source/libs
       - persist_to_workspace:
           root: source
           paths:
@@ -70,9 +70,11 @@ jobs:
     steps:
       - attach_workspace:
           at: source
-      - run: |
-          echo $GOOGLE_SERVICE_ACCOUNT_JSON | base64 -d > source/libs/service_account.json
-          docker build -t joelin/nextpos-service:latest --build-arg JAR_FILE=nextpos-service-0.0.1-SNAPSHOT.jar --build-arg SERVICE_ACCOUNT_JSON=service_account.json source/libs
+      - run:
+          name: build docker image
+          command: |
+            echo $GOOGLE_SERVICE_ACCOUNT_JSON | base64 -d > source/libs/service_account.json
+            docker build -t joelin/nextpos-service:latest --build-arg JAR_FILE=nextpos-service-0.0.1-SNAPSHOT.jar --build-arg SERVICE_ACCOUNT_JSON=service_account.json source/libs
       - run:
           name: docker login
           command: |

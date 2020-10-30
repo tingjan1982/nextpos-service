@@ -33,17 +33,14 @@ public class ProductLabel extends BaseObject implements ClientObject {
 
     @ManyToOne
     @JoinColumn(name = "clientId")
-    @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Client client;
 
     @ManyToOne
-    @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private ProductLabel parentLabel;
 
     @ManyToOne
-    @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private WorkingArea workingArea;
 

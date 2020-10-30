@@ -55,4 +55,10 @@ public class TableLayoutServiceImpl implements TableLayoutService {
         return tableDetailsRepository.findById(id);
     }
 
+    @Override
+    public TableLayout.TableDetails getTableDetailsOrThrows(String id) {
+        return tableDetailsRepository.findById(id).orElseThrow(() -> {
+            throw new ObjectNotFoundException(id, TableLayout.TableDetails.class);
+        });
+    }
 }

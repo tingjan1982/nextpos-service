@@ -6,6 +6,9 @@ import io.nextpos.ordermanagement.data.OrderSet;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import io.nextpos.tablelayout.data.TableLayout;
+import io.nextpos.tablelayout.service.TableLayoutService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,16 +27,27 @@ class OrderSetServiceImplTest {
 
     private final OrderService orderService;
 
+    private final TableLayoutService tableLayoutService;
+
     private final Client client;
 
     private final OrderSettings orderSettings;
 
+    private TableLayout tableLayout;
+
     @Autowired
-    OrderSetServiceImplTest(OrderSetService orderSetService, OrderService orderService, Client client, OrderSettings orderSettings) {
+    OrderSetServiceImplTest(OrderSetService orderSetService, OrderService orderService, TableLayoutService tableLayoutService, Client client, OrderSettings orderSettings) {
         this.orderSetService = orderSetService;
         this.orderService = orderService;
+        this.tableLayoutService = tableLayoutService;
         this.client = client;
         this.orderSettings = orderSettings;
+    }
+
+    @BeforeEach
+    void prepare() {
+        tableLayout = DummyObjects.dummyTableLayout(client);
+        tableLayoutService.saveTableLayout(tableLayout);
     }
 
     @Test
@@ -75,7 +89,9 @@ class OrderSetServiceImplTest {
     }
 
     private Order createDummyOrder() {
+        
         final Order order = new Order(client.getId(), orderSettings);
+        order.getTableInfo().updateTableInfo(tableLayout.getTables().get(0), null);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
 
         return orderService.saveOrder(order);

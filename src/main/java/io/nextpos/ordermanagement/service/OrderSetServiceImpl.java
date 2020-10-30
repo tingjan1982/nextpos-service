@@ -6,11 +6,14 @@ import io.nextpos.ordermanagement.data.OrderSetRepository;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.MongoTransaction;
+import io.nextpos.tablelayout.data.TableLayout;
+import io.nextpos.tablelayout.service.TableLayoutService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @MongoTransaction
@@ -20,10 +23,13 @@ public class OrderSetServiceImpl implements OrderSetService {
 
     private final OrderService orderService;
 
+    private final TableLayoutService tableLayoutService;
+
     @Autowired
-    public OrderSetServiceImpl(OrderSetRepository orderSetRepository, OrderService orderService) {
+    public OrderSetServiceImpl(OrderSetRepository orderSetRepository, OrderService orderService, TableLayoutService tableLayoutService) {
         this.orderSetRepository = orderSetRepository;
         this.orderService = orderService;
+        this.tableLayoutService = tableLayoutService;
     }
 
     @Override
@@ -35,7 +41,14 @@ public class OrderSetServiceImpl implements OrderSetService {
             throw new BusinessLogicException("message.mergeOrderSize", "Merge order operation needs a minimum of 2 orders");
         }
 
-        final OrderSet orderSet = new OrderSet(clientId, orderIds);
+        final List<OrderSet.OrderSetDetails> linkedOrders = orderIds.stream()
+                .map(id -> {
+                    final Order order = orderService.getOrder(id);
+                    final TableLayout.TableDetails tableDetails = tableLayoutService.getTableDetailsOrThrows(order.getTableInfo().getTableId());
+                    return new OrderSet.OrderSetDetails(id, order.getTableInfo().getTableName(), tableDetails.getScreenPosition());
+                }).collect(Collectors.toList());
+
+        final OrderSet orderSet = new OrderSet(clientId, linkedOrders);
 
         return orderSetRepository.save(orderSet);
     }
@@ -65,9 +78,9 @@ public class OrderSetServiceImpl implements OrderSetService {
         mainOrder.markOrderSetOrder();
 
         orderSet.getLinkedOrders().stream()
-                .filter(oid -> !oid.equals(mainOrder.getId()))
-                .forEach(oid -> {
-                    final Order mergingOrder = orderService.getOrder(oid);
+                .filter(o -> !o.getOrderId().equals(mainOrder.getId()))
+                .forEach(o -> {
+                    final Order mergingOrder = orderService.getOrder(o.getOrderId());
                     mainOrder.addOrderLineItems(mergingOrder.getOrderLineItems());
                     mergingOrder.deleteAllOrderLineItems();
 

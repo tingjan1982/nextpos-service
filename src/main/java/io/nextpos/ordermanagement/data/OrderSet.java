@@ -2,6 +2,8 @@ package io.nextpos.ordermanagement.data;
 
 import io.nextpos.shared.model.MongoBaseObject;
 import io.nextpos.shared.model.WithClientId;
+import io.nextpos.tablelayout.data.TableLayout;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -21,18 +23,30 @@ public class OrderSet extends MongoBaseObject implements WithClientId {
 
     private String clientId;
 
-    private List<String> linkedOrders;
+    private List<OrderSetDetails> linkedOrders;
 
     private String mainOrderId;
 
     private OrderSetStatus status;
 
-    public OrderSet(String clientId, List<String> linkedOrders) {
+    public OrderSet(String clientId, List<OrderSetDetails> linkedOrders) {
         this.clientId = clientId;
         this.linkedOrders = linkedOrders;
         this.status = OrderSetStatus.OPEN;
 
-        mainOrderId = linkedOrders.iterator().next();
+        mainOrderId = linkedOrders.get(0).getOrderId();
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class OrderSetDetails {
+
+        private String orderId;
+
+        private String tableName;
+
+        private TableLayout.TableDetails.ScreenPosition screenPosition;
     }
 
     public enum OrderSetStatus {

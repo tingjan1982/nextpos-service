@@ -17,4 +17,6 @@ public interface TableLayoutService {
     void deleteTableLayout(TableLayout tableLayout);
 
     Optional<TableLayout.TableDetails> getTableDetails(String id);
+
+    TableLayout.TableDetails getTableDetailsOrThrows(String id);
 }

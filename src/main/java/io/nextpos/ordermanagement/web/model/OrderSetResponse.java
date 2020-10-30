@@ -1,5 +1,6 @@
 package io.nextpos.ordermanagement.web.model;
 
+import io.nextpos.ordermanagement.data.OrderSet;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -13,5 +14,5 @@ public class OrderSetResponse {
 
     private String mainOrderId;
 
-    private List<String> orderIds;
+    private List<OrderSet.OrderSetDetails> linkedOrders;
 }
