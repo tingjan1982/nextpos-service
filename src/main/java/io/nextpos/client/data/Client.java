@@ -1,5 +1,6 @@
 package io.nextpos.client.data;
 
+import io.nextpos.clienttracker.data.ClientUsageTrack;
 import io.nextpos.merchandising.data.Offer;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
@@ -105,6 +106,11 @@ public class Client extends BaseObject {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<Printer> printers;
+
+    @OneToMany(mappedBy = "client", cascade = CascadeType.REMOVE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<ClientUsageTrack> clientUsageTracks;
 
 
     public Client(final String clientName, final String username, final String masterPassword, final String countryCode, final String timeZone) {

@@ -2,11 +2,9 @@ package io.nextpos.shared.config;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
-import io.nextpos.client.service.ClientServiceImpl;
 import io.nextpos.shared.exception.ConfigurationException;
 import io.nextpos.shared.web.RequestIdContextFilter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Lookup;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -18,7 +16,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -37,7 +34,6 @@ import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenCo
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 
-import javax.sql.DataSource;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +66,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${actuator.password}")
     private String actuatorPassword;
 
+    private final ClientService clientService;
+
+    private final PasswordEncoder passwordEncoder;
+
+    @Autowired
+    public SecurityConfig(ClientService clientService, PasswordEncoder passwordEncoder) {
+        this.clientService = clientService;
+        this.passwordEncoder = passwordEncoder;
+    }
+
     /**
      * Use basic auth only to authenticate /actuator and /counter requests.
      * <p>
@@ -91,19 +97,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(clientService()).passwordEncoder(passwordEncoder());
+        auth.userDetailsService(clientService).passwordEncoder(passwordEncoder);
 
-        final String encodedPassword = passwordEncoder().encode(actuatorPassword);
+        final String encodedPassword = passwordEncoder.encode(actuatorPassword);
         auth.inMemoryAuthentication().withUser(actuatorUsername).password(encodedPassword).roles("ADMIN");
-    }
-
-    /**
-     * This was done instead of the usual constructor injection is to circumvent the circular reference issue
-     * during startup as ClientServiceImpl depends on JdbcClientDetailsService which is initialized in another class.
-     */
-    @Lookup
-    public ClientServiceImpl clientService() {
-        return null;
     }
 
     /**
@@ -139,11 +136,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         defaultTokenServices.setTokenStore(tokenStore());
         defaultTokenServices.setSupportRefreshToken(true);
         return defaultTokenServices;
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
 
@@ -204,15 +196,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         private final JdbcClientDetailsService clientDetailsService;
 
+        private final ClientService clientService;
+
 
         @Autowired
-        public AuthorizationServer(final DataSource dataSource, final TokenStore tokenStore, final JwtAccessTokenConverter accessTokenConverter, final AuthenticationManager authenticationManager, final PasswordEncoder passwordEncoder) {
+        public AuthorizationServer(TokenStore tokenStore, JwtAccessTokenConverter accessTokenConverter, AuthenticationManager authenticationManager, JdbcClientDetailsService clientDetailsService, ClientService clientService) {
             this.tokenStore = tokenStore;
             this.accessTokenConverter = accessTokenConverter;
             this.authenticationManager = authenticationManager;
-
-            clientDetailsService = new JdbcClientDetailsService(dataSource);
-            clientDetailsService.setPasswordEncoder(passwordEncoder);
+            this.clientDetailsService = clientDetailsService;
+            this.clientService = clientService;
         }
 
 
@@ -220,7 +213,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
 
             final TokenEnhancerChain enhancerChain = new TokenEnhancerChain();
-            final ClientTokenEnhancer clientTokenEnhancer = new ClientTokenEnhancer(clientService());
+            final ClientTokenEnhancer clientTokenEnhancer = new ClientTokenEnhancer(clientService);
             enhancerChain.setTokenEnhancers(Arrays.asList(clientTokenEnhancer, accessTokenConverter));
             final DefaultOAuth2RequestFactory oAuth2RequestFactory = new DefaultOAuth2RequestFactory(clientDetailsService);
             oAuth2RequestFactory.setCheckUserScopes(true);
@@ -229,17 +222,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .tokenEnhancer(enhancerChain)
                     .authenticationManager(authenticationManager)
                     .requestFactory(oAuth2RequestFactory)
-                    .userDetailsService(clientService());
+                    .userDetailsService(clientService);
         }
 
         @Override
         public void configure(final ClientDetailsServiceConfigurer clients) throws Exception {
-            clients.withClientDetails(jdbcClientDetailsService());
-        }
-
-        @Lookup
-        public ClientServiceImpl clientService() {
-            return null;
+            clients.withClientDetails(clientDetailsService);
         }
 
         /**
@@ -249,10 +237,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
          *
          * @return
          */
-        @Bean("jdbcClientDetailsService")
-        public JdbcClientDetailsService jdbcClientDetailsService() {
-            return clientDetailsService;
-        }
+//        @Bean("jdbcClientDetailsService")
+//        public JdbcClientDetailsService jdbcClientDetailsService() {
+//            return clientDetailsService;
+//        }
 
 
         static class ClientTokenEnhancer implements TokenEnhancer {

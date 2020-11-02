@@ -2,11 +2,12 @@ package io.nextpos.client.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface ClientService {
+public interface ClientService extends UserDetailsService {
 
     Client createClient(Client client);
 

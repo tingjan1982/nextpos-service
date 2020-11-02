@@ -41,7 +41,7 @@ public class SubscriptionPlan extends MongoBaseObject {
 
     private Map<PlanPeriod, PlanPrice> planPrices = new HashMap<>();
 
-    private List<String> restrictedFeatures = new ArrayList<>();
+    private SubscriptionLimit subscriptionLimit = new SubscriptionLimit();
 
     public SubscriptionPlan(String countryCode, PlanGroup planGroup, String planName, CountrySettings countrySettings) {
         this.countryCode = countryCode;
@@ -58,12 +58,42 @@ public class SubscriptionPlan extends MongoBaseObject {
         return planPrices.get(planPeriod);
     }
 
+    public void updateSubscriptionLimit(int userLimit, int deviceLimit, List<String> restrictedFeatures) {
+        subscriptionLimit.setUserLimit(userLimit);
+        subscriptionLimit.setDeviceLimit(deviceLimit);
+        subscriptionLimit.setRestrictedFeatures(restrictedFeatures);
+    }
+
+    public int getUserLimit() {
+        return subscriptionLimit.getUserLimit();
+    }
+
+    public int getDeviceLimit() {
+        return subscriptionLimit.getDeviceLimit();
+    }
+
     @Data
     @AllArgsConstructor
     public static class PlanPrice {
 
         private BigDecimal planMonthlyPrice;
 
+    }
+
+    @Data
+    public static class SubscriptionLimit {
+
+        /**
+         * 0 indicate unlimited.
+         */
+        private int deviceLimit;
+
+        /**
+         * 0 indicate unlimited.
+         */
+        private int userLimit;
+
+        private List<String> restrictedFeatures = new ArrayList<>();
     }
 
     public enum PlanGroup {

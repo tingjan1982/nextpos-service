@@ -18,7 +18,6 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.ClientDetails;
@@ -33,7 +32,7 @@ import java.util.stream.Collectors;
 
 @Service
 @JpaTransaction
-public class ClientServiceImpl implements ClientService, UserDetailsService {
+public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository clientRepository;
 
@@ -45,7 +44,7 @@ public class ClientServiceImpl implements ClientService, UserDetailsService {
 
 
     @Autowired
-    public ClientServiceImpl(final ClientRepository clientRepository, final ClientUserRepository clientUserRepository, final JdbcClientDetailsService clientDetailsService, final PasswordEncoder passwordEncoder) {
+    public ClientServiceImpl(final ClientRepository clientRepository, final ClientUserRepository clientUserRepository, JdbcClientDetailsService clientDetailsService, PasswordEncoder passwordEncoder) {
         this.clientRepository = clientRepository;
         this.clientUserRepository = clientUserRepository;
         this.clientDetailsService = clientDetailsService;

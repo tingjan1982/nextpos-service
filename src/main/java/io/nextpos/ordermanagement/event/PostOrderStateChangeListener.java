@@ -43,15 +43,26 @@ public class PostOrderStateChangeListener {
             orderStateChangeBean.setPrinterInstructions(printInstructions);
         }
 
-        if (order.getState() == Order.OrderState.COMPLETED) {
-            if (order.isOrderSetOrder()) {
+        handleOrderSetStateChange(order);
+
+        postStateChangeEvent.getFuture().complete(orderStateChangeBean);
+    }
+
+    private void handleOrderSetStateChange(Order order) {
+
+        if (order.isOrderSetOrder()) {
+            if (order.getState() == Order.OrderState.SETTLED) {
+                final OrderSet orderSet = orderSetService.getOrderSetByOrderId(order.getId());
+                LOGGER.info("Settling the order set {}", orderSet);
+
+                orderSetService.settleOrderSet(orderSet);
+
+            } else if (order.getState() == Order.OrderState.COMPLETED) {
                 final OrderSet orderSet = orderSetService.getOrderSetByOrderId(order.getId());
                 LOGGER.info("Completing the order set {}", orderSet);
 
                 orderSetService.completeOrderSet(orderSet);
             }
         }
-
-        postStateChangeEvent.getFuture().complete(orderStateChangeBean);
     }
 }

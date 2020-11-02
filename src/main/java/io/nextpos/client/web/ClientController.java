@@ -6,6 +6,8 @@ import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientActivationService;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.client.web.model.*;
+import io.nextpos.clienttracker.data.ClientUsageTrack;
+import io.nextpos.clienttracker.service.ClientUserTrackingService;
 import io.nextpos.einvoice.common.encryption.EncryptionService;
 import io.nextpos.roles.data.UserRole;
 import io.nextpos.roles.service.UserRoleService;
@@ -36,15 +38,18 @@ public class ClientController {
 
     private final ClientActivationService clientActivationService;
 
+    private final ClientUserTrackingService clientUserTrackingService;
+
     private final EncryptionService encryptionService;
 
     private final OAuth2Helper oAuth2Helper;
 
     @Autowired
-    public ClientController(final ClientService clientService, final UserRoleService userRoleService, final ClientActivationService clientActivationService, EncryptionService encryptionService, final OAuth2Helper oAuth2Helper) {
+    public ClientController(final ClientService clientService, final UserRoleService userRoleService, final ClientActivationService clientActivationService, ClientUserTrackingService clientUserTrackingService, EncryptionService encryptionService, final OAuth2Helper oAuth2Helper) {
         this.clientService = clientService;
         this.userRoleService = userRoleService;
         this.clientActivationService = clientActivationService;
+        this.clientUserTrackingService = clientUserTrackingService;
         this.encryptionService = encryptionService;
         this.oAuth2Helper = oAuth2Helper;
     }
@@ -259,6 +264,14 @@ public class ClientController {
         } else {
             clientUser.removeUserRole();
         }
+    }
+
+    @PostMapping("/me/users/{username}/logout")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateClientUser(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                 @PathVariable final String username) {
+
+        clientUserTrackingService.deleteClientUsageTrack(client, ClientUsageTrack.TrackingType.USER, username);
     }
 
     @PatchMapping(value = "/me/users/{username}/password")

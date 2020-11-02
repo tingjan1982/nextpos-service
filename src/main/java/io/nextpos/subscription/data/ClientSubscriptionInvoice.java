@@ -32,6 +32,9 @@ public class ClientSubscriptionInvoice extends MongoBaseObject {
     @DBRef
     private ClientSubscription clientSubscription;
 
+    /**
+     * Used to easily look up the invoice to activate the client subscription.
+     */
     private String invoiceIdentifier;
 
     private Date validFrom;

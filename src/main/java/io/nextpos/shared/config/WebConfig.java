@@ -1,6 +1,7 @@
 package io.nextpos.shared.config;
 
 import io.nextpos.shared.web.ClientResolver;
+import io.nextpos.shared.web.ClientUsageTracker;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.trace.http.HttpTraceRepository;
 import org.springframework.boot.actuate.trace.http.InMemoryHttpTraceRepository;
@@ -8,15 +9,25 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.CommonsRequestLoggingFilter;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-public class WebConfig {
+public class WebConfig implements WebMvcConfigurer {
 
     private final ClientResolver clientResolver;
 
+    private final ClientUsageTracker clientUsageTracker;
+
     @Autowired
-    public WebConfig(final ClientResolver clientResolver) {
+    public WebConfig(final ClientResolver clientResolver, ClientUsageTracker clientUsageTracker) {
         this.clientResolver = clientResolver;
+        this.clientUsageTracker = clientUsageTracker;
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(clientUsageTracker);
     }
 
     @Bean

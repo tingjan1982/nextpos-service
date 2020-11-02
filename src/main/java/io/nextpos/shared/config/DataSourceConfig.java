@@ -2,6 +2,7 @@ package io.nextpos.shared.config;
 
 import io.nextpos.announcement.data.Announcement;
 import io.nextpos.client.data.Client;
+import io.nextpos.clienttracker.data.ClientUsageTrack;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRange;
 import io.nextpos.membership.data.Membership;
@@ -50,7 +51,15 @@ import java.util.List;
  * in Order Mongo Document.
  */
 @Configuration
-@EnableJpaRepositories(basePackageClasses = {Client.class, Product.class, Offer.class, CountrySettings.class, WorkingArea.class, TableLayout.class, UserRole.class})
+@EnableJpaRepositories(basePackageClasses = {
+        Client.class,
+        ClientUsageTrack.class,
+        Product.class,
+        Offer.class,
+        CountrySettings.class,
+        WorkingArea.class,
+        TableLayout.class,
+        UserRole.class})
 @EnableMongoRepositories(basePackageClasses = {
         Order.class,
         OrderTransaction.class,

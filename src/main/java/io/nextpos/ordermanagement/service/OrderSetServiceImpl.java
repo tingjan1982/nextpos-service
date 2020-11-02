@@ -110,6 +110,19 @@ public class OrderSetServiceImpl implements OrderSetService {
     }
 
     @Override
+    public void settleOrderSet(OrderSet orderSet) {
+
+        orderSet.getLinkedOrders().stream()
+                .filter(os -> !os.getOrderId().equals(orderSet.getMainOrderId()))
+                .forEach(os -> {
+                    LOGGER.info("Settling merged oder id {}", os.getOrderId());
+                    final Order order = orderService.getOrder(os.getOrderId());
+                    order.setState(Order.OrderState.SETTLED);
+                    orderService.saveOrder(order);
+                });
+    }
+
+    @Override
     public OrderSet completeOrderSet(OrderSet orderSet) {
 
         orderSet.getLinkedOrders().stream()

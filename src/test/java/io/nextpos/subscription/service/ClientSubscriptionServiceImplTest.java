@@ -97,10 +97,10 @@ class ClientSubscriptionServiceImplTest {
         assertThat(savedClientSubscription.getPlanStartDate()).isNotNull();
 
         // check immutability of SubscriptionPlanSnapshot
-        clientSubscription.getSubscriptionPlanSnapshot().setRestrictedFeatures(List.of("dummyFeature"));
+        clientSubscription.getSubscriptionPlanSnapshot().updateSubscriptionLimit(1, 1, List.of("dummyFeature"));
         clientSubscriptionService.saveClientSubscription(clientSubscription);
 
-        assertThat(subscriptionPlanService.getSubscription(subscriptionPlan.getId())).satisfies(s -> assertThat(s.getRestrictedFeatures()).isEmpty());
+        assertThat(subscriptionPlanService.getSubscription(subscriptionPlan.getId())).satisfies(s -> assertThat(s.getSubscriptionLimit().getRestrictedFeatures()).isEmpty());
     }
 
     @Test

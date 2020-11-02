@@ -25,5 +25,9 @@ public class SubscriptionPlanRequest {
 
     private Map<SubscriptionPlan.PlanPeriod, BigDecimal> planPrices;
 
+    private int userLimit;
+
+    private int deviceLimit;
+
     private List<String> restrictedFeatures;
 }

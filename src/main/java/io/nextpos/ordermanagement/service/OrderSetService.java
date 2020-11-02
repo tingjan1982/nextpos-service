@@ -17,6 +17,8 @@ public interface OrderSetService {
 
     Order mergeOrderSet(OrderSet orderSet, String orderIdToMerge);
 
+    void settleOrderSet(OrderSet orderSet);
+
     OrderSet completeOrderSet(OrderSet orderSet);
 
     void deleteOrderSet(OrderSet orderSet);
