@@ -15,4 +15,6 @@ public class OrderSetResponse {
     private String mainOrderId;
 
     private List<OrderSet.OrderSetDetails> linkedOrders;
+
+    private String tableLayoutId;
 }

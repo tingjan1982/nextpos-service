@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,14 +42,17 @@ public class OrderSetServiceImpl implements OrderSetService {
             throw new BusinessLogicException("message.mergeOrderSize", "Merge order operation needs a minimum of 2 orders");
         }
 
+        AtomicReference<String> tableLayoutId = new AtomicReference<>();
         final List<OrderSet.OrderSetDetails> linkedOrders = orderIds.stream()
                 .map(id -> {
                     final Order order = orderService.getOrder(id);
+                    tableLayoutId.set(order.getTableInfo().getTableLayoutId());
                     final TableLayout.TableDetails tableDetails = tableLayoutService.getTableDetailsOrThrows(order.getTableInfo().getTableId());
+
                     return new OrderSet.OrderSetDetails(id, order.getTableInfo().getTableName(), tableDetails.getScreenPosition());
                 }).collect(Collectors.toList());
 
-        final OrderSet orderSet = new OrderSet(clientId, linkedOrders);
+        final OrderSet orderSet = new OrderSet(clientId, linkedOrders, tableLayoutId.get());
 
         return orderSetRepository.save(orderSet);
     }

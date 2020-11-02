@@ -27,11 +27,14 @@ public class OrderSet extends MongoBaseObject implements WithClientId {
 
     private String mainOrderId;
 
+    private String tableLayoutId;
+
     private OrderSetStatus status;
 
-    public OrderSet(String clientId, List<OrderSetDetails> linkedOrders) {
+    public OrderSet(String clientId, List<OrderSetDetails> linkedOrders, String tableLayoutId) {
         this.clientId = clientId;
         this.linkedOrders = linkedOrders;
+        this.tableLayoutId = tableLayoutId;
         this.status = OrderSetStatus.OPEN;
 
         mainOrderId = linkedOrders.get(0).getOrderId();

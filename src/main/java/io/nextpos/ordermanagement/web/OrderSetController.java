@@ -77,7 +77,10 @@ public class OrderSetController {
 
     private OrderSetResponse toOrderSetResponse(OrderSet orderSet) {
 
-        return new OrderSetResponse(orderSet.getId(), orderSet.getMainOrderId(), orderSet.getLinkedOrders());
+        return new OrderSetResponse(orderSet.getId(),
+                orderSet.getMainOrderId(),
+                orderSet.getLinkedOrders(),
+                orderSet.getTableLayoutId());
     }
 
     @DeleteMapping("/{id}")
