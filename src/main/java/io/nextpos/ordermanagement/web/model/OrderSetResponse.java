@@ -12,9 +12,11 @@ public class OrderSetResponse {
 
     private String id;
 
-    private String mainOrderId;
-
     private List<OrderSet.OrderSetDetails> linkedOrders;
 
+    private String mainOrderId;
+
     private String tableLayoutId;
+
+    private OrderSet.OrderSetStatus status;
 }

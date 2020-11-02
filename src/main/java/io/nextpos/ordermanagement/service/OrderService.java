@@ -38,6 +38,8 @@ public interface OrderService {
 
     void deleteOrder(Order order);
 
+    void deleteOrderByOrderId(String orderId);
+
     OrderStateChange transitionOrderState(Order order, Order.OrderAction orderAction, final Optional<LineItemStateChangeEvent> lineItemStateChangeEvent);
 
     Order updateOrderLineItem(Order order, UpdateLineItem updateLineItem);

@@ -5,9 +5,11 @@ import io.nextpos.ordermanagement.data.OrderSet;
 import io.nextpos.ordermanagement.data.OrderSetRepository;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
-import io.nextpos.shared.service.annotation.MongoTransaction;
+import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -17,8 +19,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Service
-@MongoTransaction
+@ChainedTransaction
 public class OrderSetServiceImpl implements OrderSetService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(OrderSetServiceImpl.class);
 
     private final OrderSetRepository orderSetRepository;
 
@@ -76,9 +80,16 @@ public class OrderSetServiceImpl implements OrderSetService {
     }
 
     @Override
-    public Order mergeOrderSet(OrderSet orderSet) {
+    public Order mergeOrderSet(OrderSet orderSet, String orderIdToMerge) {
 
-        final Order mainOrder = orderService.getOrder(orderSet.getMainOrderId());
+        final boolean orderIdInSet = orderSet.getLinkedOrders().stream()
+                .anyMatch(os -> os.getOrderId().equals(orderIdToMerge));
+
+        if (!orderIdInSet) {
+            throw new BusinessLogicException("message.orderIdNotInSet", "The provided order id is not part of the order set " + orderSet.getId());
+        }
+
+        final Order mainOrder = orderService.getOrder(orderIdToMerge);
         mainOrder.markOrderSetOrder();
 
         orderSet.getLinkedOrders().stream()
@@ -91,6 +102,7 @@ public class OrderSetServiceImpl implements OrderSetService {
                     orderService.saveOrder(mergingOrder);
                 });
 
+        orderSet.setMainOrderId(orderIdToMerge);
         orderSet.setStatus(OrderSet.OrderSetStatus.MERGED);
         orderSetRepository.save(orderSet);
 
@@ -99,6 +111,13 @@ public class OrderSetServiceImpl implements OrderSetService {
 
     @Override
     public OrderSet completeOrderSet(OrderSet orderSet) {
+
+        orderSet.getLinkedOrders().stream()
+                .filter(os -> os.getOrderId().equals(orderSet.getMainOrderId()))
+                .forEach(os -> {
+                    LOGGER.info("Deleting merged oder id {}", os.getOrderId());
+                    orderService.deleteOrderByOrderId(os.getOrderId());
+                });
 
         orderSet.setStatus(OrderSet.OrderSetStatus.COMPLETED);
         return orderSetRepository.save(orderSet);

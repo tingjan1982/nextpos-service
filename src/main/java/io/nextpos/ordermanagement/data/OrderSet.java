@@ -36,8 +36,6 @@ public class OrderSet extends MongoBaseObject implements WithClientId {
         this.linkedOrders = linkedOrders;
         this.tableLayoutId = tableLayoutId;
         this.status = OrderSetStatus.OPEN;
-
-        mainOrderId = linkedOrders.get(0).getOrderId();
     }
 
     @Data

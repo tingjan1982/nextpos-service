@@ -4,6 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.ordermanagement.data.OrderSet;
 import io.nextpos.ordermanagement.service.OrderSetService;
+import io.nextpos.ordermanagement.web.model.MergeOrderRequest;
 import io.nextpos.ordermanagement.web.model.OrderSetRequest;
 import io.nextpos.ordermanagement.web.model.OrderSetResponse;
 import io.nextpos.ordermanagement.web.model.OrderSetsResponse;
@@ -59,10 +60,11 @@ public class OrderSetController {
 
     @PostMapping("/{id}/merge")
     public OrderSetResponse mergeOrderSet(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                          @PathVariable String id) {
+                                          @PathVariable String id,
+                                          @Valid @RequestBody MergeOrderRequest request) {
 
         final OrderSet orderSet = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderSetService.getOrderSet(id));
-        orderSetService.mergeOrderSet(orderSet);
+        orderSetService.mergeOrderSet(orderSet, request.getOrderId());
 
         return toOrderSetResponse(orderSet);
     }
@@ -78,9 +80,10 @@ public class OrderSetController {
     private OrderSetResponse toOrderSetResponse(OrderSet orderSet) {
 
         return new OrderSetResponse(orderSet.getId(),
-                orderSet.getMainOrderId(),
                 orderSet.getLinkedOrders(),
-                orderSet.getTableLayoutId());
+                orderSet.getMainOrderId(),
+                orderSet.getTableLayoutId(),
+                orderSet.getStatus());
     }
 
     @DeleteMapping("/{id}")

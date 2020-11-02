@@ -61,15 +61,15 @@ class OrderSetServiceImplTest {
 
         assertThat(orderSet.getId()).isNotNull();
         assertThat(orderSet.getLinkedOrders()).hasSize(3);
-        assertThat(orderSet.getMainOrderId()).isEqualTo(order1.getId());
 
-        final Order mergedOrder = orderSetService.mergeOrderSet(orderSet);
+        final Order mergedOrder = orderSetService.mergeOrderSet(orderSet, order2.getId());
 
         assertThat(mergedOrder.getOrderLineItems()).hasSize(3);
         assertThat(mergedOrder.isOrderSetOrder()).isTrue();
+        assertThat(orderSet.getMainOrderId()).isEqualTo(mergedOrder.getId());
 
-        assertThat(orderService.getOrder(order1.getId()).getId()).isEqualTo(mergedOrder.getId());
-        assertThat(orderService.getOrder(order2.getId()).getOrderLineItems()).isEmpty();
+        assertThat(orderService.getOrder(order1.getId()).getOrderLineItems()).isEmpty();
+        assertThat(orderService.getOrder(order2.getId()).getId()).isEqualTo(mergedOrder.getId());
         assertThat(orderService.getOrder(order3.getId()).getOrderLineItems()).isEmpty();
 
         assertThat(orderSetService.getOrderSetByOrderId(mergedOrder.getId())).isNotNull();

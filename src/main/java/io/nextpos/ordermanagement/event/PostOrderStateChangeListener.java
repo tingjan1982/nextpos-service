@@ -46,7 +46,6 @@ public class PostOrderStateChangeListener {
         if (order.getState() == Order.OrderState.COMPLETED) {
             if (order.isOrderSetOrder()) {
                 final OrderSet orderSet = orderSetService.getOrderSetByOrderId(order.getId());
-
                 LOGGER.info("Completing the order set {}", orderSet);
 
                 orderSetService.completeOrderSet(orderSet);

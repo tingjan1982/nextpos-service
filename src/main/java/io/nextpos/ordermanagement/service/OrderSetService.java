@@ -15,7 +15,7 @@ public interface OrderSetService {
 
     List<OrderSet> getInFlightOrderSets(String clientId);
 
-    Order mergeOrderSet(OrderSet orderSet);
+    Order mergeOrderSet(OrderSet orderSet, String orderIdToMerge);
 
     OrderSet completeOrderSet(OrderSet orderSet);
 

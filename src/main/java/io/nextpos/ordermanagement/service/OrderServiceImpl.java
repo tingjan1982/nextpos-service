@@ -133,6 +133,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public void deleteOrderByOrderId(String orderId) {
+        orderRepository.deleteById(orderId);
+    }
+
+    @Override
     public Order updateOrderLineItem(final Order order, final UpdateLineItem updateLineItem) {
 
         order.updateOrderLineItem(updateLineItem, (lineItem) -> {
