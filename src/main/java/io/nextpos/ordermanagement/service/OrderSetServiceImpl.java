@@ -113,7 +113,7 @@ public class OrderSetServiceImpl implements OrderSetService {
     public OrderSet completeOrderSet(OrderSet orderSet) {
 
         orderSet.getLinkedOrders().stream()
-                .filter(os -> os.getOrderId().equals(orderSet.getMainOrderId()))
+                .filter(os -> !os.getOrderId().equals(orderSet.getMainOrderId()))
                 .forEach(os -> {
                     LOGGER.info("Deleting merged oder id {}", os.getOrderId());
                     orderService.deleteOrderByOrderId(os.getOrderId());
