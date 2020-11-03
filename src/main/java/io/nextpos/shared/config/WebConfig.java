@@ -27,7 +27,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(clientUsageTracker);
+        //registry.addInterceptor(clientUsageTracker);
     }
 
     @Bean
