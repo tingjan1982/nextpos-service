@@ -53,7 +53,7 @@ public class InvoiceNumberController {
     public InvoiceNumberRangeResponse getCurrentInvoiceNumberRange(@PathVariable String ubn) {
 
         final InvoiceNumberRange invoiceNumberRange = invoiceNumberRangeService.getCurrentInvoiceNumberRange(ubn);
-        final InvoiceNumberRange.NumberRange dispensableNumberRange = invoiceNumberRange.findDispensableNumberRange();
+        final InvoiceNumberRange.NumberRange dispensableNumberRange = invoiceNumberRange.findAvailableNumberRange();
 
         return toInvoiceNumberRangeResponse(invoiceNumberRange, dispensableNumberRange);
     }
