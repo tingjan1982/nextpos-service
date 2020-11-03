@@ -52,7 +52,7 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
     public ElectronicInvoice createElectronicInvoice(final Client client, final Order order, final OrderTransaction orderTransaction) {
 
         final String ubn = client.getAttribute(Client.ClientAttributes.UBN.name());
-        final String invoiceNumber = invoiceNumberRangeService.resolveInvoiceNumber(ubn);
+        final String invoiceNumber = getInvoiceNumber(ubn);
 
         final TaxableAmount salesAmount = new TaxableAmount(order.getOrderSettings().getTaxRate(), true);
         salesAmount.calculate(orderTransaction.getSettleAmount());
@@ -61,9 +61,11 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
                 .map(li -> new ElectronicInvoice.InvoiceItem(li.getName(), li.getQuantity(), li.getUnitPrice(), li.getSubTotal()))
                 .collect(Collectors.toList());
 
+        ElectronicInvoice.InvoiceStatus invoiceStatus = !invoiceNumber.equals(INVOICE_NUMBER_MISSING) ? ElectronicInvoice.InvoiceStatus.CREATED : ElectronicInvoice.InvoiceStatus.INVOICE_NUMBER_MISSING;
         final ElectronicInvoice electronicInvoice = new ElectronicInvoice(
                 order.getId(),
                 invoiceNumber,
+                invoiceStatus,
                 new ElectronicInvoice.InvoicePeriod(client.getZoneId()),
                 salesAmount.getAmountWithTax(),
                 salesAmount.getTax(),
@@ -80,9 +82,21 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
 
         final ElectronicInvoice createdElectronicInvoice = electronicInvoiceRepository.save(electronicInvoice);
 
-        pendingEInvoiceQueueService.createPendingEInvoiceQueue(createdElectronicInvoice, PendingEInvoiceQueue.PendingEInvoiceType.CREATE);
+        PendingEInvoiceQueue.PendingEInvoiceType type = invoiceNumber.equals(INVOICE_NUMBER_MISSING) ? PendingEInvoiceQueue.PendingEInvoiceType.INVOICE_NUMBER_MISSING : PendingEInvoiceQueue.PendingEInvoiceType.CREATE;
+        pendingEInvoiceQueueService.createPendingEInvoiceQueue(createdElectronicInvoice, type);
 
         return createdElectronicInvoice;
+    }
+
+    private String getInvoiceNumber(String ubn) {
+        try {
+            return invoiceNumberRangeService.resolveInvoiceNumber(ubn);
+
+        } catch (Exception e) {
+            LOGGER.warn("Error while obtaining invoice number for ubn [{}]: {}", ubn, e.getMessage());
+
+            return INVOICE_NUMBER_MISSING;
+        }
     }
 
     @Override

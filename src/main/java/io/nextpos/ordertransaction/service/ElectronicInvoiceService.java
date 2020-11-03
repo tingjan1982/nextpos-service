@@ -7,6 +7,8 @@ import io.nextpos.ordertransaction.data.OrderTransaction;
 
 public interface ElectronicInvoiceService {
 
+    String INVOICE_NUMBER_MISSING = "INVOICE_NUMBER_MISSING";
+
     boolean checkElectronicInvoiceEligibility(Client client);
 
     ElectronicInvoice createElectronicInvoice(Client client, Order order, OrderTransaction orderTransaction);

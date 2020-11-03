@@ -9,7 +9,9 @@ import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.shared.DummyObjects;
+import io.nextpos.shared.service.annotation.ChainedTransaction;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +25,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@ChainedTransaction
 class ElectronicInvoiceServiceImplTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ElectronicInvoiceServiceImplTest.class);
@@ -39,17 +42,24 @@ class ElectronicInvoiceServiceImplTest {
     @Autowired
     private OrderSettings orderSettings;
 
+    private Client client;
+
+    private final String ubn = "83515813";
+
+    @BeforeEach
+    void prepare() {
+        client = DummyObjects.dummyClient();
+        client.addAttribute(Client.ClientAttributes.UBN.name(), ubn);
+        client.addAttribute(Client.ClientAttributes.AES_KEY.name(), "12341234123412341234123412341234");
+    }
+    
     @Test
     void createElectronicInvoice() {
 
-        final Client client = DummyObjects.dummyClient();
-        final String ubn = "83515813";
-        client.addAttribute(Client.ClientAttributes.UBN.name(), ubn);
-        client.addAttribute(Client.ClientAttributes.AES_KEY.name(), "12341234123412341234123412341234");
-        final Order order = new Order("client", orderSettings);
+        final Order order = new Order(client.getId(), orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 2);
 
-        final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), "client", order.getOrderTotal(), order.getOrderTotal(), OrderTransaction.PaymentMethod.CARD, OrderTransaction.BillType.SINGLE, List.of());
+        final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), client.getId(), order.getOrderTotal(), order.getOrderTotal(), OrderTransaction.PaymentMethod.CARD, OrderTransaction.BillType.SINGLE, List.of());
         orderTransaction.setTaxIdNumber("27252210");
         orderTransaction.putPaymentDetails(OrderTransaction.PaymentDetailsKey.LAST_FOUR_DIGITS, "1234");
 
@@ -76,11 +86,27 @@ class ElectronicInvoiceServiceImplTest {
     }
 
     @Test
+    void createElectronicInvoice_NoAvailableInvoiceNumber() {
+
+        final Order order = new Order(client.getId(), orderSettings);
+        order.addOrderLineItem(DummyObjects.productSnapshot(), 2);
+
+        final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), client.getId(), order.getOrderTotal(), order.getOrderTotal(), OrderTransaction.PaymentMethod.CARD, OrderTransaction.BillType.SINGLE, List.of());
+        orderTransaction.setTaxIdNumber("27252210");
+        orderTransaction.putPaymentDetails(OrderTransaction.PaymentDetailsKey.LAST_FOUR_DIGITS, "1234");
+
+        final ElectronicInvoice electronicInvoice = electronicInvoiceService.createElectronicInvoice(client, order, orderTransaction);
+        assertThat(electronicInvoice.getInvoiceNumber()).isEqualTo(ElectronicInvoiceService.INVOICE_NUMBER_MISSING);
+
+        assertThat(pendingEInvoiceQueueService.findPendingEInvoicesByUbn(ubn)).hasSize(1);
+    }
+
+    @Test
     void testRounding() {
 
         BigDecimal amount = new BigDecimal("150");
         BigDecimal tax = new BigDecimal("7.5");
 
-        System.out.println(amount.subtract(tax).setScale(0, RoundingMode.UP));
+        assertThat(amount.subtract(tax).setScale(0, RoundingMode.UP)).isEqualByComparingTo("143");
     }
 }
