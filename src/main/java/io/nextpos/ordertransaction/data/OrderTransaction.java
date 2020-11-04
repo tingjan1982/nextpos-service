@@ -93,7 +93,8 @@ public class OrderTransaction extends MongoBaseObject {
     public enum OrderTransactionStatus {
 
         CREATED,
-        CANCELLED
+        CANCELLED,
+        VOIDED
     }
 
     @Data

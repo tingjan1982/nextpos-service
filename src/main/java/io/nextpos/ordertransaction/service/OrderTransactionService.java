@@ -17,4 +17,6 @@ public interface OrderTransactionService {
     List<OrderTransaction> getOrderTransactionByOrderId(String orderId);
 
     void cancelOrderTransaction(String id);
+
+    void voidOrderTransaction(String id);
 }

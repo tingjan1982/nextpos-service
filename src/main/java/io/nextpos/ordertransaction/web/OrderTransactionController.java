@@ -79,6 +79,13 @@ public class OrderTransactionController {
         orderTransactionService.cancelOrderTransaction(id);
     }
 
+    @PostMapping("{id}/void")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void voidOrderTransaction(@PathVariable String id) {
+
+        orderTransactionService.voidOrderTransaction(id);
+    }
+
     private OrderTransaction fromOrderTransactionRequest(final Order order, final OrderTransactionRequest orderTransactionRequest) {
 
         final List<OrderTransaction.BillLineItem> billLineItems = populateBillLineItems(order, orderTransactionRequest);

@@ -112,6 +112,12 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
         pendingEInvoiceQueueService.createPendingEInvoiceQueue(electronicInvoice, PendingEInvoiceQueue.PendingEInvoiceType.CANCEL);
     }
 
+    @Override
+    public void voidElectronicInvoice(ElectronicInvoice electronicInvoice) {
+
+        pendingEInvoiceQueueService.createPendingEInvoiceQueue(electronicInvoice, PendingEInvoiceQueue.PendingEInvoiceType.VOID);
+    }
+
     private String getAESKey(Client client) {
         return client.getAttribute(Client.ClientAttributes.AES_KEY.name());
     }

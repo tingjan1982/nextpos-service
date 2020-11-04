@@ -116,8 +116,30 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         final boolean hasNonCancelledTransactions = orderTransactionRepository.existsAllByOrderIdAndStatusNot(orderTransaction.getOrderId(), OrderTransaction.OrderTransactionStatus.CANCELLED);
 
         if (!hasNonCancelledTransactions) {
-            LOGGER.info("All transactions are cancelled, mark associated order as deleted: {}", orderTransaction.getOrderId());
+            LOGGER.info("All transactions are cancelled, mark associated order as cancelled: {}", orderTransaction.getOrderId());
             orderService.performOrderAction(orderTransaction.getOrderId(), Order.OrderAction.CANCEL);
+        }
+    }
+
+    @Override
+    public void voidOrderTransaction(String id) {
+
+        final OrderTransaction orderTransaction = this.getOrderTransaction(id);
+
+        if (orderTransaction.getInvoiceDetails().getElectronicInvoice() == null) {
+            throw new ObjectNotFoundException(id, ElectronicInvoice.class);
+        }
+
+        electronicInvoiceService.voidElectronicInvoice(orderTransaction.getInvoiceDetails().getElectronicInvoice());
+
+        orderTransaction.setStatus(OrderTransaction.OrderTransactionStatus.VOIDED);
+        orderTransactionRepository.save(orderTransaction);
+
+        final boolean hasNonVoidedTransactions = orderTransactionRepository.existsAllByOrderIdAndStatusNot(orderTransaction.getOrderId(), OrderTransaction.OrderTransactionStatus.VOIDED);
+
+        if (!hasNonVoidedTransactions) {
+            LOGGER.info("All transactions are voided, mark associated order as voided: {}", orderTransaction.getOrderId());
+            orderService.performOrderAction(orderTransaction.getOrderId(), Order.OrderAction.VOID);
         }
     }
 }

@@ -535,7 +535,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         DELIVER(IN_PROCESS, DELIVERED),
         SETTLE(EnumSet.of(IN_PROCESS, DELIVERED), SETTLED),
         CANCEL(EnumSet.of(SETTLED, COMPLETED), CANCELLED),
-        VOID(SETTLED, VOIDED),
+        VOID(EnumSet.of(SETTLED, COMPLETED, CANCELLED), VOIDED),
         REFUND(SETTLED, REFUNDED),
 
         /**

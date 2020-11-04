@@ -16,4 +16,6 @@ public interface ElectronicInvoiceService {
     ElectronicInvoice getElectronicInvoiceByInvoiceNumber(String internalInvoiceNumber);
 
     void cancelElectronicInvoice(ElectronicInvoice electronicInvoice);
+
+    void voidElectronicInvoice(ElectronicInvoice electronicInvoice);
 }
