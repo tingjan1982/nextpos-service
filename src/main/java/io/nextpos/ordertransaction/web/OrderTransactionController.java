@@ -101,9 +101,11 @@ public class OrderTransactionController {
                 OrderTransaction.BillType.valueOf(orderTransactionRequest.getBillType()),
                 billLineItems);
 
-        orderTransaction.setTaxIdNumber(orderTransactionRequest.getTaxIdNumber());
-        orderTransaction.setCarrierId(orderTransactionRequest.getCarrierId());
-        orderTransaction.setCarrierId2(orderTransactionRequest.getCarrierId());
+        orderTransaction.updateInvoiceDetails(orderTransactionRequest.getTaxIdNumber(),
+                orderTransactionRequest.getCarrierType(),
+                orderTransactionRequest.getCarrierId(),
+                orderTransactionRequest.getNpoBan(),
+                orderTransactionRequest.isPrintMark());
 
         orderTransactionRequest.getPaymentDetails().forEach((key, value) -> {
             final Class<?> targetValueType = key.getValueType();

@@ -61,16 +61,22 @@ public class OrderTransaction extends MongoBaseObject {
         return this.paymentDetails.getPaymentMethod();
     }
 
-    public void setTaxIdNumber(String taxIdNumber) {
-        this.invoiceDetails.setTaxIdNumber(taxIdNumber);
+    public void updateInvoiceDetails(String taxIdNumber, ElectronicInvoice.CarrierType carrierType, String carrierId, String npoBan, boolean printMark) {
+        invoiceDetails.setTaxIdNumber(taxIdNumber);
+        invoiceDetails.setCarrierType(carrierType);
+        invoiceDetails.setCarrierId(carrierId);
+        invoiceDetails.setCarrierId2(carrierId);
+        invoiceDetails.setNpoBan(npoBan);
+        invoiceDetails.setPrintMark(printMark);
     }
 
-    public void setCarrierId(String carrierId) {
-        this.invoiceDetails.setCarrierId(carrierId);
-    }
-
-    public void setCarrierId2(String carrierId2) {
-        this.invoiceDetails.setCarrierId2(carrierId2);
+    public void updateElectronicInvoiceOptionalDetails(ElectronicInvoice electronicInvoice) {
+        electronicInvoice.setBuyerUbn(invoiceDetails.getTaxIdNumber());
+        electronicInvoice.setCarrierType(invoiceDetails.getCarrierType());
+        electronicInvoice.setCarrierId(invoiceDetails.getCarrierId());
+        electronicInvoice.setCarrierId2(invoiceDetails.getCarrierId2());
+        electronicInvoice.setNpoBan(invoiceDetails.getNpoBan());
+        electronicInvoice.setPrintMark(invoiceDetails.isPrintMark());
     }
 
     public void putPaymentDetails(PaymentDetailsKey key, Object value) {
@@ -136,9 +142,15 @@ public class OrderTransaction extends MongoBaseObject {
 
         private String taxIdNumber;
 
+        private ElectronicInvoice.CarrierType carrierType;
+
         private String carrierId;
 
         private String carrierId2;
+
+        private String npoBan;
+
+        private boolean printMark;
 
         @DBRef
         private ElectronicInvoice electronicInvoice;

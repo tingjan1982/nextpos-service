@@ -60,7 +60,6 @@ class ElectronicInvoiceServiceImplTest {
         order.addOrderLineItem(DummyObjects.productSnapshot(), 2);
 
         final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), client.getId(), order.getOrderTotal(), order.getOrderTotal(), OrderTransaction.PaymentMethod.CARD, OrderTransaction.BillType.SINGLE, List.of());
-        orderTransaction.setTaxIdNumber("27252210");
         orderTransaction.putPaymentDetails(OrderTransaction.PaymentDetailsKey.LAST_FOUR_DIGITS, "1234");
 
         assertThat(electronicInvoiceService.checkElectronicInvoiceEligibility(client)).isFalse();
@@ -92,7 +91,6 @@ class ElectronicInvoiceServiceImplTest {
         order.addOrderLineItem(DummyObjects.productSnapshot(), 2);
 
         final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), client.getId(), order.getOrderTotal(), order.getOrderTotal(), OrderTransaction.PaymentMethod.CARD, OrderTransaction.BillType.SINGLE, List.of());
-        orderTransaction.setTaxIdNumber("27252210");
         orderTransaction.putPaymentDetails(OrderTransaction.PaymentDetailsKey.LAST_FOUR_DIGITS, "1234");
 
         final ElectronicInvoice electronicInvoice = electronicInvoiceService.createElectronicInvoice(client, order, orderTransaction);

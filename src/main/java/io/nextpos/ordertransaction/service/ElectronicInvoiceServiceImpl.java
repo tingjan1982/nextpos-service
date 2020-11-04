@@ -73,9 +73,7 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
                 client.getClientName(),
                 items);
 
-        if (StringUtils.isNotBlank(orderTransaction.getInvoiceDetails().getTaxIdNumber())) {
-            electronicInvoice.setBuyerUbn(orderTransaction.getInvoiceDetails().getTaxIdNumber());
-        }
+        orderTransaction.updateElectronicInvoiceOptionalDetails(electronicInvoice);
 
         final String aesKey = getAESKey(client);
         electronicInvoice.generateCodeContent(aesKey);
