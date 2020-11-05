@@ -44,7 +44,6 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @RestController
@@ -159,15 +158,12 @@ public class OrderController {
     }
 
     private OrdersResponse toOrdersResponse(final List<Order> orders) {
-        final AtomicBoolean itemNeedAttention = new AtomicBoolean();
 
         final Map<String, List<OrdersResponse.LightOrderResponse>> orderResponses = orders.stream()
-                .peek(li -> {
-                    if (DateUtils.addMinutes(li.getCreatedDate(), 30).before(new Date())) {
-                        itemNeedAttention.set(true);
-                    }
-                })
                 .map(o -> {
+                    final boolean itemNeedAttention = o.getOrderLineItems().stream()
+                            .anyMatch(li -> DateUtils.addMinutes(li.getCreatedDate(), 30).before(new Date()));
+
                     String tableLayoutId = StringUtils.defaultIfBlank(o.getTableInfo().getTableLayoutId(), "NO_LAYOUT");
                     String tableLayoutName = StringUtils.defaultIfBlank(o.getTableInfo().getTableLayoutName(), "No Layout");
 
@@ -183,7 +179,7 @@ public class OrderController {
                             o.getCreatedDate(),
                             o.getState(),
                             o.getOrderTotal(),
-                            itemNeedAttention.get());
+                            itemNeedAttention);
                 })
                 .collect(Collectors.groupingBy(OrdersResponse.LightOrderResponse::getTableLayoutId, Collectors.toList()));
 
