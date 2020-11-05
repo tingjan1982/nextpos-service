@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/clientstatus")
 public class ClientStatusController {
@@ -37,10 +39,17 @@ public class ClientStatusController {
 
     private ClientStatusResponse toClientStatusResponse(ClientStatus clientStatus, ClientSubscription clientSubscription) {
 
-        final ClientStatusResponse.SubscriptionResponse subscriptionResponse = new ClientStatusResponse.SubscriptionResponse(clientSubscription.getSubscriptionPlanSnapshot().getPlanName(),
-                clientSubscription.getStatus(),
-                clientSubscription.getSubscriptionPlanSnapshot().getSubscriptionLimit().getRestrictedFeatures());
+        final ClientStatusResponse.SubscriptionResponse subscriptionResponse;
 
+        if (clientSubscription != null) {
+            subscriptionResponse = new ClientStatusResponse.SubscriptionResponse(clientSubscription.getSubscriptionPlanSnapshot().getPlanName(),
+                    clientSubscription.getStatus(),
+                    clientSubscription.getSubscriptionPlanSnapshot().getSubscriptionLimit().getRestrictedFeatures());
+        } else {
+            subscriptionResponse = new ClientStatusResponse.SubscriptionResponse("FREE",
+                    ClientSubscription.SubscriptionStatus.ACTIVE,
+                    List.of("einvoice"));
+        }
         return new ClientStatusResponse(clientStatus.getId(),
                 subscriptionResponse,
                 clientStatus.isNoTableLayout(),
