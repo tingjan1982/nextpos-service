@@ -34,6 +34,8 @@ public class OrdersResponse {
 
         private String tableLayout;
 
+        private String tableId;
+
         private String tableName;
 
         private int customerCount;

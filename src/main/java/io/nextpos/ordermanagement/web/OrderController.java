@@ -177,6 +177,7 @@ public class OrderController {
                             o.getOrderType(),
                             tableLayoutId,
                             tableLayoutName,
+                            o.getTableInfo().getTableId(),
                             o.getTableInfo().getDisplayName(),
                             o.getDemographicData().getCustomerCount(),
                             o.getCreatedDate(),
