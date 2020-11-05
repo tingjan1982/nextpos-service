@@ -29,6 +29,7 @@ import io.nextpos.workingarea.data.PrinterInstructions;
 import io.nextpos.workingarea.service.PrinterInstructionService;
 import io.nextpos.workingarea.service.WorkingAreaService;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,8 +41,10 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @RestController
@@ -156,7 +159,14 @@ public class OrderController {
     }
 
     private OrdersResponse toOrdersResponse(final List<Order> orders) {
+        final AtomicBoolean itemNeedAttention = new AtomicBoolean();
+
         final Map<String, List<OrdersResponse.LightOrderResponse>> orderResponses = orders.stream()
+                .peek(li -> {
+                    if (DateUtils.addMinutes(li.getCreatedDate(), 30).before(new Date())) {
+                        itemNeedAttention.set(true);
+                    }
+                })
                 .map(o -> {
                     String tableLayoutId = StringUtils.defaultIfBlank(o.getTableInfo().getTableLayoutId(), "NO_LAYOUT");
                     String tableLayoutName = StringUtils.defaultIfBlank(o.getTableInfo().getTableLayoutName(), "No Layout");
@@ -171,7 +181,8 @@ public class OrderController {
                             o.getDemographicData().getCustomerCount(),
                             o.getCreatedDate(),
                             o.getState(),
-                            o.getOrderTotal());
+                            o.getOrderTotal(),
+                            itemNeedAttention.get());
                 })
                 .collect(Collectors.groupingBy(OrdersResponse.LightOrderResponse::getTableLayoutId, Collectors.toList()));
 

@@ -43,5 +43,7 @@ public class OrdersResponse {
         private Order.OrderState state;
 
         private BigDecimal orderTotal;
+
+        private boolean itemNeedAttention;
     }
 }
