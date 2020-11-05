@@ -97,6 +97,10 @@ public class BootstrapConfig {
             settings.setDecimalPlaces(0);
             settings.setRoundingMode(RoundingMode.HALF_UP);
 
+            settings.getCommonAttributes().clear();
+            settingsProperties.getCommonAttributes().forEach(settings::addCommonAttribute);
+            settingsProperties.getCountryAttributes().getOrDefault(DEFAULT_COUNTRY_CODE, List.of()).forEach(settings::addCommonAttribute);
+
             LOGGER.info("Updating default country settings: {}", settings);
             settingsService.saveCountrySettings(settings);
 
@@ -109,6 +113,7 @@ public class BootstrapConfig {
                     RoundingMode.HALF_UP);
 
             settingsProperties.getCommonAttributes().forEach(defaultCountrySettings::addCommonAttribute);
+            settingsProperties.getCountryAttributes().getOrDefault(DEFAULT_COUNTRY_CODE, List.of()).forEach(defaultCountrySettings::addCommonAttribute);
 
             LOGGER.info("Creating default country settings: {}", defaultCountrySettings);
             settingsService.saveCountrySettings(defaultCountrySettings);

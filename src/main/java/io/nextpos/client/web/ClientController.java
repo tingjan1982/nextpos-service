@@ -121,6 +121,15 @@ public class ClientController {
         }
     }
 
+    @PostMapping("/me/attributes")
+    public ClientResponse updateClientAttribute(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                @Valid @RequestBody UpdateClientAttributeRequest request) {
+
+        request.getAttributes().forEach(client::addAttribute);
+
+        return toClientResponse(clientService.saveClient(client));
+    }
+
     @PostMapping("/me/aeskey")
     public ClientResponse generateAESKey(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                          @RequestBody String password) {

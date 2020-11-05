@@ -134,6 +134,10 @@ public class Client extends BaseObject {
         return attributes.get(key);
     }
 
+    public String getAttribute(ClientAttributes attName) {
+        return attributes.get(attName.name());
+    }
+
     public void removeAttribute(String key) {
         attributes.remove(key);
     }
@@ -184,21 +188,31 @@ public class Client extends BaseObject {
     public enum ClientAttributes {
 
         /**
-         * Unified Business Number, which is a Taiwan specific attribute.
+         * Registered company name
          */
-        UBN,
+        COMPANY_NAME,
 
         /**
-         * Business address that displays on the receipt
+         * Business address
          */
         ADDRESS,
 
         TABLE_AVAILABILITY_DISPLAY,
 
-        AES_KEY,
-
         PASSCODE,
 
-        PASSCODE_VERIFIED
+        PASSCODE_VERIFIED,
+
+        // ==== Taiwan specific attributes ====
+
+        /**
+         * Unified Business Number
+         */
+        UBN,
+
+        /**
+         * Used to encrypt QR code content
+         */
+        AES_KEY
     }
 }

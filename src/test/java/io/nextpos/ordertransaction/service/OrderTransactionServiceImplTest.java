@@ -139,6 +139,7 @@ class OrderTransactionServiceImplTest {
 
         final ElectronicInvoice electronicInvoice = new ElectronicInvoice(order.getId(),
                 "AA-10001001",
+                ElectronicInvoice.InvoiceStatus.CREATED,
                 new ElectronicInvoice.InvoicePeriod(ZoneId.systemDefault()),
                 new BigDecimal("150"),
                 new BigDecimal("8"),

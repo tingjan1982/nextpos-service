@@ -51,7 +51,8 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
     @Override
     public ElectronicInvoice createElectronicInvoice(final Client client, final Order order, final OrderTransaction orderTransaction) {
 
-        final String ubn = client.getAttribute(Client.ClientAttributes.UBN.name());
+        final String ubn = client.getAttribute(Client.ClientAttributes.UBN);
+        final String companyName = client.getAttribute(Client.ClientAttributes.COMPANY_NAME);
         final String invoiceNumber = getInvoiceNumber(ubn);
 
         final TaxableAmount salesAmount = new TaxableAmount(order.getOrderSettings().getTaxRate(), true);
@@ -70,7 +71,7 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
                 salesAmount.getAmountWithTax(),
                 salesAmount.getTax(),
                 ubn,
-                client.getClientName(),
+                companyName,
                 items);
 
         orderTransaction.updateElectronicInvoiceOptionalDetails(electronicInvoice);
