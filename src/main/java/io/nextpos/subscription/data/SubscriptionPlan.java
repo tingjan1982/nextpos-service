@@ -37,6 +37,8 @@ public class SubscriptionPlan extends MongoBaseObject {
 
     private String planName;
 
+    private String description;
+
     private TaxableAmount taxableAmount;
 
     private Map<PlanPeriod, PlanPrice> planPrices = new HashMap<>();

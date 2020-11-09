@@ -23,6 +23,8 @@ public class SubscriptionPlanRequest {
     @NotBlank
     private String planName;
 
+    private String description;
+
     private Map<SubscriptionPlan.PlanPeriod, BigDecimal> planPrices;
 
     private int userLimit;

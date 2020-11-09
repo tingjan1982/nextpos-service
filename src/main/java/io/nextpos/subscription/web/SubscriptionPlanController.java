@@ -38,6 +38,8 @@ public class SubscriptionPlanController {
 
         final CountrySettings countrySettings = settingsService.getCountrySettings(request.getCountryCode());
         final SubscriptionPlan subscriptionPlan = new SubscriptionPlan(request.getCountryCode(), request.getPlanGroup(), request.getPlanName(), countrySettings);
+        request.setDescription(request.getDescription());
+
         request.getPlanPrices().forEach((planPeriod, price) -> subscriptionPlan.addPlanPrice(planPeriod, new SubscriptionPlan.PlanPrice(price)));
 
         subscriptionPlan.updateSubscriptionLimit(request.getUserLimit(), request.getDeviceLimit(), request.getRestrictedFeatures());
@@ -70,6 +72,7 @@ public class SubscriptionPlanController {
     private void updateFromRequest(SubscriptionPlan subscriptionPlan, SubscriptionPlanRequest request) {
 
         subscriptionPlan.setPlanName(request.getPlanName());
+        subscriptionPlan.setDescription(request.getDescription());
         subscriptionPlan.setPlanGroup(request.getPlanGroup());
         subscriptionPlan.updateSubscriptionLimit(request.getUserLimit(), request.getDeviceLimit(), request.getRestrictedFeatures());
         subscriptionPlan.getPlanPrices().clear();
