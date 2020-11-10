@@ -18,9 +18,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.data.mapping.context.MappingContext;
 import org.springframework.data.mongodb.MongoCollectionUtils;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.index.IndexOperations;
+import org.springframework.data.mongodb.core.index.IndexResolver;
+import org.springframework.data.mongodb.core.index.MongoPersistentEntityIndexResolver;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.MongoPersistentEntity;
+import org.springframework.data.mongodb.core.mapping.MongoPersistentProperty;
 import org.springframework.jdbc.support.JdbcUtils;
 import org.springframework.jdbc.support.MetaDataAccessException;
 import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
@@ -176,6 +185,27 @@ public class BootstrapConfig {
                 return l;
             }
         });
+    }
+
+    /**
+     * Index creation reference:
+     * https://docs.spring.io/spring-data/data-mongodb/docs/current-SNAPSHOT/reference/html/#mapping.index-creation
+     */
+    @EventListener(ContextRefreshedEvent.class)
+    public void initIndicesAfterStartup() {
+        LOGGER.info("Creating MongoDB indexes");
+
+        MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext = mongoTemplate.getConverter().getMappingContext();
+        IndexResolver resolver = new MongoPersistentEntityIndexResolver(mappingContext);
+
+        // consider only entities that are annotated with @Document
+        mappingContext.getPersistentEntities()
+                .stream()
+                .filter(it -> it.isAnnotationPresent(Document.class))
+                .forEach(it -> {
+                    IndexOperations indexOps = mongoTemplate.indexOps(it.getType());
+                    resolver.resolveIndexFor(it.getType()).forEach(indexOps::ensureIndex);
+                });
     }
 
     @Bean

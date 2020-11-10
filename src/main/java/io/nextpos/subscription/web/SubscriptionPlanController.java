@@ -38,7 +38,7 @@ public class SubscriptionPlanController {
 
         final CountrySettings countrySettings = settingsService.getCountrySettings(request.getCountryCode());
         final SubscriptionPlan subscriptionPlan = new SubscriptionPlan(request.getCountryCode(), request.getPlanGroup(), request.getPlanName(), countrySettings);
-        request.setDescription(request.getDescription());
+        subscriptionPlan.setDescription(request.getDescription());
 
         request.getPlanPrices().forEach((planPeriod, price) -> subscriptionPlan.addPlanPrice(planPeriod, new SubscriptionPlan.PlanPrice(price)));
 

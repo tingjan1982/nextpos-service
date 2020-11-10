@@ -10,13 +10,15 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDate;
+
 /**
  * Reference on Mongo compound index:
  * https://www.baeldung.com/spring-data-mongodb-index-annotations-converter*
  * https://docs.mongodb.com/manual/indexes/#unique-indexes
  */
 @Document
-@CompoundIndexes({@CompoundIndex(name = "unique_per_client_index", def = "{'clientId': 1, 'mobileNumber': 1}")})
+@CompoundIndexes({@CompoundIndex(name = "unique_per_client_index", def = "{'clientId': 1, 'phoneNumber': 1}", unique = true)})
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
@@ -29,25 +31,33 @@ public class Membership extends MongoBaseObject {
 
     private String name;
 
-    private String mobileNumber;
+    private Gender gender;
+
+    private LocalDate birthday;
+
+    private String phoneNumber;
 
     private MembershipStatus membershipStatus;
 
 
-    public Membership(final String clientId, final String name, final String mobileNumber) {
+    public Membership(final String clientId, final String name, final String phoneNumber) {
         this.clientId = clientId;
         this.name = name;
-        this.mobileNumber = mobileNumber;
+        this.phoneNumber = phoneNumber;
         this.membershipStatus = MembershipStatus.ACTIVE;
     }
 
-    @Override
-    public boolean isNew() {
-        return id == null;
-    }
-
+    /**
+     * Can be used to filter membership search.
+     */
     public enum MembershipStatus {
 
-        ACTIVE, INACTIVE
+        ACTIVE,
+
+        INACTIVE
+    }
+
+    public enum Gender {
+        MALE, FEMALE
     }
 }

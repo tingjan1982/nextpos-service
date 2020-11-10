@@ -1,5 +1,7 @@
 package io.nextpos.membership.data;
 
+import io.nextpos.calendarevent.data.CalendarEvent;
+import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.shared.model.MongoBaseObject;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -9,14 +11,12 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.math.BigDecimal;
-
 // todo: consider the transaction object more carefully to record enough data to query membership points for future scenarios.
 @Document
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class MemberOrderTransaction extends MongoBaseObject {
+public class MembershipOrder extends MongoBaseObject {
 
     @Id
     private String id;
@@ -26,12 +26,14 @@ public class MemberOrderTransaction extends MongoBaseObject {
     @DBRef
     private Membership membership;
 
-    private String orderId;
+    @DBRef
+    private CalendarEvent calendarEvent;
 
-    private BigDecimal totalWithTax;
+    @DBRef
+    private Order order;
 
-    @Override
-    public boolean isNew() {
-        return false;
-    }
+    /**
+     * Acquired points for this member order.
+     */
+    private Integer membershipPoints;
 }

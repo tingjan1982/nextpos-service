@@ -1,5 +1,6 @@
 package io.nextpos.membership.service;
 
+import io.nextpos.client.data.Client;
 import io.nextpos.membership.data.Membership;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +17,14 @@ class MembershipServiceImplTest {
     @Autowired
     private MembershipService membershipService;
 
+    @Autowired
+    private Client client;
+
 
     @Test
     void saveMembership() {
 
-        final Membership membership = new Membership("client", "Joe", "0988120232");
+        final Membership membership = new Membership(client.getId(), "Joe", "0988120232");
 
         membershipService.saveMembership(membership);
 
@@ -29,6 +33,12 @@ class MembershipServiceImplTest {
 
         assertThatCode(() -> membershipService.getMembership(membership.getId())).doesNotThrowAnyException();
 
-        membershipService.getMembershipByMobile("client", "0988120232").orElseThrow();
+        membershipService.getMembershipByPhoneNumber(client.getId(), "0988120232").orElseThrow();
+
+        assertThat(membershipService.getMemberships(client)).hasSize(1);
+
+        membershipService.deleteMembership(membership);
+
+        assertThat(membershipService.getMemberships(client)).isEmpty();
     }
 }

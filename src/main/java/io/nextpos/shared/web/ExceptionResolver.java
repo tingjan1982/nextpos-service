@@ -1,5 +1,6 @@
 package io.nextpos.shared.web;
 
+import com.mongodb.MongoWriteException;
 import io.nextpos.shared.exception.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -71,6 +72,21 @@ public class ExceptionResolver {
         errorResponse.setDetails(exception.getSQLException().getMessage());
 
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(MongoWriteException.class)
+    public ResponseEntity<ErrorResponse> handleMongoWriteException(MongoWriteException exception) {
+
+        LOGGER.error("{}", exception.getMessage(), exception);
+
+        if (exception.getError().getCode() == 11000) {
+            final ErrorResponse errorResponse = ErrorResponse.simpleErrorResponse("message.alreadyExists", "Object violated uniqueness constraint");
+            errorResponse.setDetails(exception.getMessage());
+
+            return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+        }
+
+        throw exception;
     }
 
     /**
