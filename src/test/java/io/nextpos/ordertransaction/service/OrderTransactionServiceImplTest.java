@@ -145,6 +145,7 @@ class OrderTransactionServiceImplTest {
                 new BigDecimal("8"),
                 "83515813",
                 "Rain",
+                "Main Road",
                 List.of());
         return electronicInvoiceRepository.save(electronicInvoice);
     }

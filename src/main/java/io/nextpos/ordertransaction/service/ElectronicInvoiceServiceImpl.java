@@ -53,6 +53,7 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
 
         final String ubn = client.getAttribute(Client.ClientAttributes.UBN);
         final String companyName = client.getAttribute(Client.ClientAttributes.COMPANY_NAME);
+        final String address = client.getAttribute(Client.ClientAttributes.ADDRESS);
         final String invoiceNumber = getInvoiceNumber(ubn);
 
         final TaxableAmount salesAmount = new TaxableAmount(order.getOrderSettings().getTaxRate(), true);
@@ -72,6 +73,7 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
                 salesAmount.getTax(),
                 ubn,
                 companyName,
+                address,
                 items);
 
         orderTransaction.updateElectronicInvoiceOptionalDetails(electronicInvoice);
