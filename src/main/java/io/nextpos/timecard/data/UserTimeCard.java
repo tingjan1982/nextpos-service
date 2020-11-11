@@ -60,12 +60,6 @@ public class UserTimeCard extends MongoBaseObject implements WithClientId {
         return Duration.ZERO;
     }
 
-    @Override
-    public boolean isNew() {
-        return id == null;
-    }
-
-
     public enum TimeCardStatus {
         INACTIVE, ACTIVE, COMPLETE
     }

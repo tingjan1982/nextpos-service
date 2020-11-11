@@ -6,6 +6,7 @@ import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.roster.data.RosterPlan;
 import io.nextpos.shared.DummyObjects;
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,8 +20,7 @@ import java.time.YearMonth;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @ChainedTransaction
@@ -62,6 +62,10 @@ class RosterPlanServiceImplTest {
         assertThat(rosterPlan.getClientId()).isEqualTo(client.getId());
 
         assertThatCode(() -> rosterPlanService.getRosterPlan(rosterPlan.getId())).doesNotThrowAnyException();
+
+        rosterPlanService.deleteRosterPlan(rosterPlan);
+
+        assertThatThrownBy(() -> rosterPlanService.getRosterPlan(rosterPlan.getId())).isInstanceOf(ObjectNotFoundException.class);
     }
 
     @Test
@@ -76,21 +80,31 @@ class RosterPlanServiceImplTest {
         rosterPlan.addRosterEntry(DayOfWeek.SATURDAY, LocalTime.now(), LocalTime.now().plusHours(8));
         rosterPlan.addRosterEntry(DayOfWeek.SUNDAY, LocalTime.now(), LocalTime.now().plusHours(8));
 
-        final List<CalendarEvent> events = rosterPlanService.createCalendarEventsFromRosterPlan(client, rosterPlan);
+        final List<CalendarEvent> events = rosterPlanService.createRosterPlanEvents(client, rosterPlan);
 
-        assertThat(events).hasSize(LocalDate.now().with(TemporalAdjusters.lastDayOfMonth()).getDayOfMonth());
+        final int eventCount = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth()).getDayOfMonth();
+
+        assertThat(events).hasSize(eventCount);
 
         events.forEach(e -> {
-            final CalendarEvent updatedCalendarEvent = rosterPlanService.assignStaffMember(e, clientUser);
-            assertThat(updatedCalendarEvent.getEventResource()).satisfies(r -> {
+            final CalendarEvent updatedCalendarEvent = rosterPlanService.assignRosterPlanEventToStaffMember(e, clientUser);
+            assertThat(updatedCalendarEvent.getEventResources()).allSatisfy(r -> {
                 assertThat(r.getResourceId()).isNotNull();
                 assertThat(r.getResourceType()).isEqualByComparingTo(CalendarEvent.ResourceType.STAFF);
                 assertThat(r.getResourceName()).isNotNull();
             });
         });
 
-        final List<CalendarEvent> retrievedEvents = rosterPlanService.getCalendarEventsForStaffMember(client, clientUser, YearMonth.now());
+        assertThat(rosterPlanService.getRosterPlanEvents(rosterPlan)).hasSize(eventCount);
+        assertThat(rosterPlanService.getStaffMemberRoster(client, clientUser, YearMonth.now())).hasSize(eventCount);
 
-        assertThat(retrievedEvents).hasSize(LocalDate.now().with(TemporalAdjusters.lastDayOfMonth()).getDayOfMonth());
+        events.forEach(e -> {
+            final CalendarEvent updatedCalendarEvent = rosterPlanService.removeStaffMemberFromRosterPlanEvent(e, clientUser);
+            assertThat(updatedCalendarEvent.getEventResources()).isEmpty();
+        });
+
+        rosterPlanService.deleteRosterPlanEvents(rosterPlan);
+
+        assertThat(rosterPlanService.getRosterPlanEvents(rosterPlan)).isEmpty();
     }
 }

@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,7 +49,14 @@ public class RosterPlanServiceImpl implements RosterPlanService {
     }
 
     @Override
-    public List<CalendarEvent> createCalendarEventsFromRosterPlan(Client client, RosterPlan rosterPlan) {
+    public void deleteRosterPlan(RosterPlan rosterPlan) {
+
+        this.deleteRosterPlanEvents(rosterPlan);
+        rosterPlanRepository.delete(rosterPlan);
+    }
+
+    @Override
+    public List<CalendarEvent> createRosterPlanEvents(Client client, RosterPlan rosterPlan) {
 
         final YearMonth rosterMonth = rosterPlan.getRosterMonth();
         return rosterPlan.getRosterEntries().entrySet().stream()
@@ -60,7 +68,7 @@ public class RosterPlanServiceImpl implements RosterPlanService {
                     List<CalendarEvent> createdEvents = new ArrayList<>();
 
                     while (nextInMonth.compareTo(lastInMonth) <= 0) {
-                        final List<CalendarEvent> calendarEvents = createCalendarEvents(client, nextInMonth, entry.getValue());
+                        final List<CalendarEvent> calendarEvents = createRosterPlanEvents(client, nextInMonth, rosterPlan, entry.getValue());
                         nextInMonth = nextInMonth.with(TemporalAdjusters.next(dayOfWeek));
                         createdEvents.addAll(calendarEvents);
                     }
@@ -71,33 +79,53 @@ public class RosterPlanServiceImpl implements RosterPlanService {
                 .collect(Collectors.toList());
     }
 
-    private List<CalendarEvent> createCalendarEvents(Client client, LocalDate dayOfMonth, List<RosterPlan.RosterEntry> rosterEntries) {
+    private List<CalendarEvent> createRosterPlanEvents(Client client, LocalDate dayOfMonth, RosterPlan rosterPlan, List<RosterPlan.RosterEntry> rosterEntries) {
 
         return rosterEntries.stream().map(re -> {
             final LocalDateTime startTime = LocalDateTime.of(dayOfMonth, re.getStartTime());
             final LocalDateTime endTime = LocalDateTime.of(dayOfMonth, re.getEndTime());
-            final CalendarEvent shift = new CalendarEvent(client.getId(), CalendarEvent.EventType.ROSTER, "Work", DateTimeUtil.toDate(client.getZoneId(), startTime), DateTimeUtil.toDate(client.getZoneId(), endTime));
+            final CalendarEvent shift = new CalendarEvent(
+                    client.getId(),
+                    CalendarEvent.EventType.ROSTER,
+                    "Work",
+                    CalendarEvent.EventOwner.createWithOwnerId(rosterPlan.getId(), CalendarEvent.OwnerType.ROSTER),
+                    DateTimeUtil.toDate(client.getZoneId(), startTime), DateTimeUtil.toDate(client.getZoneId(), endTime));
             return calendarEventService.saveCalendarEvent(shift);
+
         }).collect(Collectors.toList());
     }
 
     @Override
-    public CalendarEvent assignStaffMember(CalendarEvent calendarEvent, ClientUser clientUser) {
+    public List<CalendarEvent> getRosterPlanEvents(RosterPlan rosterPlan) {
+
+        return calendarEventService.getCalendarEventsForEventOwner(rosterPlan.getClientId(), rosterPlan.getId(), CalendarEvent.OwnerType.ROSTER);
+    }
+
+    @Override
+    public void deleteRosterPlanEvents(RosterPlan rosterPlan) {
+        calendarEventService.deleteCalendarEvents(rosterPlan.getClientId(), rosterPlan.getId(), CalendarEvent.OwnerType.ROSTER);
+    }
+
+    @Override
+    public CalendarEvent assignRosterPlanEventToStaffMember(CalendarEvent calendarEvent, ClientUser clientUser) {
 
         final CalendarEvent.EventResource eventResource = toEventResource(clientUser);
-        return calendarEventService.updateEventResource(calendarEvent, eventResource);
+        return calendarEventService.addEventResource(calendarEvent, eventResource);
     }
 
     @Override
-    public CalendarEvent removeStaffMember(CalendarEvent calendarEvent) {
-        return calendarEventService.removeEventResource(calendarEvent);
+    public CalendarEvent removeStaffMemberFromRosterPlanEvent(CalendarEvent calendarEvent, ClientUser clientUser) {
+        return calendarEventService.removeEventResource(calendarEvent, toEventResource(clientUser));
     }
 
     @Override
-    public List<CalendarEvent> getCalendarEventsForStaffMember(Client client, ClientUser clientUser, YearMonth yearMonth) {
+    public List<CalendarEvent> getStaffMemberRoster(Client client, ClientUser clientUser, YearMonth yearMonth) {
+
+        final Date startOfMonth = DateTimeUtil.toDate(client.getZoneId(), yearMonth.atDay(1).atStartOfDay());
+        final Date endOfMonth = DateTimeUtil.toDate(client.getZoneId(), yearMonth.atEndOfMonth().atTime(23, 59, 59));
 
         CalendarEvent.EventResource eventResource = toEventResource(clientUser);
-        return calendarEventService.getCalendarEventsForEventResource(client, yearMonth, CalendarEvent.EventType.ROSTER, eventResource);
+        return calendarEventService.getCalendarEventsForEventResource(client, startOfMonth, endOfMonth, CalendarEvent.EventType.ROSTER, eventResource);
     }
 
     private CalendarEvent.EventResource toEventResource(ClientUser clientUser) {

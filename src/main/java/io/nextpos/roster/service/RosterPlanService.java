@@ -14,11 +14,18 @@ public interface RosterPlanService {
 
     RosterPlan getRosterPlan(String id);
 
-    List<CalendarEvent> createCalendarEventsFromRosterPlan(Client client, RosterPlan rosterPlan);
+    void deleteRosterPlan(RosterPlan rosterPlan);
 
-    CalendarEvent assignStaffMember(CalendarEvent calendarEvent, ClientUser clientUser);
+    List<CalendarEvent> createRosterPlanEvents(Client client, RosterPlan rosterPlan);
 
-    CalendarEvent removeStaffMember(CalendarEvent calendarEvent);
+    List<CalendarEvent> getRosterPlanEvents(RosterPlan rosterPlan);
 
-    List<CalendarEvent> getCalendarEventsForStaffMember(Client client, ClientUser clientUser, YearMonth yearMonth);
+    void deleteRosterPlanEvents(RosterPlan rosterPlan);
+
+    CalendarEvent assignRosterPlanEventToStaffMember(CalendarEvent calendarEvent, ClientUser clientUser);
+
+    CalendarEvent removeStaffMemberFromRosterPlanEvent(CalendarEvent calendarEvent, ClientUser clientUser);
+
+    List<CalendarEvent> getStaffMemberRoster(Client client, ClientUser clientUser, YearMonth yearMonth);
+
 }

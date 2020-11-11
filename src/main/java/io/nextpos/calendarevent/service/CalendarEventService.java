@@ -3,16 +3,22 @@ package io.nextpos.calendarevent.service;
 import io.nextpos.calendarevent.data.CalendarEvent;
 import io.nextpos.client.data.Client;
 
-import java.time.YearMonth;
+import java.util.Date;
 import java.util.List;
 
 public interface CalendarEventService {
 
     CalendarEvent saveCalendarEvent(CalendarEvent calendarEvent);
 
-    CalendarEvent updateEventResource(CalendarEvent calendarEvent, CalendarEvent.EventResource eventResource);
+    CalendarEvent getCalendarEvent(String id);
 
-    CalendarEvent removeEventResource(CalendarEvent calendarEvent);
+    CalendarEvent addEventResource(CalendarEvent calendarEvent, CalendarEvent.EventResource eventResource);
 
-    List<CalendarEvent> getCalendarEventsForEventResource(Client client, YearMonth yearMonth, CalendarEvent.EventType eventType, CalendarEvent.EventResource eventResource);
+    CalendarEvent removeEventResource(CalendarEvent calendarEvent, CalendarEvent.EventResource eventResource);
+
+    List<CalendarEvent> getCalendarEventsForEventOwner(String clientId, String eventOwnerId, CalendarEvent.OwnerType ownerType);
+
+    List<CalendarEvent> getCalendarEventsForEventResource(Client client, Date from, Date to, CalendarEvent.EventType eventType, CalendarEvent.EventResource eventResource);
+
+    void deleteCalendarEvents(String clientId, String eventOwnerId, CalendarEvent.OwnerType ownerType);
 }

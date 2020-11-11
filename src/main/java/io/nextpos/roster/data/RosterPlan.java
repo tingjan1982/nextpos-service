@@ -4,6 +4,7 @@ import io.nextpos.shared.model.MongoBaseObject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Document
 @Data
@@ -25,30 +27,38 @@ public class RosterPlan extends MongoBaseObject {
 
     private String clientId;
 
-    private RosterPlanStatus status;
-
     private YearMonth rosterMonth;
+
+    private RosterPlanStatus status = RosterPlanStatus.ACTIVE;
+
+    private AtomicInteger internalCounter = new AtomicInteger(1);
 
     private Map<DayOfWeek, List<RosterEntry>> rosterEntries = new HashMap<>();
 
 
     public RosterPlan(String clientId, YearMonth rosterMonth) {
+        this.id = ObjectId.get().toString();
         this.clientId = clientId;
         this.rosterMonth = rosterMonth;
-
-        this.status = RosterPlanStatus.PENDING;
     }
 
     public void addRosterEntry(DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime) {
 
         final List<RosterEntry> rosterEntriesOfDay = this.rosterEntries.computeIfAbsent(dayOfWeek, dow -> new ArrayList<>());
-        final RosterEntry rosterEntry = new RosterEntry(dayOfWeek, startTime, endTime);
+        final String rosterEntryId = this.id + "-" + internalCounter.getAndIncrement();
+        final RosterEntry rosterEntry = new RosterEntry(rosterEntryId, dayOfWeek, startTime, endTime);
         rosterEntriesOfDay.add(rosterEntry);
+    }
+
+    public void removeRosterEntry(String rosterEntryId) {
+        this.rosterEntries.values().forEach(entries -> entries.removeIf(entry -> entry.getId().equals(rosterEntryId)));
     }
 
     @Data
     @AllArgsConstructor
     public static class RosterEntry {
+
+        private String id;
 
         private DayOfWeek dayOfWeek;
 
@@ -60,13 +70,13 @@ public class RosterPlan extends MongoBaseObject {
     public enum RosterPlanStatus {
 
         /**
-         * Not fulfilled yet.
+         * Default state, still allow modification.
          */
-        PENDING,
+        ACTIVE,
 
         /**
-         * Fulfilled by a staff.
+         * Locked so that it cannot be changed.
          */
-        PLANNED
+        LOCKED
     }
 }

@@ -7,5 +7,7 @@ import java.util.List;
 
 public interface CalendarEventRepository extends MongoRepository<CalendarEvent, String> {
 
-    List<CalendarEvent> findAllByClientIdAndEventTypeAndEventResource_ResourceIdAndEventResource_ResourceTypeAndStartTimeBetween(String clientId, CalendarEvent.EventType eventType, String resourceId, CalendarEvent.ResourceType resourceType, Date from, Date to);
+    List<CalendarEvent> findAllByClientIdAndEventOwner_OwnerIdAndEventOwner_OwnerType(String clientId, String eventOwnerId, CalendarEvent.OwnerType ownerType);
+
+    List<CalendarEvent> findAllByClientIdAndEventTypeAndEventResourcesContainingAndStartTimeBetween(String clientId, CalendarEvent.EventType eventType, CalendarEvent.EventResource eventResource, Date from, Date to);
 }
