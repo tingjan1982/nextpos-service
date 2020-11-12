@@ -43,6 +43,7 @@ import java.net.UnknownHostException;
 import static org.mockito.ArgumentMatchers.any;
 
 @Configuration
+@ConditionalOnProperty(value = "script", havingValue = "false", matchIfMissing = true)
 public class TestMockConfig {
 
     private static final byte[] IP4_LOOPBACK_ADDRESS = {127, 0, 0, 1};

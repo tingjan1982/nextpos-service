@@ -122,12 +122,26 @@ public class ProductController {
     }
 
     @PostMapping("/{id}")
-    public ProductResponse updateProduct(@PathVariable final String id,
-                                         @RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+    public ProductResponse updateProduct(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                         @PathVariable final String id,
                                          @Valid @RequestBody ProductRequest productRequest) {
 
         final Product product = clientObjectOwnershipService.checkOwnership(client, () -> productService.getProduct(id));
         updateProductFromRequest(client, product, productRequest);
+
+        productService.saveProduct(product);
+
+        return toResponse(product, Version.DESIGN);
+    }
+
+    @PostMapping("/{id}/label")
+    public ProductResponse changeProductLabel(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                              @PathVariable final String id,
+                                              @Valid @RequestBody ChangeLabelRequest productRequest) {
+
+        final Product product = clientObjectOwnershipService.checkOwnership(client, () -> productService.getProduct(id));
+        final ProductLabel resolvedLabel = resolveProductLabel(client, productRequest.getProductLabelId());
+        product.setProductLabel(resolvedLabel);
 
         productService.saveProduct(product);
 

@@ -1,9 +1,10 @@
 package io.nextpos.roster.web.model;
 
-import io.nextpos.roster.data.RosterPlan;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.List;
 
 @Data
@@ -14,5 +15,16 @@ public class RosterPlanRequest {
 
     private int month;
 
-    private List<RosterPlan.RosterEntry> rosterEntries;
+    private List<RosterEntryRequest> rosterEntries;
+
+    @Data
+    @NoArgsConstructor
+    public static class RosterEntryRequest {
+
+        private DayOfWeek dayOfWeek;
+
+        private LocalTime startTime;
+
+        private LocalTime endTime;
+    }
 }

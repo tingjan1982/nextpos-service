@@ -53,9 +53,9 @@ public class ClientStatusServiceImpl implements ClientStatusService {
         });
 
         final List<TableLayout> tableLayouts = tableLayoutService.getTableLayouts(client);
+        clientStatus.setNoTableLayout(CollectionUtils.isEmpty(tableLayouts));
 
         if (CollectionUtils.isEmpty(tableLayouts)) {
-            clientStatus.setNoTableLayout(true);
             clientStatus.setNoTable(true);
         } else {
             final boolean hasTable = tableLayouts.stream().anyMatch(tl -> !CollectionUtils.isEmpty(tl.getTables()));

@@ -81,15 +81,21 @@ public class RosterPlanServiceImpl implements RosterPlanService {
 
     private List<CalendarEvent> createRosterPlanEvents(Client client, LocalDate dayOfMonth, RosterPlan rosterPlan, List<RosterPlan.RosterEntry> rosterEntries) {
 
-        return rosterEntries.stream().map(re -> {
-            final LocalDateTime startTime = LocalDateTime.of(dayOfMonth, re.getStartTime());
-            final LocalDateTime endTime = LocalDateTime.of(dayOfMonth, re.getEndTime());
+        return rosterEntries.stream().map(entry -> {
+            LocalDateTime startTime = LocalDateTime.of(dayOfMonth, entry.getStartTime());
+            LocalDateTime endTime = LocalDateTime.of(dayOfMonth, entry.getEndTime());
+
+            if (entry.getEndTime().isBefore(entry.getStartTime())) {
+                endTime = LocalDateTime.of(dayOfMonth.plusDays(1), entry.getEndTime());
+            }
+
             final CalendarEvent shift = new CalendarEvent(
                     client.getId(),
                     CalendarEvent.EventType.ROSTER,
                     "Work",
                     CalendarEvent.EventOwner.createWithOwnerId(rosterPlan.getId(), CalendarEvent.OwnerType.ROSTER),
-                    DateTimeUtil.toDate(client.getZoneId(), startTime), DateTimeUtil.toDate(client.getZoneId(), endTime));
+                    DateTimeUtil.toDate(client.getZoneId(), startTime),
+                    DateTimeUtil.toDate(client.getZoneId(), endTime));
             return calendarEventService.saveCalendarEvent(shift);
 
         }).collect(Collectors.toList());
