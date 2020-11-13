@@ -48,6 +48,10 @@ public class Client extends BaseObject {
     @Enumerated(EnumType.STRING)
     private Status status = Status.PENDING_ACTIVE;
 
+    @OneToOne(mappedBy = "client", cascade = CascadeType.ALL)
+    @PrimaryKeyJoinColumn
+    private ClientInfo clientInfo;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @MapKeyColumn(name = "attribute_key")
     @Column(name = "attribute_value")
@@ -158,6 +162,11 @@ public class Client extends BaseObject {
 
     public Optional<ClientSetting> getClientSetting(ClientSetting.SettingName settingName) {
         return clientSettings.stream().filter(cs -> cs.getName() == settingName).findFirst();
+    }
+
+    public void updateClientInfo(ClientInfo clientInfo) {
+        clientInfo.setClient(this);
+        setClientInfo(clientInfo);
     }
 
     public enum Status {

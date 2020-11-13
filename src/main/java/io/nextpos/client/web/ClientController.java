@@ -1,6 +1,7 @@
 package io.nextpos.client.web;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.data.ClientInfo;
 import io.nextpos.client.data.ClientSetting;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientActivationService;
@@ -119,6 +120,39 @@ public class ClientController {
         if (updateClientRequest.getClientSettings() != null) {
             updateClientRequest.getClientSettings().forEach((k, v) -> client.saveClientSettings(k, v.getValue(), v.isEnabled()));
         }
+    }
+
+    @GetMapping("/me/info")
+    public ClientInfoResponse getClientInfo(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        return new ClientInfoResponse(client.getClientInfo());
+    }
+
+    @PostMapping("/me/info")
+    public ClientInfoResponse updateClientInfo(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                       @Valid @RequestBody ClientInfoRequest request) {
+
+        updateClientInfoFromRequest(client, request);
+        clientService.saveClient(client);
+
+        return new ClientInfoResponse(client.getClientInfo());
+    }
+
+    private void updateClientInfoFromRequest(Client client, ClientInfoRequest request) {
+
+        ClientInfo clientInfo = client.getClientInfo();
+
+        if (clientInfo == null) {
+            clientInfo = new ClientInfo();
+            client.updateClientInfo(clientInfo);
+        }
+
+        clientInfo.setOwnerName(request.getOwnerName());
+        clientInfo.setContactNumber(request.getContactNumber());
+        clientInfo.setContactAddress(request.getContactAddress());
+        clientInfo.setOperationStatus(request.getOperationStatus());
+        clientInfo.setLeadSource(request.getLeadSource());
+        clientInfo.setRequirements(request.getRequirements());
     }
 
     @PostMapping("/me/attributes")
