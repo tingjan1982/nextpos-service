@@ -53,12 +53,10 @@ public class OrderTransactionResponse {
                 orderTransaction.getPaymentDetails(),
                 billLineItems);
 
-        final ElectronicInvoice electronicInvoice = orderTransaction.getInvoiceDetails().getElectronicInvoice();
-
-        if (electronicInvoice != null) {
+        orderTransaction.getElectronicInvoice().ifPresent(electronicInvoice -> {
             response.setInvoiceNumber(electronicInvoice.getInternalInvoiceNumber());
             response.setInvoiceStatus(electronicInvoice.getInvoiceStatus());
-        }
+        });
 
         return response;
     }

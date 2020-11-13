@@ -25,6 +25,8 @@ public class OrderRequest implements OrderLogChangeObject {
 
     private Order.DemographicData demographicData;
 
+    private String membershipId;
+
     private List<OrderLineItemRequest> lineItems;
 
     @Override

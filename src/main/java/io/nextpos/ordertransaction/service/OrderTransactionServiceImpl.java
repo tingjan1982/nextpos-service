@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional(transactionManager = "chainedTransactionManager")
@@ -103,12 +104,13 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
     public void cancelOrderTransaction(String id) {
 
         final OrderTransaction orderTransaction = this.getOrderTransaction(id);
+        final Optional<ElectronicInvoice> electronicInvoice = orderTransaction.getElectronicInvoice();
 
-        if (orderTransaction.getInvoiceDetails().getElectronicInvoice() == null) {
+        if (electronicInvoice.isEmpty()) {
             throw new ObjectNotFoundException(id, ElectronicInvoice.class);
         }
 
-        electronicInvoiceService.cancelElectronicInvoice(orderTransaction.getInvoiceDetails().getElectronicInvoice());
+        electronicInvoiceService.cancelElectronicInvoice(electronicInvoice.get());
 
         orderTransaction.setStatus(OrderTransaction.OrderTransactionStatus.CANCELLED);
         orderTransactionRepository.save(orderTransaction);
@@ -125,12 +127,13 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
     public void voidOrderTransaction(String id) {
 
         final OrderTransaction orderTransaction = this.getOrderTransaction(id);
+        final Optional<ElectronicInvoice> electronicInvoice = orderTransaction.getElectronicInvoice();
 
-        if (orderTransaction.getInvoiceDetails().getElectronicInvoice() == null) {
+        if (electronicInvoice.isEmpty()) {
             throw new ObjectNotFoundException(id, ElectronicInvoice.class);
         }
 
-        electronicInvoiceService.voidElectronicInvoice(orderTransaction.getInvoiceDetails().getElectronicInvoice());
+        electronicInvoiceService.voidElectronicInvoice(electronicInvoice.get());
 
         orderTransaction.setStatus(OrderTransaction.OrderTransactionStatus.VOIDED);
         orderTransactionRepository.save(orderTransaction);

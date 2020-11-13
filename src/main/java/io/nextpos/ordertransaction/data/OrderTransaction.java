@@ -8,10 +8,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Document
 @Data
@@ -87,13 +84,16 @@ public class OrderTransaction extends MongoBaseObject {
         return (T) paymentDetails.values.get(key);
     }
 
-    public boolean hasElectronicInvoice() {
-        return invoiceDetails.electronicInvoice != null;
+    public Optional<ElectronicInvoice> getElectronicInvoice() {
+        return Optional.ofNullable(invoiceDetails.getElectronicInvoice());
     }
 
-    @Override
-    public boolean isNew() {
-        return id == null;
+    public boolean hasElectronicInvoice() {
+        return getElectronicInvoice().isPresent();
+    }
+
+    public boolean hasPrintableElectronicInvoice() {
+        return hasElectronicInvoice() && invoiceDetails.getElectronicInvoice().canPrintElectronicInvoice();
     }
 
     public enum OrderTransactionStatus {

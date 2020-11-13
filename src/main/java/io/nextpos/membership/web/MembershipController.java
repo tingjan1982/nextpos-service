@@ -28,12 +28,15 @@ public class MembershipController {
     }
 
     @PostMapping
-    public MembershipResponse createMembership(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                               @Valid @RequestBody MembershipRequest request) {
+    public MembershipResponse getOrCreateMembership(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                    @Valid @RequestBody MembershipRequest request) {
 
-        Membership membership = fromMembershipRequest(client, request);
+        final Membership membership = membershipService.getMembershipByPhoneNumber(client.getId(), request.getPhoneNumber()).orElseGet(() -> {
+            Membership newMembership = fromMembershipRequest(client, request);
+            return membershipService.saveMembership(newMembership);
+        });
 
-        return toResponse(membershipService.saveMembership(membership));
+        return toResponse(membership);
     }
 
     private Membership fromMembershipRequest(Client client, MembershipRequest request) {
@@ -43,7 +46,8 @@ public class MembershipController {
 
     @GetMapping("/{id}")
     public MembershipResponse getMembership(@PathVariable String id) {
-        return toResponse(membershipService.getMembership(id));
+
+        return toResponse(membershipService.getMembershipOrThrows(id));
     }
 
     @GetMapping
@@ -70,7 +74,7 @@ public class MembershipController {
                                                @PathVariable String id,
                                                @Valid @RequestBody MembershipRequest request) {
 
-        final Membership membership = membershipService.getMembership(id);
+        final Membership membership = membershipService.getMembershipOrThrows(id);
         updateFromMembershipRequest(membership, request);
 
         return toResponse(membershipService.saveMembership(membership));
@@ -91,7 +95,7 @@ public class MembershipController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteMembership(@PathVariable String id) {
 
-        final Membership membership = membershipService.getMembership(id);
+        final Membership membership = membershipService.getMembershipOrThrows(id);
         membershipService.deleteMembership(membership);
     }
 }

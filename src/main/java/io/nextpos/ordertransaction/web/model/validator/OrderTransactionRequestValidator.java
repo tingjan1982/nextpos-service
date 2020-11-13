@@ -1,15 +1,16 @@
 package io.nextpos.ordertransaction.web.model.validator;
 
+import io.micrometer.core.instrument.util.StringUtils;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.web.model.OrderTransactionRequest;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
-public class BillTypeDetailsValidator implements ConstraintValidator<ValidBillTypeDetails, OrderTransactionRequest> {
+public class OrderTransactionRequestValidator implements ConstraintValidator<ValidOrderTransactionRequest, OrderTransactionRequest> {
 
     @Override
-    public void initialize(final ValidBillTypeDetails constraintAnnotation) {
+    public void initialize(final ValidOrderTransactionRequest constraintAnnotation) {
 
     }
 
@@ -27,12 +28,24 @@ public class BillTypeDetailsValidator implements ConstraintValidator<ValidBillTy
                 return false;
             }
 
-            return true;
+            return checkInvoiceOptions(value, context);
 
         } catch (Exception e) {
             final String errorMsg = "Cannot detect a valid billType.";
             context.buildConstraintViolationWithTemplate(errorMsg).addBeanNode().addConstraintViolation();
             return false;
         }
+    }
+
+    private boolean checkInvoiceOptions(OrderTransactionRequest request, ConstraintValidatorContext context) {
+
+        if (request.getCarrierType() != null && StringUtils.isBlank(request.getCarrierId())) {
+            String errorMsg = "carrierId is required when carrierType is specified";
+            context.buildConstraintViolationWithTemplate(errorMsg).addPropertyNode("carrierId").addConstraintViolation();
+
+            return false;
+        }
+
+        return true;
     }
 }

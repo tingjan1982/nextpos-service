@@ -11,7 +11,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class MembershipRequest {
 
-    @NotBlank
     private String name;
 
     @NotBlank

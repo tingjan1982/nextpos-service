@@ -1,5 +1,6 @@
 package io.nextpos.ordermanagement.web.model;
 
+import io.nextpos.membership.web.model.MembershipResponse;
 import io.nextpos.merchandising.data.OfferApplicableObject;
 import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordertransaction.web.model.OrderTransactionResponse;
@@ -65,6 +66,8 @@ public class OrderResponse {
     private OrderDuration orderPreparationTime;
 
     private List<OrderTransactionResponse> transactions;
+
+    private MembershipResponse membership;
 
 
     public static OrderResponse toOrderResponse(final Order order) {

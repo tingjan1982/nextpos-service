@@ -23,7 +23,11 @@
                 <text>隨機碼:${electronicInvoice.randomNumber}</text>
                 <text x="210"/>
                 <text>總計:${orderTransaction.settleAmount}&#10;</text>
-                <text>賣方:${client.attributes["UBN"]!"NA"}&#10;</text>
+                <text>賣方:${client.attributes["UBN"]!"NA"}</text>
+                <#if electronicInvoice.buyerUbn?has_content>
+                    <text>  買方:${electronicInvoice.buyerUbn}</text>
+                </#if>
+                <text>&#10;</text>
                 <barcode type="code39" align="center" width="1" height="45">${electronicInvoice.barcodeContent}</barcode>
                 <page>
                     <area x="0" y="0" width="420" height="220"/>

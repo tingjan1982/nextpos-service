@@ -2,7 +2,7 @@ package io.nextpos.ordertransaction.web.model;
 
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.ordertransaction.data.OrderTransaction;
-import io.nextpos.ordertransaction.web.model.validator.ValidBillTypeDetails;
+import io.nextpos.ordertransaction.web.model.validator.ValidOrderTransactionRequest;
 import io.nextpos.shared.model.validator.ValidEnum;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,7 +15,7 @@ import java.util.Map;
 
 @Data
 @NoArgsConstructor
-@ValidBillTypeDetails
+@ValidOrderTransactionRequest
 public class OrderTransactionRequest {
 
     @NotEmpty

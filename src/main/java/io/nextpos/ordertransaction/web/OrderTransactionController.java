@@ -62,12 +62,14 @@ public class OrderTransactionController {
         final OrderTransaction orderTransaction = orderTransactionService.getOrderTransaction(transactionId);
         final Order order = orderService.getOrder(orderTransaction.getOrderId());
 
-        final String receiptXML = printerInstructionService.createOrderDetailsPrintInstruction(client, order, orderTransaction);
-        final String electronicInvoiceXML = printerInstructionService.createElectronicInvoiceXML(client, order, orderTransaction);
-
         final OrderTransactionResponse response = OrderTransactionResponse.toOrderTransactionResponse(orderTransaction);
+        final String receiptXML = printerInstructionService.createOrderDetailsPrintInstruction(client, order, orderTransaction);
         response.setReceiptXML(receiptXML);
-        response.setInvoiceXML(electronicInvoiceXML);
+
+        if (orderTransaction.hasPrintableElectronicInvoice()) {
+            final String electronicInvoiceXML = printerInstructionService.createElectronicInvoiceXML(client, order, orderTransaction);
+            response.setInvoiceXML(electronicInvoiceXML);
+        }
 
         return response;
     }

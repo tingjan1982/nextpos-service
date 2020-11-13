@@ -1,5 +1,6 @@
 package io.nextpos.ordermanagement.data;
 
+import io.nextpos.membership.data.Membership;
 import io.nextpos.merchandising.data.OfferApplicableObject;
 import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
 import io.nextpos.shared.exception.BusinessLogicException;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.util.CollectionUtils;
 
@@ -121,6 +123,9 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
      * Used primarily for lookup operation joining other document.
      */
     private String lookupOrderId;
+
+    @DBRef
+    private Membership membership;
 
 
     public Order(String clientId, OrderSettings orderSettings) {

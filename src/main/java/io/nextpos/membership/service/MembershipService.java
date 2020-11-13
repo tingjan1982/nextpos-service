@@ -10,7 +10,9 @@ public interface MembershipService {
 
     Membership saveMembership(Membership membership);
 
-    Membership getMembership(String id);
+    Optional<Membership> getMembership(String id);
+
+    Membership getMembershipOrThrows(String id);
 
     Optional<Membership> getMembershipByPhoneNumber(final String clientId, String mobile);
 

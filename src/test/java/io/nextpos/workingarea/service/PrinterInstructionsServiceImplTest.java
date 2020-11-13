@@ -82,7 +82,7 @@ class PrinterInstructionsServiceImplTest {
         workingArea.addPrinter(printer);
         workingAreaService.saveWorkingArea(workingArea);
 
-        InvoiceNumberRange invoiceNumberRange = new InvoiceNumberRange(ubn, "1090910", "AG", "00000001", "10000001");
+        InvoiceNumberRange invoiceNumberRange = new InvoiceNumberRange(ubn, invoiceNumberRangeService.getCurrentRangeIdentifier(), "AG", "00000001", "10000001");
         invoiceNumberRangeService.saveInvoiceNumberRange(invoiceNumberRange);
     }
 
@@ -153,6 +153,7 @@ class PrinterInstructionsServiceImplTest {
 
         orderTransaction.setId(ObjectId.get().toString());
         orderTransaction.setCreatedDate(new Date());
+        orderTransaction.updateInvoiceDetails("27252210", null, null, null, false);
 
         final ElectronicInvoice electronicInvoice = electronicInvoiceService.createElectronicInvoice(client, order, orderTransaction);
 

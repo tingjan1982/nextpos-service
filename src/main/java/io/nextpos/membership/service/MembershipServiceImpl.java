@@ -28,7 +28,12 @@ public class MembershipServiceImpl implements MembershipService {
     }
 
     @Override
-    public Membership getMembership(final String id) {
+    public Optional<Membership> getMembership(String id) {
+        return membershipRepository.findById(id);
+    }
+
+    @Override
+    public Membership getMembershipOrThrows(final String id) {
         return membershipRepository.findById(id).orElseThrow(() -> {
             throw new ObjectNotFoundException(id, Membership.class);
         });

@@ -31,7 +31,7 @@ class MembershipServiceImplTest {
         assertThat(membership.getId()).isNotNull();
         assertThat(membership.getMembershipStatus()).isEqualTo(Membership.MembershipStatus.ACTIVE);
 
-        assertThatCode(() -> membershipService.getMembership(membership.getId())).doesNotThrowAnyException();
+        assertThatCode(() -> membershipService.getMembershipOrThrows(membership.getId())).doesNotThrowAnyException();
 
         membershipService.getMembershipByPhoneNumber(client.getId(), "0988120232").orElseThrow();
 

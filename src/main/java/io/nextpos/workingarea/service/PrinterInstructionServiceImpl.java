@@ -4,6 +4,7 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
+import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordertransaction.data.OrderTransaction;
@@ -22,10 +23,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -149,15 +147,18 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
     @Override
     public String createElectronicInvoiceXML(Client client, Order order, OrderTransaction orderTransaction) {
 
-        if (!orderTransaction.hasElectronicInvoice()) {
+        final Optional<ElectronicInvoice> electronicInvoice = orderTransaction.getElectronicInvoice();
+
+        if (electronicInvoice.isEmpty()) {
             return null;
         }
 
-        final Template electronicInvoice;
+        final Template electronicInvoiceTemplate;
+
         try {
-            electronicInvoice = freeMarkerCfg.getTemplate("eInvoice.ftl");
+            electronicInvoiceTemplate = freeMarkerCfg.getTemplate("eInvoice.ftl");
             final StringWriter writer = new StringWriter();
-            electronicInvoice.process(Map.of("client", client, "order", order, "orderTransaction", orderTransaction, "electronicInvoice", orderTransaction.getInvoiceDetails().getElectronicInvoice()), writer);
+            electronicInvoiceTemplate.process(Map.of("client", client, "order", order, "orderTransaction", orderTransaction, "electronicInvoice", electronicInvoice.get()), writer);
 
             return writer.toString();
 

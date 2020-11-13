@@ -4,6 +4,8 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
 import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.datetime.service.ZonedDateRangeBuilder;
+import io.nextpos.membership.service.MembershipService;
+import io.nextpos.membership.web.model.MembershipResponse;
 import io.nextpos.merchandising.data.Offer;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.merchandising.service.MerchandisingService;
@@ -70,8 +72,10 @@ public class OrderController {
 
     private final WorkingAreaService workingAreaService;
 
+    private final MembershipService membershipService;
+
     @Autowired
-    public OrderController(final OrderService orderService, final OrderTransactionService orderTransactionService, final ClientObjectOwnershipService clientObjectOwnershipService, final TableLayoutService tableLayoutService, final OrderCreationFactory orderCreationFactory, final MerchandisingService merchandisingService, final ShiftService shiftService, PrinterInstructionService printerInstructionService, WorkingAreaService workingAreaService) {
+    public OrderController(final OrderService orderService, final OrderTransactionService orderTransactionService, final ClientObjectOwnershipService clientObjectOwnershipService, final TableLayoutService tableLayoutService, final OrderCreationFactory orderCreationFactory, final MerchandisingService merchandisingService, final ShiftService shiftService, PrinterInstructionService printerInstructionService, WorkingAreaService workingAreaService, MembershipService membershipService) {
         this.orderService = orderService;
         this.orderTransactionService = orderTransactionService;
         this.clientObjectOwnershipService = clientObjectOwnershipService;
@@ -81,6 +85,7 @@ public class OrderController {
         this.shiftService = shiftService;
         this.printerInstructionService = printerInstructionService;
         this.workingAreaService = workingAreaService;
+        this.membershipService = membershipService;
     }
 
     @PostMapping
@@ -224,6 +229,10 @@ public class OrderController {
 
         orderResponse.setTransactions(transactions);
 
+        if (order.getMembership() != null) {
+            orderResponse.setMembership(new MembershipResponse(order.getMembership()));
+        }
+
         return orderResponse;
     }
 
@@ -236,6 +245,10 @@ public class OrderController {
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
         orderCreationFactory.updateTableInfoAndDemographicData(order, orderRequest);
+
+        if (StringUtils.isNotBlank(orderRequest.getMembershipId())) {
+            membershipService.getMembership(orderRequest.getMembershipId()).ifPresent(order::setMembership);
+        }
 
         return OrderResponse.toOrderResponse(orderService.saveOrder(order));
     }

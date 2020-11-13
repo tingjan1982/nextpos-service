@@ -93,7 +93,7 @@ public class CalendarEvent extends MongoBaseObject {
     }
 
     public enum OwnerType {
-        ROSTER, CUSTOMER
+        ROSTER, CUSTOMER, MEMBER
     }
 
     @Data
