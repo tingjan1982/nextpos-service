@@ -251,11 +251,21 @@ public class ProductController {
     }
 
     @PostMapping("/{id}/togglePin")
-    public ProductResponse pinProduct(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                      @PathVariable final String id) {
+    public ProductResponse togglePin(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                     @PathVariable final String id) {
 
         final Product product = clientObjectOwnershipService.checkOwnership(client, () -> productService.getProduct(id));
         product.setPinned(!product.isPinned());
+
+        return toResponse(productService.saveProduct(product), Version.DESIGN);
+    }
+
+    @PostMapping("/{id}/toggleOutOfStock")
+    public ProductResponse toggleOutOfStock(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                            @PathVariable final String id) {
+
+        final Product product = clientObjectOwnershipService.checkOwnership(client, () -> productService.getProduct(id));
+        product.setOutOfStock(!product.isOutOfStock());
 
         return toResponse(productService.saveProduct(product), Version.DESIGN);
     }
@@ -290,7 +300,8 @@ public class ProductController {
                 workingArea != null ? workingArea.getId() : null,
                 productOptionIds,
                 productOptions,
-                product.isPinned());
+                product.isPinned(),
+                product.isOutOfStock());
 
         if (product instanceof ProductSet) {
             final List<ProductResponse.ChildProduct> childProducts = ((ProductSet) product).getChildProducts().stream()

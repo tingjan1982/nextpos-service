@@ -14,6 +14,8 @@ public class ClientStatusResponse {
 
     private SubscriptionResponse subscription;
 
+    private boolean accountNotVerified;
+
     private boolean noTableLayout;
 
     private boolean noTable;

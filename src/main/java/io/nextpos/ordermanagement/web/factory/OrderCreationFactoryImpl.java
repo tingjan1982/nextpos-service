@@ -8,7 +8,6 @@ import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
-import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordermanagement.web.model.OrderLineItemRequest;
 import io.nextpos.ordermanagement.web.model.OrderRequest;
 import io.nextpos.product.data.Product;
@@ -44,17 +43,14 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
 
     private final ClientSettingsService clientSettingsService;
 
-    private final OrderService orderService;
-
     private final OAuth2Helper oAuth2Helper;
 
     @Autowired
-    public OrderCreationFactoryImpl(final ProductService productService, final SettingsService settingsService, final TableLayoutService tableLayoutService, final ClientSettingsService clientSettingsService, final OrderService orderService, final OAuth2Helper oAuth2Helper) {
+    public OrderCreationFactoryImpl(final ProductService productService, final SettingsService settingsService, final TableLayoutService tableLayoutService, final ClientSettingsService clientSettingsService, final OAuth2Helper oAuth2Helper) {
         this.productService = productService;
         this.settingsService = settingsService;
         this.tableLayoutService = tableLayoutService;
         this.clientSettingsService = clientSettingsService;
-        this.orderService = orderService;
         this.oAuth2Helper = oAuth2Helper;
     }
 
@@ -98,7 +94,7 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
 
         if (orderType == Order.OrderType.IN_STORE) {
             if (StringUtils.isBlank(tableId)) {
-                throw new BusinessLogicException("Table id cannot be empty for an in-store order");
+                throw new BusinessLogicException("message.emptyTableId", "Table id cannot be empty for an in-store order");
             }
 
             tableLayoutService.getTableDetails(tableId).ifPresent(t -> order.getTableInfo().updateTableInfo(t, tableNote));
@@ -109,6 +105,11 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
     public OrderLineItem newOrderLineItem(final Client client, final OrderLineItemRequest li) {
 
         final Product product = productService.getProduct(li.getProductId());
+
+        if (product.isOutOfStock()) {
+            throw new BusinessLogicException("message.outOfStock", "Product is marked as out of stock: " + product.getId());
+        }
+
         List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots = Collections.emptyList();
 
         if (!CollectionUtils.isEmpty(li.getProductOptions())) {
@@ -150,7 +151,7 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
 
     private OrderSettings createOrderSettings(final Client client) {
         final CountrySettings countrySettings = settingsService.getCountrySettings(client.getCountryCode());
-        final OrderSettings orderSettings = new OrderSettings(countrySettings, true, BigDecimal.ZERO);
+        final OrderSettings orderSettings = new OrderSettings(countrySettings, countrySettings.getTaxInclusive(), BigDecimal.ZERO);
 
         clientSettingsService.getClientSettingByName(client, ClientSetting.SettingName.TAX_INCLUSIVE).ifPresent(cs -> {
             final Boolean taxInclusive = clientSettingsService.getActualStoredValue(cs, Boolean.class);

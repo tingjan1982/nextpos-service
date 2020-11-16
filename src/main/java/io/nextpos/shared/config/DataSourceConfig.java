@@ -1,5 +1,6 @@
 package io.nextpos.shared.config;
 
+import com.mongodb.MongoWriteException;
 import io.nextpos.announcement.data.Announcement;
 import io.nextpos.calendarevent.data.CalendarEvent;
 import io.nextpos.client.data.Client;
@@ -40,6 +41,8 @@ import org.springframework.data.transaction.ChainedTransactionManager;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.policy.ExceptionClassifierRetryPolicy;
+import org.springframework.retry.policy.NeverRetryPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -124,7 +127,17 @@ public class DataSourceConfig {
 
         SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
         retryPolicy.setMaxAttempts(3);
-        retryTemplate.setRetryPolicy(retryPolicy);
+
+        final ExceptionClassifierRetryPolicy mainRetryPolicy = new ExceptionClassifierRetryPolicy();
+        mainRetryPolicy.setExceptionClassifier(classifiable -> {
+            if (classifiable.getCause() instanceof MongoWriteException) {
+                return retryPolicy;
+            }
+
+            return new NeverRetryPolicy();
+        });
+
+        retryTemplate.setRetryPolicy(mainRetryPolicy);
 
         return retryTemplate;
     }

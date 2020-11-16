@@ -46,6 +46,8 @@ public class ProductResponse {
 
     private final boolean pinned;
 
+    private final boolean outOfStock;
+
     private List<ChildProduct> childProducts;
 
     @Data

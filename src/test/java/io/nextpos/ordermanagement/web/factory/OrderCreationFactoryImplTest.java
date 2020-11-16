@@ -64,7 +64,7 @@ class OrderCreationFactoryImplTest {
 
         final OrderProductOptionRequest poRequest = new OrderProductOptionRequest("ice", "normal", new BigDecimal("10"));
         final OrderLineItemRequest line1 = new OrderLineItemRequest(product.getId(), 1, new BigDecimal("20"), List.of(poRequest), ProductLevelOffer.GlobalProductDiscount.NO_DISCOUNT, BigDecimal.ZERO);
-        final OrderRequest request = new OrderRequest(Order.OrderType.IN_STORE, tableDetails.getId(), null,  null, List.of(line1));
+        final OrderRequest request = new OrderRequest(Order.OrderType.IN_STORE, tableDetails.getId(), null,  null, null, List.of(line1));
 
         final Order order = orderCreationFactory.newOrder(client, request);
 

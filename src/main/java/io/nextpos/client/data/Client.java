@@ -50,6 +50,8 @@ public class Client extends BaseObject {
 
     @OneToOne(mappedBy = "client", cascade = CascadeType.ALL)
     @PrimaryKeyJoinColumn
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private ClientInfo clientInfo;
 
     @ElementCollection(fetch = FetchType.EAGER)

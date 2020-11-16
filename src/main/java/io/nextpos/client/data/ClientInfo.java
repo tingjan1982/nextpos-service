@@ -25,6 +25,7 @@ public class ClientInfo extends BaseObject {
     @MapsId
     @JoinColumn(name = "client_info_id")
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Client client;
 
     private String ownerName;

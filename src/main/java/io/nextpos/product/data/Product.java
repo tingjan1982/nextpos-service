@@ -47,6 +47,8 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
     @ToString.Exclude
     private WorkingArea workingArea;
 
+    private boolean outOfStock;
+
     private boolean pinned;
 
     @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)

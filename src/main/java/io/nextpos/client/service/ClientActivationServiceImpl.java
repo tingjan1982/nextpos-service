@@ -1,9 +1,9 @@
 package io.nextpos.client.service;
 
-import freemarker.template.Configuration;
-import freemarker.template.Template;
 import io.nextpos.client.data.Client;
+import io.nextpos.client.data.ClientActivationResult;
 import io.nextpos.client.data.ClientUser;
+import io.nextpos.notification.data.DynamicEmailDetails;
 import io.nextpos.notification.data.EmailDetails;
 import io.nextpos.notification.data.NotificationDetails;
 import io.nextpos.notification.service.NotificationService;
@@ -19,13 +19,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.StringWriter;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -46,14 +43,11 @@ public class ClientActivationServiceImpl implements ClientActivationService {
 
     private final ApplicationProperties applicationProperties;
 
-    private final Configuration freeMarkerCfg;
-
     @Autowired
-    public ClientActivationServiceImpl(final ClientService clientService, final NotificationService notificationService, final ApplicationProperties applicationProperties, final Configuration freeMarkerCfg) {
+    public ClientActivationServiceImpl(final ClientService clientService, final NotificationService notificationService, final ApplicationProperties applicationProperties) {
         this.clientService = clientService;
         this.notificationService = notificationService;
         this.applicationProperties = applicationProperties;
-        this.freeMarkerCfg = freeMarkerCfg;
     }
 
     @Override
@@ -80,12 +74,11 @@ public class ClientActivationServiceImpl implements ClientActivationService {
             final String encodedToken = Base64.getEncoder().encodeToString(activationToken.getBytes());
             final String activationLink = String.format("%s/activateaccount?activationToken=%s", resolveHostName(), encodedToken);
 
-            final Template template = freeMarkerCfg.getTemplate("/emailActivation.ftl");
-            final StringWriter writer = new StringWriter();
-            template.process(Map.of("activationLink", activationLink), writer);
+            final DynamicEmailDetails dynamicEmailDetails = new DynamicEmailDetails(client.getId(), client.getUsername(), "d-084e3b83897e471d85e627f3d56e7c80");
+            dynamicEmailDetails.addTemplateData("client", client.getClientName());
+            dynamicEmailDetails.addTemplateData("activationLink", activationLink);
 
-            final EmailDetails emailDetails = new EmailDetails(client.getId(), client.getUsername(), "Rain app Account Activation", writer.toString());
-            return notificationService.sendNotification(emailDetails);
+            return notificationService.sendNotification(dynamicEmailDetails);
 
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
@@ -93,20 +86,25 @@ public class ClientActivationServiceImpl implements ClientActivationService {
         }
     }
 
-    String resolveHostName() throws UnknownHostException {
+    String resolveHostName() {
 
-        final String hostname = applicationProperties.getHostname();
+        try {
+            final String hostname = applicationProperties.getHostname();
 
-        if (StringUtils.isNotEmpty(hostname)) {
-            return hostname;
+            if (StringUtils.isNotEmpty(hostname)) {
+                return hostname;
+            }
+
+            final InetAddress ip = InetAddress.getLocalHost();
+            return String.format("http://%s:%d", ip.getHostAddress(), 8080);
+
+        } catch (Exception e) {
+            throw new GeneralApplicationException("Unable to resolve host name: " + e.getMessage());
         }
-
-        final InetAddress ip = InetAddress.getLocalHost();
-        return String.format("http://%s:%d", ip.getHostAddress(), 8080);
     }
 
     @Override
-    public ActivationStatus activateClient(final String encodedToken) {
+    public ClientActivationResult activateClient(final String encodedToken) {
 
         final String decodedToken = new String(Base64.getDecoder().decode(encodedToken));
         LOGGER.debug("Decoded token: {}", decodedToken);
@@ -118,26 +116,30 @@ public class ClientActivationServiceImpl implements ClientActivationService {
         }
 
         final String clientId = split[0];
+        final Optional<Client> clientOptional = clientService.getClient(clientId);
+
+        if (clientOptional.isEmpty()) {
+            return new ClientActivationResult(clientId, ClientActivationResult.ActivationStatus.FAILED);
+        }
+
         final long timestamp = Long.parseLong(split[1]);
         final long now = System.currentTimeMillis();
 
         if ((now - timestamp) > TimeUnit.DAYS.toMillis(1)) {
-            return ActivationStatus.EXPIRED;
+            final String resendClientActivationLink = resolveHostName() + "/account/resendActivationLink?clientId=" + clientId;
+            final ClientActivationResult result = new ClientActivationResult(clientId, ClientActivationResult.ActivationStatus.EXPIRED);
+            result.setClientActivationLink(resendClientActivationLink);
+
+            return result;
         }
 
-        final Optional<Client> clientOptional = clientService.getClient(clientId);
+        final Client client = clientOptional.get();
 
-        if (clientOptional.isPresent()) {
-            final Client client = clientOptional.get();
-
-            if (client.getStatus() != Client.Status.ACTIVE) {
-                clientService.updateClientStatus(client, Client.Status.ACTIVE);
-            }
-
-            return ActivationStatus.ACTIVATED;
+        if (client.getStatus() != Client.Status.ACTIVE) {
+            clientService.updateClientStatus(client, Client.Status.ACTIVE);
         }
 
-        return ActivationStatus.FAILED;
+        return new ClientActivationResult(clientId, ClientActivationResult.ActivationStatus.ACTIVATED);
     }
 
     @Override
@@ -202,9 +204,5 @@ public class ClientActivationServiceImpl implements ClientActivationService {
 
     private String generatePasscode() {
         return RandomStringUtils.randomNumeric(6);
-    }
-
-    public enum ActivationStatus {
-        ACTIVATED, EXPIRED, FAILED
     }
 }

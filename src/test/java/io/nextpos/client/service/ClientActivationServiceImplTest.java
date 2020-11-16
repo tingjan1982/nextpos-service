@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Transactional
-@TestPropertySource(properties = "app.hostname=dummyhost")
+@TestPropertySource(properties = "app.hostname=http://localhost:8080")
 class ClientActivationServiceImplTest {
 
     @Autowired
@@ -35,7 +35,7 @@ class ClientActivationServiceImplTest {
 
     @BeforeEach
     void prepare() {
-        client = new Client("Ron", "tingjan1982@gmail.com", "Secret1", "TW", "Asia/Taipei");
+        client = new Client("Rain", "rain.io.app@gmail.com", "Secret1", "TW", "Asia/Taipei");
         clientService.createClient(client);
     }
 
@@ -71,6 +71,6 @@ class ClientActivationServiceImplTest {
         final String hostName = ((ClientActivationServiceImpl) clientActivationService).resolveHostName();
 
         assertThat(hostName).isNotNull();
-        assertThat(hostName).isEqualTo("dummyhost");
+        assertThat(hostName).isEqualTo("http://localhost:8080");
     }
 }

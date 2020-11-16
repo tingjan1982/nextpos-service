@@ -52,6 +52,7 @@ public class ClientStatusController {
         }
         return new ClientStatusResponse(clientStatus.getId(),
                 subscriptionResponse,
+                clientStatus.getClient().getStatus() == Client.Status.PENDING_ACTIVE,
                 clientStatus.isNoTableLayout(),
                 clientStatus.isNoTable(),
                 clientStatus.isNoCategory(),
