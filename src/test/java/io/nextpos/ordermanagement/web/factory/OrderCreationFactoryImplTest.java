@@ -64,12 +64,13 @@ class OrderCreationFactoryImplTest {
 
         final OrderProductOptionRequest poRequest = new OrderProductOptionRequest("ice", "normal", new BigDecimal("10"));
         final OrderLineItemRequest line1 = new OrderLineItemRequest(product.getId(), 1, new BigDecimal("20"), List.of(poRequest), ProductLevelOffer.GlobalProductDiscount.NO_DISCOUNT, BigDecimal.ZERO);
-        final OrderRequest request = new OrderRequest(Order.OrderType.IN_STORE, tableDetails.getId(), null,  null, null, List.of(line1));
+        final OrderRequest request = new OrderRequest(Order.OrderType.IN_STORE, tableDetails.getId(), null, List.of(), null, null, List.of(line1));
 
         final Order order = orderCreationFactory.newOrder(client, request);
 
         assertThat(order.getId()).isNotNull();
-        assertThat(order.getTableInfo()).satisfies(ti -> {
+        assertThat(order.getTables()).isNotEmpty();
+        assertThat(order.getTables()).allSatisfy(ti -> {
             assertThat(ti).isNotNull();
             assertThat(ti.getTableId()).isEqualTo(tableDetails.getId());
         });

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -19,9 +20,13 @@ public class OrderRequest implements OrderLogChangeObject {
     @NotNull
     private Order.OrderType orderType = Order.OrderType.IN_STORE;
 
+    @Deprecated
     private String tableId;
 
+    @Deprecated
     private String tableNote;
+
+    private List<String> tableIds = new ArrayList<>();
 
     private Order.DemographicData demographicData;
 
@@ -36,8 +41,12 @@ public class OrderRequest implements OrderLogChangeObject {
             orderLog.addChangeOrderLogEntry("orderType", orderBeforeChange.getOrderType().name(), orderType.name());
         }
 
-        if (orderType == Order.OrderType.IN_STORE && !StringUtils.equals(orderBeforeChange.getTableInfo().getDisplayName(), orderAfterChange.getTableInfo().getDisplayName())) {
-            orderLog.addChangeOrderLogEntry("table", orderBeforeChange.getTableInfo().getDisplayName(), orderAfterChange.getTableInfo().getDisplayName());
+        if (orderType == Order.OrderType.IN_STORE && !StringUtils.equals(orderBeforeChange.getTableNames(), orderAfterChange.getTableNames())) {
+            orderLog.addChangeOrderLogEntry("table", orderBeforeChange.getTableNames(), orderAfterChange.getTableNames());
+        }
+
+        if (orderAfterChange.getMembership() != null) {
+            orderLog.addOrderLogEntry("membership", orderAfterChange.getMembership().getName());
         }
     }
 }

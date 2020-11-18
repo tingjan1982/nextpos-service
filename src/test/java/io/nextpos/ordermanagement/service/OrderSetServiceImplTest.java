@@ -15,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -91,7 +92,7 @@ class OrderSetServiceImplTest {
     private Order createDummyOrder() {
         
         final Order order = new Order(client.getId(), orderSettings);
-        order.getTableInfo().updateTableInfo(tableLayout.getTables().get(0), null);
+        order.addTables(List.of(tableLayout.getTables().get(0)));
         order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
 
         return orderService.saveOrder(order);

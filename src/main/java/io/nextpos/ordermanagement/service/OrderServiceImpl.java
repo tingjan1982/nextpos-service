@@ -92,7 +92,7 @@ public class OrderServiceImpl implements OrderService {
 
         LOGGER.info("Date range used to get orders: {}, {}", zonedDateRange.getFromLocalDateTime(), zonedDateRange.getToLocalDateTime());
 
-        return orderRepository.findAllByClientAndDateRangeOrderByCreatedDateDesc(client.getId(),
+        return orderRepository.findAllByClientAndDateRange(client.getId(),
                 zonedDateRange.getFromDate(),
                 zonedDateRange.getToDate());
     }
@@ -102,7 +102,7 @@ public class OrderServiceImpl implements OrderService {
 
         LOGGER.info("Date range used to get orders: {}, {}", zonedDateRange.getFromLocalDateTime(), zonedDateRange.getToLocalDateTime());
 
-        return orderRepository.findAllByClientAndDateRangeAndTableNameOrderByCreatedDateDesc(client.getId(),
+        return orderRepository.findAllByClientAndDateRangeAndTableName(client.getId(),
                 zonedDateRange.getFromDate(),
                 zonedDateRange.getToDate(),
                 table);

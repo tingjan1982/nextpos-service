@@ -17,8 +17,8 @@ import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.settings.service.SettingsService;
 import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.exception.BusinessLogicException;
+import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +27,9 @@ import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -81,23 +83,31 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
     @Override
     public void updateTableInfoAndDemographicData(final Order order, final OrderRequest orderRequest) {
 
-        updateTableInfo(order, orderRequest.getOrderType(), orderRequest.getTableId(), orderRequest.getTableNote());
+        updateTableInfo(order, orderRequest);
 
         if (orderRequest.getDemographicData() != null) {
             order.setDemographicData(orderRequest.getDemographicData());
         }
     }
 
-    private void updateTableInfo(Order order, Order.OrderType orderType, String tableId, String tableNote) {
+    private void updateTableInfo(Order order, OrderRequest orderRequest) {
 
-        order.setOrderType(orderType);
+        order.setOrderType(orderRequest.getOrderType());
 
-        if (orderType == Order.OrderType.IN_STORE) {
-            if (StringUtils.isBlank(tableId)) {
-                throw new BusinessLogicException("message.emptyTableId", "Table id cannot be empty for an in-store order");
+        if (orderRequest.getOrderType() == Order.OrderType.IN_STORE) {
+            Set<String> tableIds = new HashSet<>();
+            tableIds.add(orderRequest.getTableId());
+            tableIds.addAll(orderRequest.getTableIds());
+
+            final List<TableLayout.TableDetails> tables = tableIds.stream()
+                    .map(tableLayoutService::getTableDetailsOrThrows)
+                    .collect(Collectors.toList());
+
+            order.addTables(tables);
+
+            if (order.isTablesEmpty()) {
+                throw new BusinessLogicException("message.emptyTables", "There must at least be one table associated with an in-store order");
             }
-
-            tableLayoutService.getTableDetails(tableId).ifPresent(t -> order.getTableInfo().updateTableInfo(t, tableNote));
         }
     }
 

@@ -15,7 +15,7 @@
             <text linespc="45"/>
             <text>${order.createdDate?string('MM/dd/yyyy HH:mm:ss')!"NA"}&#10;</text>
             <text>訂單: ${order.serialId!"NA"}&#10;</text>
-            <text>桌號: ${order.tableInfo.displayName!"外帶"}&#10;</text>
+            <text>桌號: ${order.oneTableInfo.displayName!"外帶"}&#10;</text>
             <feed line="1"/>
             <text width="3" height="2"/>
             <#list lineItems as li>

@@ -34,9 +34,13 @@ public class OrdersResponse {
 
         private String tableLayout;
 
+        @Deprecated
         private String tableId;
 
+        @Deprecated
         private String tableName;
+
+        private List<Order.TableInfo> tables;
 
         private int customerCount;
 

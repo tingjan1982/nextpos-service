@@ -50,10 +50,15 @@ public class OrderSetServiceImpl implements OrderSetService {
         final List<OrderSet.OrderSetDetails> linkedOrders = orderIds.stream()
                 .map(id -> {
                     final Order order = orderService.getOrder(id);
-                    tableLayoutId.set(order.getTableInfo().getTableLayoutId());
-                    final TableLayout.TableDetails tableDetails = tableLayoutService.getTableDetailsOrThrows(order.getTableInfo().getTableId());
 
-                    return new OrderSet.OrderSetDetails(id, order.getTableInfo().getTableName(), tableDetails.getScreenPosition());
+                    if (order.isTablesEmpty() || order.getTables().size() > 1) {
+                        throw new BusinessLogicException("message.invalidOrder", "Order has no table or has more than one table: " + id);
+                    }
+
+                    tableLayoutId.set(order.getOneTableInfo().getTableLayoutId());
+                    final TableLayout.TableDetails tableDetails = tableLayoutService.getTableDetailsOrThrows(order.getOneTableInfo().getTableId());
+
+                    return new OrderSet.OrderSetDetails(id, order.getOneTableInfo().getTableName(), tableDetails.getScreenPosition());
                 }).collect(Collectors.toList());
 
         final OrderSet orderSet = new OrderSet(clientId, linkedOrders, tableLayoutId.get());

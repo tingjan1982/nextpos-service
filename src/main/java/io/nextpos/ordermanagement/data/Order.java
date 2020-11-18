@@ -96,7 +96,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     private OfferApplicableObject.AppliedOfferInfo appliedOfferInfo;
 
+    @Deprecated
     private TableInfo tableInfo = new TableInfo();
+
+    private List<TableInfo> tables = new ArrayList<>();
 
     private String servedBy;
 
@@ -133,7 +136,6 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         this.lookupOrderId = id;
         this.clientId = clientId;
         this.state = OPEN;
-        this.tableInfo = new TableInfo();
         this.total = new TaxableAmount(orderSettings.getTaxRate(), orderSettings.isTaxInclusive());
         this.discountedTotal = new TaxableAmount(orderSettings.getTaxRate(), orderSettings.isTaxInclusive());
         this.currency = orderSettings.getCurrency();
@@ -163,6 +165,31 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     public boolean isClosed() {
         return EnumSet.of(SETTLED, REFUNDED, COMPLETED).contains(state);
+    }
+
+    public boolean isTablesEmpty() {
+        return tables.stream().allMatch(TableInfo::isEmpty);
+    }
+
+    public void addTables(List<TableLayout.TableDetails> tableDetails) {
+        OrderVisitors.accept(this, OrderVisitors.UpdateTables.instance(tableDetails));
+    }
+
+    public void addTableNote(String tableNote) {
+        final TableInfo tableInfo = new TableInfo();
+        tableInfo.setTableNote(tableNote);
+
+        tables.add(tableInfo);
+    }
+
+    public String getTableNames() {
+        return tables.stream()
+                .map(TableInfo::getDisplayName)
+                .collect(Collectors.joining(", "));
+    }
+
+    public TableInfo getOneTableInfo() {
+        return tables.isEmpty() ? new TableInfo() : tables.get(0);
     }
 
     /**
@@ -440,7 +467,9 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         copy.serviceCharge = serviceCharge;
         copy.currency = currency;
         copy.appliedOfferInfo = appliedOfferInfo != null ? appliedOfferInfo.copy() : null;
-        copy.tableInfo = tableInfo != null ? tableInfo.copy() : null;
+        copy.tables = tables.stream()
+                .map(TableInfo::copy)
+                .collect(Collectors.toList());
         copy.servedBy = servedBy;
         copy.internalCounter = new AtomicInteger(1);
         copy.demographicData = demographicData != null ? demographicData.copy() : null;
@@ -577,9 +606,9 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class TableInfo {
 
-        private String tableLayoutId;
+        private String tableLayoutId = "NO_LAYOUT";
 
-        private String tableLayoutName;
+        private String tableLayoutName = "No Layout";
 
         private String tableId;
 
@@ -587,12 +616,20 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
         private String tableNote;
 
+        public TableInfo(TableLayout.TableDetails tableDetails) {
+            this.updateTableInfo(tableDetails, null);
+        }
+
         public void updateTableInfo(TableLayout.TableDetails tableDetails, String tableNote) {
             this.tableLayoutId = tableDetails.getTableLayout().getId();
             this.tableLayoutName = tableDetails.getTableLayout().getLayoutName();
             this.tableId = tableDetails.getId();
             this.tableName = tableDetails.getTableName();
             this.tableNote = tableNote;
+        }
+
+        public boolean isEmpty() {
+            return StringUtils.isEmpty(tableId);
         }
 
         public String getDisplayName() {

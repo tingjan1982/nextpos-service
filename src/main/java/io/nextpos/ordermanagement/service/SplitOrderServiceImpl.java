@@ -39,7 +39,7 @@ public class SplitOrderServiceImpl implements SplitOrderService {
 
         final Order targetOrder = Order.newOrder(sourceOrder.getClientId(), sourceOrder.getOrderType(), sourceOrder.getOrderSettings());
         targetOrder.setState(sourceOrder.getState());
-        targetOrder.getTableInfo().setTableNote("splitOrder");
+        targetOrder.addTableNote("splitOrder");
 
         orderService.createOrder(targetOrder);
 

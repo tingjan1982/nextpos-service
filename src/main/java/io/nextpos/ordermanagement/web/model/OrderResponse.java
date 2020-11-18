@@ -25,9 +25,13 @@ public class OrderResponse {
 
     private final Order.OrderType orderType;
 
+    @Deprecated
     private final Order.TableInfo tableInfo;
 
+    @Deprecated
     private final String tableDisplayName;
+
+    private final List<Order.TableInfo> tables;
 
     private final String servedBy;
 
@@ -97,8 +101,9 @@ public class OrderResponse {
         return new OrderResponse(order.getId(),
                 order.getSerialId(),
                 order.getOrderType(),
-                order.getTableInfo(),
-                order.getTableInfo().getDisplayName(),
+                order.getOneTableInfo(),
+                order.getOneTableInfo().getDisplayName(),
+                order.getTables(),
                 order.getServedBy(),
                 order.getCreatedDate(),
                 order.getModifiedDate(),

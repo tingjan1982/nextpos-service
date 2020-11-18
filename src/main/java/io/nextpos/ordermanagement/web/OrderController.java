@@ -43,6 +43,7 @@ import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -169,17 +170,15 @@ public class OrderController {
                     final boolean itemNeedAttention = o.getOrderLineItems().stream()
                             .anyMatch(li -> DateUtils.addMinutes(li.getCreatedDate(), 30).before(new Date()));
 
-                    String tableLayoutId = StringUtils.defaultIfBlank(o.getTableInfo().getTableLayoutId(), "NO_LAYOUT");
-                    String tableLayoutName = StringUtils.defaultIfBlank(o.getTableInfo().getTableLayoutName(), "No Layout");
-
                     return new OrdersResponse.LightOrderResponse(o.getId(),
                             o.getSerialId(),
                             StringUtils.substringAfter(o.getSerialId(), "-"),
                             o.getOrderType(),
-                            tableLayoutId,
-                            tableLayoutName,
-                            o.getTableInfo().getTableId(),
-                            o.getTableInfo().getDisplayName(),
+                            o.getOneTableInfo().getTableLayoutId(),
+                            o.getOneTableInfo().getTableLayoutName(),
+                            o.getOneTableInfo().getTableId(),
+                            o.getOneTableInfo().getDisplayName(),
+                            o.getTables(),
                             o.getDemographicData().getCustomerCount(),
                             o.getCreatedDate(),
                             o.getState(),
@@ -195,8 +194,9 @@ public class OrderController {
     public TablesResponse getTables(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
         final List<String> occupiedTableIds = orderService.getInflightOrders(client.getId()).stream()
-                .filter(o -> StringUtils.isNotBlank(o.getTableInfo().getTableId()))
-                .map(o -> o.getTableInfo().getTableId())
+                .filter(o -> !o.isTablesEmpty())
+                .map(o -> o.getTables().stream().map(Order.TableInfo::getTableId).collect(Collectors.toList()))
+                .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 
         final Map<String, List<TableDetailsResponse>> availableTables = tableLayoutService.getTableLayouts(client).stream()
