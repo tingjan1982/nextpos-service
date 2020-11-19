@@ -115,7 +115,8 @@ public class ProductController {
                             p.getDescription(),
                             p.getPrice(),
                             productLabelId,
-                            p.getProduct().isPinned());
+                            p.getProduct().isPinned(),
+                            p.getProduct().isOutOfStock());
                 }).collect(Collectors.toList());
 
         return new ProductsResponse(results);
