@@ -31,11 +31,15 @@ public class OrderVisitors {
 
         @Override
         public void accept(Order order) {
-            tables.forEach(t -> {
-                final Order.TableInfo tableInfo = new Order.TableInfo(t);
-                order.getTables().add(tableInfo);
-            });
 
+            if (!tables.isEmpty()) {
+                order.getTables().clear();
+
+                tables.forEach(t -> {
+                    final Order.TableInfo tableInfo = new Order.TableInfo(t);
+                    order.getTables().add(tableInfo);
+                });
+            }
         }
     }
 }

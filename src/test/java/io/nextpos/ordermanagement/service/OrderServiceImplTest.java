@@ -66,7 +66,7 @@ class OrderServiceImplTest {
     void createAndGetOrder() {
 
         final Order order = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
-        order.addTables(List.of(tableDetails));
+        order.updateTables(List.of(tableDetails));
 
         final List<ProductSnapshot.ProductOptionSnapshot> options = List.of(
                 new ProductSnapshot.ProductOptionSnapshot("ice", "1/3"),
@@ -186,7 +186,7 @@ class OrderServiceImplTest {
         LOGGER.info("Date range: {}, {}", fromDate, toDate);
 
         final Order order = new Order(client.getId(), orderSettings);
-        order.addTables(List.of(tableDetails));
+        order.updateTables(List.of(tableDetails));
         orderService.createOrder(order);
 
         final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.RANGE).dateRange(fromDate, toDate).build();

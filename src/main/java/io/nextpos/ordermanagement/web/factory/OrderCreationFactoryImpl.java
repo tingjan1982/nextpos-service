@@ -103,7 +103,7 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
                     .map(tableLayoutService::getTableDetailsOrThrows)
                     .collect(Collectors.toList());
 
-            order.addTables(tables);
+            order.updateTables(tables);
 
             if (order.isTablesEmpty()) {
                 throw new BusinessLogicException("message.emptyTables", "There must at least be one table associated with an in-store order");

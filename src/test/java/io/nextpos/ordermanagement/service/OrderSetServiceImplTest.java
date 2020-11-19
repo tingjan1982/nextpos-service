@@ -92,7 +92,7 @@ class OrderSetServiceImplTest {
     private Order createDummyOrder() {
         
         final Order order = new Order(client.getId(), orderSettings);
-        order.addTables(List.of(tableLayout.getTables().get(0)));
+        order.updateTables(List.of(tableLayout.getTables().get(0)));
         order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
 
         return orderService.saveOrder(order);

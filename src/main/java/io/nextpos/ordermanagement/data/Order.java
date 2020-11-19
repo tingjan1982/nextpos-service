@@ -171,7 +171,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         return tables.stream().allMatch(TableInfo::isEmpty);
     }
 
-    public void addTables(List<TableLayout.TableDetails> tableDetails) {
+    public void updateTables(List<TableLayout.TableDetails> tableDetails) {
         OrderVisitors.accept(this, OrderVisitors.UpdateTables.instance(tableDetails));
     }
 
