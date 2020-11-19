@@ -23,4 +23,6 @@ public class LightProductResponse {
     private String productLabelId;
 
     private boolean pinned;
+
+    private boolean outOfStock;
 }

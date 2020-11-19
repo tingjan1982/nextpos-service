@@ -53,7 +53,8 @@ public class ProductSearchController {
                                 product.getDescription(),
                                 product.getPrice(),
                                 productLabelId,
-                                product.getProduct().isPinned());
+                                product.getProduct().isPinned(),
+                                product.getProduct().isOutOfStock());
                     })
                     .collect(Collectors.toList());
             results.put(key.getName(), products);
