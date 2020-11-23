@@ -5,9 +5,11 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientRepository;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.data.ClientUserRepository;
+import io.nextpos.linkedaccount.service.LinkedClientAccountService;
 import io.nextpos.roles.data.Permission;
 import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.shared.config.SecurityConfig;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectAlreadyExistsException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.JpaTransaction;
@@ -42,13 +44,15 @@ public class ClientServiceImpl implements ClientService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final LinkedClientAccountService linkedClientAccountService;
 
     @Autowired
-    public ClientServiceImpl(final ClientRepository clientRepository, final ClientUserRepository clientUserRepository, JdbcClientDetailsService clientDetailsService, PasswordEncoder passwordEncoder) {
+    public ClientServiceImpl(final ClientRepository clientRepository, final ClientUserRepository clientUserRepository, JdbcClientDetailsService clientDetailsService, PasswordEncoder passwordEncoder, LinkedClientAccountService linkedClientAccountService) {
         this.clientRepository = clientRepository;
         this.clientUserRepository = clientUserRepository;
         this.clientDetailsService = clientDetailsService;
         this.passwordEncoder = passwordEncoder;
+        this.linkedClientAccountService = linkedClientAccountService;
     }
 
     /**
@@ -78,7 +82,7 @@ public class ClientServiceImpl implements ClientService {
                 .map(GrantedAuthority::getAuthority).collect(Collectors.joining(","));
 
         // client's default user will use email as the username.
-        final ClientUser defaultClientUser = new ClientUser(new ClientUser.ClientUserId(client.getUsername(), client.getUsername()), plainPassword, roles);
+        final ClientUser defaultClientUser = new ClientUser(new ClientUser.ClientUserId(client.getUsername(), client.getUsername()), client, plainPassword, roles);
         defaultClientUser.setNickname(client.getClientName());
         defaultClientUser.setPermissions(permissions);
 
@@ -121,6 +125,20 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public Client saveClient(final Client client) {
         return clientRepository.save(client);
+    }
+
+    @Override
+    public Client authenticateClient(String clientId, String password) {
+
+        final ClientDetails clientDetails = clientDetailsService.loadClientByClientId(clientId);
+
+        if (!passwordEncoder.matches(password, clientDetails.getClientSecret())) {
+            throw new BusinessLogicException("message.authenticationFailed", "Client credentials failed");
+        }
+
+        return getClientByUsername(clientId).orElseThrow(() -> {
+            throw new ObjectNotFoundException(clientId, Client.class);
+        });
     }
 
     @Override
@@ -208,7 +226,7 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ClientUser createClientUser(final ClientUser clientUser) {
 
-        clientUserRepository.findById(clientUser.getId()).ifPresent(u -> {
+        clientUserRepository.findByIdAndClient(clientUser.getId(), clientUser.getClient()).ifPresent(u -> {
             throw new ObjectAlreadyExistsException(clientUser.getId().toString(), ClientUser.class);
         });
 
@@ -238,7 +256,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public List<ClientUser> getClientUsers(final Client client) {
-        return clientUserRepository.findAllByClientId(client.getUsername());
+        return linkedClientAccountService.getLinkedClientAccountResources(client, clientUserRepository::findAllByClientIn);
     }
 
     /**
@@ -269,9 +287,13 @@ public class ClientServiceImpl implements ClientService {
     public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
 
         final String clientUsername = findCurrentClientUsername();
-        final ClientUser clientUser = clientUserRepository.findById(new ClientUser.ClientUserId(username, clientUsername)).orElseThrow(() -> {
-            throw new UsernameNotFoundException("Username does not exist: " + username);
+        final Client client = this.getClientByUsername(clientUsername).orElseThrow(() -> {
+            throw new UsernameNotFoundException("Client cannot be resolved by the username: " + username);
         });
+
+        final ClientUser clientUser = linkedClientAccountService.getLinkedClientAccountResources(client, (clients) -> clientUserRepository.findByIdUsernameAndClientIn(username, clients).orElseThrow(() -> {
+            throw new UsernameNotFoundException("Username does not exist: " + username);
+        }));
 
         final String joinedAuthorities = clientUser.getRoles() + "," + clientUser.getPermissions();
         final Collection<? extends GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(joinedAuthorities);

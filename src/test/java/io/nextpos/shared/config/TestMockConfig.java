@@ -220,9 +220,9 @@ public class TestMockConfig {
 
     @Bean
     @ConditionalOnProperty(name = "nomock", havingValue = "false", matchIfMissing = true)
-    public OAuth2Helper oAuth2Helper() {
+    public OAuth2Helper oAuth2Helper(Client client) {
         final OAuth2Helper mock = Mockito.mock(OAuth2Helper.class);
-        final ClientUser clientUser = DummyObjects.dummyClientUser();
+        final ClientUser clientUser = DummyObjects.dummyClientUser(client);
 
         Mockito.when(mock.getCurrentPrincipal()).thenReturn(clientUser.getId().getUsername());
         Mockito.when(mock.resolveCurrentClientUser(any(Client.class))).thenReturn(clientUser);

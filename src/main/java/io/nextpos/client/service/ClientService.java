@@ -13,6 +13,8 @@ public interface ClientService extends UserDetailsService {
 
     Client saveClient(Client client);
 
+    Client authenticateClient(String clientId, String password);
+
     ClientUser updateClientUserPassword(Client client, ClientUser clientUser, String newPassword);
 
     void updateDefaultClientUserPassword(Client client, String newPassword);

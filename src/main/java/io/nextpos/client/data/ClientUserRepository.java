@@ -14,8 +14,11 @@ public interface ClientUserRepository extends JpaRepository<ClientUser, ClientUs
     @Query("select u from io.nextpos.client.data.ClientUser u where u.id = ?1")
     Optional<ClientUser> loadById(ClientUser.ClientUserId id);
 
-    @Query(value = "select * from client_user where client_id = ?1 order by nickname asc, username asc", nativeQuery = true)
-    List<ClientUser> findAllByClientId(String clientId);
+    Optional<ClientUser> findByIdAndClient(ClientUser.ClientUserId id, Client client);
+
+    Optional<ClientUser> findByIdUsernameAndClientIn(String username, List<Client> clients);
+
+    List<ClientUser> findAllByClientIn(List<Client> clients);
 
     @Modifying
     @Query(value = "delete from client_user where client_id = ?1", nativeQuery = true)

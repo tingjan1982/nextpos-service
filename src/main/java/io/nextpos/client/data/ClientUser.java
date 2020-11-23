@@ -27,6 +27,12 @@ public class ClientUser extends BaseObject {
     @EmbeddedId
     private ClientUserId id;
 
+    @ManyToOne
+    @JoinColumn(name = "client_ref_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Client client;
+
     private String nickname;
 
     private String password;
@@ -48,8 +54,9 @@ public class ClientUser extends BaseObject {
     @Column(length = 1000)
     private String permissions;
 
-    public ClientUser(final ClientUserId id, final String password, final String roles) {
+    public ClientUser(ClientUserId id, Client client, String password, String roles) {
         this.id = id;
+        this.client = client;
         this.password = password;
         this.roles = roles;
     }

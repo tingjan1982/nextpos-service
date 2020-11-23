@@ -62,7 +62,8 @@ public class WebConfig implements WebMvcConfigurer {
                 "/invoiceNumbers/*",
                 "/clientSubscriptions/*",
                 "/memberships/*",
-                "/rosterPlans/*");
+                "/rosterPlans/*",
+                "/linkedClientAccounts/*");
 
         return registrationBean;
     }

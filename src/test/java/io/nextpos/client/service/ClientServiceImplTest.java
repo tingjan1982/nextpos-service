@@ -2,8 +2,10 @@ package io.nextpos.client.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
+import io.nextpos.linkedaccount.service.LinkedClientAccountService;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.config.SecurityConfig;
+import io.nextpos.shared.exception.ObjectAlreadyExistsException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +15,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
 @Transactional
@@ -22,6 +23,9 @@ class ClientServiceImplTest {
 
     @Autowired
     private ClientServiceImpl clientService;
+
+    @Autowired
+    private LinkedClientAccountService linkedClientAccountService;
 
     private Client client;
 
@@ -40,6 +44,8 @@ class ClientServiceImplTest {
         assertThat(createdClient.getId()).isNotNull();
         assertThat(createdClient.getMasterPassword()).startsWith("{bcrypt}");
 
+        assertThatCode(() -> clientService.authenticateClient(client.getUsername(), "secret")).doesNotThrowAnyException();
+
         final Client retrievedClient = clientService.getClient(createdClient.getId()).orElseThrow();
 
         assertThat(retrievedClient.getAttributes()).hasSize(1);
@@ -49,14 +55,17 @@ class ClientServiceImplTest {
     @WithMockUser("rain.io.app@gmail.com")
     void crudClientUser() {
 
+        clientService.saveClient(client);
         final String username = "user@nextpos.io";
-        final ClientUser clientUser = new ClientUser(new ClientUser.ClientUserId(username, client.getUsername()), "admin", SecurityConfig.Role.ADMIN_ROLE);
+        final ClientUser clientUser = new ClientUser(new ClientUser.ClientUserId(username, client.getUsername()), client,"admin", SecurityConfig.Role.ADMIN_ROLE);
 
         final ClientUser createdUser = clientService.createClientUser(clientUser);
 
         assertThat(createdUser).isNotNull();
         assertThat(createdUser.getPassword()).startsWith("{bcrypt}");
         assertThat(createdUser.getId()).isEqualTo(clientUser.getId());
+
+        assertThatThrownBy(() -> clientService.createClientUser(clientUser)).isInstanceOf(ObjectAlreadyExistsException.class);
 
         final ClientUser loadedClientUser = clientService.loadClientUser(client, username);
         assertThat(loadedClientUser).isNotNull();
@@ -81,6 +90,25 @@ class ClientServiceImplTest {
         assertThat(clientService.getClientUsers(client)).isEmpty();
 
         assertThatThrownBy(() -> clientService.loadUserByUsername(username)).isInstanceOf(UsernameNotFoundException.class);
+    }
+
+    @Test
+    @WithMockUser("second@client")
+    void getClientUsersFromSourceClient() {
+
+        clientService.saveClient(client);
+        final String username = "user@nextpos.io";
+        final ClientUser clientUser = new ClientUser(new ClientUser.ClientUserId(username, client.getUsername()), client,"admin", SecurityConfig.Role.ADMIN_ROLE);
+        clientService.createClientUser(clientUser);
+
+        final Client secondClient = new Client("second client", "second@client", "1234", "TW", "Asia/Taipei");
+        clientService.saveClient(secondClient);
+
+        linkedClientAccountService.createLinkedClientAccount(client, secondClient);
+
+        assertThat(clientService.getClientUsers(secondClient)).isNotEmpty();
+
+        assertThat(clientService.loadUserByUsername(username)).isNotNull();
     }
 
     @Test

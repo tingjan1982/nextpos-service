@@ -7,6 +7,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.clienttracker.data.ClientUsageTrack;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRange;
+import io.nextpos.linkedaccount.data.LinkedClientAccount;
 import io.nextpos.membership.data.Membership;
 import io.nextpos.merchandising.data.Offer;
 import io.nextpos.notification.data.NotificationDetails;
@@ -61,6 +62,7 @@ import java.util.List;
 @EnableJpaRepositories(basePackageClasses = {
         Client.class,
         ClientUsageTrack.class,
+        LinkedClientAccount.class,
         Product.class,
         Offer.class,
         CountrySettings.class,

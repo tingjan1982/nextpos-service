@@ -47,10 +47,10 @@ class UserTimeCardServiceImplTest {
 
     @BeforeEach
     void prepare() {
-        final ClientUser clientUser = DummyObjects.dummyClientUser();
-        clientService.createClientUser(clientUser);
-
         client = clientService.saveClient(DummyObjects.dummyClient());
+
+        final ClientUser clientUser = DummyObjects.dummyClientUser(client);
+        clientService.createClientUser(clientUser);
     }
 
 

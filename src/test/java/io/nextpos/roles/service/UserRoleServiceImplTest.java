@@ -47,7 +47,7 @@ class UserRoleServiceImplTest {
             //assertThat(ur.getPermissionsAsString()).isEqualTo("write:order,read:client,read:client_user,read:time_card,write:time_card,read:product,read:order,read:shift,read:table_layout,read:table,read:working_area,read:printer,read:announcement,write:client");
         });
 
-        final ClientUser clientUser = DummyObjects.dummyClientUser();
+        final ClientUser clientUser = DummyObjects.dummyClientUser(client);
         clientUser.setUserRole(savedUserRole);
 
         final ClientUser savedClientUser = clientService.saveClientUser(clientUser);

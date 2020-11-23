@@ -94,9 +94,9 @@ class TimeCardReportServiceImplTest {
 
         final Instant now = Instant.now();
         createUserTimeCard("zoe", LocalDateTime.now(), LocalDateTime.now().plusDays(1));
-        final ClientUser user1 = new ClientUser(new ClientUser.ClientUserId("sig", client.getUsername()), "1qaz2wsx", "USER");
+        final ClientUser user1 = new ClientUser(new ClientUser.ClientUserId("sig", client.getUsername()), client,"1qaz2wsx", "USER");
         clientService.saveClientUser(user1);
-        final ClientUser user2 = new ClientUser(new ClientUser.ClientUserId("ada", client.getUsername()), "1qaz2wsx", "USER");
+        final ClientUser user2 = new ClientUser(new ClientUser.ClientUserId("ada", client.getUsername()), client,"1qaz2wsx", "USER");
         clientService.saveClientUser(user2);
 
         final TimeCardReport result = timeCardReportService.getTimeCardReport(client, YearMonth.now());

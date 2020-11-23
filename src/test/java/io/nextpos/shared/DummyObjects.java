@@ -20,8 +20,8 @@ public class DummyObjects {
         return new Client("test", "rain.io.app@gmail.com", "secret", "TW", "Asia/Taipei");
     }
 
-    public static ClientUser dummyClientUser() {
-        return new ClientUser(new ClientUser.ClientUserId("test-user", BootstrapConfig.MASTER_CLIENT), "password", "ADMIN,USER");
+    public static ClientUser dummyClientUser(Client client) {
+        return new ClientUser(new ClientUser.ClientUserId("test-user", BootstrapConfig.MASTER_CLIENT), client, "password", "ADMIN,USER");
     }
 
     public static ProductVersion dummyProductVersion() {

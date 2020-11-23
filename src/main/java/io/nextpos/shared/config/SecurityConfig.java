@@ -230,18 +230,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             clients.withClientDetails(clientDetailsService);
         }
 
-        /**
-         * This bean is exposed early for ClientServiceImpl to bootstrap the registration of test client.
-         * It will also later be used in ClientDetailsServiceConfiguration to expose it as a bean, which is by default
-         * defined as lazy.
-         *
-         * @return
-         */
-//        @Bean("jdbcClientDetailsService")
-//        public JdbcClientDetailsService jdbcClientDetailsService() {
-//            return clientDetailsService;
-//        }
-
 
         static class ClientTokenEnhancer implements TokenEnhancer {
 
