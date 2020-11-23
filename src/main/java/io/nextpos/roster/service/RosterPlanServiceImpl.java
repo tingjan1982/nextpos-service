@@ -49,6 +49,11 @@ public class RosterPlanServiceImpl implements RosterPlanService {
     }
 
     @Override
+    public List<RosterPlan> getRosterPlans(Client client) {
+        return rosterPlanRepository.findAllByClientId(client.getId());
+    }
+
+    @Override
     public void deleteRosterPlan(RosterPlan rosterPlan) {
 
         this.deleteRosterPlanEvents(rosterPlan);
@@ -59,7 +64,7 @@ public class RosterPlanServiceImpl implements RosterPlanService {
     public List<CalendarEvent> createRosterPlanEvents(Client client, RosterPlan rosterPlan) {
 
         final YearMonth rosterMonth = rosterPlan.getRosterMonth();
-        return rosterPlan.getRosterEntries().entrySet().stream()
+        final List<CalendarEvent> rosterEvents = rosterPlan.getRosterEntries().entrySet().stream()
                 .map(entry -> {
                     final DayOfWeek dayOfWeek = entry.getKey();
                     final LocalDate firstInMonth = LocalDate.now().with(rosterMonth).with(TemporalAdjusters.firstInMonth(dayOfWeek));
@@ -77,6 +82,11 @@ public class RosterPlanServiceImpl implements RosterPlanService {
                 })
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
+
+        rosterPlan.setStatus(RosterPlan.RosterPlanStatus.LOCKED);
+        this.saveRosterPlan(rosterPlan);
+
+        return rosterEvents;
     }
 
     private List<CalendarEvent> createRosterPlanEvents(Client client, LocalDate dayOfMonth, RosterPlan rosterPlan, List<RosterPlan.RosterEntry> rosterEntries) {
@@ -109,6 +119,10 @@ public class RosterPlanServiceImpl implements RosterPlanService {
 
     @Override
     public void deleteRosterPlanEvents(RosterPlan rosterPlan) {
+
+        rosterPlan.setStatus(RosterPlan.RosterPlanStatus.ACTIVE);
+        this.saveRosterPlan(rosterPlan);
+
         calendarEventService.deleteCalendarEvents(rosterPlan.getClientId(), rosterPlan.getId(), CalendarEvent.OwnerType.ROSTER);
     }
 

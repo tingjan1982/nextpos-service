@@ -62,6 +62,7 @@ class RosterPlanServiceImplTest {
         assertThat(rosterPlan.getClientId()).isEqualTo(client.getId());
 
         assertThatCode(() -> rosterPlanService.getRosterPlan(rosterPlan.getId())).doesNotThrowAnyException();
+        assertThat(rosterPlanService.getRosterPlans(client)).isNotEmpty();
 
         rosterPlanService.deleteRosterPlan(rosterPlan);
 
@@ -79,8 +80,11 @@ class RosterPlanServiceImplTest {
         rosterPlan.addRosterEntry(DayOfWeek.FRIDAY, LocalTime.now(), LocalTime.now().plusHours(8));
         rosterPlan.addRosterEntry(DayOfWeek.SATURDAY, LocalTime.now(), LocalTime.now().plusHours(8));
         rosterPlan.addRosterEntry(DayOfWeek.SUNDAY, LocalTime.now(), LocalTime.now().plusHours(8));
+        rosterPlanService.saveRosterPlan(rosterPlan);
 
         final List<CalendarEvent> events = rosterPlanService.createRosterPlanEvents(client, rosterPlan);
+
+        assertThat(rosterPlanService.getRosterPlan(rosterPlan.getId()).getStatus()).isEqualByComparingTo(RosterPlan.RosterPlanStatus.LOCKED);
 
         final int eventCount = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth()).getDayOfMonth();
 
@@ -104,6 +108,8 @@ class RosterPlanServiceImplTest {
         });
 
         rosterPlanService.deleteRosterPlanEvents(rosterPlan);
+
+        assertThat(rosterPlanService.getRosterPlan(rosterPlan.getId()).getStatus()).isEqualByComparingTo(RosterPlan.RosterPlanStatus.ACTIVE);
 
         assertThat(rosterPlanService.getRosterPlanEvents(rosterPlan)).isEmpty();
     }

@@ -11,6 +11,7 @@ import io.nextpos.roster.service.RosterPlanService;
 import io.nextpos.roster.web.model.RosterEntryRequest;
 import io.nextpos.roster.web.model.RosterPlanRequest;
 import io.nextpos.roster.web.model.RosterPlanResponse;
+import io.nextpos.roster.web.model.RosterPlansResponse;
 import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +56,16 @@ public class RosterPlanController {
         request.getRosterEntries().forEach(entry -> rosterPlan.addRosterEntry(entry.getDayOfWeek(), entry.getStartTime(), entry.getEndTime()));
 
         return rosterPlan;
+    }
+
+    @GetMapping
+    public RosterPlansResponse getRosterPlans(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        final List<RosterPlanResponse> results = rosterPlanService.getRosterPlans(client).stream()
+                .map(RosterPlanResponse::new)
+                .collect(Collectors.toList());
+
+        return new RosterPlansResponse(results);
     }
 
     @GetMapping("/{id}")

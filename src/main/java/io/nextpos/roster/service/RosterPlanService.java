@@ -14,6 +14,8 @@ public interface RosterPlanService {
 
     RosterPlan getRosterPlan(String id);
 
+    List<RosterPlan> getRosterPlans(Client client);
+
     void deleteRosterPlan(RosterPlan rosterPlan);
 
     List<CalendarEvent> createRosterPlanEvents(Client client, RosterPlan rosterPlan);
