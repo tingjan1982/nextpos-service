@@ -4,6 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -13,6 +14,7 @@ import java.util.List;
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class LinkedClientAccount extends BaseObject {
 
     @Id

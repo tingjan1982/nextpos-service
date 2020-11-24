@@ -31,7 +31,7 @@ import java.util.concurrent.CompletableFuture;
  * SMS via Twilio:
  * https://www.twilio.com/docs/sms
  * <p>
- * Baeuldang guide:
+ * Baeldung guide:
  * https://www.baeldung.com/spring-email
  */
 @Service

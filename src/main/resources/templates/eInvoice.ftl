@@ -35,7 +35,7 @@
                     <text x="5"/>
                     <symbol type="qrcode_model_2" level="level_l" width="4">${electronicInvoice.qrCode1Content}</symbol>
                     <text x="230"/>
-                    <symbol type="qrcode_model_2" level="level_l" width="6">${electronicInvoice.qrCode2Content}</symbol>
+                    <symbol type="qrcode_model_2" level="level_l" width="4">${electronicInvoice.qrCode2Content}</symbol>
                 </page>
                 <text align="left"/>
                 <text>訂單號碼：${order.serialId!"NA"}&#10;</text>

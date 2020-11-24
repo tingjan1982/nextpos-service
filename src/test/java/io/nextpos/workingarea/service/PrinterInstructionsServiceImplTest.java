@@ -143,13 +143,15 @@ class PrinterInstructionsServiceImplTest {
         final Order order = new Order(client.getId(), orderSettings);
         order.setSerialId("20201010-150");
         order.addOrderLineItem(DummyObjects.productSnapshot("coffee", BigDecimal.valueOf(55)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
         order.addOrderLineItem(DummyObjects.productSnapshot("bagel", BigDecimal.valueOf(70)), 2);
 
-        final OrderTransaction orderTransaction = new OrderTransaction(new ObjectId().toString(), client.getId(), BigDecimal.valueOf(150), BigDecimal.valueOf(150),
+        final OrderTransaction orderTransaction = new OrderTransaction(new ObjectId().toString(), client.getId(), order.getOrderTotal(), order.getOrderTotal(),
                 OrderTransaction.PaymentMethod.CARD,
                 OrderTransaction.BillType.SINGLE,
-                List.of(new OrderTransaction.BillLineItem("coffee", 1, BigDecimal.valueOf(50), BigDecimal.valueOf(50)),
-                        new OrderTransaction.BillLineItem("bagel", 2, BigDecimal.valueOf(50), BigDecimal.valueOf(100))));
+                List.of(new OrderTransaction.BillLineItem("coffee", 1, BigDecimal.valueOf(55), BigDecimal.valueOf(55)),
+                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
+                        new OrderTransaction.BillLineItem("bagel", 2, BigDecimal.valueOf(70), BigDecimal.valueOf(140))));
 
         orderTransaction.setId(ObjectId.get().toString());
         orderTransaction.setCreatedDate(new Date());
