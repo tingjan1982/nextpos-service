@@ -20,7 +20,7 @@
             <text width="3" height="2"/>
             <#list lineItems as li>
                 <text linespc="80"/>
-                <text>${li.productSnapshot.name}</text><text x="310">${li.quantity}&#10;</text>
+                <text>${li.productSnapshot.displayName}</text><text x="310">${li.quantity}&#10;</text>
                 <text linespc="60"/>
                 <#list li.productSnapshot.productOptions as option>
                     <text> &gt; ${option.optionName}: ${option.optionValue}&#10;</text>

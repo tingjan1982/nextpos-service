@@ -5,6 +5,7 @@ import io.nextpos.product.data.ProductVersion;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
@@ -66,6 +67,10 @@ public class ProductSnapshot {
         if (!CollectionUtils.isEmpty(productOptions)) {
             this.productOptions = productOptions;
         }
+    }
+
+    public String getDisplayName() {
+        return StringUtils.isNotBlank(internalName) ? internalName : name;
     }
 
     /**
