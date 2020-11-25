@@ -59,6 +59,8 @@ public class ClientController {
     public ClientResponse createClient(@Valid @RequestBody ClientRequest clientRequest) {
 
         final Client client = fromClientRequest(clientRequest);
+        updateClientInfoFromRequest(client, clientRequest.getClientInfo());
+
         final Client createdClient = clientService.createClient(client);
 
         clientActivationService.initiateClientActivation(createdClient);
@@ -130,7 +132,7 @@ public class ClientController {
 
     @PostMapping("/me/info")
     public ClientInfoResponse updateClientInfo(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                       @Valid @RequestBody ClientInfoRequest request) {
+                                               @Valid @RequestBody ClientInfoRequest request) {
 
         updateClientInfoFromRequest(client, request);
         clientService.saveClient(client);
@@ -140,19 +142,21 @@ public class ClientController {
 
     private void updateClientInfoFromRequest(Client client, ClientInfoRequest request) {
 
-        ClientInfo clientInfo = client.getClientInfo();
+        if (request != null) {
+            ClientInfo clientInfo = client.getClientInfo();
 
-        if (clientInfo == null) {
-            clientInfo = new ClientInfo();
-            client.updateClientInfo(clientInfo);
+            if (clientInfo == null) {
+                clientInfo = new ClientInfo();
+                client.updateClientInfo(clientInfo);
+            }
+
+            clientInfo.setOwnerName(request.getOwnerName());
+            clientInfo.setContactNumber(request.getContactNumber());
+            clientInfo.setContactAddress(request.getContactAddress());
+            clientInfo.setOperationStatus(request.getOperationStatus());
+            clientInfo.setLeadSource(request.getLeadSource());
+            clientInfo.setRequirements(request.getRequirements());
         }
-
-        clientInfo.setOwnerName(request.getOwnerName());
-        clientInfo.setContactNumber(request.getContactNumber());
-        clientInfo.setContactAddress(request.getContactAddress());
-        clientInfo.setOperationStatus(request.getOperationStatus());
-        clientInfo.setLeadSource(request.getLeadSource());
-        clientInfo.setRequirements(request.getRequirements());
     }
 
     @PostMapping("/me/attributes")

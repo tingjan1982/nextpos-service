@@ -26,4 +26,6 @@ public class ClientRequest {
 
     @ValidAttribute
     private Map<String, String> attributes;
+    
+    private ClientInfoRequest clientInfo;
 }
