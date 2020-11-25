@@ -7,7 +7,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.util.Date;
 
 @Document
 @Data
@@ -26,6 +29,9 @@ public class Announcement extends MongoBaseObject implements WithClientId {
 
     private String markdownContent;
 
+    @Indexed(name = "expireAt", expireAfterSeconds = 0)
+    private Date expireAt;
+
     private int order;
 
     public Announcement(final String clientId, final String titleIcon, final String titleText, final String markdownContent) {
@@ -33,10 +39,5 @@ public class Announcement extends MongoBaseObject implements WithClientId {
         this.titleIcon = titleIcon;
         this.titleText = titleText;
         this.markdownContent = markdownContent;
-    }
-
-    @Override
-    public boolean isNew() {
-        return id == null;
     }
 }

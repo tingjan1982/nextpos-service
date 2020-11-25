@@ -47,6 +47,7 @@ public class AnnouncementController {
                 announcementRequest.getTitle(),
                 announcementRequest.getMarkdownContent());
 
+        announcement.setExpireAt(announcementRequest.getExpireAt());
         announcement.setOrder(announcementRequest.getOrder());
 
         return announcement;
@@ -102,13 +103,14 @@ public class AnnouncementController {
         announcementService.deleteAnnouncement(announcement);
     }
 
-    private AnnouncementResponse toResponse(final Announcement savedAnnouncement) {
+    private AnnouncementResponse toResponse(final Announcement announcement) {
 
-        return new AnnouncementResponse(savedAnnouncement.getId(),
-                savedAnnouncement.getTitleIcon(),
-                savedAnnouncement.getTitleText(),
-                savedAnnouncement.getMarkdownContent(),
-                savedAnnouncement.getOrder());
+        return new AnnouncementResponse(announcement.getId(),
+                announcement.getTitleIcon(),
+                announcement.getTitleText(),
+                announcement.getMarkdownContent(),
+                announcement.getExpireAt(),
+                announcement.getOrder());
     }
 
 
