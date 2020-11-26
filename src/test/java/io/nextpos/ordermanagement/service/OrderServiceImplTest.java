@@ -123,7 +123,7 @@ class OrderServiceImplTest {
         final Order createdOrder = orderService.createOrder(order);
         final OrderLineItem orderLineItem = new OrderLineItem(DummyObjects.productSnapshot(), 1, orderSettings);
 
-        final Order orderWithLineItem = orderService.addOrderLineItem(createdOrder.getId(), orderLineItem);
+        final Order orderWithLineItem = orderService.addOrderLineItem(client, createdOrder.getId(), orderLineItem);
 
         assertThat(orderWithLineItem.getOrderLineItems()).hasSize(1);
 

@@ -9,6 +9,7 @@ import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
+import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.BusinessLogicException;
 import org.assertj.core.data.Index;
@@ -19,6 +20,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Currency;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -32,6 +35,9 @@ class MerchandisingServiceImplTest {
 
     @Autowired
     private OfferService offerService;
+
+    @Autowired
+    private OrderService orderService;
 
     @Autowired
     private ClientService clientService;
@@ -50,29 +56,56 @@ class MerchandisingServiceImplTest {
         final OrderLevelOffer orderDiscount = new OrderLevelOffer(client, "order discount", Offer.TriggerType.ALWAYS, Offer.DiscountType.PERCENT_OFF, BigDecimal.valueOf(.1));
         offerService.activateOffer(orderDiscount);
 
+        final OrderLevelOffer orderDiscount2 = new OrderLevelOffer(client, "order discount", Offer.TriggerType.ALWAYS, Offer.DiscountType.PERCENT_OFF, BigDecimal.valueOf(.2));
+        offerService.activateOffer(orderDiscount2);
+
         final ProductLevelOffer productDiscount = new ProductLevelOffer(client, "product discount", Offer.TriggerType.ALWAYS, Offer.DiscountType.PERCENT_OFF, BigDecimal.valueOf(0.05), true);
         offerService.activateOffer(productDiscount);
+
+        final ProductLevelOffer productDiscount2 = new ProductLevelOffer(client, "product discount", Offer.TriggerType.ALWAYS, Offer.DiscountType.PERCENT_OFF, BigDecimal.valueOf(0.01), true);
+        offerService.activateOffer(productDiscount2);
     }
 
     @Test
     void computeOffers() {
 
-        final Order order = new Order(client.getId(), orderSettings);
-        order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
+        final OrderSettings taiwanOrderSettings = new OrderSettings(BigDecimal.valueOf(0.05), true, Currency.getInstance("TWD"), BigDecimal.ZERO, 0, RoundingMode.HALF_UP);
+        Order order = new Order(client.getId(), taiwanOrderSettings);
+        orderService.saveOrder(order);
 
-        merchandisingService.computeOffers(client, order);
+        final OrderLineItem lineItem = new OrderLineItem(DummyObjects.productSnapshot(), 1, orderSettings);
 
-        assertThat(order.getId()).isNotNull();
+        order = orderService.addOrderLineItem(client, order.getId(), lineItem);
+
         assertThat(order.getOrderLineItems()).satisfies(li -> {
-            assertThat(li.getProductSnapshot().getPrice()).isEqualByComparingTo(BigDecimal.valueOf(100));
-            assertThat(li.getProductSnapshot().getProductPriceWithOptions()).isEqualByComparingTo(BigDecimal.valueOf(100));
-            assertThat(li.getProductSnapshot().getDiscountedPrice()).isEqualByComparingTo(BigDecimal.valueOf(95));
-            assertThat(li.getSubTotal().getAmountWithoutTax()).isEqualByComparingTo(BigDecimal.valueOf(100));
-            assertThat(li.getDiscountedSubTotal().getAmountWithoutTax()).isEqualByComparingTo(BigDecimal.valueOf(95));
+            assertThat(li.getProductSnapshot().getPrice()).isEqualByComparingTo("100");
+            assertThat(li.getProductSnapshot().getProductPriceWithOptions()).isEqualByComparingTo("100");
+            assertThat(li.getProductSnapshot().getDiscountedPrice()).isEqualByComparingTo("95");
+            assertThat(li.getLineItemSubTotal()).isEqualByComparingTo("95");
+            assertThat(li.getDiscountedSubTotal().getAmount()).isEqualByComparingTo("95");
         }, Index.atIndex(0));
 
-        assertThat(order.getTotal().getAmountWithoutTax()).isEqualByComparingTo(BigDecimal.valueOf(95));
-        assertThat(order.getDiscountedTotal().getAmountWithoutTax()).isEqualByComparingTo(BigDecimal.valueOf(85.5));
+        assertThat(order.getTotal().getAmount()).isEqualByComparingTo("95");
+        assertThat(order.getDiscountedTotal().getAmount()).isEqualByComparingTo("76");
+        assertThat(order.getOrderTotal()).isEqualByComparingTo("76");
+
+        merchandisingService.applyOrderOffer(order, OrderLevelOffer.GlobalOrderDiscount.DISCOUNT_AMOUNT_OFF.name(), BigDecimal.valueOf(50));
+
+        assertThat(order.getTotal().getAmount()).isEqualByComparingTo("95");
+        assertThat(order.getDiscountedTotal().getAmount()).isEqualByComparingTo("45");
+        assertThat(order.getOrderTotal()).isEqualByComparingTo("45");
+
+        order = orderService.addOrderLineItem(client, order.getId(), lineItem);
+
+        assertThat(order.getTotal().getAmount()).isEqualByComparingTo("190");
+        assertThat(order.getDiscountedTotal().getAmount()).isEqualByComparingTo("152");
+        assertThat(order.getOrderTotal()).isEqualByComparingTo("152");
+
+        order = orderService.updateOrderLineItemPrice(order, order.getOrderLineItems().get(0).getId(), BigDecimal.valueOf(30));
+
+        assertThat(order.getTotal().getAmount()).isEqualByComparingTo("125");
+        assertThat(order.getDiscountedTotal().getAmount()).isEqualByComparingTo("100");
+        assertThat(order.getOrderTotal()).isEqualByComparingTo("100");
     }
 
     @Test

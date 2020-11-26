@@ -62,7 +62,7 @@ public class OfferController {
             case ORDER:
                 newOffer = new OrderLevelOffer(client,
                         offerRequest.getOfferName(),
-                        Offer.TriggerType.AT_CHECKOUT,
+                        offerRequest.getTriggerType(),
                         offerRequest.getDiscountType(),
                         offerRequest.getDiscountValue());
                 break;
@@ -70,7 +70,7 @@ public class OfferController {
             case PRODUCT:
                 final ProductLevelOffer productLevelOffer = new ProductLevelOffer(client,
                         offerRequest.getOfferName(),
-                        Offer.TriggerType.AT_CHECKOUT,
+                        offerRequest.getTriggerType(),
                         offerRequest.getDiscountType(),
                         offerRequest.getDiscountValue(),
                         offerRequest.isAppliesToAllProducts());

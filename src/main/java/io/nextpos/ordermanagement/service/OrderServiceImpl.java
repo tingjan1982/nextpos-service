@@ -174,7 +174,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order addOrderLineItem(final String orderId, final OrderLineItem orderLineItem) {
+    public Order addOrderLineItem(Client client, final String orderId, final OrderLineItem orderLineItem) {
 
         final Order order = this.getOrder(orderId);
 
@@ -184,7 +184,7 @@ public class OrderServiceImpl implements OrderService {
 
         order.addOrderLineItem(orderLineItem);
 
-        return orderRepository.save(order);
+        return merchandisingService.computeOffers(client, order);
     }
 
     @Override

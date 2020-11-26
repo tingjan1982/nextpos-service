@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -19,8 +20,11 @@ public class OfferRequest {
     @NotBlank
     private String offerName;
 
-    private OfferType offerType;
+    private OfferType offerType = OfferType.ORDER;
 
+    private Offer.TriggerType triggerType = Offer.TriggerType.AT_CHECKOUT;
+
+    @NotNull
     private Offer.DiscountType discountType;
 
     @Positive

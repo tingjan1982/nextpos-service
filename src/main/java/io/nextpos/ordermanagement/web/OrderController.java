@@ -359,7 +359,7 @@ public class OrderController {
             merchandisingService.applyGlobalProductDiscount(orderLineItem, request.getProductDiscount(), discountValue);
         }
 
-        final Order order = orderService.addOrderLineItem(id, orderLineItem);
+        final Order order = orderService.addOrderLineItem(client, id, orderLineItem);
 
         return OrderResponse.toOrderResponse(order);
     }
