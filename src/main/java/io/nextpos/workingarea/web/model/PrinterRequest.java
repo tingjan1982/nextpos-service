@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotEmpty;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -20,6 +22,13 @@ public class PrinterRequest {
     @ValidIpAddress
     private String ipAddress;
 
+    /**
+     * Use serviceTypes instead.
+     */
+    @Deprecated
     @ValidEnum(enumType = Printer.ServiceType.class)
     private String serviceType;
+
+    private Set<Printer.ServiceType> serviceTypes = new HashSet<>();
+
 }

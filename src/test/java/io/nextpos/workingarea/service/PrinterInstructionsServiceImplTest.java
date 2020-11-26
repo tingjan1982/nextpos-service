@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @SpringBootTest
 @Transactional
@@ -74,7 +75,7 @@ class PrinterInstructionsServiceImplTest {
 
         clientService.saveClient(client);
 
-        final Printer printer = new Printer(client, "main printer", "192.168.2.231", Printer.ServiceType.WORKING_AREA);
+        final Printer printer = new Printer(client, "main printer", "192.168.2.231", Set.of(Printer.ServiceType.WORKING_AREA));
         workingAreaService.savePrinter(printer);
 
         workingArea = new WorkingArea(client, "main");

@@ -329,11 +329,12 @@ public class OrderController {
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
         final String printInstruction = printerInstructionService.createOrderDetailsPrintInstruction(client, order, null);
-        final Printer checkoutPrinter = workingAreaService.getPrinterByServiceTypeOrThrows(client, Printer.ServiceType.CHECKOUT);
+        final List<String> printerIps = workingAreaService.getPrintersByServiceType(client, Printer.ServiceType.CHECKOUT).stream()
+                .map(Printer::getIpAddress)
+                .collect(Collectors.toList());
 
-        return new PrinterInstructionResponse(printInstruction, List.of(checkoutPrinter.getIpAddress()), 1);
+        return new PrinterInstructionResponse(printInstruction, printerIps, 1);
     }
-
 
     @DeleteMapping("/{id}")
     @OrderLogAction

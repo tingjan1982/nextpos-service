@@ -96,9 +96,6 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     private OfferApplicableObject.AppliedOfferInfo appliedOfferInfo;
 
-    @Deprecated
-    private TableInfo tableInfo = new TableInfo();
-
     private List<TableInfo> tables = new ArrayList<>();
 
     private String servedBy;

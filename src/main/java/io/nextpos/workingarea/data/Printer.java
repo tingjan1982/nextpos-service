@@ -10,7 +10,6 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 
@@ -36,6 +35,7 @@ public class Printer extends BaseObject implements ClientObject {
 
     private String ipAddress;
 
+    @Deprecated
     private ServiceType serviceType;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -43,7 +43,7 @@ public class Printer extends BaseObject implements ClientObject {
     @CollectionTable(joinColumns = @JoinColumn(name = "printer_id"))
     @Column(name = "service_type")
     @Enumerated(EnumType.STRING)
-    private List<ServiceType> serviceTypes;
+    private Set<ServiceType> serviceTypes = new HashSet<>();
 
     @ManyToMany(mappedBy = "printers", fetch = FetchType.EAGER)
     @Fetch(FetchMode.SUBSELECT)
@@ -51,11 +51,16 @@ public class Printer extends BaseObject implements ClientObject {
     @ToString.Exclude
     private Set<WorkingArea> workingAreas = new HashSet<>();
 
-    public Printer(final Client client, final String name, final String ipAddress, final ServiceType serviceType) {
+    public Printer(final Client client, final String name, final String ipAddress, final Set<ServiceType> serviceTypes) {
         this.client = client;
         this.name = name;
         this.ipAddress = ipAddress;
-        this.serviceType = serviceType;
+        this.serviceTypes.addAll(serviceTypes);
+    }
+
+    public void replaceServiceTypes(Set<ServiceType> serviceTypes) {
+        this.serviceTypes.clear();
+        this.serviceTypes.addAll(serviceTypes);
     }
 
     /**

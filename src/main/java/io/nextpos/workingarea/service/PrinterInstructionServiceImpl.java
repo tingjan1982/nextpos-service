@@ -53,6 +53,9 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
         return this.createOrderToWorkingArea(order, false);
     }
 
+    /**
+     * bypassStateCheck is used for reprinting working orders.
+     */
     @Override
     public PrinterInstructions createOrderToWorkingArea(final Order order, boolean bypassStateCheck) {
 
@@ -97,14 +100,17 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
 
                 noOfPrintCopies = workingArea.getNoOfPrintCopies();
             } else {
-                LOGGER.warn("Order line item is not associated with a valid working area, using default printer.");
+                LOGGER.info("Resort to finding default printer with service type of WORKING_AREA, then CHECKOUT.");
+                List<Printer> printers = workingAreaService.getPrintersByServiceType(client, Printer.ServiceType.WORKING_AREA);
 
-                Printer printer = workingAreaService.getPrinterByServiceType(client, Printer.ServiceType.WORKING_AREA).orElseGet(() -> {
-                    return workingAreaService.getPrinterByServiceTypeOrThrows(client, Printer.ServiceType.CHECKOUT);
+                if (printers.isEmpty()) {
+                    printers = workingAreaService.getPrintersByServiceType(client, Printer.ServiceType.CHECKOUT);
+                }
+
+                printers.forEach(printer -> {
+                    LOGGER.warn("Found printer {}, ip={}", printer.getName(), printer.getIpAddress());
+                    printerIps.add(printer.getIpAddress());
                 });
-
-                LOGGER.warn("Found printer {}, ip={}", printer.getName(), printer.getIpAddress());
-                printerIps.add(printer.getIpAddress());
             }
 
             return new PrinterInstructions.PrinterInstruction(workingArea,

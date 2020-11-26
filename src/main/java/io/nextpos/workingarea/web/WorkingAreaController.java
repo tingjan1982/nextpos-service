@@ -137,11 +137,15 @@ public class WorkingAreaController {
 
     private Printer fromPrinterRequest(final Client client, final PrinterRequest printerRequest) {
 
-        final Printer.ServiceType serviceType = Printer.ServiceType.valueOf(printerRequest.getServiceType());
-        return new Printer(client,
+        final Printer printer = new Printer(client,
                 printerRequest.getName(),
                 printerRequest.getIpAddress(),
-                serviceType);
+                printerRequest.getServiceTypes());
+
+        final Printer.ServiceType serviceType = Printer.ServiceType.valueOf(printerRequest.getServiceType());
+        printer.setServiceType(serviceType);
+
+        return printer;
     }
 
     @GetMapping("/printers/{id}")
@@ -151,9 +155,17 @@ public class WorkingAreaController {
         return toPrinterResponse(printer);
     }
 
+    // todo: refactor frontend to handle multiple printer scenarios.
     @GetMapping("/printers/checkout")
     public PrinterResponse getCheckoutPrinter(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
-        return toPrinterResponse(workingAreaService.getPrinterByServiceTypeOrThrows(client, Printer.ServiceType.CHECKOUT));
+
+        final List<Printer> checkoutPrinters = workingAreaService.getPrintersByServiceType(client, Printer.ServiceType.CHECKOUT);
+
+        if (!checkoutPrinters.isEmpty()) {
+            return toPrinterResponse(checkoutPrinters.get(0));
+        }
+
+        return new PrinterResponse();
     }
 
     @GetMapping("/printers")
@@ -184,13 +196,12 @@ public class WorkingAreaController {
 
         printer.setName(printerRequest.getName());
         printer.setIpAddress(printerRequest.getIpAddress());
-
-        final Printer.ServiceType serviceType = Printer.ServiceType.valueOf(printerRequest.getServiceType());
-        printer.setServiceType(serviceType);
+        printer.replaceServiceTypes(printerRequest.getServiceTypes());
+        printer.setServiceType(Printer.ServiceType.valueOf(printerRequest.getServiceType()));
     }
 
-    private PrinterResponse toPrinterResponse(final Printer savedPrinter) {
-        return new PrinterResponse(savedPrinter.getId(), savedPrinter.getName(), savedPrinter.getIpAddress(), savedPrinter.getServiceType());
+    private PrinterResponse toPrinterResponse(final Printer printer) {
+        return new PrinterResponse(printer);
     }
 
     @DeleteMapping("/printers/{id}")

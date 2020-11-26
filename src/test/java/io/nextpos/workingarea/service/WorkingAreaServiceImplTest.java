@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -47,7 +48,7 @@ class WorkingAreaServiceImplTest {
     @Test
     void crudWorkingArea() {
 
-        final Printer printer = new Printer(client, "main", "192.168.1.125", Printer.ServiceType.WORKING_AREA);
+        final Printer printer = new Printer(client, "main", "192.168.1.125", Set.of(Printer.ServiceType.WORKING_AREA));
         workingAreaService.savePrinter(printer);
 
         final WorkingArea bar = new WorkingArea(client, "bar");
@@ -87,17 +88,17 @@ class WorkingAreaServiceImplTest {
     @Test
         //@Rollback(false) this doesn't really work to test unique constraint as the commit happens after the method execution with no chance to handle.
     void crudPrinter() {
-        final Printer registerPrinter = new Printer(client, "register", "192.168.1.125", Printer.ServiceType.CHECKOUT);
+        final Printer registerPrinter = new Printer(client, "register", "192.168.1.125", Set.of(Printer.ServiceType.CHECKOUT));
         final Printer savedPrinter = workingAreaService.savePrinter(registerPrinter);
 
         assertThat(savedPrinter.getId()).isNotNull();
         assertThat(savedPrinter.getClient()).isEqualTo(client);
-        assertThat(savedPrinter.getServiceType()).isEqualTo(Printer.ServiceType.CHECKOUT);
+        assertThat(savedPrinter.getServiceTypes()).isNotEmpty();
 
         assertThatCode(() -> workingAreaService.getPrinter(savedPrinter.getId())).doesNotThrowAnyException();
 
         assertThat(workingAreaService.getPrinters(client)).hasSize(1);
 
-        assertThatCode(() -> workingAreaService.getPrinterByServiceTypeOrThrows(client, Printer.ServiceType.CHECKOUT)).doesNotThrowAnyException();
+        assertThat(workingAreaService.getPrintersByServiceType(client, Printer.ServiceType.CHECKOUT)).hasSize(1);
     }
 }

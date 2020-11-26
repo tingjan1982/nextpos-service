@@ -5,7 +5,6 @@ import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.WorkingArea;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface WorkingAreaService {
 
@@ -21,9 +20,7 @@ public interface WorkingAreaService {
 
     Printer getPrinter(String id);
 
-    Optional<Printer> getPrinterByServiceType(Client client, Printer.ServiceType serviceType);
-
-    Printer getPrinterByServiceTypeOrThrows(Client client, Printer.ServiceType serviceType);
+    List<Printer> getPrintersByServiceType(Client client, Printer.ServiceType serviceType);
 
     List<Printer> getPrinters(Client client);
 

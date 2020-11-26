@@ -57,11 +57,11 @@ public class RefactorOrderTableInfos {
                 .filter(o -> o.getOrderType() == Order.OrderType.IN_STORE)
                 .filter(o -> clientIds.contains(o.getClientId()))
                 .forEach(o -> {
-                    count.incrementAndGet();
-                    LOGGER.info("Moving order={}'s table info {} into tables", o.getId(), o.getTableInfo());
-
-                    o.setTables(List.of(o.getTableInfo()));
-                    orderRepository.save(o);
+//                    count.incrementAndGet();
+//                    LOGGER.info("Moving order={}'s table info {} into tables", o.getId(), o.getTableInfo());
+//
+//                    o.setTables(List.of(o.getTableInfo()));
+//                    orderRepository.save(o);
                 });
 
         LOGGER.info("Found {} orders with table info", count.get());
