@@ -46,7 +46,8 @@ public class ProductLabelController {
     }
 
     @PostMapping
-    public ProductLabelResponse createProductLabel(@RequestAttribute(REQ_ATTR_CLIENT) Client client, @Valid @RequestBody ProductLabelRequest productLabelRequest) {
+    public ProductLabelResponse createProductLabel(@RequestAttribute(REQ_ATTR_CLIENT) Client client,
+                                                   @Valid @RequestBody ProductLabelRequest productLabelRequest) {
 
         ProductLabel productLabel = fromProductLabelRequest(productLabelRequest, client);
         final ProductLabel createdProductLabel = productLabelService.saveProductLabel(productLabel);
@@ -84,6 +85,34 @@ public class ProductLabelController {
         return toProductLabelsResponse(productLabels);
     }
 
+    private ProductLabelsResponse toProductLabelsResponse(final List<ProductLabel> productLabels) {
+
+        final List<ProductLabelsResponse.LightProductLabelResponse> labelNames = productLabels.stream()
+                .map(label -> {
+                    final ProductLabelsResponse.LightProductLabelResponse productLabelResponse = new ProductLabelsResponse.LightProductLabelResponse(label.getId(), label.getName());
+
+                    if (!CollectionUtils.isEmpty(label.getChildLabels())) {
+                        label.getChildLabels().forEach(childLabel -> addLightSubLabelsRecursively(childLabel, productLabelResponse));
+                    }
+
+                    return productLabelResponse;
+
+                }).collect(Collectors.toList());
+
+        return new ProductLabelsResponse(labelNames);
+    }
+
+    private void addLightSubLabelsRecursively(ProductLabel childLabel, ProductLabelsResponse.LightProductLabelResponse parentLabelResponse) {
+
+        final ProductLabelsResponse.LightProductLabelResponse subLabelResponse = parentLabelResponse.addSubLabel(childLabel);
+
+        if (CollectionUtils.isEmpty(childLabel.getChildLabels())) {
+            return;
+        }
+
+        childLabel.getChildLabels().forEach(subLabel -> addLightSubLabelsRecursively(subLabel, subLabelResponse));
+    }
+
     @PostMapping("/{id}")
     public ProductLabelResponse updateProductLabel(@RequestAttribute(REQ_ATTR_CLIENT) Client client,
                                                    @PathVariable final String id,
@@ -107,7 +136,7 @@ public class ProductLabelController {
         return productLabelResponse;
     }
 
-    private void updateProductLabelFromRequest(@RequestAttribute(REQ_ATTR_CLIENT) Client client, ProductLabel productLabel, UpdateProductLabelRequest updateProductLabelRequest) {
+    private void updateProductLabelFromRequest(Client client, ProductLabel productLabel, UpdateProductLabelRequest updateProductLabelRequest) {
 
         productLabel.setName(updateProductLabelRequest.getLabel());
 
@@ -149,13 +178,6 @@ public class ProductLabelController {
                 .collect(Collectors.toList());
 
         return new AppliedProductsResponse(appliedProductResponses);
-    }
-
-    private ProductLabelsResponse toProductLabelsResponse(final List<ProductLabel> productLabels) {
-        final List<ProductLabelResponse> labelNames = productLabels.stream()
-                .map(label -> new ProductLabelResponse(label.getId(), label.getName())).collect(Collectors.toList());
-
-        return new ProductLabelsResponse(labelNames);
     }
 
     private void addSubLabelsRecursively(ProductLabelRequest productLabelRequest, ProductLabel parentProductLabel) {

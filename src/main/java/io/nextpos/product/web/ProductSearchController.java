@@ -2,7 +2,6 @@ package io.nextpos.product.web;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.product.data.ProductLabel;
-import io.nextpos.product.data.ProductType;
 import io.nextpos.product.data.ProductVersion;
 import io.nextpos.product.data.Version;
 import io.nextpos.product.service.ProductSearchService;
@@ -43,19 +42,7 @@ public class ProductSearchController {
 
         groupedProducts.forEach((key, value) -> {
             final List<LightProductResponse> products = value.stream()
-                    .map(product -> {
-                        ProductLabel productLabel = product.getProduct().getProductLabel();
-                        String productLabelId = productLabel != null ? productLabel.getId() : null;
-
-                        return new LightProductResponse(product.getProduct().getId(),
-                                ProductType.resolveProductType(product.getProduct()),
-                                product.getProductName(),
-                                product.getDescription(),
-                                product.getPrice(),
-                                productLabelId,
-                                product.getProduct().isPinned(),
-                                product.getProduct().isOutOfStock());
-                    })
+                    .map(LightProductResponse::new)
                     .collect(Collectors.toList());
             results.put(key.getName(), products);
         });

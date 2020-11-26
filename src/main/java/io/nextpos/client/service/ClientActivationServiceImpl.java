@@ -72,7 +72,7 @@ public class ClientActivationServiceImpl implements ClientActivationService {
             final long timestamp = System.currentTimeMillis();
             String activationToken = String.format("%s=%s", client.getId(), timestamp);
             final String encodedToken = Base64.getEncoder().encodeToString(activationToken.getBytes());
-            final String activationLink = String.format("%s/activateaccount?activationToken=%s", resolveHostName(), encodedToken);
+            final String activationLink = String.format("%s/account/activateaccount?activationToken=%s", resolveHostName(), encodedToken);
 
             final DynamicEmailDetails dynamicEmailDetails = new DynamicEmailDetails(client.getId(), client.getUsername(), "d-084e3b83897e471d85e627f3d56e7c80");
             dynamicEmailDetails.addTemplateData("client", client.getClientName());

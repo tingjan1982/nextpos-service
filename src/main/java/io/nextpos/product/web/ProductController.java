@@ -8,6 +8,7 @@ import io.nextpos.product.service.ProductSearchService;
 import io.nextpos.product.service.ProductService;
 import io.nextpos.product.web.model.*;
 import io.nextpos.product.web.util.ObjectWithProductOptionVisitorWrapper;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
@@ -105,19 +106,8 @@ public class ProductController {
                                            @RequestParam("keyword") String keyword) {
 
         final List<LightProductResponse> results = productSearchService.getProductsByKeyword(client, Version.DESIGN, keyword).stream()
-                .map(p -> {
-                    ProductLabel productLabel = p.getProduct().getProductLabel();
-                    String productLabelId = productLabel != null ? productLabel.getId() : null;
-
-                    return new LightProductResponse(p.getProduct().getId(),
-                            ProductType.resolveProductType(p.getProduct()),
-                            p.getProductName(),
-                            p.getDescription(),
-                            p.getPrice(),
-                            productLabelId,
-                            p.getProduct().isPinned(),
-                            p.getProduct().isOutOfStock());
-                }).collect(Collectors.toList());
+                .map(LightProductResponse::new)
+                .collect(Collectors.toList());
 
         return new ProductsResponse(results);
     }
@@ -179,7 +169,13 @@ public class ProductController {
 
     private ProductLabel resolveProductLabel(final Client client, String labelId) {
         if (labelId != null) {
-            return clientObjectOwnershipService.checkOwnership(client, () -> productLabelService.getProductLabelOrThrows(labelId));
+            final ProductLabel productLabel = clientObjectOwnershipService.checkOwnership(client, () -> productLabelService.getProductLabelOrThrows(labelId));
+
+            if (!productLabel.getChildLabels().isEmpty()) {
+                throw new BusinessLogicException("message.hasChildLabel", "Product label with child label cannot be assigned to product directly.");
+            }
+
+            return productLabel;
         }
 
         return null;
