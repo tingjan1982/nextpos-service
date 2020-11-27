@@ -6,8 +6,8 @@ import lombok.Data;
 
 import java.time.DayOfWeek;
 import java.time.YearMonth;
+import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 
 @Data
 @AllArgsConstructor
@@ -19,12 +19,12 @@ public class RosterPlanResponse {
 
     private RosterPlan.RosterPlanStatus status;
 
-    private Map<DayOfWeek, List<RosterPlan.RosterEntry>> rosterEntries;
+    private EnumMap<DayOfWeek, List<RosterPlan.RosterEntry>> rosterEntries;
 
     public RosterPlanResponse(RosterPlan rosterPlan) {
         id = rosterPlan.getId();
         rosterMonth = rosterPlan.getRosterMonth();
         status = rosterPlan.getStatus();
-        rosterEntries = rosterPlan.getRosterEntries();
+        rosterEntries = new EnumMap<>(rosterPlan.getRosterEntries());
     }
 }
