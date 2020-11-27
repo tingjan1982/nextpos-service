@@ -96,6 +96,7 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
 
         if (orderRequest.getOrderType() == Order.OrderType.IN_STORE) {
             Set<String> tableIds = new HashSet<>(orderRequest.getTableIds());
+            tableIds.add(orderRequest.getTableId());
 
             final List<TableLayout.TableDetails> tables = tableIds.stream()
                     .map(tableLayoutService::getTableDetailsOrThrows)

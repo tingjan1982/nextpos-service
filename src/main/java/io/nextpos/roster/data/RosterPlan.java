@@ -6,18 +6,21 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Document
+@CompoundIndexes({@CompoundIndex(name = "unique_per_client_index", def = "{'clientId': 1, 'rosterMonth': 1}", unique = true)})
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class RosterPlan extends MongoBaseObject {
@@ -33,7 +36,7 @@ public class RosterPlan extends MongoBaseObject {
 
     private AtomicInteger internalCounter = new AtomicInteger(1);
 
-    private Map<DayOfWeek, List<RosterEntry>> rosterEntries = new HashMap<>();
+    private Map<DayOfWeek, List<RosterEntry>> rosterEntries = new TreeMap<>();
 
 
     public RosterPlan(String clientId, YearMonth rosterMonth) {
@@ -47,6 +50,7 @@ public class RosterPlan extends MongoBaseObject {
         final List<RosterEntry> rosterEntriesOfDay = this.rosterEntries.computeIfAbsent(dayOfWeek, dow -> new ArrayList<>());
         final String rosterEntryId = this.id + "-" + internalCounter.getAndIncrement();
         final RosterEntry rosterEntry = new RosterEntry(rosterEntryId, dayOfWeek, startTime, endTime);
+
         rosterEntriesOfDay.add(rosterEntry);
     }
 

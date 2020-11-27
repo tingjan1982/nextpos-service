@@ -21,6 +21,9 @@ public class OrderRequest implements OrderLogChangeObject {
     private Order.OrderType orderType = Order.OrderType.IN_STORE;
 
     @Deprecated
+    private String tableId;
+
+    @Deprecated
     private String tableNote;
 
     private List<String> tableIds = new ArrayList<>();
