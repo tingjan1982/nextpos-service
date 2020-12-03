@@ -1,5 +1,6 @@
 package io.nextpos.ordermanagement.web.model;
 
+import io.nextpos.membership.data.Membership;
 import io.nextpos.membership.web.model.MembershipResponse;
 import io.nextpos.merchandising.data.OfferApplicableObject;
 import io.nextpos.ordermanagement.data.*;
@@ -98,7 +99,7 @@ public class OrderResponse {
 
                 }).collect(Collectors.toList());
 
-        return new OrderResponse(order.getId(),
+        final OrderResponse response = new OrderResponse(order.getId(),
                 order.getSerialId(),
                 order.getOrderType(),
                 order.getOneTableInfo(),
@@ -121,6 +122,14 @@ public class OrderResponse {
                 order.getDemographicData(),
                 order.getAppliedOfferInfo(),
                 order.getOrderDuration());
+
+        final Membership membership = order.getMembership();
+
+        if (membership != null) {
+            response.setMembership(new MembershipResponse(membership));
+        }
+
+        return response;
     }
 
 

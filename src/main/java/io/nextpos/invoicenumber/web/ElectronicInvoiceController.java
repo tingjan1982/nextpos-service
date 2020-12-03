@@ -8,6 +8,7 @@ import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.util.ImageCodeUtil;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,9 +34,9 @@ public class ElectronicInvoiceController {
         return new ElectronicInvoiceEligibility(electronicInvoiceService.checkElectronicInvoiceEligibility(client));
     }
 
-    @GetMapping("/{invoiceNumber}/imageCode")
+    @GetMapping(value = "/{invoiceNumber}/code", produces = MediaType.IMAGE_PNG_VALUE)
     public ResponseEntity<Object> renderCode(@PathVariable String invoiceNumber,
-                                             @RequestParam("imageCode") String code,
+                                             @RequestParam("code") String code,
                                              @RequestParam(name = "format", defaultValue = "stream") String format) {
 
         final ElectronicInvoice electronicInvoice = electronicInvoiceService.getElectronicInvoiceByInvoiceNumber(invoiceNumber);

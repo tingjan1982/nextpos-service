@@ -253,6 +253,19 @@ public class OrderController {
         return OrderResponse.toOrderResponse(orderService.saveOrder(order));
     }
 
+    @PostMapping("/{id}/membership")
+    @OrderLogAction
+    public OrderResponse updateMembership(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                          @PathVariable final String id,
+                                          @RequestBody OrderMembershipRequest request) {
+
+        final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
+
+        membershipService.getMembership(request.getMembershipId()).ifPresent(order::setMembership);
+
+        return OrderResponse.toOrderResponse(orderService.saveOrder(order));
+    }
+
     @PostMapping("/{id}/applyDiscount")
     @OrderLogAction
     public OrderResponse applyOrderDiscount(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
