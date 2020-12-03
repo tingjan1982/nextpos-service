@@ -52,6 +52,8 @@ public class ClientSubscriptionInvoice extends MongoBaseObject {
 
     private Date paymentDate;
 
+    private boolean invoiceSent;
+
 
     public ClientSubscriptionInvoice(ZoneId zoneId, ClientSubscription clientSubscription, Date validFrom) {
 

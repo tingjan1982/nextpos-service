@@ -22,7 +22,7 @@
                 <text>${electronicInvoice.invoiceCreatedDate?string('MM/dd/yyyy HH:mm:ss')}&#10;</text>
                 <text>隨機碼:${electronicInvoice.randomNumber}</text>
                 <text x="210"/>
-                <text>總計:${orderTransaction.settleAmount}&#10;</text>
+                <text>總計:${electronicInvoice.salesAmount}&#10;</text>
                 <text>賣方:${client.attributes["UBN"]!"NA"}</text>
                 <#if electronicInvoice.buyerUbn?has_content>
                     <text>  買方:${electronicInvoice.buyerUbn}</text>
@@ -30,12 +30,22 @@
                 <text>&#10;</text>
                 <barcode type="code39" align="center" width="1" height="45">${electronicInvoice.barcodeContent}</barcode>
                 <page>
-                    <area x="0" y="0" width="420" height="220"/>
+                    <area x="0" y="0" width="420" height="270"/>
                     <direction dir="left_to_right"/>
                     <text x="5"/>
-                    <symbol type="qrcode_model_2" level="level_l" width="4">${electronicInvoice.qrCode1Content}</symbol>
-                    <text x="230"/>
-                    <symbol type="qrcode_model_2" level="level_l" width="4">${electronicInvoice.qrCode2Content}</symbol>
+                    <command>1D286B040031413200</command>
+                    <command>1D286B0300314303</command>
+                    <command>1D286B0300314531</command>
+                    <command>${electronicInvoice.qrCode1ContentAsHex}</command>
+                    <command>1D286B0300315130</command>
+<#--                    <symbol type="qrcode_model_2" level="level_l" width="3">${electronicInvoice.qrCode1Content}</symbol>-->
+                    <text x="180"/>
+                    <command>1D286B040031413200</command>
+                    <command>1D286B0300314303</command>
+                    <command>1D286B0300314531</command>
+                    <command>${electronicInvoice.qrCode2ContentAsHex}</command>
+                    <command>1D286B0300315130</command>
+<#--                    <symbol type="qrcode_model_2" level="level_l" width="3">${electronicInvoice.qrCode2Content}</symbol>-->
                 </page>
                 <text align="left"/>
                 <text>訂單號碼：${order.serialId!"NA"}&#10;</text>

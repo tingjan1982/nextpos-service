@@ -83,7 +83,7 @@ class PrinterInstructionsServiceImplTest {
         workingArea.addPrinter(printer);
         workingAreaService.saveWorkingArea(workingArea);
 
-        InvoiceNumberRange invoiceNumberRange = new InvoiceNumberRange(ubn, invoiceNumberRangeService.getCurrentRangeIdentifier(), "AG", "00000001", "10000001");
+        InvoiceNumberRange invoiceNumberRange = new InvoiceNumberRange(ubn, invoiceNumberRangeService.getCurrentRangeIdentifier(), "AG", "10000006", "10000099");
         invoiceNumberRangeService.saveInvoiceNumberRange(invoiceNumberRange);
     }
 
@@ -145,12 +145,30 @@ class PrinterInstructionsServiceImplTest {
         order.setSerialId("20201010-150");
         order.addOrderLineItem(DummyObjects.productSnapshot("coffee", BigDecimal.valueOf(55)), 1);
         order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
         order.addOrderLineItem(DummyObjects.productSnapshot("bagel", BigDecimal.valueOf(70)), 2);
 
         final OrderTransaction orderTransaction = new OrderTransaction(new ObjectId().toString(), client.getId(), order.getOrderTotal(), order.getOrderTotal(),
                 OrderTransaction.PaymentMethod.CARD,
                 OrderTransaction.BillType.SINGLE,
                 List.of(new OrderTransaction.BillLineItem("coffee", 1, BigDecimal.valueOf(55), BigDecimal.valueOf(55)),
+                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
+                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
+                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
+                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
+                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
+                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
+                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
+                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
+                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
                         new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
                         new OrderTransaction.BillLineItem("bagel", 2, BigDecimal.valueOf(70), BigDecimal.valueOf(140))));
 
@@ -174,6 +192,6 @@ class PrinterInstructionsServiceImplTest {
     }
 
     private void printInstruction(String printInstruction) {
-        //printerInstructionService.outputToPrinter("192.168.2.231", printInstruction);
+        printerInstructionService.outputToPrinter("192.168.2.231", printInstruction);
     }
 }

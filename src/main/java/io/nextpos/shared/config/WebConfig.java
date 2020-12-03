@@ -8,9 +8,13 @@ import org.springframework.boot.actuate.trace.http.InMemoryHttpTraceRepository;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.BufferedImageHttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.web.filter.CommonsRequestLoggingFilter;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.awt.image.BufferedImage;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -92,5 +96,10 @@ public class WebConfig implements WebMvcConfigurer {
     @Bean
     public HttpTraceRepository httpTraceRepository() {
         return new InMemoryHttpTraceRepository();
+    }
+
+    @Bean
+    public HttpMessageConverter<BufferedImage> createImageHttpMessageConverter() {
+        return new BufferedImageHttpMessageConverter();
     }
 }

@@ -28,13 +28,11 @@ public class MembershipController {
     }
 
     @PostMapping
-    public MembershipResponse getOrCreateMembership(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                    @Valid @RequestBody MembershipRequest request) {
+    public MembershipResponse createMembership(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                               @Valid @RequestBody MembershipRequest request) {
 
-        final Membership membership = membershipService.getMembershipByPhoneNumber(client.getId(), request.getPhoneNumber()).orElseGet(() -> {
-            Membership newMembership = fromMembershipRequest(client, request);
-            return membershipService.saveMembership(newMembership);
-        });
+        Membership membership = fromMembershipRequest(client, request);
+        membershipService.saveMembership(membership);
 
         return toResponse(membership);
     }
