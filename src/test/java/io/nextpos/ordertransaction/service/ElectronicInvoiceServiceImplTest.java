@@ -96,6 +96,15 @@ class ElectronicInvoiceServiceImplTest {
         final ElectronicInvoice electronicInvoice = electronicInvoiceService.createElectronicInvoice(client, order, orderTransaction);
         assertThat(electronicInvoice.getInvoiceNumber()).isEqualTo(ElectronicInvoiceService.INVOICE_NUMBER_MISSING);
 
+        assertThat(pendingEInvoiceQueueService.findPendingEInvoicesByUbn(ubn)).isEmpty();
+
+        InvoiceNumberRange invoiceNumberRange = new InvoiceNumberRange(ubn, invoiceNumberRangeService.getCurrentRangeIdentifier(), "AG", "12340001", "12349999");
+        invoiceNumberRangeService.saveInvoiceNumberRange(invoiceNumberRange);
+
+        electronicInvoiceService.issueNewInvoiceNumber(electronicInvoice);
+
+        assertThat(electronicInvoice.getInvoiceNumber()).isNotEqualTo(ElectronicInvoiceService.INVOICE_NUMBER_MISSING);
+
         assertThat(pendingEInvoiceQueueService.findPendingEInvoicesByUbn(ubn)).hasSize(1);
     }
 

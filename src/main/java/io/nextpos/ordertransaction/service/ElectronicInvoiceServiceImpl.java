@@ -63,8 +63,9 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
                 .map(li -> new ElectronicInvoice.InvoiceItem(li.getName(), li.getQuantity(), li.getUnitPrice(), li.getSubTotal()))
                 .collect(Collectors.toList());
 
-        ElectronicInvoice.InvoiceStatus invoiceStatus = !invoiceNumber.equals(INVOICE_NUMBER_MISSING) ? ElectronicInvoice.InvoiceStatus.CREATED : ElectronicInvoice.InvoiceStatus.INVOICE_NUMBER_MISSING;
+        ElectronicInvoice.InvoiceStatus invoiceStatus = isValidInvoiceNumber(invoiceNumber) ? ElectronicInvoice.InvoiceStatus.CREATED : ElectronicInvoice.InvoiceStatus.INVOICE_NUMBER_MISSING;
         final ElectronicInvoice electronicInvoice = new ElectronicInvoice(
+                client.getId(),
                 order.getId(),
                 invoiceNumber,
                 invoiceStatus,
@@ -83,10 +84,37 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
 
         final ElectronicInvoice createdElectronicInvoice = electronicInvoiceRepository.save(electronicInvoice);
 
-        PendingEInvoiceQueue.PendingEInvoiceType type = invoiceNumber.equals(INVOICE_NUMBER_MISSING) ? PendingEInvoiceQueue.PendingEInvoiceType.INVOICE_NUMBER_MISSING : PendingEInvoiceQueue.PendingEInvoiceType.CREATE;
-        pendingEInvoiceQueueService.createPendingEInvoiceQueue(createdElectronicInvoice, type);
+        if (isValidInvoiceNumber(invoiceNumber)) {
+            pendingEInvoiceQueueService.createPendingEInvoiceQueue(createdElectronicInvoice, PendingEInvoiceQueue.PendingEInvoiceType.CREATE);
+        }
 
         return createdElectronicInvoice;
+    }
+
+    @Override
+    public void issueNewInvoiceNumber(ElectronicInvoice electronicInvoice) {
+
+        if (isValidInvoiceNumber(electronicInvoice.getInvoiceNumber())) {
+            LOGGER.warn("This electronic invoice already has a valid invoice number {}", electronicInvoice.getInvoiceNumber());
+            return;
+        }
+
+        final String newInvoiceNumber = getInvoiceNumber(electronicInvoice.getSellerUbn());
+
+        if (isValidInvoiceNumber(newInvoiceNumber)) {
+            electronicInvoice.updateInvoiceNumber(newInvoiceNumber);
+            electronicInvoice.setInvoiceStatus(ElectronicInvoice.InvoiceStatus.CREATED);
+            pendingEInvoiceQueueService.createPendingEInvoiceQueue(electronicInvoice, PendingEInvoiceQueue.PendingEInvoiceType.CREATE);
+
+            electronicInvoiceRepository.save(electronicInvoice);
+        }
+    }
+
+    @Override
+    public ElectronicInvoice getElectronicInvoice(String id) {
+        return electronicInvoiceRepository.findById(id).orElseThrow(() -> {
+            throw new ObjectNotFoundException(id, ElectronicInvoice.class);
+        });
     }
 
     private String getInvoiceNumber(String ubn) {
@@ -100,11 +128,20 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
         }
     }
 
+    private boolean isValidInvoiceNumber(String invoiceNumber) {
+        return !invoiceNumber.equals(INVOICE_NUMBER_MISSING);
+    }
+
     @Override
     public ElectronicInvoice getElectronicInvoiceByInvoiceNumber(String internalInvoiceNumber) {
         return electronicInvoiceRepository.findByInternalInvoiceNumber(internalInvoiceNumber).orElseThrow(() -> {
             throw new ObjectNotFoundException(internalInvoiceNumber, ElectronicInvoice.class);
         });
+    }
+
+    @Override
+    public List<ElectronicInvoice> getElectronicInvoicesByInvoiceStatus(Client client, ElectronicInvoice.InvoiceStatus invoiceStatus) {
+        return electronicInvoiceRepository.findAllByClientIdAndInvoiceStatus(client.getId(), invoiceStatus);
     }
 
     @Override

@@ -3,6 +3,8 @@ package io.nextpos.invoicenumber.web;
 import io.nextpos.client.data.Client;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.invoicenumber.web.model.ElectronicInvoiceEligibility;
+import io.nextpos.invoicenumber.web.model.ElectronicInvoiceResponse;
+import io.nextpos.invoicenumber.web.model.ElectronicInvoicesResponse;
 import io.nextpos.ordertransaction.service.ElectronicInvoiceService;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.util.ImageCodeUtil;
@@ -13,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.awt.image.BufferedImage;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/einvoices")
@@ -29,9 +33,30 @@ public class ElectronicInvoiceController {
     }
 
     @GetMapping("/checkEligibility")
-    public ElectronicInvoiceEligibility generateAESKey(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+    public ElectronicInvoiceEligibility checkEligibility(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
         return new ElectronicInvoiceEligibility(electronicInvoiceService.checkElectronicInvoiceEligibility(client));
+    }
+
+    @GetMapping
+    public ElectronicInvoicesResponse getElectronicInvoiceByStatus(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                                   @RequestParam("invoiceStatus") ElectronicInvoice.InvoiceStatus invoiceStatus) {
+
+        final List<ElectronicInvoiceResponse> results = electronicInvoiceService.getElectronicInvoicesByInvoiceStatus(client, invoiceStatus).stream()
+                .map(ElectronicInvoiceResponse::new)
+                .collect(Collectors.toList());
+
+        return new ElectronicInvoicesResponse(results);
+    }
+
+    @PostMapping("/{id}/issueInvoiceNumber")
+    public ElectronicInvoiceResponse getElectronicInvoiceByStatus(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                                  @PathVariable String id) {
+
+        final ElectronicInvoice electronicInvoice = electronicInvoiceService.getElectronicInvoice(id);
+        electronicInvoiceService.issueNewInvoiceNumber(electronicInvoice);
+
+        return new ElectronicInvoiceResponse(electronicInvoice);
     }
 
     @GetMapping(value = "/{invoiceNumber}/code", produces = MediaType.IMAGE_PNG_VALUE)
