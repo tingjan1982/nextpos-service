@@ -9,6 +9,5 @@ import javax.validation.constraints.NotBlank;
 @NoArgsConstructor
 public class OrderMembershipRequest {
 
-    @NotBlank
     private String membershipId;
 }

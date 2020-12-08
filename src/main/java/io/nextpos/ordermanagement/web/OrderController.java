@@ -261,7 +261,11 @@ public class OrderController {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
-        membershipService.getMembership(request.getMembershipId()).ifPresent(order::setMembership);
+        if (StringUtils.isNotBlank(request.getMembershipId())) {
+            membershipService.getMembership(request.getMembershipId()).ifPresent(order::setMembership);
+        } else {
+            order.setMembership(null);
+        }
 
         return OrderResponse.toOrderResponse(orderService.saveOrder(order));
     }
