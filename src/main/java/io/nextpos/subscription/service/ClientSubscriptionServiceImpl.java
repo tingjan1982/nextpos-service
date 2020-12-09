@@ -30,6 +30,8 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
 
     private final SubscriptionPlanService subscriptionPlanService;
 
+    private final ClientSubscriptionOrderService clientSubscriptionOrderService;
+
     private final NotificationService notificationService;
 
     private final ClientService clientService;
@@ -41,8 +43,9 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
     private final ClientSubscriptionInvoiceRepository clientSubscriptionInvoiceRepository;
 
     @Autowired
-    public ClientSubscriptionServiceImpl(SubscriptionPlanService subscriptionPlanService, NotificationService notificationService, ClientService clientService, SettingsService settingsService, ClientSubscriptionRepository clientSubscriptionRepository, ClientSubscriptionInvoiceRepository clientSubscriptionInvoiceRepository) {
+    public ClientSubscriptionServiceImpl(SubscriptionPlanService subscriptionPlanService, ClientSubscriptionOrderService clientSubscriptionOrderService, NotificationService notificationService, ClientService clientService, SettingsService settingsService, ClientSubscriptionRepository clientSubscriptionRepository, ClientSubscriptionInvoiceRepository clientSubscriptionInvoiceRepository) {
         this.subscriptionPlanService = subscriptionPlanService;
+        this.clientSubscriptionOrderService = clientSubscriptionOrderService;
         this.notificationService = notificationService;
         this.clientService = clientService;
         this.settingsService = settingsService;
@@ -148,6 +151,11 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
         }
 
         clientSubscriptionRepository.save(clientSubscription);
+
+        if (!invoice.isInvoiceSent()) {
+            clientSubscriptionOrderService.sendClientSubscriptionOrder(invoice);
+            invoice.setInvoiceSent(true);
+        }
 
         return clientSubscriptionInvoiceRepository.save(invoice);
     }

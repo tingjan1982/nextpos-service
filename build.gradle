@@ -61,11 +61,13 @@ dependencies {
     
     implementation 'io.vavr:vavr:0.9.3'
     implementation 'org.apache.commons:commons-lang3'
+    implementation 'commons-io:commons-io:2.8.0'
     implementation 'org.passay:passay:1.0' // password validation
     implementation 'com.twilio.sdk:twilio:7.41.1'
     implementation 'com.sendgrid:sendgrid-java:4.6.6'
     implementation 'com.google.zxing:core:3.3.0'
     implementation 'com.google.zxing:javase:3.3.0'
+    implementation 'com.itextpdf:itext7-core:7.1.13'
 
     //implementation 'org.projectlombok:lombok'
     runtimeOnly 'org.postgresql:postgresql'

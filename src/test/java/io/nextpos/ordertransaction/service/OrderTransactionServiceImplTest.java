@@ -138,6 +138,7 @@ class OrderTransactionServiceImplTest {
     private ElectronicInvoice createMockElectronicInvoice(Order order) {
 
         final ElectronicInvoice electronicInvoice = new ElectronicInvoice(order.getId(),
+                client.getId(),
                 "AA-10001001",
                 ElectronicInvoice.InvoiceStatus.CREATED,
                 new ElectronicInvoice.InvoicePeriod(ZoneId.systemDefault()),

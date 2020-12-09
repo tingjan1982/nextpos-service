@@ -36,7 +36,7 @@ public class ImageCodeUtil {
 
         try {
             final QRCodeWriter qrCodeWriter = new QRCodeWriter();
-            final BitMatrix bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, 100, 100);
+            final BitMatrix bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, 41, 41);
             return MatrixToImageWriter.toBufferedImage(bitMatrix);
 
         } catch (Exception e) {

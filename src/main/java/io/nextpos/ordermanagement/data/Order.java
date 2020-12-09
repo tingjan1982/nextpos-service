@@ -486,7 +486,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     }
 
     public enum OrderType {
-        IN_STORE, TAKE_OUT
+        IN_STORE, TAKE_OUT, ONLINE
     }
 
     public enum OrderState {

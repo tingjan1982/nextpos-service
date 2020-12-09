@@ -5,6 +5,7 @@ import com.sendgrid.Request;
 import com.sendgrid.Response;
 import com.sendgrid.SendGrid;
 import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Attachments;
 import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
 import com.sendgrid.helpers.mail.objects.Personalization;
@@ -15,6 +16,7 @@ import io.nextpos.notification.config.NotificationProperties;
 import io.nextpos.notification.data.*;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.service.annotation.MongoTransaction;
+import org.bson.internal.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -108,6 +110,17 @@ public class NotificationServiceImpl implements NotificationService {
 
             notificationDetails.getTemplateData().forEach(personalization::addDynamicTemplateData);
             mail.addPersonalization(personalization);
+
+            if (notificationDetails.getAttachment() != null) {
+                final Attachments attachments = new Attachments();
+                attachments.setContent(Base64.encode(notificationDetails.getAttachment().getData()));
+                attachments.setType("application/pdf");
+                attachments.setFilename("einvoice.pdf");
+                attachments.setDisposition("attachment");
+                attachments.setContentId("Banner");
+
+                mail.addAttachments(attachments);
+            }
 
             SendGrid sg = new SendGrid(mailProperties.getPassword());
             Request request = new Request();
