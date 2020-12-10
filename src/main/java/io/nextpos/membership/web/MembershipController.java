@@ -39,7 +39,13 @@ public class MembershipController {
 
     private Membership fromMembershipRequest(Client client, MembershipRequest request) {
 
-        return new Membership(client.getId(), request.getName(), request.getPhoneNumber());
+        final Membership membership = new Membership(client.getId(), request.getName(), request.getPhoneNumber());
+
+        membership.setGender(request.getGender());
+        membership.setBirthday(request.getBirthday());
+        membership.setTags(request.getTags());
+
+        return membership;
     }
 
     @GetMapping("/{id}")
@@ -83,6 +89,7 @@ public class MembershipController {
         membership.setName(request.getName());
         membership.setBirthday(request.getBirthday());
         membership.setGender(request.getGender());
+        membership.setTags(request.getTags());
     }
 
     private MembershipResponse toResponse(Membership membership) {

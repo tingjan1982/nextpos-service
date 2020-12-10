@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * Reference on Mongo compound index:
@@ -36,6 +37,8 @@ public class Membership extends MongoBaseObject {
     private LocalDate birthday;
 
     private String phoneNumber;
+
+    private List<String> tags;
 
     private MembershipStatus membershipStatus;
 
