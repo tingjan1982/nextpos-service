@@ -139,6 +139,15 @@ public class RosterPlanServiceImpl implements RosterPlanService {
     }
 
     @Override
+    public CalendarEvent updateRosterPlanEventStaffMembers(CalendarEvent calendarEvent, List<ClientUser> clientUsers) {
+        final List<CalendarEvent.EventResource> eventResources = clientUsers.stream()
+                .map(this::toEventResource)
+                .collect(Collectors.toList());
+
+        return calendarEventService.updateEventResources(calendarEvent, eventResources);
+    }
+
+    @Override
     public List<CalendarEvent> getStaffMemberRoster(Client client, ClientUser clientUser, YearMonth yearMonth) {
 
         final Date startOfMonth = DateTimeUtil.toDate(client.getZoneId(), yearMonth.atDay(1).atStartOfDay());

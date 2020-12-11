@@ -107,6 +107,11 @@ class RosterPlanServiceImplTest {
             assertThat(updatedCalendarEvent.getEventResources()).isEmpty();
         });
 
+        events.forEach(e -> {
+            rosterPlanService.updateRosterPlanEventStaffMembers(e, List.of(clientUser, clientUser));
+            assertThat(e.getEventResources()).hasSize(1);
+        });
+
         rosterPlanService.deleteRosterPlanEvents(rosterPlan);
 
         assertThat(rosterPlanService.getRosterPlan(rosterPlan.getId()).getStatus()).isEqualByComparingTo(RosterPlan.RosterPlanStatus.ACTIVE);

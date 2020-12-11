@@ -28,6 +28,8 @@ public interface RosterPlanService {
 
     CalendarEvent removeStaffMemberFromRosterPlanEvent(CalendarEvent calendarEvent, ClientUser clientUser);
 
+    CalendarEvent updateRosterPlanEventStaffMembers(CalendarEvent calendarEvent, List<ClientUser> clientUsers);
+
     List<CalendarEvent> getStaffMemberRoster(Client client, ClientUser clientUser, YearMonth yearMonth);
 
 }

@@ -56,6 +56,15 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     }
 
     @Override
+    public CalendarEvent updateEventResources(CalendarEvent calendarEvent, List<CalendarEvent.EventResource> eventResources) {
+
+        calendarEvent.removeAllEventResources();
+        eventResources.forEach(er -> this.addEventResource(calendarEvent, er));
+
+        return saveCalendarEvent(calendarEvent);
+    }
+
+    @Override
     public List<CalendarEvent> getCalendarEventsForEventOwner(String clientId, String eventOwnerId, CalendarEvent.OwnerType ownerType) {
 
         return calendarEventRepository.findAllByClientIdAndEventOwner_OwnerIdAndEventOwner_OwnerType(clientId, eventOwnerId, ownerType);

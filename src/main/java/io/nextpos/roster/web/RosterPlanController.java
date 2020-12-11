@@ -6,12 +6,10 @@ import io.nextpos.calendarevent.web.model.CalendarEventResponse;
 import io.nextpos.calendarevent.web.model.CalendarEventsResponse;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
+import io.nextpos.client.service.ClientService;
 import io.nextpos.roster.data.RosterPlan;
 import io.nextpos.roster.service.RosterPlanService;
-import io.nextpos.roster.web.model.RosterEntryRequest;
-import io.nextpos.roster.web.model.RosterPlanRequest;
-import io.nextpos.roster.web.model.RosterPlanResponse;
-import io.nextpos.roster.web.model.RosterPlansResponse;
+import io.nextpos.roster.web.model.*;
 import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +29,15 @@ public class RosterPlanController {
 
     private final CalendarEventService calendarEventService;
 
+    private final ClientService clientService;
+
     private final OAuth2Helper oAuth2Helper;
 
     @Autowired
-    public RosterPlanController(RosterPlanService rosterPlanService, CalendarEventService calendarEventService, OAuth2Helper oAuth2Helper) {
+    public RosterPlanController(RosterPlanService rosterPlanService, CalendarEventService calendarEventService, ClientService clientService, OAuth2Helper oAuth2Helper) {
         this.rosterPlanService = rosterPlanService;
         this.calendarEventService = calendarEventService;
+        this.clientService = clientService;
         this.oAuth2Helper = oAuth2Helper;
     }
 
@@ -138,7 +139,7 @@ public class RosterPlanController {
     @GetMapping("/{id}/events/{eventId}")
     public CalendarEventResponse getRosterPlanEvent(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                     @PathVariable String eventId) {
-        
+
         CalendarEvent calendarEvent = calendarEventService.getCalendarEvent(eventId);
 
         return new CalendarEventResponse(calendarEvent);
@@ -162,6 +163,21 @@ public class RosterPlanController {
         final ClientUser clientUser = oAuth2Helper.resolveCurrentClientUser(client);
         CalendarEvent calendarEvent = calendarEventService.getCalendarEvent(eventId);
         final CalendarEvent savedCalendarEvent = rosterPlanService.removeStaffMemberFromRosterPlanEvent(calendarEvent, clientUser);
+
+        return new CalendarEventResponse(savedCalendarEvent);
+    }
+
+    @PostMapping("/{id}/events/{eventId}/resources")
+    public CalendarEventResponse assignResources(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                 @PathVariable String eventId,
+                                                 @RequestBody RosterUserRequest request) {
+
+        final List<ClientUser> clientUsers = request.getUsernames().stream()
+                .map(u -> clientService.getClientUser(client, u))
+                .collect(Collectors.toList());
+
+        CalendarEvent calendarEvent = calendarEventService.getCalendarEvent(eventId);
+        final CalendarEvent savedCalendarEvent = rosterPlanService.updateRosterPlanEventStaffMembers(calendarEvent, clientUsers);
 
         return new CalendarEventResponse(savedCalendarEvent);
     }

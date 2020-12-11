@@ -60,6 +60,10 @@ public class CalendarEvent extends MongoBaseObject {
         this.eventResources.remove(eventResource);
     }
 
+    public void removeAllEventResources() {
+        this.eventResources.clear();
+    }
+
     public enum EventType {
 
         ROSTER, RESERVATION
