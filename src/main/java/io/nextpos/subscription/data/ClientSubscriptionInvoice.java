@@ -94,6 +94,8 @@ public class ClientSubscriptionInvoice extends MongoBaseObject {
         /**
          * Invoice is unpaid and passed due date.
          */
-        OVERDUE
+        OVERDUE,
+
+        CANCELLED
     }
 }

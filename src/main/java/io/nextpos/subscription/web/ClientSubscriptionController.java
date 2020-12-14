@@ -38,15 +38,20 @@ public class ClientSubscriptionController {
         return toResponse(clientSubscriptionService.getCurrentClientSubscription(client.getId()));
     }
 
+    @PostMapping("/current/lapse")
+    public ClientSubscriptionResponse lapseCurrentClientSubscription(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        return null;
+    }
+
+    @PostMapping("/current/cancel")
+    public ClientSubscriptionResponse cancelCurrentClientSubscription(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        return null;
+    }
+
     private ClientSubscriptionResponse toResponse(ClientSubscription clientSubscription) {
 
-        return new ClientSubscriptionResponse(clientSubscription.getId(),
-                clientSubscription.getSubscriptionPlanSnapshot().getPlanName(),
-                clientSubscription.getStatus(),
-                clientSubscription.getPlanPrice(),
-                clientSubscription.getPlanPeriod(),
-                clientSubscription.getSubmittedDate(),
-                clientSubscription.getPlanStartDate(),
-                clientSubscription.getPlanEndDate());
+        return new ClientSubscriptionResponse(clientSubscription);
     }
 }

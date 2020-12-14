@@ -29,6 +29,8 @@ public interface ClientService extends UserDetailsService {
 
     Client getDefaultClient();
 
+    List<Client> getClients();
+
     void updateClientStatus(Client client, Client.Status status);
 
     void deleteClient(String id);

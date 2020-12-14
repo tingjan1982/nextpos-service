@@ -208,6 +208,11 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
+    public List<Client> getClients() {
+        return clientRepository.findAll();
+    }
+
+    @Override
     public void updateClientStatus(final Client client, final Client.Status status) {
 
         client.setStatus(status);

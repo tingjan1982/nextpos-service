@@ -18,7 +18,7 @@ public class SubscriptionPlanRequest {
     @NotBlank
     private String countryCode;
 
-    private SubscriptionPlan.PlanGroup PlanGroup;
+    private SubscriptionPlan.PlanGroup PlanGroup = SubscriptionPlan.PlanGroup.DEFAULT;
 
     @NotBlank
     private String planName;

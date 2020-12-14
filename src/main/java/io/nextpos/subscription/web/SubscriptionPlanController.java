@@ -5,12 +5,15 @@ import io.nextpos.settings.service.SettingsService;
 import io.nextpos.subscription.data.SubscriptionPlan;
 import io.nextpos.subscription.service.SubscriptionPlanService;
 import io.nextpos.subscription.web.model.SubscriptionPlanRequest;
+import io.nextpos.subscription.web.model.SubscriptionPlanResponse;
+import io.nextpos.subscription.web.model.SubscriptionPlansResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/admin/subscriptionPlans")
@@ -48,25 +51,30 @@ public class SubscriptionPlanController {
     }
 
     @GetMapping
-    public List<SubscriptionPlan> getSubscriptionPlans(@RequestParam("country") String countryCode) {
+    public SubscriptionPlansResponse getSubscriptionPlans(@RequestParam("country") String countryCode) {
 
-        return subscriptionPlanService.getSubscriptionPlans(countryCode);
+        final List<SubscriptionPlanResponse> results = subscriptionPlanService.getSubscriptionPlans(countryCode).stream()
+                .map(SubscriptionPlanResponse::new)
+                .collect(Collectors.toList());
+
+        return new SubscriptionPlansResponse(results);
     }
 
     @GetMapping("/{id}")
-    public SubscriptionPlan getSubscription(@PathVariable String id) {
+    public SubscriptionPlanResponse getSubscription(@PathVariable String id) {
 
-        return subscriptionPlanService.getSubscription(id);
+        return new SubscriptionPlanResponse(subscriptionPlanService.getSubscription(id));
     }
 
     @PostMapping("/{id}")
-    public SubscriptionPlan updateSubscriptionPlan(@PathVariable String id,
+    public SubscriptionPlanResponse updateSubscriptionPlan(@PathVariable String id,
                                                    @Valid @RequestBody SubscriptionPlanRequest request) {
 
         final SubscriptionPlan subscription = subscriptionPlanService.getSubscription(id);
         updateFromRequest(subscription, request);
 
-        return subscriptionPlanService.saveSubscriptionPlan(subscription);
+        final SubscriptionPlan updated = subscriptionPlanService.saveSubscriptionPlan(subscription);
+        return new SubscriptionPlanResponse(updated);
     }
 
     private void updateFromRequest(SubscriptionPlan subscriptionPlan, SubscriptionPlanRequest request) {

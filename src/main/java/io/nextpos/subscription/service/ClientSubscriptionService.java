@@ -11,11 +11,19 @@ public interface ClientSubscriptionService {
 
     ClientSubscriptionInvoice createClientSubscription(Client client, String subscriptionPlanId, SubscriptionPlan.PlanPeriod planPeriod);
 
+    void sendClientSubscriptionInvoice(Client client, ClientSubscriptionInvoice subscriptionInvoice);
+
     ClientSubscription getCurrentClientSubscription(String clientId);
+
+    ClientSubscription getClientSubscription(String id);
+
+    ClientSubscription cancelClientSubscription(ClientSubscription clientSubscription);
 
     ClientSubscription lapseClientSubscription(ClientSubscription clientSubscription);
 
     ClientSubscription saveClientSubscription(ClientSubscription clientSubscription);
+
+    List<ClientSubscription> getClientSubscriptions();
 
     ClientSubscriptionInvoice activateClientSubscription(String invoiceIdentifier);
 
@@ -24,6 +32,8 @@ public interface ClientSubscriptionService {
     ClientSubscriptionInvoice getClientSubscriptionInvoice(String id);
 
     ClientSubscriptionInvoice getClientSubscriptionInvoiceByInvoiceIdentifier(String invoiceIdentifier);
+
+    List<ClientSubscriptionInvoice> getClientSubscriptionInvoices(ClientSubscription clientSubscription);
 
     List<ClientSubscriptionInvoice> getClientSubscriptionInvoicesByStatus(ClientSubscriptionInvoice.SubscriptionInvoiceStatus pending);
 

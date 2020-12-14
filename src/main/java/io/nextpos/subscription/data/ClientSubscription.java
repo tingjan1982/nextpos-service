@@ -69,6 +69,11 @@ public class ClientSubscription extends MongoBaseObject {
         /**
          * This plan has expired.
          */
-        EXPIRED
+        EXPIRED,
+
+        /**
+         * This plan is cancelled immediately, either by user or admin
+         */
+        CANCELLED
     }
 }

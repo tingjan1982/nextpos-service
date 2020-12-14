@@ -80,11 +80,18 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
         }
     }
 
-    private ClientSubscriptionInvoice createAndSendClientSubscriptionInvoice(Client client, ClientSubscription clientSubscriptionOptional, Date subscriptionValidFrom) {
+    private ClientSubscriptionInvoice createAndSendClientSubscriptionInvoice(Client client, ClientSubscription clientSubscription, Date subscriptionValidFrom) {
 
-        final ClientSubscriptionInvoice subscriptionInvoice = new ClientSubscriptionInvoice(client.getZoneId(), clientSubscriptionOptional, subscriptionValidFrom);
+        final ClientSubscriptionInvoice subscriptionInvoice = new ClientSubscriptionInvoice(client.getZoneId(), clientSubscription, subscriptionValidFrom);
 
-        final SubscriptionPlan subscriptionPlanSnapshot = clientSubscriptionOptional.getSubscriptionPlanSnapshot();
+        this.sendClientSubscriptionInvoice(client, subscriptionInvoice);
+
+        return clientSubscriptionInvoiceRepository.save(subscriptionInvoice);
+    }
+
+    @Override
+    public void sendClientSubscriptionInvoice(Client client, ClientSubscriptionInvoice subscriptionInvoice) {
+        final SubscriptionPlan subscriptionPlanSnapshot = subscriptionInvoice.getClientSubscription().getSubscriptionPlanSnapshot();
         final SubscriptionPaymentInstruction instruction = subscriptionPlanService.getSubscriptionPaymentInstructionByCountryOrThrows(subscriptionPlanSnapshot.getCountryCode());
 
         final CountrySettings countrySettings = settingsService.getCountrySettings(client.getCountryCode());
@@ -100,13 +107,31 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
         dynamicEmailDetails.addTemplateData("invoiceIdentifier", subscriptionInvoice.getInvoiceIdentifier());
 
         notificationService.sendNotification(dynamicEmailDetails);
-
-        return clientSubscriptionInvoiceRepository.save(subscriptionInvoice);
     }
 
     @Override
     public ClientSubscription getCurrentClientSubscription(String clientId) {
         return clientSubscriptionRepository.findFirstByClientIdOrderByCreatedDateDesc(clientId);
+    }
+
+    @Override
+    public ClientSubscription getClientSubscription(String id) {
+        return clientSubscriptionRepository.findById(id).orElseThrow(() -> {
+            throw new ObjectNotFoundException(id, ClientSubscription.class);
+        });
+    }
+
+    @Override
+    public ClientSubscription cancelClientSubscription(ClientSubscription clientSubscription) {
+
+        clientSubscription.setPlanEndDate(new Date());
+        clientSubscription.setStatus(ClientSubscription.SubscriptionStatus.CANCELLED);
+
+        ClientSubscriptionInvoice clientSubscriptionInvoice = clientSubscriptionInvoiceRepository.findFirstByClientSubscriptionOrderByCreatedDateDesc(clientSubscription);
+        clientSubscriptionInvoice.setStatus(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.CANCELLED);
+        clientSubscriptionInvoiceRepository.save(clientSubscriptionInvoice);
+
+        return saveClientSubscription(clientSubscription);
     }
 
     @Override
@@ -122,8 +147,13 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
     }
 
     @Override
-    public ClientSubscription saveClientSubscription(ClientSubscription clientSubscriptionOptional) {
-        return clientSubscriptionRepository.save(clientSubscriptionOptional);
+    public ClientSubscription saveClientSubscription(ClientSubscription clientSubscription) {
+        return clientSubscriptionRepository.save(clientSubscription);
+    }
+
+    @Override
+    public List<ClientSubscription> getClientSubscriptions() {
+        return clientSubscriptionRepository.findAll();
     }
 
     @Override
@@ -170,6 +200,11 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
     @Override
     public ClientSubscriptionInvoice getClientSubscriptionInvoiceByInvoiceIdentifier(String invoiceIdentifier) {
         return clientSubscriptionInvoiceRepository.findByInvoiceIdentifier(invoiceIdentifier);
+    }
+
+    @Override
+    public List<ClientSubscriptionInvoice> getClientSubscriptionInvoices(ClientSubscription clientSubscription) {
+        return clientSubscriptionInvoiceRepository.findAllByClientSubscription(clientSubscription);
     }
 
     @Override
