@@ -6,7 +6,6 @@ import io.nextpos.notification.data.DynamicEmailDetails;
 import io.nextpos.notification.service.NotificationService;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.settings.service.SettingsService;
-import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.subscription.data.*;
@@ -56,24 +55,23 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
     @Override
     public ClientSubscriptionInvoice createClientSubscription(Client client, String subscriptionPlanId, SubscriptionPlan.PlanPeriod planPeriod) {
 
-        final Optional<ClientSubscription> clientSubscriptionOptional = clientSubscriptionRepository.findByClientIdAndSubscriptionPlanSnapshot_Id(client.getId(), subscriptionPlanId);
+        final Optional<ClientSubscription> clientSubscriptionOptional = clientSubscriptionRepository.findByClientIdAndSubscriptionPlanSnapshot_IdAndPlanPeriod(client.getId(), subscriptionPlanId, planPeriod);
 
         if (clientSubscriptionOptional.isPresent()) {
-            final ClientSubscription subscription = clientSubscriptionOptional.get();
-            if (subscription.getPlanPeriod() == planPeriod) {
-                throw new BusinessLogicException("message.alreadySubscribed", "The subscription plan is already selected: " + subscription.getSubscriptionPlanSnapshot().getPlanName());
-            } else {
-                LOGGER.info("Change plan period from {} to {}", subscription.getPlanPeriod(), planPeriod);
-                subscription.setPlanPeriod(planPeriod);
-            }
-
-            this.saveClientSubscription(subscription);
-
-            return clientSubscriptionInvoiceRepository.findFirstByClientSubscriptionOrderByCreatedDateDesc(subscription);
+            final ClientSubscription clientSubscription = clientSubscriptionOptional.get();
+            LOGGER.info("Current plan is already subscribed: {}", clientSubscription.getId());
+            return clientSubscriptionInvoiceRepository.findFirstByClientSubscriptionOrderByCreatedDateDesc(clientSubscription);
 
         } else {
-            SubscriptionPlan subscriptionPlanSnapshot = subscriptionPlanService.getSubscription(subscriptionPlanId);
-            final ClientSubscription clientSubscription = new ClientSubscription(client.getId(), subscriptionPlanSnapshot, planPeriod);
+            // cancel current client subscription and create new one
+            final ClientSubscription currentClientSubscription = getCurrentClientSubscription(client.getId());
+
+            if (currentClientSubscription != null) {
+                cancelClientSubscription(currentClientSubscription);
+            }
+
+            SubscriptionPlan subscription = subscriptionPlanService.getSubscription(subscriptionPlanId);
+            final ClientSubscription clientSubscription = new ClientSubscription(client.getId(), subscription, planPeriod);
             this.saveClientSubscription(clientSubscription);
 
             return createAndSendClientSubscriptionInvoice(client, clientSubscription, new Date());
@@ -91,6 +89,7 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
 
     @Override
     public void sendClientSubscriptionInvoice(Client client, ClientSubscriptionInvoice subscriptionInvoice) {
+
         final SubscriptionPlan subscriptionPlanSnapshot = subscriptionInvoice.getClientSubscription().getSubscriptionPlanSnapshot();
         final SubscriptionPaymentInstruction instruction = subscriptionPlanService.getSubscriptionPaymentInstructionByCountryOrThrows(subscriptionPlanSnapshot.getCountryCode());
 
@@ -158,10 +157,11 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
 
     @Override
     public ClientSubscriptionInvoice activateClientSubscription(String invoiceIdentifier) {
+
         final ClientSubscriptionInvoice clientSubscriptionInvoice = clientSubscriptionInvoiceRepository.findByInvoiceIdentifier(invoiceIdentifier);
 
         if (clientSubscriptionInvoice.getStatus() == ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID) {
-            throw new BusinessLogicException("message.alreadyActivated", "Client subscription invoice is already paid and plan activated");
+            return clientSubscriptionInvoice;
         }
         
         return activateClientSubscription(clientSubscriptionInvoice);
@@ -170,17 +170,17 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
     @Override
     public ClientSubscriptionInvoice activateClientSubscription(ClientSubscriptionInvoice invoice) {
 
-        invoice.setPaymentDate(new Date());
-        invoice.setStatus(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID);
-
+        final Date now = new Date();
         final ClientSubscription clientSubscription = invoice.getClientSubscription();
         clientSubscription.setStatus(ClientSubscription.SubscriptionStatus.ACTIVE);
 
         if (clientSubscription.getPlanStartDate() == null) {
-            clientSubscription.setPlanStartDate(new Date());
+            clientSubscription.setPlanStartDate(now);
         }
 
         clientSubscriptionRepository.save(clientSubscription);
+
+        invoice.updatePaymentStatus(now);
 
         if (!invoice.isInvoiceSent()) {
             clientSubscriptionOrderService.sendClientSubscriptionOrder(invoice);

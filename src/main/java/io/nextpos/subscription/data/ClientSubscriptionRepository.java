@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public interface ClientSubscriptionRepository extends MongoRepository<ClientSubscription, String> {
 
-    Optional<ClientSubscription> findByClientIdAndSubscriptionPlanSnapshot_Id(String clientId, String subscriptionPlanId);
+    Optional<ClientSubscription> findByClientIdAndSubscriptionPlanSnapshot_IdAndPlanPeriod(String clientId, String subscriptionPlanId, SubscriptionPlan.PlanPeriod planPeriod);
 
     ClientSubscription findFirstByClientIdOrderByCreatedDateDesc(String clientId);
 }

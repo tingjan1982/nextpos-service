@@ -37,6 +37,8 @@ public class ClientSubscriptionInvoice extends MongoBaseObject {
      */
     private String invoiceIdentifier;
 
+    private ZoneId zoneId;
+
     private Date validFrom;
 
     private Date validTo;
@@ -59,6 +61,7 @@ public class ClientSubscriptionInvoice extends MongoBaseObject {
 
         this.clientSubscription = clientSubscription;
         this.invoiceIdentifier = RandomStringUtils.randomNumeric(6);
+        this.zoneId = zoneId;
 
         this.validFrom = validFrom;
         final int numberOfMonths = clientSubscription.getPlanPeriod().getNumberOfMonths();
@@ -72,8 +75,14 @@ public class ClientSubscriptionInvoice extends MongoBaseObject {
         this.status = SubscriptionInvoiceStatus.PENDING;
     }
 
+    public void updatePaymentStatus(Date paidDate) {
+
+        setPaymentDate(paidDate);
+        setStatus(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID);
+    }
+
     public String getSubscriptionPeriod(ZoneId zoneId) {
-        final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM");
+        final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
         df.setTimeZone(TimeZone.getTimeZone(zoneId));
 
         return df.format(validFrom) + " - " + df.format(validTo);

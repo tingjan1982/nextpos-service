@@ -29,8 +29,14 @@ public class ClientSubscription extends MongoBaseObject {
 
     private Date submittedDate;
 
+    /**
+     * Overall start date.
+     */
     private Date planStartDate;
 
+    /**
+     * Overall plan end date.
+     */
     private Date planEndDate;
     
 
