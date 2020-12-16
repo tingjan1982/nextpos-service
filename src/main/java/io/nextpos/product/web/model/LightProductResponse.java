@@ -1,12 +1,14 @@
 package io.nextpos.product.web.model;
 
 import io.nextpos.product.data.ProductLabel;
+import io.nextpos.product.data.ProductSet;
 import io.nextpos.product.data.ProductType;
 import io.nextpos.product.data.ProductVersion;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -28,6 +30,8 @@ public class LightProductResponse {
 
     private boolean outOfStock;
 
+    private List<ChildProduct> childProducts;
+
     public LightProductResponse(ProductVersion product) {
 
         ProductLabel productLabel = product.getProduct().getProductLabel();
@@ -41,5 +45,9 @@ public class LightProductResponse {
         this.productLabelId = productLabelId;
         pinned = product.getProduct().isPinned();
         outOfStock = product.getProduct().isOutOfStock();
+
+        if (product.getProduct() instanceof ProductSet) {
+            childProducts = ChildProduct.toChildProducts(((ProductSet) product.getProduct()));
+        }
     }
 }

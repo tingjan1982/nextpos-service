@@ -301,12 +301,7 @@ public class ProductController {
                 product.isOutOfStock());
 
         if (product instanceof ProductSet) {
-            final List<ProductResponse.ChildProduct> childProducts = ((ProductSet) product).getChildProducts().stream()
-                    .map(cp -> new ProductResponse.ChildProduct(cp.getId(),
-                            cp.getDesignVersion().getProductName(),
-                            cp.getDesignVersion().getInternalProductName())).collect(Collectors.toList());
-
-            productResponse.setChildProducts(childProducts);
+            productResponse.setChildProducts(ChildProduct.toChildProducts(((ProductSet) product)));
         }
 
         return productResponse;

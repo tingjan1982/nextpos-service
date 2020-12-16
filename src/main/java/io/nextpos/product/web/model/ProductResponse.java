@@ -2,7 +2,6 @@ package io.nextpos.product.web.model;
 
 import io.nextpos.product.data.ProductType;
 import io.nextpos.product.data.Version;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
@@ -49,15 +48,4 @@ public class ProductResponse {
     private final boolean outOfStock;
 
     private List<ChildProduct> childProducts;
-
-    @Data
-    @AllArgsConstructor
-    public static class ChildProduct {
-
-        private String id;
-
-        private String name;
-
-        private String internalName;
-    }
 }
