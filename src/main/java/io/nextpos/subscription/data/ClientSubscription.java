@@ -23,6 +23,8 @@ public class ClientSubscription extends MongoBaseObject {
 
     private SubscriptionStatus status;
 
+    private boolean current;
+
     private BigDecimal planPrice;
 
     private SubscriptionPlan.PlanPeriod planPeriod;
@@ -38,6 +40,8 @@ public class ClientSubscription extends MongoBaseObject {
      * Overall plan end date.
      */
     private Date planEndDate;
+
+    private String currentInvoiceId;
     
 
     public ClientSubscription(String clientId, SubscriptionPlan subscriptionPlanSnapshot, SubscriptionPlan.PlanPeriod planPeriod) {
@@ -48,6 +52,11 @@ public class ClientSubscription extends MongoBaseObject {
 
         this.status = SubscriptionStatus.SUBMITTED;
         this.submittedDate = new Date();
+        this.current = true;
+    }
+
+    public boolean isActiveSubscription() {
+        return this.status.isActive();
     }
 
     public enum SubscriptionStatus {
@@ -55,31 +64,41 @@ public class ClientSubscription extends MongoBaseObject {
         /**
          * Subscription request is sent, not yet received payment.
          */
-        SUBMITTED,
+        SUBMITTED(false),
 
         /**
          * This plan is in use. At most one active plan for a client id.
          */
-        ACTIVE,
+        ACTIVE(true),
 
         /**
          * This plan is active but client decides to not renew in the next cycle.
          */
-        ACTIVE_LAPSING,
+        ACTIVE_LAPSING(true),
 
         /**
          * This plan is suspended for whatever reason. (e.g. non payment)
          */
-        INACTIVE,
+        INACTIVE(false),
 
         /**
-         * This plan has expired.
+         * This plan has lapsed.
          */
-        EXPIRED,
+        LAPSED(false),
 
         /**
          * This plan is cancelled immediately, either by user or admin
          */
-        CANCELLED
+        CANCELLED(false);
+
+        private boolean active;
+
+        SubscriptionStatus(boolean active) {
+            this.active = active;
+        }
+
+        public boolean isActive() {
+            return active;
+        }
     }
 }
