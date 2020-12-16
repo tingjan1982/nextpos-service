@@ -56,7 +56,7 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
     @Override
     public ClientSubscriptionInvoice createClientSubscription(Client client, String subscriptionPlanId, SubscriptionPlan.PlanPeriod planPeriod) {
 
-        final Optional<ClientSubscription> clientSubscriptionOptional = clientSubscriptionRepository.findByClientIdAndSubscriptionPlanSnapshot_IdAndPlanPeriod(client.getId(), subscriptionPlanId, planPeriod);
+        final Optional<ClientSubscription> clientSubscriptionOptional = clientSubscriptionRepository.findFirstByClientIdAndSubscriptionPlanSnapshot_IdAndPlanPeriodOrderByCreatedDateDesc(client.getId(), subscriptionPlanId, planPeriod);
 
         if (clientSubscriptionOptional.isPresent()) {
             final ClientSubscription clientSubscription = clientSubscriptionOptional.get();
