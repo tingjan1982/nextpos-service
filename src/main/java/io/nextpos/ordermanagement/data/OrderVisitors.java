@@ -1,5 +1,6 @@
 package io.nextpos.ordermanagement.data;
 
+import io.nextpos.membership.data.Membership;
 import io.nextpos.tablelayout.data.TableLayout;
 
 import java.util.List;
@@ -39,6 +40,28 @@ public class OrderVisitors {
                     final Order.TableInfo tableInfo = new Order.TableInfo(t);
                     order.getTables().add(tableInfo);
                 });
+            }
+        }
+    }
+
+    public static class UpdateMembership implements Consumer<Order> {
+
+        private final Membership membership;
+
+        private UpdateMembership(Membership membership) {
+            this.membership = membership;
+        }
+
+        public static UpdateMembership instance(Membership membership) {
+            return new UpdateMembership(membership);
+        }
+
+        @Override
+        public void accept(Order order) {
+
+            if (membership != null) {
+                order.setMembership(membership);
+                order.setLookupMembershipId(membership.getId());
             }
         }
     }

@@ -127,6 +127,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     @DBRef
     private Membership membership;
 
+    private String lookupMembershipId;
+
 
     public Order(String clientId, OrderSettings orderSettings) {
         this.id = new ObjectId().toString();
@@ -166,6 +168,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     public boolean isTablesEmpty() {
         return tables.stream().allMatch(TableInfo::isEmpty);
+    }
+
+    public void updateMembership(Membership membership) {
+        OrderVisitors.accept(this, OrderVisitors.UpdateMembership.instance(membership));
     }
 
     public void updateTables(List<TableLayout.TableDetails> tableDetails) {

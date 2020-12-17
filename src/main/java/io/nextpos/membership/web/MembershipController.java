@@ -2,6 +2,8 @@ package io.nextpos.membership.web;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.membership.data.Membership;
+import io.nextpos.membership.data.OrderTopRanking;
+import io.nextpos.membership.service.MembershipReportService;
 import io.nextpos.membership.service.MembershipService;
 import io.nextpos.membership.web.model.MembershipRequest;
 import io.nextpos.membership.web.model.MembershipResponse;
@@ -22,9 +24,12 @@ public class MembershipController {
 
     private final MembershipService membershipService;
 
+    private final MembershipReportService membershipReportService;
+
     @Autowired
-    public MembershipController(MembershipService membershipService) {
+    public MembershipController(MembershipService membershipService, MembershipReportService membershipReportService) {
         this.membershipService = membershipService;
+        this.membershipReportService = membershipReportService;
     }
 
     @PostMapping
@@ -51,7 +56,18 @@ public class MembershipController {
     @GetMapping("/{id}")
     public MembershipResponse getMembership(@PathVariable String id) {
 
-        return toResponse(membershipService.getMembershipOrThrows(id));
+        final Membership membership = membershipService.getMembershipOrThrows(id);
+        final MembershipResponse response = toResponse(membership);
+
+        final List<MembershipResponse.RecentOrderResponse> results = membershipReportService.getRecentOrders(membership, 5).stream()
+                .map(MembershipResponse.RecentOrderResponse::new)
+                .collect(Collectors.toList());
+        response.setRecentOrders(results);
+
+        final List<OrderTopRanking> topRankingOrderLineItems = membershipReportService.getTopRankingOrderLineItems(membership, 5);
+        response.setTopRankings(topRankingOrderLineItems);
+
+        return response;
     }
 
     @GetMapping

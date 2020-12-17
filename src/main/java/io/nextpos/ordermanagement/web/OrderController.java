@@ -247,7 +247,7 @@ public class OrderController {
         orderCreationFactory.updateTableInfoAndDemographicData(order, orderRequest);
 
         if (StringUtils.isNotBlank(orderRequest.getMembershipId())) {
-            membershipService.getMembership(orderRequest.getMembershipId()).ifPresent(order::setMembership);
+            membershipService.getMembership(orderRequest.getMembershipId()).ifPresent(order::updateMembership);
         }
 
         return OrderResponse.toOrderResponse(orderService.saveOrder(order));
@@ -262,7 +262,7 @@ public class OrderController {
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
         if (StringUtils.isNotBlank(request.getMembershipId())) {
-            membershipService.getMembership(request.getMembershipId()).ifPresent(order::setMembership);
+            membershipService.getMembership(request.getMembershipId()).ifPresent(order::updateMembership);
         } else {
             order.setMembership(null);
         }

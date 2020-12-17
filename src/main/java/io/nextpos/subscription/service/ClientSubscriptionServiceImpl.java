@@ -86,7 +86,6 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
 
                 case ACTIVE:
                 case ACTIVE_LAPSING:
-                    // todo: handle two active subscription scenario
                     final ClientSubscriptionInvoice clientSubscriptionInvoice = getClientSubscriptionInvoice(currentClientSubscription.getId());
                     validFrom = clientSubscriptionInvoice.getValidTo();
                     current = false;

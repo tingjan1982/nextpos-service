@@ -66,13 +66,16 @@ class ClientSubscriptionServiceImplTest {
     }
 
     @Test
-    void createAndActivateClientSubscription() {
+    void createAndActivateAndLapseClientSubscription() {
 
+        clientSubscriptionService.createClientSubscription(client, subscriptionPlan.getId(), SubscriptionPlan.PlanPeriod.MONTHLY);
         final ClientSubscriptionInvoice clientSubscriptionInvoice = clientSubscriptionService.createClientSubscription(client, subscriptionPlan.getId(), SubscriptionPlan.PlanPeriod.MONTHLY);
+
         final ClientSubscription clientSubscription = clientSubscriptionInvoice.getClientSubscription();
         assertThat(clientSubscription.getId()).isNotNull();
         assertThat(clientSubscription.getSubscriptionPlanSnapshot()).isNotNull();
         assertThat(clientSubscription.getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.SUBMITTED);
+        assertThat(clientSubscription.isCurrent()).isTrue();
         assertThat(clientSubscription.getSubmittedDate()).isNotNull();
         assertThat(clientSubscription.getPlanPrice()).isEqualByComparingTo("490");
 
@@ -89,12 +92,20 @@ class ClientSubscriptionServiceImplTest {
         });
 
         clientSubscriptionService.activateClientSubscription(clientSubscriptionInvoice);
+
+        assertThat(clientSubscriptionInvoice.getClientSubscription()).satisfies(cs -> {
+            assertThat(cs.getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.ACTIVE);
+            assertThat(cs.getPlanStartDate()).isNotNull();
+        });
+        assertThat(clientSubscriptionInvoice.getClientSubscription().getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.ACTIVE);
         assertThat(clientSubscriptionInvoice.getPaymentDate()).isNotNull();
         assertThat(clientSubscriptionInvoice.getStatus()).isEqualByComparingTo(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID);
 
-        final ClientSubscription savedClientSubscription = clientSubscriptionRepository.findById(clientSubscription.getId()).orElseThrow();
-        assertThat(savedClientSubscription.getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.ACTIVE);
-        assertThat(savedClientSubscription.getPlanStartDate()).isNotNull();
+        final ClientSubscription currentClientSubscription = clientSubscriptionService.getCurrentClientSubscription(client.getId());
+        clientSubscriptionService.lapseClientSubscription(currentClientSubscription);
+
+        assertThat(currentClientSubscription.getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.ACTIVE_LAPSING);
+        assertThat(currentClientSubscription.getPlanEndDate()).isNotNull();
 
         // check immutability of SubscriptionPlanSnapshot
         clientSubscription.getSubscriptionPlanSnapshot().updateSubscriptionLimit(1, 1, List.of("dummyFeature"));
@@ -130,19 +141,6 @@ class ClientSubscriptionServiceImplTest {
             assertThat(inv.getClientSubscription().getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.INACTIVE);
             assertThat(inv.getStatus()).isEqualByComparingTo(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.OVERDUE);
         });
-    }
-
-    @Test
-    void lapseClientSubscription() {
-
-        ClientSubscription clientSubscription = createClientSubscription();
-        createSubscriptionInvoice(clientSubscription, ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID);
-
-        clientSubscriptionService.lapseClientSubscription(clientSubscription);
-
-        assertThat(clientSubscription.getPlanEndDate()).isNotNull();
-        assertThat(clientSubscription.getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.ACTIVE_LAPSING);
-
     }
 
     private ClientSubscription createClientSubscription() {
