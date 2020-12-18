@@ -19,6 +19,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
@@ -89,23 +90,21 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<Order> getOrders(final Client client, ZonedDateRange zonedDateRange) {
-
-        LOGGER.info("Date range used to get orders: {}, {}", zonedDateRange.getFromLocalDateTime(), zonedDateRange.getToLocalDateTime());
-
-        return orderRepository.findAllByClientAndDateRange(client.getId(),
-                zonedDateRange.getFromDate(),
-                zonedDateRange.getToDate());
+        return getOrders(client, zonedDateRange, OrderCriteria.instance());
     }
 
     @Override
-    public List<Order> getOrders(final Client client, ZonedDateRange zonedDateRange, String table) {
+    public List<Order> getOrders(final Client client, ZonedDateRange zonedDateRange, OrderCriteria orderCriteria) {
 
         LOGGER.info("Date range used to get orders: {}, {}", zonedDateRange.getFromLocalDateTime(), zonedDateRange.getToLocalDateTime());
 
-        return orderRepository.findAllByClientAndDateRangeAndTableName(client.getId(),
-                zonedDateRange.getFromDate(),
-                zonedDateRange.getToDate(),
-                table);
+        final Criteria criteria = where("clientId").is(client.getId())
+                .and("createdDate").gte(zonedDateRange.getFromDate()).lt(zonedDateRange.getToDate());
+        orderCriteria.decorateCriteria(criteria);
+
+        final Query query = Query.query(criteria);
+
+        return mongoTemplate.find(query, Order.class);
     }
 
     @Override

@@ -110,11 +110,8 @@ public class OrderController {
         final ZonedDateRange zonedDateRange = resolveDateRange(client, dateParameterType, shiftId, fromDate, toDate);
         List<Order> orders;
 
-        if (StringUtils.isNotBlank(table)) {
-            orders = orderService.getOrders(client, zonedDateRange, table);
-        } else {
-            orders = orderService.getOrders(client, zonedDateRange);
-        }
+        final OrderCriteria orderCriteria = OrderCriteria.instance().tableName(table);
+        orders = orderService.getOrders(client, zonedDateRange, orderCriteria);
 
         return toOrdersByRangeResponse(orders, zonedDateRange);
     }

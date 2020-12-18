@@ -196,7 +196,7 @@ class OrderServiceImplTest {
         LOGGER.info("Orders: {}", orders);
         assertThat(orders).isNotEmpty();
 
-        assertThat(orderService.getOrders(client, zonedDateRange, "dummy-table")).isNotEmpty();
+        assertThat(orderService.getOrders(client, zonedDateRange, OrderCriteria.instance().tableName("dummy-table"))).isNotEmpty();
 
         final ZonedDateRange zonedDateRange2 = ZonedDateRangeBuilder.builder(client, DateParameterType.RANGE).dateRange(toDate, toDate.plusDays(1)).build();
 

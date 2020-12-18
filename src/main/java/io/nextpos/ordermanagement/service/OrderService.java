@@ -2,10 +2,7 @@ package io.nextpos.ordermanagement.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.datetime.data.ZonedDateRange;
-import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.OrderLineItem;
-import io.nextpos.ordermanagement.data.OrderStateChange;
-import io.nextpos.ordermanagement.data.OrderStateChangeBean;
+import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.event.LineItemStateChangeEvent;
 import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
 
@@ -23,7 +20,7 @@ public interface OrderService {
 
     List<Order> getOrders(Client client, ZonedDateRange zonedDateRange);
 
-    List<Order> getOrders(Client client, ZonedDateRange zonedDateRange, String table);
+    List<Order> getOrders(Client client, ZonedDateRange zonedDateRange, OrderCriteria orderCriteria);
 
     /**
      * todo: more unit tests
