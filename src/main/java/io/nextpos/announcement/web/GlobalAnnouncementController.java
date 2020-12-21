@@ -33,6 +33,24 @@ public class GlobalAnnouncementController {
         return new GlobalAnnouncementResponse(globalAnnouncement);
     }
 
+    @GetMapping
+    public GlobalAnnouncementsResponse getGlobalAnnouncements() {
+
+        final List<GlobalAnnouncementResponse> results = globalAnnouncementService.getGlobalAnnouncements().stream()
+                .map(GlobalAnnouncementResponse::new)
+                .collect(Collectors.toList());
+
+        return new GlobalAnnouncementsResponse(results);
+    }
+
+    @GetMapping("/{id}")
+    public GlobalAnnouncementResponse getGlobalAnnouncement(@PathVariable String id) {
+
+        final GlobalAnnouncement globalAnnouncement = globalAnnouncementService.getGlobalAnnouncement(id);
+
+        return new GlobalAnnouncementResponse(globalAnnouncement);
+    }
+
     @PostMapping("/{id}")
     public GlobalAnnouncementResponse updateGlobalAnnouncement(@PathVariable String id,
                                                                @Valid @RequestBody GlobalAnnouncementRequest request) {
@@ -60,16 +78,6 @@ public class GlobalAnnouncementController {
         globalAnnouncementService.saveGlobalAnnouncement(globalAnnouncement);
 
         return new GlobalAnnouncementResponse(globalAnnouncement);
-    }
-
-    @GetMapping
-    public GlobalAnnouncementsResponse getGlobalAnnouncements() {
-
-        final List<GlobalAnnouncementResponse> results = globalAnnouncementService.getGlobalAnnouncements().stream()
-                .map(GlobalAnnouncementResponse::new)
-                .collect(Collectors.toList());
-
-        return new GlobalAnnouncementsResponse(results);
     }
 
     @DeleteMapping("/{id}")

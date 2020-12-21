@@ -11,5 +11,5 @@ public interface ClientSubscriptionRepository extends MongoRepository<ClientSubs
 
     ClientSubscription findByClientIdAndCurrentIsTrue(String clientId);
 
-    List<ClientSubscription> findAllByCurrentIsTrue();
+    List<ClientSubscription> findAllByCurrentIsTrueOrStatus(ClientSubscription.SubscriptionStatus subscriptionStatus);
 }

@@ -185,7 +185,7 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
 
     @Override
     public List<ClientSubscription> getClientSubscriptions() {
-        return clientSubscriptionRepository.findAllByCurrentIsTrue();
+        return clientSubscriptionRepository.findAllByCurrentIsTrueOrStatus(ClientSubscription.SubscriptionStatus.SUBMITTED);
     }
 
     @Override
@@ -213,15 +213,18 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
     public ClientSubscription activateClientSubscription(ClientSubscription clientSubscription) {
 
         clientSubscription.setStatus(ClientSubscription.SubscriptionStatus.ACTIVE);
+        final Date now = new Date();
 
         if (clientSubscription.getPlanStartDate() == null) {
-            clientSubscription.setPlanStartDate(new Date());
+            clientSubscription.setPlanStartDate(now);
         }
 
         // this handles two active subscription scenarios where new one takes over previous one.
         if (!clientSubscription.isCurrent()) {
             final ClientSubscription currentClientSubscription = getCurrentClientSubscription(clientSubscription.getClientId());
             currentClientSubscription.setCurrent(false);
+            currentClientSubscription.setPlanEndDate(now);
+            currentClientSubscription.setStatus(ClientSubscription.SubscriptionStatus.LAPSED);
             saveClientSubscription(currentClientSubscription);
 
             clientSubscription.setCurrent(true);
