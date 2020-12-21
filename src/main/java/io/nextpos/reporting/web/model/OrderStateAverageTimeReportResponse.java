@@ -9,6 +9,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class OrderStateAverageTimeReportResponse {
 
+    // todo: is this used?
     private String clientId;
 
     private ZonedDateRange dateRange;

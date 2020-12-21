@@ -67,7 +67,7 @@ public class ClientSubscription extends MongoBaseObject {
         SUBMITTED(false),
 
         /**
-         * This plan is in use. At most one active plan for a client id.
+         * This plan is in use.
          */
         ACTIVE(true),
 
@@ -91,7 +91,7 @@ public class ClientSubscription extends MongoBaseObject {
          */
         CANCELLED(false);
 
-        private boolean active;
+        private final boolean active;
 
         SubscriptionStatus(boolean active) {
             this.active = active;

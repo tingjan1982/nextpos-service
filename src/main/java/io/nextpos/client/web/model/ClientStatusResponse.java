@@ -8,8 +8,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class ClientStatusResponse {
 
-    private String clientId;
-
     private SubscriptionResponse subscription;
 
     private boolean accountNotVerified;
@@ -28,6 +26,10 @@ public class ClientStatusResponse {
 
     private boolean noElectronicInvoice;
 
+    /**
+     * Use /clientSubscriptions/current to get the same information instead.
+     */
+    @Deprecated
     @Data
     @AllArgsConstructor
     public static class SubscriptionResponse {

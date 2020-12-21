@@ -91,7 +91,7 @@ class ClientSubscriptionServiceImplTest {
             assertThat(inv.getSubscriptionPeriod(client.getZoneId())).isNotBlank();
         });
 
-        clientSubscriptionService.activateClientSubscription(clientSubscriptionInvoice);
+        clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(clientSubscriptionInvoice.getInvoiceIdentifier());
 
         assertThat(clientSubscriptionInvoice.getClientSubscription()).satisfies(cs -> {
             assertThat(cs.getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.ACTIVE);

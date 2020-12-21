@@ -16,6 +16,7 @@ public class ShiftResponse {
 
     private String id;
 
+    // todo: is this used?
     private String clientId;
 
     private Shift.ShiftStatus shiftStatus;

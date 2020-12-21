@@ -86,7 +86,7 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
 
                 case ACTIVE:
                 case ACTIVE_LAPSING:
-                    final ClientSubscriptionInvoice clientSubscriptionInvoice = getClientSubscriptionInvoice(currentClientSubscription.getId());
+                    final ClientSubscriptionInvoice clientSubscriptionInvoice = getClientSubscriptionInvoice(currentClientSubscription.getCurrentInvoiceId());
                     validFrom = clientSubscriptionInvoice.getValidTo();
                     current = false;
                     break;
@@ -189,7 +189,7 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
     }
 
     @Override
-    public ClientSubscriptionInvoice activateClientSubscription(String invoiceIdentifier) {
+    public ClientSubscriptionInvoice activateClientSubscriptionByInvoiceIdentifier(String invoiceIdentifier) {
 
         final ClientSubscriptionInvoice clientSubscriptionInvoice = clientSubscriptionInvoiceRepository.findByInvoiceIdentifier(invoiceIdentifier);
 
@@ -197,32 +197,25 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
             return clientSubscriptionInvoice;
         }
 
-        return activateClientSubscription(clientSubscriptionInvoice);
+        clientSubscriptionInvoice.updatePaymentStatus(new Date());
+
+        if (!clientSubscriptionInvoice.isInvoiceSent()) {
+            clientSubscriptionOrderService.sendClientSubscriptionOrder(clientSubscriptionInvoice);
+            clientSubscriptionInvoice.setInvoiceSent(true);
+        }
+
+        activateClientSubscription(clientSubscriptionInvoice.getClientSubscription());
+
+        return clientSubscriptionInvoiceRepository.save(clientSubscriptionInvoice);
     }
 
     @Override
-    public ClientSubscriptionInvoice activateClientSubscription(ClientSubscriptionInvoice invoice) {
+    public ClientSubscription activateClientSubscription(ClientSubscription clientSubscription) {
 
-        final Date now = new Date();
-        updateClientSubscription(invoice, now);
-
-        invoice.updatePaymentStatus(now);
-
-        if (!invoice.isInvoiceSent()) {
-            clientSubscriptionOrderService.sendClientSubscriptionOrder(invoice);
-            invoice.setInvoiceSent(true);
-        }
-
-        return clientSubscriptionInvoiceRepository.save(invoice);
-    }
-
-    private void updateClientSubscription(ClientSubscriptionInvoice invoice, Date now) {
-
-        final ClientSubscription clientSubscription = invoice.getClientSubscription();
         clientSubscription.setStatus(ClientSubscription.SubscriptionStatus.ACTIVE);
 
         if (clientSubscription.getPlanStartDate() == null) {
-            clientSubscription.setPlanStartDate(now);
+            clientSubscription.setPlanStartDate(new Date());
         }
 
         // this handles two active subscription scenarios where new one takes over previous one.
@@ -234,7 +227,15 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
             clientSubscription.setCurrent(true);
         }
 
-        saveClientSubscription(clientSubscription);
+        return saveClientSubscription(clientSubscription);
+    }
+
+    @Override
+    public ClientSubscription deactivateClientSubscription(ClientSubscription clientSubscription) {
+
+        clientSubscription.setStatus(ClientSubscription.SubscriptionStatus.INACTIVE);
+
+        return saveClientSubscription(clientSubscription);
     }
 
     @Override
@@ -299,12 +300,5 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
 
                     deactivateClientSubscription(inv.getClientSubscription());
                 }).collect(Collectors.toList());
-    }
-
-    private void deactivateClientSubscription(ClientSubscription clientSubscription) {
-
-        clientSubscription.setStatus(ClientSubscription.SubscriptionStatus.INACTIVE);
-
-        this.saveClientSubscription(clientSubscription);
     }
 }

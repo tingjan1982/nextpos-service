@@ -46,8 +46,7 @@ public class ClientStatusController {
             subscriptionResponse = new ClientStatusResponse.SubscriptionResponse("FREE",
                     ClientSubscription.SubscriptionStatus.ACTIVE);
         }
-        return new ClientStatusResponse(clientStatus.getId(),
-                subscriptionResponse,
+        return new ClientStatusResponse(subscriptionResponse,
                 clientStatus.getClient().getStatus() == Client.Status.PENDING_ACTIVE,
                 clientStatus.isNoTableLayout(),
                 clientStatus.isNoTable(),

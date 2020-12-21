@@ -53,6 +53,33 @@ public class ManagerSubscriptionController {
         return new ClientSubscriptionResponse(clientSubscription);
     }
 
+    @PostMapping("/clientSubscriptions/{id}/lapse")
+    public ClientSubscriptionResponse lapseClientSubscription(@PathVariable String id) {
+
+        final ClientSubscription clientSubscription = clientSubscriptionService.getClientSubscription(id);
+        clientSubscriptionService.lapseClientSubscription(clientSubscription);
+
+        return new ClientSubscriptionResponse(clientSubscription);
+    }
+
+    @PostMapping("/clientSubscriptions/{id}/deactivate")
+    public ClientSubscriptionResponse deactivateClientSubscription(@PathVariable String id) {
+
+        final ClientSubscription clientSubscription = clientSubscriptionService.getClientSubscription(id);
+        clientSubscriptionService.deactivateClientSubscription(clientSubscription);
+
+        return new ClientSubscriptionResponse(clientSubscription);
+    }
+
+    @PostMapping("/clientSubscriptions/{id}/reactivate")
+    public ClientSubscriptionResponse reactivateClientSubscription(@PathVariable String id) {
+
+        final ClientSubscription clientSubscription = clientSubscriptionService.getClientSubscription(id);
+        clientSubscriptionService.activateClientSubscription(clientSubscription);
+
+        return new ClientSubscriptionResponse(clientSubscription);
+    }
+
     @PostMapping("/clientSubscriptions/{id}/cancel")
     public ClientSubscriptionResponse cancelClientSubscription(@PathVariable String id) {
 
@@ -87,7 +114,7 @@ public class ManagerSubscriptionController {
     @PostMapping("/invoices/{invoiceIdentifier}/activate")
     public ClientSubscriptionInvoiceResponse activateClientSubscription(@PathVariable String invoiceIdentifier) {
 
-        final ClientSubscriptionInvoice paidSubscriptionInvoice = clientSubscriptionService.activateClientSubscription(invoiceIdentifier);
+        final ClientSubscriptionInvoice paidSubscriptionInvoice = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(invoiceIdentifier);
 
         return toResponse(paidSubscriptionInvoice);
     }

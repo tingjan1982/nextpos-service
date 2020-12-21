@@ -1,5 +1,6 @@
 package io.nextpos.subscription.web.model;
 
+import io.nextpos.client.data.Client;
 import io.nextpos.subscription.data.ClientSubscription;
 import io.nextpos.subscription.data.SubscriptionPlan;
 import lombok.AllArgsConstructor;
@@ -46,5 +47,21 @@ public class ClientSubscriptionResponse {
         submittedDate = clientSubscription.getSubmittedDate();
         planStartDate = clientSubscription.getPlanStartDate();
         planEndDate = clientSubscription.getPlanEndDate();
+    }
+
+    public static ClientSubscriptionResponse defaultResponse(Client client) {
+
+        return new ClientSubscriptionResponse(null,
+                client.getId(),
+                "planName.free",
+                ClientSubscription.SubscriptionStatus.ACTIVE,
+                BigDecimal.ZERO,
+                SubscriptionPlan.PlanPeriod.MONTHLY,
+                null,
+                null,
+                null,
+                client.getClientName(),
+                client.getUsername(),
+                null);
     }
 }

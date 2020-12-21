@@ -25,9 +25,11 @@ public interface ClientSubscriptionService {
 
     List<ClientSubscription> getClientSubscriptions();
 
-    ClientSubscriptionInvoice activateClientSubscription(String invoiceIdentifier);
+    ClientSubscriptionInvoice activateClientSubscriptionByInvoiceIdentifier(String invoiceIdentifier);
 
-    ClientSubscriptionInvoice activateClientSubscription(ClientSubscriptionInvoice invoice);
+    ClientSubscription activateClientSubscription(ClientSubscription clientSubscription);
+
+    ClientSubscription deactivateClientSubscription(ClientSubscription clientSubscription);
 
     ClientSubscriptionInvoice getClientSubscriptionInvoice(String id);
 

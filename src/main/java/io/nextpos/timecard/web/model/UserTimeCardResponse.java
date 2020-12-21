@@ -12,6 +12,7 @@ public class UserTimeCardResponse {
 
     private String id;
 
+    // todo: is this used?
     private String clientId;
 
     private String username;

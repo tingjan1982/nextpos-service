@@ -23,7 +23,7 @@ public class ClientSubscriptionAccessServiceImpl implements ClientSubscriptionAc
     public ClientSubscriptionAccess getClientSubscriptionAccess(String clientId) {
         final ClientSubscription currentClientSubscription = clientSubscriptionService.getCurrentClientSubscription(clientId);
 
-        if (currentClientSubscription != null) {
+        if (currentClientSubscription != null && currentClientSubscription.isActiveSubscription()) {
             return new ClientSubscriptionAccess(currentClientSubscription);
         }
 
