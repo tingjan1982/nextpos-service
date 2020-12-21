@@ -4,8 +4,6 @@ import io.nextpos.subscription.data.ClientSubscription;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.util.List;
-
 @Data
 @AllArgsConstructor
 public class ClientStatusResponse {
@@ -37,7 +35,5 @@ public class ClientStatusResponse {
         private String planName;
 
         private ClientSubscription.SubscriptionStatus status;
-
-        private List<String> restrictedFeatures;
     }
 }

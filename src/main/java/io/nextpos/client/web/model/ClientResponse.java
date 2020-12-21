@@ -3,6 +3,7 @@ package io.nextpos.client.web.model;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientInfo;
 import io.nextpos.client.data.ClientSetting;
+import io.nextpos.subscription.data.ClientSubscriptionAccess;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -32,6 +33,9 @@ public class ClientResponse {
     private Map<ClientSetting.SettingName, ClientSettingResponse> clientSettings;
 
     private ClientInfoResponse clientInfo;
+
+    private ClientSubscriptionAccess clientSubscriptionAccess;
+
 
     public ClientResponse(Client client) {
         id = client.getId();

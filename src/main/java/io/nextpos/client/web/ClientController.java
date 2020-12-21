@@ -16,6 +16,8 @@ import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.shared.exception.ClientAccountException;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.web.ClientResolver;
+import io.nextpos.subscription.data.ClientSubscriptionAccess;
+import io.nextpos.subscription.service.ClientSubscriptionAccessService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -39,16 +41,19 @@ public class ClientController {
 
     private final ClientUserTrackingService clientUserTrackingService;
 
+    private final ClientSubscriptionAccessService clientSubscriptionAccessService;
+
     private final EncryptionService encryptionService;
 
     private final OAuth2Helper oAuth2Helper;
 
     @Autowired
-    public ClientController(final ClientService clientService, final UserRoleService userRoleService, final ClientActivationService clientActivationService, ClientUserTrackingService clientUserTrackingService, EncryptionService encryptionService, final OAuth2Helper oAuth2Helper) {
+    public ClientController(final ClientService clientService, final UserRoleService userRoleService, final ClientActivationService clientActivationService, ClientUserTrackingService clientUserTrackingService, ClientSubscriptionAccessService clientSubscriptionAccessService, EncryptionService encryptionService, final OAuth2Helper oAuth2Helper) {
         this.clientService = clientService;
         this.userRoleService = userRoleService;
         this.clientActivationService = clientActivationService;
         this.clientUserTrackingService = clientUserTrackingService;
+        this.clientSubscriptionAccessService = clientSubscriptionAccessService;
         this.encryptionService = encryptionService;
         this.oAuth2Helper = oAuth2Helper;
     }
@@ -85,7 +90,11 @@ public class ClientController {
     @GetMapping("/me")
     public ClientResponse getCurrentClient(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
-        return toClientResponse(client);
+        final ClientResponse response = toClientResponse(client);
+        final ClientSubscriptionAccess clientSubscriptionAccess = clientSubscriptionAccessService.getClientSubscriptionAccess(client.getId());
+        response.setClientSubscriptionAccess(clientSubscriptionAccess);
+
+        return response;
     }
 
     @GetMapping("/{id}")

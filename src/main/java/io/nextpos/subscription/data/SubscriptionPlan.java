@@ -43,7 +43,7 @@ public class SubscriptionPlan extends MongoBaseObject {
 
     private Map<PlanPeriod, PlanPrice> planPrices = new HashMap<>();
 
-    private SubscriptionLimit subscriptionLimit = new SubscriptionLimit();
+    private SubscriptionPlanLimit subscriptionLimit = new SubscriptionPlanLimit();
 
     public SubscriptionPlan(String countryCode, PlanGroup planGroup, String planName, CountrySettings countrySettings) {
         this.countryCode = countryCode;
@@ -83,7 +83,7 @@ public class SubscriptionPlan extends MongoBaseObject {
     }
 
     @Data
-    public static class SubscriptionLimit {
+    public static class SubscriptionPlanLimit {
 
         /**
          * 0 indicate unlimited.
