@@ -50,9 +50,19 @@ public class SplitOrderController {
     }
 
     @PostMapping("/headcount/{sourceOrderId}")
-    public List<SplitAmountDetails> splitByHeadCount(@PathVariable String sourceOrderId,
+    public SplitByHeadCountResponse splitByHeadCount(@PathVariable String sourceOrderId,
                                                      @Valid @RequestBody SplitOrderByHeadCountRequest request) {
 
-        return splitOrderService.splitByHeadCount(sourceOrderId, request.getHeadCount());
+        final List<SplitAmountDetails> splitAmounts = splitOrderService.splitByHeadCount(sourceOrderId, request.getHeadCount());
+
+        return new SplitByHeadCountResponse(splitAmounts);
+    }
+
+    @GetMapping("/headcount/{sourceOrderId}")
+    public SplitByHeadCountResponse getSplitByHeadCount(@PathVariable String sourceOrderId) {
+
+        final List<SplitAmountDetails> splitAmounts = splitOrderService.getSplitByHeadCount(sourceOrderId);
+
+        return new SplitByHeadCountResponse(splitAmounts);
     }
 }

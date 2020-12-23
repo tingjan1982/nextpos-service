@@ -117,18 +117,17 @@ public class SplitOrderServiceImpl implements SplitOrderService {
         final BigDecimal dividend = sourceOrder.getOrderTotal().subtract(settledTotal);
 
         if (dividend.compareTo(BigDecimal.ZERO) > 0) {
-            final BigDecimal divisor = BigDecimal.valueOf(headcount);
-
-            final BigDecimal[] result = dividend.divideAndRemainder(divisor);
-            final BigDecimal splitAmount = result[0];
-            final BigDecimal remainder = result[1];
-
             int splitHeadCount = headcount;
 
             final Integer savedHeadCount = (Integer) sourceOrder.getMetadata(Order.HEAD_COUNT);
             if (savedHeadCount != null && savedHeadCount.equals(headcount)) {
                 splitHeadCount -= settledCount.intValue();
             }
+
+            final BigDecimal divisor = BigDecimal.valueOf(splitHeadCount);
+            final BigDecimal[] result = dividend.divideAndRemainder(divisor);
+            final BigDecimal splitAmount = result[0];
+            final BigDecimal remainder = result[1];
 
             for (int i = 0; i < splitHeadCount - 1; i++) {
                 splitAmountDetails.add(new SplitAmountDetails(splitAmount, false));
@@ -143,6 +142,19 @@ public class SplitOrderServiceImpl implements SplitOrderService {
         }
 
         return splitAmountDetails;
+    }
+
+    @Override
+    public List<SplitAmountDetails> getSplitByHeadCount(String sourceOrderId) {
+
+        final Order sourceOrder = orderService.getOrder(sourceOrderId);
+        Integer headCount;
+        
+        if ((headCount = (Integer) sourceOrder.getMetadata(Order.HEAD_COUNT)) == null) {
+            return List.of();
+        }
+
+        return this.splitByHeadCount(sourceOrderId, headCount);
     }
 
 }

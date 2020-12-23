@@ -14,4 +14,6 @@ public interface SplitOrderService {
     Order revertSplitOrderLineItems(String splitOrderId, String sourceOrderId);
 
     List<SplitAmountDetails> splitByHeadCount(String sourceOrderId, Integer headcount);
+
+    List<SplitAmountDetails> getSplitByHeadCount(String sourceOrderId);
 }
