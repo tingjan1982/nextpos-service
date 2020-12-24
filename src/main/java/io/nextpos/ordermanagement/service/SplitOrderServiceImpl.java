@@ -118,11 +118,10 @@ public class SplitOrderServiceImpl implements SplitOrderService {
         final BigDecimal dividend = sourceOrder.getOrderTotal().subtract(settledTotal);
 
         if (dividend.compareTo(BigDecimal.ZERO) > 0) {
-            int splitHeadCount = headcount;
+            int splitHeadCount = headcount - settledCount.intValue();
 
-            final Integer savedHeadCount = (Integer) sourceOrder.getMetadata(Order.HEAD_COUNT);
-            if (savedHeadCount != null && savedHeadCount.equals(headcount)) {
-                splitHeadCount -= settledCount.intValue();
+            if (splitHeadCount <= 0) {
+                throw new BusinessLogicException("message.incorrectHeadCount", "Split head count must include the paid split order.");
             }
 
             final BigDecimal divisor = BigDecimal.valueOf(splitHeadCount);
@@ -170,6 +169,7 @@ public class SplitOrderServiceImpl implements SplitOrderService {
             }
 
             sourceOrder.removeMetadata(Order.HEAD_COUNT);
+            orderService.saveOrder(sourceOrder);
         }
     }
 

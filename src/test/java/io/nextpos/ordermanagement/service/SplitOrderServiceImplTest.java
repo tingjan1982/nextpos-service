@@ -8,6 +8,7 @@ import io.nextpos.ordermanagement.data.SplitAmountDetails;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.service.OrderTransactionService;
 import io.nextpos.shared.DummyObjects;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -120,34 +121,34 @@ class SplitOrderServiceImplTest {
         sourceOrder.setState(Order.OrderState.DELIVERED);
         orderService.saveOrder(sourceOrder);
 
-        LOGGER.info("{}", sourceOrder.getOrderTotal());
-
         final List<SplitAmountDetails> splitAmountDetails = splitOrderService.splitByHeadCount(sourceOrder.getId(), 3);
-
-        LOGGER.info("{}", splitAmountDetails);
 
         assertThat(splitAmountDetails).hasSize(3);
         final BigDecimal splitAmountSum = splitAmountDetails.stream().map(SplitAmountDetails::getSplitAmount).reduce(BigDecimal.ZERO, BigDecimal::add);
         assertThat(splitAmountSum).isEqualByComparingTo(sourceOrder.getOrderTotal());
 
+        splitOrderService.removeSplitByHeadCount(sourceOrder.getId());
+        assertThat(splitOrderService.getSplitByHeadCount(sourceOrder.getId())).isEmpty();
+        splitOrderService.splitByHeadCount(sourceOrder.getId(), 3);
+
         createOrderTransaction(sourceOrder, new BigDecimal("115"));
 
-        final List<SplitAmountDetails> updatedSplitAmountDetails = splitOrderService.splitByHeadCount(sourceOrder.getId(), 3);
-
-        LOGGER.info("{}", updatedSplitAmountDetails);
+        final List<SplitAmountDetails> updatedSplitAmountDetails = splitOrderService.getSplitByHeadCount(sourceOrder.getId());
 
         assertThat(updatedSplitAmountDetails).hasSize(3);
         assertThat(updatedSplitAmountDetails).anySatisfy(d -> assertThat(d.isPaid()).isTrue());
 
-        final List<SplitAmountDetails> changedSplitAmountDetails = splitOrderService.splitByHeadCount(sourceOrder.getId(), 1);
+        assertThatThrownBy(() -> splitOrderService.removeSplitByHeadCount(sourceOrder.getId())).isInstanceOf(BusinessLogicException.class);
+
+        final List<SplitAmountDetails> changedSplitAmountDetails = splitOrderService.splitByHeadCount(sourceOrder.getId(), 2);
+
         assertThat(changedSplitAmountDetails).hasSize(2);
 
-        LOGGER.info("{}", changedSplitAmountDetails);
+        assertThatThrownBy(() -> splitOrderService.splitByHeadCount(sourceOrder.getId(), 1)).isInstanceOf(BusinessLogicException.class);
 
         createOrderTransaction(sourceOrder, new BigDecimal("231.50"));
 
-        assertThat(splitOrderService.splitByHeadCount(sourceOrder.getId(), 1)).hasSize(2);
-        assertThat(splitOrderService.splitByHeadCount(sourceOrder.getId(), 1)).allSatisfy(d -> assertThat(d.isPaid()).isTrue());
+        assertThat(splitOrderService.splitByHeadCount(sourceOrder.getId(), 2)).allSatisfy(d -> assertThat(d.isPaid()).isTrue());
     }
 
     private void createOrderTransaction(Order sourceOrder, BigDecimal settleAmount) {
