@@ -16,4 +16,6 @@ public interface SplitOrderService {
     List<SplitAmountDetails> splitByHeadCount(String sourceOrderId, Integer headcount);
 
     List<SplitAmountDetails> getSplitByHeadCount(String sourceOrderId);
+
+    void removeSplitByHeadCount(String sourceOrderId);
 }

@@ -65,4 +65,10 @@ public class SplitOrderController {
 
         return new SplitByHeadCountResponse(splitAmounts);
     }
+
+    @DeleteMapping("/headcount/{sourceOrderId}")
+    public void removeSplitByHeadCount(@PathVariable String sourceOrderId) {
+
+        splitOrderService.removeSplitByHeadCount(sourceOrderId);
+    }
 }

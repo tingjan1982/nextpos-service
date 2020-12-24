@@ -4,6 +4,7 @@ import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.SplitAmountDetails;
 import io.nextpos.ordertransaction.service.OrderTransactionService;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.service.annotation.MongoTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -155,6 +156,21 @@ public class SplitOrderServiceImpl implements SplitOrderService {
         }
 
         return this.splitByHeadCount(sourceOrderId, headCount);
+    }
+
+    @Override
+    public void removeSplitByHeadCount(String sourceOrderId) {
+
+        final Order sourceOrder = orderService.getOrder(sourceOrderId);
+        final Object headCount = sourceOrder.getMetadata(Order.HEAD_COUNT);
+
+        if (headCount != null) {
+            if (!orderTransactionService.getOrderTransactionByOrderId(sourceOrder.getId()).isEmpty()) {
+                throw new BusinessLogicException("message.cannotRemoveSplitByHeadCount", "The split order by headcount has at least one OrderTransaction, cannot remove.");
+            }
+
+            sourceOrder.removeMetadata(Order.HEAD_COUNT);
+        }
     }
 
 }

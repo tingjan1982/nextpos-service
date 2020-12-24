@@ -438,6 +438,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         metadata.put(key, value);
     }
 
+    public void removeMetadata(String key) {
+        metadata.remove(key);
+    }
+
     public Object getMetadata(final String key) {
         return metadata.get(key);
     }
