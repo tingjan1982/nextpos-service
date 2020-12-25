@@ -7,6 +7,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.clienttracker.data.ClientUsageTrack;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRange;
+import io.nextpos.inventorymanagement.data.Inventory;
 import io.nextpos.linkedaccount.data.LinkedClientAccount;
 import io.nextpos.membership.data.Membership;
 import io.nextpos.merchandising.data.Offer;
@@ -80,7 +81,8 @@ import java.util.List;
         InvoiceNumberRange.class,
         SubscriptionPlan.class,
         CalendarEvent.class,
-        RosterPlan.class})
+        RosterPlan.class,
+        Inventory.class})
 @EnableMongoAuditing
 @EnableRetry
 public class DataSourceConfig {

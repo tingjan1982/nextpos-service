@@ -1,5 +1,6 @@
 package io.nextpos.ordermanagement.event;
 
+import io.nextpos.ordermanagement.boundedcontext.InventoryTransactionContextualService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderSet;
 import io.nextpos.ordermanagement.data.OrderStateChangeBean;
@@ -19,11 +20,14 @@ public class PostOrderStateChangeListener {
 
     private final PrinterInstructionService printerInstructionService;
 
+    private final InventoryTransactionContextualService inventoryTransactionContextualService;
+
     private final OrderSetService orderSetService;
 
     @Autowired
-    public PostOrderStateChangeListener(final PrinterInstructionService printerInstructionService, OrderSetService orderSetService) {
+    public PostOrderStateChangeListener(final PrinterInstructionService printerInstructionService, InventoryTransactionContextualService inventoryTransactionContextualService, OrderSetService orderSetService) {
         this.printerInstructionService = printerInstructionService;
+        this.inventoryTransactionContextualService = inventoryTransactionContextualService;
         this.orderSetService = orderSetService;
     }
 
@@ -41,6 +45,10 @@ public class PostOrderStateChangeListener {
 
             final PrinterInstructions printInstructions = printerInstructionService.createOrderToWorkingArea(order);
             orderStateChangeBean.setPrinterInstructions(printInstructions);
+        }
+
+        if (order.getState() == Order.OrderState.SETTLED) {
+            inventoryTransactionContextualService.createAndProcessInventoryTransaction(order);
         }
 
         handleOrderSetStateChange(order);
