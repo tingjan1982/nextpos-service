@@ -345,12 +345,6 @@ public class ClientController {
                                                        @Valid @RequestBody UpdateClientUserPasswordRequest request) {
 
         final ClientUser currentUser = oAuth2Helper.resolveCurrentClientUser(client);
-//        currentUser.setPassword(request.getPassword());
-//        final ClientUser updatedClientUser = clientService.saveClientUser(currentUser);
-//
-//        if (currentUser.isDefaultUser()) {
-//            clientService.updateDefaultClientUserPassword(client, request.getPassword());
-//        }
 
         final ClientUser updatedClientUser = clientService.updateClientUserPassword(client, currentUser, request.getPassword());
 

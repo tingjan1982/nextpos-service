@@ -48,13 +48,27 @@ public class ZonedDateRange {
 
     /**
      * Bucket range requires the range to be m .. n + 1 (e.g. range of 3 => 1, 2, 3, 4)
-     * @return
      */
     public IntStream bucketDateRange() {
-        return IntStream.rangeClosed(zonedFromDate.getDayOfYear(), zonedToDate.getDayOfYear() + 1);
+
+        final int fromDayOfYear = zonedFromDate.getDayOfYear();
+        final int toDayOfYear = zonedToDate.getDayOfYear();
+
+        if (fromDayOfYear > toDayOfYear) {
+            return IntStream.concat(IntStream.rangeClosed(1, toDayOfYear), IntStream.rangeClosed(fromDayOfYear, 366));
+        }
+
+        return IntStream.rangeClosed(fromDayOfYear, toDayOfYear + 1);
     }
 
     public IntStream dateRange() {
-        return IntStream.rangeClosed(zonedFromDate.getDayOfYear(), zonedToDate.getDayOfYear());
+        final int fromDayOfYear = zonedFromDate.getDayOfYear();
+        final int toDayOfYear = zonedToDate.getDayOfYear();
+
+        if (fromDayOfYear > toDayOfYear) {
+            return IntStream.concat(IntStream.rangeClosed(1, toDayOfYear), IntStream.rangeClosed(fromDayOfYear, 365));
+        }
+
+        return IntStream.rangeClosed(fromDayOfYear, toDayOfYear);
     }
 }

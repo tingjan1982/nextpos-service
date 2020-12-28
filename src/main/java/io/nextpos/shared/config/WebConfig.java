@@ -44,9 +44,9 @@ public class WebConfig implements WebMvcConfigurer {
                 "/productoptions/*",
                 "/labels/*",
                 "/clients/me",
-                "/clients/me/settings/*",
                 "/clients/me/users/*",
                 "/clients/me/*",
+                "/clientSettings/*",
                 "/clientstatus/*",
                 "/orders/*",
                 "/ordersets/*",
@@ -67,7 +67,8 @@ public class WebConfig implements WebMvcConfigurer {
                 "/clientSubscriptions/*",
                 "/memberships/*",
                 "/rosterPlans/*",
-                "/linkedClientAccounts/*");
+                "/linkedClientAccounts/*",
+                "/inventories/*");
 
         return registrationBean;
     }

@@ -302,6 +302,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/clients/default", "/account/**", "/error", "/favicon.ico", "/ws/**").permitAll();
 
             this.authorizeClientRequests(http);
+            this.authorizeClientSettingRequests(http);
+            this.authorizeClientStatusRequests(http);
+            this.authorizeUserRoleRequests(http);
+            this.authorizeLinkedClientAccountRequests(http);
             this.authorizeTimeCardRequests(http);
             this.authorizeTablesAndWorkingAreaRequests(http);
             this.authorizeProductRequests(http);
@@ -309,6 +313,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             this.authorizeAnnouncementRequests(http);
             this.authorizeReportingRequests(http);
             this.authorizeInvoiceNumberRequests(http);
+            this.authorizeMembershipRequests(http);
+            this.authorizeClientSubscriptionRequests(http);
+            this.authorizeRosterPlanRequests(http);
 
             http.authorizeRequests().anyRequest().authenticated();
 
@@ -326,7 +333,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers(POST, "/clients").permitAll()
                     .antMatchers(GET, "/clients/default").permitAll()
                     .antMatchers(GET, "/clients/me", "/clients/*").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/clients/me").hasAuthority(Role.ADMIN_ROLE)
+                    .antMatchers(POST, "/clients/me", "/clients/me/*").hasAuthority(Role.ADMIN_ROLE)
                     .antMatchers(DELETE, "/clients/me").hasAuthority(Role.ADMIN_ROLE)
                     .antMatchers(GET, "/clients/me/users").hasAuthority(Role.USER_ROLE)
                     .antMatchers(GET, "/clients/me/users/*").hasAuthority(Role.USER_ROLE)
@@ -334,6 +341,32 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers(PATCH, "/clients/me/users/currentUser/password").hasAuthority(Role.USER_ROLE)
                     .antMatchers(PATCH, "/clients/me/users/**").hasAuthority(Role.OWNER_ROLE)
                     .antMatchers(DELETE, "/clients/me/users/*").hasAuthority(Role.OWNER_ROLE);
+        }
+
+        private void authorizeClientStatusRequests(HttpSecurity http) throws Exception {
+
+            http.authorizeRequests()
+                    .antMatchers("/clientstatus/**").hasAuthority(Role.USER_ROLE);
+        }
+
+        private void authorizeClientSettingRequests(HttpSecurity http) throws Exception {
+
+            http.authorizeRequests()
+                    .antMatchers("/clientSettings/**").hasAuthority(Role.OWNER_ROLE);
+        }
+
+        private void authorizeUserRoleRequests(HttpSecurity http) throws Exception {
+
+            http.authorizeRequests()
+                    .antMatchers(GET, "/roles/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(POST, "/roles/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(DELETE, "/roles/**").hasAuthority(Role.MANAGER_ROLE);
+        }
+
+        private void authorizeLinkedClientAccountRequests(HttpSecurity http) throws Exception {
+
+            http.authorizeRequests()
+                    .antMatchers(GET, "/linkedClientAccounts/**").hasAuthority(Role.OWNER_ROLE);
         }
 
         private void authorizeTimeCardRequests(final HttpSecurity http) throws Exception {
@@ -350,8 +383,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers(DELETE, "/tablelayouts/**").hasAuthority(Role.MANAGER_ROLE)
                     .antMatchers(GET, "/workingareas/**").hasAuthority(Role.USER_ROLE)
                     .antMatchers(POST, "/workingareas/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(DELETE, "/workingareas/**").hasAuthority(Role.MANAGER_ROLE)
                     .antMatchers(GET, "/printers/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/printers/**").hasAuthority(Role.MANAGER_ROLE);
+                    .antMatchers(POST, "/printers/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(DELETE, "/printers/**").hasAuthority(Role.MANAGER_ROLE);
         }
 
         private void authorizeProductRequests(final HttpSecurity http) throws Exception {
@@ -365,10 +400,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers(DELETE, "/productoptions/**").hasAuthority(Role.MANAGER_ROLE)
                     .antMatchers(GET, "/labels/**").hasAuthority(Role.USER_ROLE)
                     .antMatchers(POST, "/labels/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(DELETE, "/labels/**").hasAuthority(Role.MANAGER_ROLE)
                     .antMatchers("/searches/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(GET,"/offers/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST,"/offers/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(DELETE,"/offers/**").hasAuthority(Role.MANAGER_ROLE);
+                    .antMatchers(GET, "/offers/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers(POST, "/offers/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(DELETE, "/offers/**").hasAuthority(Role.MANAGER_ROLE);
         }
 
         private void authorizeShiftAndOrderRequests(final HttpSecurity http) throws Exception {
@@ -378,14 +414,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/shifts/**").hasAuthority(Role.USER_ROLE)
                     .antMatchers(GET, "/orders/**").hasAuthority(Role.USER_ROLE)
                     .regexMatchers(POST, "\\/orders(\\/?((?!applyDiscount).)+)").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(DELETE, "/orders/**").hasAuthority(Role.MANAGER_ROLE);
+                    .antMatchers(DELETE, "/orders/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers("/ordersets/**").hasAuthority(Role.USER_ROLE)
+                    .antMatchers("/splitOrders/**").hasAuthority(Role.USER_ROLE);
         }
 
         private void authorizeAnnouncementRequests(final HttpSecurity http) throws Exception {
 
             http.authorizeRequests()
                     .antMatchers(GET, "/announcements/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/announcements/**").hasAuthority(Role.MANAGER_ROLE);
+                    .antMatchers(POST, "/announcements/**").hasAuthority(Role.MANAGER_ROLE)
+                    .antMatchers(DELETE, "/announcements/**").hasAuthority(Role.MANAGER_ROLE);
         }
 
         private void authorizeReportingRequests(final HttpSecurity http) throws Exception {
@@ -397,7 +436,32 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         private void authorizeInvoiceNumberRequests(HttpSecurity http) throws Exception {
 
             http.authorizeRequests()
+                    .antMatchers("/einvoices/**").hasAuthority(Role.USER_ROLE)
                     .antMatchers("/invoiceNumbers/**").hasAuthority(Role.OWNER_ROLE);
+        }
+
+        private void authorizeMembershipRequests(HttpSecurity http) throws Exception {
+
+            http.authorizeRequests()
+                    .antMatchers("/memberships/**").hasAuthority(Role.USER_ROLE);
+        }
+
+        private void authorizeClientSubscriptionRequests(HttpSecurity http) throws Exception {
+
+            http.authorizeRequests()
+                    .antMatchers("/clientSubscriptions/**").hasAuthority(Role.USER_ROLE);
+        }
+
+        private void authorizeRosterPlanRequests(HttpSecurity http) throws Exception {
+
+            http.authorizeRequests()
+                    .antMatchers("/rosterPlans/**").hasAuthority(Role.USER_ROLE);
+        }
+
+        private void authorizeInventoryRequests(HttpSecurity http) throws Exception {
+
+            http.authorizeRequests()
+                    .antMatchers("/inventories/**").hasAuthority(Role.MANAGER_ROLE);
         }
     }
 

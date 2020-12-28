@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/clients/me/settings")
+@RequestMapping("/clientSettings")
 public class ClientSettingsController {
 
     private final ClientSettingsService clientSettingsService;

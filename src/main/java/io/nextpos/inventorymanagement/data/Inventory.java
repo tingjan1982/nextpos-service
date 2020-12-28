@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -38,12 +39,13 @@ public class Inventory extends MongoBaseObject {
 
     private Map<UnitOfMeasure, InventoryQuantity> inventoryQuantities = new HashMap<>();
 
-    private BigDecimal totalQuantity;
-
     private BigDecimal minimumStockLevel;
 
     @DBRef
     private BillOfMaterial billOfMaterial;
+
+    @Version
+    private Long version;
 
     public Inventory(String clientId, String sku, InventoryType inventoryType) {
         this.clientId = clientId;

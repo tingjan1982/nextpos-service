@@ -5,34 +5,58 @@ import io.nextpos.inventorymanagement.data.Inventory;
 import io.nextpos.inventorymanagement.data.InventoryOrder;
 import io.nextpos.inventorymanagement.data.InventoryTransaction;
 import io.nextpos.inventorymanagement.data.Supplier;
-import io.nextpos.shared.service.annotation.ChainedTransaction;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-@ChainedTransaction
+//@ChainedTransaction
 class InventoryServiceImplTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(InventoryServiceImplTest.class);
 
     private final InventoryService inventoryService;
 
     private final Client client;
 
+    private final RetryTemplate retryTemplate;
+
+    private Inventory stock;
+
     @Autowired
     InventoryServiceImplTest(InventoryService inventoryService, Client client) {
         this.inventoryService = inventoryService;
         this.client = client;
+
+        this.retryTemplate = new RetryTemplate();
+        this.retryTemplate.setRetryPolicy(new SimpleRetryPolicy());
+        FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
+        fixedBackOffPolicy.setBackOffPeriod(2000L);
+        retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
+    }
+
+    @BeforeEach
+    void prepare() {
+        Inventory.InventoryQuantity inventoryQuantity = Inventory.InventoryQuantity.each(10);
+        stock = inventoryService.createStock(client.getId(), "2020blue", inventoryQuantity);
     }
 
     @Test
     void inventoryLifecycle() {
-
-        Inventory.InventoryQuantity inventoryQuantity = Inventory.InventoryQuantity.each(10);
-        final Inventory stock = inventoryService.createStock(client.getId(), "2020blue", inventoryQuantity);
 
         assertThat(inventoryService.getInventory(stock.getId())).satisfies(i -> {
             assertThat(i.getId()).isNotNull();
@@ -87,6 +111,28 @@ class InventoryServiceImplTest {
             assertThat(i.getInventoryQuantity(Inventory.UnitOfMeasure.EACH).getQuantity()).isEqualByComparingTo("13");
             assertThat(i.deduceTotalBaseQuantity()).isEqualTo(13);
         });
+    }
 
+    @Test
+    void updateInventoryConcurrently() throws Exception {
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        Callable<String> task = () -> {
+            retryTemplate.execute(r -> {
+                final Inventory inventory = inventoryService.getInventory(stock.getId());
+                inventory.updateInventoryQuantity(Inventory.InventoryQuantity.each(1, true));
+                return inventoryService.saveInventory(inventory);
+            });
+
+            return "";
+        };
+
+        executor.invokeAll(List.of(task, task, task));
+
+        assertThat(inventoryService.getInventory(stock.getId())).satisfies(i -> {
+            LOGGER.info("{}", i);
+            assertThat(i.getInventoryQuantity(Inventory.UnitOfMeasure.EACH).getQuantity()).isEqualByComparingTo("7");
+        });
     }
 }
