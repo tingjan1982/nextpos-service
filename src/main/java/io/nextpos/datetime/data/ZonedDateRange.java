@@ -4,9 +4,11 @@ import io.nextpos.reporting.data.DateParameter;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.stream.IntStream;
 
@@ -55,7 +57,8 @@ public class ZonedDateRange {
         final int toDayOfYear = zonedToDate.getDayOfYear();
 
         if (fromDayOfYear > toDayOfYear) {
-            return IntStream.concat(IntStream.rangeClosed(1, toDayOfYear), IntStream.rangeClosed(fromDayOfYear, 366));
+            final int lastDayOfYear = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth()).getDayOfYear();
+            return IntStream.concat(IntStream.rangeClosed(1, toDayOfYear), IntStream.rangeClosed(fromDayOfYear, lastDayOfYear + 1));
         }
 
         return IntStream.rangeClosed(fromDayOfYear, toDayOfYear + 1);
@@ -66,7 +69,8 @@ public class ZonedDateRange {
         final int toDayOfYear = zonedToDate.getDayOfYear();
 
         if (fromDayOfYear > toDayOfYear) {
-            return IntStream.concat(IntStream.rangeClosed(1, toDayOfYear), IntStream.rangeClosed(fromDayOfYear, 365));
+            final int lastDayOfYear = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth()).getDayOfYear();
+            return IntStream.concat(IntStream.rangeClosed(1, toDayOfYear), IntStream.rangeClosed(fromDayOfYear, lastDayOfYear));
         }
 
         return IntStream.rangeClosed(fromDayOfYear, toDayOfYear);
