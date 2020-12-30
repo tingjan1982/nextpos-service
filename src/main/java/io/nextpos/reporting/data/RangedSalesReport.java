@@ -1,6 +1,7 @@
 package io.nextpos.reporting.data;
 
 import io.nextpos.datetime.data.ZonedDateRange;
+import io.nextpos.ordertransaction.data.PaymentMethodTotal;
 import lombok.Data;
 import org.springframework.util.CollectionUtils;
 
@@ -15,6 +16,8 @@ public class RangedSalesReport {
     private ZonedDateRange dateRange;
 
     private List<TotalSales> totalSales = new ArrayList<>();
+
+    private List<PaymentMethodTotal> salesByPaymentMethod = new ArrayList<>();
 
     private List<SalesByRange> salesByRange = new ArrayList<>();
 

@@ -60,6 +60,11 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    public void deleteInventory(Inventory inventory) {
+        inventoryRepository.delete(inventory);
+    }
+
+    @Override
     public Supplier saveSupplier(Supplier supplier) {
         return supplierRepository.save(supplier);
     }

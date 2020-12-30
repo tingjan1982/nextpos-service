@@ -17,6 +17,8 @@ public interface InventoryService {
 
     Optional<Inventory> getInventoryBySku(String clientId, String sku);
 
+    void deleteInventory(Inventory inventory);
+
     Supplier saveSupplier(Supplier supplier);
 
     Supplier getSupplier(String id);

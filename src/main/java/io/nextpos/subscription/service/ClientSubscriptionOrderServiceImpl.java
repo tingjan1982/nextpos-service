@@ -44,7 +44,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.bson.types.Binary;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
@@ -54,7 +53,6 @@ import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 @Service
 @ChainedTransaction
@@ -111,21 +109,10 @@ public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrd
     }
 
     private OrderTransaction createOrderTransaction(Order order) {
-
-        List<OrderTransaction.BillLineItem> billLIneItems = order.getOrderLineItems().stream()
-                .map(li -> new OrderTransaction.BillLineItem(li.getProductSnapshot().getName(),
-                        li.getQuantity(),
-                        li.getProductPriceWithOptions().getAmountWithTax(),
-                        li.getDeducedSubTotal().getAmountWithTax()))
-                .collect(Collectors.toList());
-
-        return new OrderTransaction(order.getId(),
-                order.getClientId(),
-                order.getOrderTotal(),
-                order.getOrderTotal(),
+        return new OrderTransaction(order,
                 OrderTransaction.PaymentMethod.CARD,
                 OrderTransaction.BillType.SINGLE,
-                billLIneItems);
+                null);
     }
 
     private CompletableFuture<NotificationDetails> sendNotification(ClientSubscriptionInvoice subscriptionInvoice, OrderTransaction orderTransaction) {

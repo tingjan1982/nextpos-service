@@ -1,6 +1,7 @@
 package io.nextpos.ordertransaction.data;
 
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
+import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.shared.model.MongoBaseObject;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -8,7 +9,11 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Document
 @Data
@@ -23,7 +28,7 @@ public class OrderTransaction extends MongoBaseObject {
 
     private String clientId;
 
-    private OrderTransactionStatus status;
+    private OrderTransactionStatus status = OrderTransactionStatus.CREATED;
 
     private BigDecimal orderTotal;
 
@@ -45,13 +50,61 @@ public class OrderTransaction extends MongoBaseObject {
 
         this.orderId = orderId;
         this.clientId = clientId;
-        this.status = OrderTransactionStatus.CREATED;
         this.orderTotal = orderTotal;
         this.settleAmount = settleAmount;
         this.paymentDetails = new PaymentDetails(paymentMethod);
         this.invoiceDetails = new InvoiceDetails();
-        this.billDetails = new BillDetails(billType);
-        this.billDetails.getBillLineItems().addAll(billLineItems);
+        this.billDetails = new BillDetails(billType, billLineItems);
+    }
+
+    public OrderTransaction(Order order, PaymentMethod paymentMethod, BillType billType, BigDecimal settleAmount) {
+
+        this.orderId = order.getId();
+        this.clientId = order.getClientId();
+        this.orderTotal = order.getOrderTotal();
+        this.settleAmount = deduceSettleAmount(order, billType, settleAmount);
+        this.paymentDetails = new PaymentDetails(paymentMethod);
+        this.invoiceDetails = new InvoiceDetails();
+        this.billDetails = new BillDetails(billType, createBillLineItems(order, billType, settleAmount));
+    }
+
+    private BigDecimal deduceSettleAmount(Order order, BillType billType, BigDecimal settleAmount) {
+
+        if (billType == BillType.SINGLE) {
+            return order.getOrderTotal();
+        } else {
+            return settleAmount;
+        }
+    }
+
+    private List<BillLineItem> createBillLineItems(Order order, BillType billType, BigDecimal settleAmount) {
+
+        switch (billType) {
+            case SINGLE:
+                final List<OrderTransaction.BillLineItem> billLIneItems = order.getOrderLineItems().stream()
+                        .map(li -> new OrderTransaction.BillLineItem(li.getProductSnapshot().getName(),
+                                li.getQuantity(),
+                                li.getProductPriceWithOptions().getAmountWithTax(),
+                                li.getDeducedSubTotal().getAmountWithTax()))
+                        .collect(Collectors.toList());
+
+                if (order.getDiscount().compareTo(BigDecimal.ZERO) > 0) {
+                    final BigDecimal discount = order.deduceRoundingAmount(() -> order.getDiscount().negate());
+                    billLIneItems.add(new OrderTransaction.BillLineItem("discount", 1, discount, discount));
+                }
+
+                if (order.getServiceCharge().compareTo(BigDecimal.ZERO) > 0) {
+                    final BigDecimal serviceCharge = order.deduceRoundingAmount(order::getServiceCharge);
+                    billLIneItems.add(new OrderTransaction.BillLineItem("serviceCharge", 1, serviceCharge, serviceCharge));
+                }
+
+                return billLIneItems;
+
+            case SPLIT:
+                return List.of(new OrderTransaction.BillLineItem("split", 1, settleAmount, settleAmount));
+            default:
+                return List.of();
+        }
     }
 
     public PaymentMethod getPaymentMethod() {
@@ -157,15 +210,12 @@ public class OrderTransaction extends MongoBaseObject {
     }
 
     @Data
+    @AllArgsConstructor
     public static class BillDetails {
 
         private BillType billType;
 
-        private List<BillLineItem> billLineItems = new ArrayList<>();
-
-        BillDetails(final BillType billType) {
-            this.billType = billType;
-        }
+        private List<BillLineItem> billLineItems;
     }
 
     @Data

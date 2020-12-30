@@ -18,8 +18,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/orders/transactions")
@@ -90,18 +88,10 @@ public class OrderTransactionController {
 
     private OrderTransaction fromOrderTransactionRequest(final Order order, final OrderTransactionRequest orderTransactionRequest) {
 
-        final List<OrderTransaction.BillLineItem> billLineItems = populateBillLineItems(order, orderTransactionRequest);
-        final BigDecimal settleAmount = billLineItems.stream()
-                .map(OrderTransaction.BillLineItem::getSubTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        final OrderTransaction orderTransaction = new OrderTransaction(order.getId(),
-                order.getClientId(),
-                order.getOrderTotal(),
-                settleAmount,
+         final OrderTransaction orderTransaction = new OrderTransaction(order,
                 OrderTransaction.PaymentMethod.valueOf(orderTransactionRequest.getPaymentMethod()),
                 OrderTransaction.BillType.valueOf(orderTransactionRequest.getBillType()),
-                billLineItems);
+                orderTransactionRequest.getSettleAmount());
 
         orderTransaction.updateInvoiceDetails(orderTransactionRequest.getTaxIdNumber(),
                 orderTransactionRequest.getCarrierType(),
@@ -134,38 +124,6 @@ public class OrderTransactionController {
                 final BigDecimal cashChange = cash.subtract(settleAmount);
                 orderTransaction.putPaymentDetails(OrderTransaction.PaymentDetailsKey.CASH_CHANGE, cashChange);
             }
-        }
-    }
-
-    private List<OrderTransaction.BillLineItem> populateBillLineItems(final Order order, final OrderTransactionRequest orderTransactionRequest) {
-
-        final OrderTransaction.BillType billType = OrderTransaction.BillType.valueOf(orderTransactionRequest.getBillType());
-
-        switch (billType) {
-            case SINGLE:
-                final List<OrderTransaction.BillLineItem> billLIneItems = order.getOrderLineItems().stream()
-                        .map(li -> new OrderTransaction.BillLineItem(li.getProductSnapshot().getName(),
-                                li.getQuantity(),
-                                li.getProductPriceWithOptions().getAmountWithTax(),
-                                li.getDeducedSubTotal().getAmountWithTax()))
-                        .collect(Collectors.toList());
-
-                if (order.getDiscount().compareTo(BigDecimal.ZERO) > 0) {
-                    final BigDecimal discount = order.deduceRoundingAmount(() -> order.getDiscount().negate());
-                    billLIneItems.add(new OrderTransaction.BillLineItem("discount", 1, discount, discount));
-                }
-
-                if (order.getServiceCharge().compareTo(BigDecimal.ZERO) > 0) {
-                    final BigDecimal serviceCharge = order.deduceRoundingAmount(order::getServiceCharge);
-                    billLIneItems.add(new OrderTransaction.BillLineItem("serviceCharge", 1, serviceCharge, serviceCharge));
-                }
-
-                return billLIneItems;
-
-            case SPLIT:
-                return List.of(new OrderTransaction.BillLineItem("split", 1, orderTransactionRequest.getSettleAmount(), orderTransactionRequest.getSettleAmount()));
-            default:
-                return List.of();
         }
     }
 }

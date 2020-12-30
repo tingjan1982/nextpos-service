@@ -9,6 +9,7 @@ import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRangeService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderSettings;
+import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.service.ElectronicInvoiceService;
@@ -27,6 +28,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -96,7 +98,12 @@ class PrinterInstructionsServiceImplTest {
     void createOrderToWorkingArea() {
 
         final Order order = new Order(client.getId(), orderSettings);
-        final OrderLineItem coffee = order.addOrderLineItem(DummyObjects.productSnapshot("Coffee", new BigDecimal("100")), 2);
+        final ProductSnapshot coffeeP = DummyObjects.productSnapshot("Coffee", new BigDecimal("100"));
+        coffeeP.setChildProducts(Arrays.asList(
+                new ProductSnapshot.ChildProductSnapshot("id", "sugar", null),
+                new ProductSnapshot.ChildProductSnapshot("id", "ice", "ICE")
+        ));
+        final OrderLineItem coffee = order.addOrderLineItem(coffeeP, 2);
         coffee.setState(OrderLineItem.LineItemState.IN_PROCESS);
         coffee.setWorkingAreaId(workingArea.getId());
 

@@ -8,18 +8,18 @@ import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.data.OrderTransactionRepository;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import io.nextpos.shared.service.annotation.ChainedTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-@Transactional(transactionManager = "chainedTransactionManager")
+@ChainedTransaction
 public class OrderTransactionServiceImpl implements OrderTransactionService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OrderTransactionServiceImpl.class);

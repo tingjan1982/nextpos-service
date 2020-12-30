@@ -44,6 +44,9 @@ public class SalesReportServiceImpl implements SalesReportService {
     @Override
     public RangedSalesReport generateRangedSalesReport(final String clientId, final ZonedDateRange zonedDateRange) {
 
+        final LookupOperation lookupTransactions = Aggregation.lookup("orderTransaction", "lookupOrderId", "orderId", "transactions");
+        final UnwindOperation flattenTransactions = Aggregation.unwind("transactions");
+
         ProjectionOperation projection = createProjection(zonedDateRange);
         final MatchOperation filter = createMatchFilter(clientId, zonedDateRange);
 
@@ -51,6 +54,13 @@ public class SalesReportServiceImpl implements SalesReportService {
                 .sum("orderTotal").as("salesTotal")
                 .sum("serviceCharge").as("serviceChargeTotal")
                 .sum("discount").as("discountTotal");
+
+        final GroupOperation salesByPaymentMethod = Aggregation.group("transactions.paymentDetails.paymentMethod")
+                .first("transactions.paymentDetails.paymentMethod").as("paymentMethod")
+                .sum(createToDecimal("transactions.orderTotal")).as("orderTotal")
+                .sum(createToDecimal("transactions.settleAmount")).as("settleAmount")
+                .sum("serviceCharge").as("serviceCharge")
+                .sum("discount").as("discount");
 
         final UnwindOperation flattenLineItems = Aggregation.unwind("lineItems");
         final BucketOperationSupport<?, ?> salesByRange = createSalesByRangeFacet(zonedDateRange);
@@ -69,11 +79,13 @@ public class SalesReportServiceImpl implements SalesReportService {
 
         final FacetOperation facets = Aggregation
                 .facet(salesTotal).as("totalSales")
+                .and(flattenTransactions, salesByPaymentMethod).as("salesByPaymentMethod")
                 .and(salesByRange).as("salesByRange")
                 .and(flattenLineItems, salesByProduct, sortSalesByProduct).as("salesByProduct")
                 .and(flattenLineItems, salesByLabel, sortSalesByProduct).as("salesByLabel");
 
         final TypedAggregation<Order> aggregations = Aggregation.newAggregation(Order.class,
+                lookupTransactions,
                 projection,
                 filter,
                 facets);
@@ -152,13 +164,11 @@ public class SalesReportServiceImpl implements SalesReportService {
 
         final String timezone = zonedDateRange.getClientTimeZone().getId();
 
-        return Aggregation.project("clientId")
-                .and("state").as("state")
+        return Aggregation.project("clientId", "state", "createdDate", "transactions")
                 .and(createToDecimal("orderTotal")).as("orderTotal")
                 .and(createToDecimal("serviceCharge")).as("serviceCharge")
                 .and(createToDecimal("discount")).as("discount")
                 .and("orderLineItems").as("lineItems")
-                .and("createdDate").as("createdDate")
                 .and(context -> Document.parse("{ $dateToString: {format: '%Y-%m-%d', date: '$createdDate', timezone: '" + timezone + "'} }")).as("date")
                 .and(context -> Document.parse("{ $dayOfYear: {date: '$createdDate', timezone: '" + timezone + "'} }")).as("dayOfYear");
     }

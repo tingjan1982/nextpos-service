@@ -4,18 +4,18 @@ import io.nextpos.client.data.Client;
 import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.OrderRepository;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.ordermanagement.service.OrderService;
+import io.nextpos.ordertransaction.data.OrderTransaction;
+import io.nextpos.ordertransaction.service.OrderTransactionService;
 import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.reporting.data.RangedSalesReport;
 import io.nextpos.reporting.data.SalesDistribution;
 import io.nextpos.reporting.data.SalesProgress;
 import io.nextpos.shared.DummyObjects;
+import io.nextpos.shared.service.annotation.ChainedTransaction;
 import org.assertj.core.data.Offset;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.sql.Date;
@@ -40,7 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 @SpringBootTest
-@Transactional
+@ChainedTransaction
 class SalesReportServiceImplTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SalesReportServiceImplTest.class);
@@ -52,7 +51,7 @@ class SalesReportServiceImplTest {
     private OrderService orderService;
 
     @Autowired
-    private OrderRepository orderRepository;
+    private OrderTransactionService orderTransactionService;
 
     @Autowired
     private OrderSettings orderSettings;
@@ -60,17 +59,8 @@ class SalesReportServiceImplTest {
     @Autowired
     private MongoTemplate mongoTemplate;
 
+    @Autowired
     private Client client;
-
-    @BeforeEach
-    void setup() {
-        client = DummyObjects.dummyClient();
-    }
-
-    @AfterEach
-    void removeData() {
-        mongoTemplate.findAllAndRemove(new Query(), Order.class);
-    }
 
     @Test
     void generateRangedSalesReport_WeekRangeType() {
@@ -85,9 +75,10 @@ class SalesReportServiceImplTest {
         }
 
         final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.WEEK).build();
-        final RangedSalesReport results = salesReportService.generateRangedSalesReport(client.getClientName(), zonedDateRange);
+        final RangedSalesReport results = salesReportService.generateRangedSalesReport(client.getId(), zonedDateRange);
 
         assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo("3272.50"); // (50 + 35) * 5 * 7 * 1.1
+        assertThat(results.getSalesByPaymentMethod()).hasSize(1);
         assertThat(results.getSalesByRange()).hasSize(7);
         assertThat(results.getSalesByRange()).allSatisfy(sales -> assertThat(sales.getTotal()).isEqualByComparingTo("467.5")); // (50 + 35) * 5 * 1.1
         assertThat(results.getSalesByProduct()).hasSize(2);
@@ -98,7 +89,7 @@ class SalesReportServiceImplTest {
             assertThat(byProduct.getPercentage()).isNotZero();
         });
 
-        final RangedSalesReport salesRankingReport = salesReportService.generateSalesRankingReport(client.getClientName(), zonedDateRange, "default-id");
+        final RangedSalesReport salesRankingReport = salesReportService.generateSalesRankingReport(client.getId(), zonedDateRange, "default-id");
 
         LOGGER.info("{}", salesRankingReport);
     }
@@ -107,7 +98,7 @@ class SalesReportServiceImplTest {
     void generateRangedSalesReport_WithEmptyData() {
 
         final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.WEEK).build();
-        final RangedSalesReport results = salesReportService.generateRangedSalesReport(client.getClientName(), zonedDateRange);
+        final RangedSalesReport results = salesReportService.generateRangedSalesReport(client.getId(), zonedDateRange);
 
         assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo("0");
         assertThat(results.getSalesByRange()).hasSize(7);
@@ -134,7 +125,7 @@ class SalesReportServiceImplTest {
         }
 
         final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.MONTH).build();
-        final RangedSalesReport results = salesReportService.generateRangedSalesReport(client.getClientName(), zonedDateRange);
+        final RangedSalesReport results = salesReportService.generateRangedSalesReport(client.getId(), zonedDateRange);
 
         assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo(expectedSalesTotal); // (50 + 35) * 5 * lastDayOfMonth.getDayOfMonth() * 1.1;
         assertThat(results.getSalesByRange()).hasSize(lastDayOfMonth.getDayOfMonth());
@@ -168,7 +159,7 @@ class SalesReportServiceImplTest {
                 .dateRange(fromDate, toDate)
                 .build();
 
-        final RangedSalesReport results = salesReportService.generateRangedSalesReport(client.getClientName(), zonedDateRange);
+        final RangedSalesReport results = salesReportService.generateRangedSalesReport(client.getId(), zonedDateRange);
 
         assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo(String.valueOf((50 + 35) * 5 * 10 * 1.1));
         assertThat(results.getSalesByRange()).hasSize(10);
@@ -192,7 +183,7 @@ class SalesReportServiceImplTest {
             createOrder(today.with(ChronoField.ALIGNED_WEEK_OF_YEAR, i));
         }
 
-        final SalesDistribution salesDistribution = salesReportService.generateSalesDistribution(client.getClientName(), client.getZoneId(), LocalDate.now());
+        final SalesDistribution salesDistribution = salesReportService.generateSalesDistribution(client.getId(), client.getZoneId(), LocalDate.now());
 
         assertThat(salesDistribution.getSalesByMonth()).hasSize(12);
         final BigDecimal sumOfMonthlySales = salesDistribution.getSalesByMonth().stream().map(SalesDistribution.MonthlySales::getTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -207,7 +198,7 @@ class SalesReportServiceImplTest {
     @Test
     void generateSalesDistribution_WithEmptyData() {
 
-        final SalesDistribution salesDistribution = salesReportService.generateSalesDistribution("client", client.getZoneId(), LocalDate.now());
+        final SalesDistribution salesDistribution = salesReportService.generateSalesDistribution(client.getId(), client.getZoneId(), LocalDate.now());
 
         assertThat(salesDistribution.getSalesByMonth()).hasSize(12);
         assertThat(salesDistribution.getSalesByWeek()).hasSize(0);
@@ -225,7 +216,7 @@ class SalesReportServiceImplTest {
             createOrder(today.withDayOfMonth(i));
         }
 
-        final SalesProgress salesProgress = salesReportService.generateSalesProgress(client.getClientName());
+        final SalesProgress salesProgress = salesReportService.generateSalesProgress(client.getId());
 
         assertThat(salesProgress.getDailySalesProgress()).isEqualByComparingTo(BigDecimal.valueOf(550));
         assertThat(salesProgress.getWeeklySalesProgress()).isNotZero(); // for simplicity of not considering week spans across months, just check for non-zero.
@@ -253,8 +244,9 @@ class SalesReportServiceImplTest {
         final OrderSettings newSettings = orderSettings.copy();
         newSettings.setTaxInclusive(true);
 
-        final Order order = new Order(client.getClientName(), newSettings);
+        final Order order = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, newSettings);
         order.addOrderLineItem(productSnapshot, quantity);
+        order.setState(Order.OrderState.DELIVERED);
 
         if (deleted) {
             order.setState(Order.OrderState.DELETED);
@@ -267,6 +259,15 @@ class SalesReportServiceImplTest {
         final Update update = new Update().set("createdDate", Date.valueOf(orderDate));
         mongoTemplate.updateFirst(query, update, Order.class);
 
+        if (!deleted) {
+            this.createOrderTransaction(order);
+        }
+        
         return createdOrder;
+    }
+
+    private void createOrderTransaction(Order order) {
+        OrderTransaction orderTransaction = new OrderTransaction(order, OrderTransaction.PaymentMethod.CASH, OrderTransaction.BillType.SINGLE, null);
+        orderTransactionService.createOrderTransaction(client, orderTransaction);
     }
 }

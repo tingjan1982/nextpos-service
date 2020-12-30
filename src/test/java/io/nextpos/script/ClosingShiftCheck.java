@@ -4,6 +4,7 @@ import io.nextpos.ordermanagement.data.Shift;
 import io.nextpos.ordermanagement.data.ShiftRepository;
 import io.nextpos.ordermanagement.service.ShiftService;
 import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
+import io.nextpos.ordertransaction.data.PaymentMethodTotal;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -45,7 +46,7 @@ public class ClosingShiftCheck {
 
                 final BigDecimal computedTotal = closingShiftReport.getOrderSummary().get(0).getOrderTotal();
                 final BigDecimal total = end.getClosingShiftReport().getTotalByPaymentMethod().values().stream()
-                        .map(ClosingShiftTransactionReport.PaymentMethodTotal::getOrderTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+                        .map(PaymentMethodTotal::getOrderTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
 
                 final boolean balanced = computedTotal.compareTo(total) == 0;
                 LOGGER.info("Shift id: {}, Computed order total: {}, shift total: {}, balanced: {}", s.getId(),

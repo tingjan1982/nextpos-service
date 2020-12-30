@@ -128,6 +128,10 @@ public class ProductSnapshot {
         private String productName;
 
         private String internalProductName;
+
+        public String getDisplayName() {
+            return StringUtils.isNotBlank(internalProductName) ? internalProductName : productName;
+        }
     }
 
     @Data

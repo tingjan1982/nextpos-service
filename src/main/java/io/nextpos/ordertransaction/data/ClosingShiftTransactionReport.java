@@ -77,25 +77,6 @@ public class ClosingShiftTransactionReport {
 
     @Data
     @NoArgsConstructor
-    public static class PaymentMethodTotal {
-
-        private String id;
-
-        private OrderTransaction.PaymentMethod paymentMethod;
-
-        private BigDecimal orderTotal;
-
-        private BigDecimal settleAmount;
-
-        private BigDecimal serviceCharge;
-
-        private BigDecimal discount;
-
-        private int orderCount;
-    }
-
-    @Data
-    @NoArgsConstructor
     public static class OrderCount {
 
         private String id;
