@@ -89,10 +89,7 @@ public class SplitOrderServiceImpl implements SplitOrderService {
         targetOrder.findOrderLineItem(sourceLineItemId).ifPresentOrElse(li -> {
             targetOrder.updateOrderLineItem(li, l -> l.incrementQuantity(1));
 
-        }, () -> {
-            targetOrder.getOrderLineItems().add(sourceOrderLineItem.splitCopy());
-            targetOrder.computeTotal();
-        });
+        }, () -> targetOrder.addSplitOrderLineItem(sourceOrderLineItem));
         
         sourceOrder.updateOrderLineItem(sourceLineItemId, li -> li.decrementQuantity(1));
         orderService.saveOrder(sourceOrder);

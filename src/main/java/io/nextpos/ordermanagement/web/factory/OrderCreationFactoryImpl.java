@@ -135,16 +135,6 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
         final ProductSnapshot productSnapshot = new ProductSnapshot(product);
         productSnapshot.setProductOptions(productOptionSnapshots);
 
-        if (product instanceof ProductSet) {
-            final List<ProductSnapshot.ChildProductSnapshot> childProducts = ((ProductSet) product).getChildProducts().stream()
-                    .map(p -> new ProductSnapshot.ChildProductSnapshot(p.getId(),
-                            p.getDesignVersion().getProductName(),
-                            p.getDesignVersion().getInternalProductName()))
-                    .collect(Collectors.toList());
-
-            productSnapshot.setChildProducts(childProducts);
-        }
-
         if (li.getOverridePrice().compareTo(BigDecimal.ZERO) > 0) {
             productSnapshot.setOverridePrice(li.getOverridePrice());
         }
@@ -155,12 +145,35 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
 
         final OrderSettings orderSettings = createOrderSettings(client);
         final OrderLineItem orderLineItem = new OrderLineItem(productSnapshot, li.getQuantity(), orderSettings);
+        this.setWorkingArea(orderLineItem, product);
+
+        if (product instanceof ProductSet) {
+            ((ProductSet) product).getChildProducts().forEach(cp -> {
+                final ProductSnapshot cpSnapshot = new ProductSnapshot(cp);
+                cpSnapshot.setOverridePrice(BigDecimal.ZERO);
+                final OrderLineItem childLineItem = new OrderLineItem(cpSnapshot, orderLineItem.getQuantity(), orderSettings);
+                this.setWorkingArea(childLineItem, cp);
+
+                orderLineItem.getChildLineItems().add(childLineItem);
+            });
+
+            final List<ProductSnapshot.ChildProductSnapshot> childProducts = ((ProductSet) product).getChildProducts().stream()
+                    .map(p -> new ProductSnapshot.ChildProductSnapshot(p.getId(),
+                            p.getDesignVersion().getProductName(),
+                            p.getDesignVersion().getInternalProductName()))
+                    .collect(Collectors.toList());
+
+            productSnapshot.setChildProducts(childProducts);
+        }
+
+        return orderLineItem;
+    }
+
+    private void setWorkingArea(OrderLineItem orderLineItem, Product product) {
 
         if (product.getWorkingArea() != null) {
             orderLineItem.setWorkingAreaId(product.getWorkingArea().getId());
         }
-
-        return orderLineItem;
     }
 
     private OrderSettings createOrderSettings(final Client client) {

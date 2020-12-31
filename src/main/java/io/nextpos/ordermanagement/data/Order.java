@@ -2,7 +2,6 @@ package io.nextpos.ordermanagement.data;
 
 import io.nextpos.membership.data.Membership;
 import io.nextpos.merchandising.data.OfferApplicableObject;
-import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.model.MongoBaseObject;
@@ -264,21 +263,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         return true;
     }
 
-    /**
-     * Quantity of 0 will remove the line item.
-     *
-     * @param updateLineItem
-     */
-    public void updateOrderLineItem(UpdateLineItem updateLineItem, Consumer<OrderLineItem> updateOperation) {
+    public void addSplitOrderLineItem(OrderLineItem sourceOrderLineItem) {
 
-        final OrderLineItem orderLineItem = this.getOrderLineItem(updateLineItem.getLineItemId());
-
-        if (updateLineItem.getQuantity() == 0) {
-            orderLineItems.remove(orderLineItem);
-        } else {
-            // todo: test removing line item and verify discountTotal is reset.
-            updateOperation.accept(orderLineItem);
-        }
+        this.checkLineItemInSet(sourceOrderLineItem);
+        this.orderLineItems.add(sourceOrderLineItem.splitCopy());
 
         computeTotal();
     }
@@ -291,6 +279,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     public void updateOrderLineItem(OrderLineItem orderLineItem, Consumer<OrderLineItem> updateOperation) {
 
+        this.checkLineItemInSet(orderLineItem);
         orderLineItem.performOperation(updateOperation);
 
         if (orderLineItem.getQuantity() == 0) {
@@ -303,9 +292,21 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     public void deleteOrderLineItem(String lineItemId) {
 
         final OrderLineItem orderLineItem = this.getOrderLineItem(lineItemId);
+        this.checkLineItemInSet(orderLineItem);
+
         orderLineItems.remove(orderLineItem);
 
+        // removes associated line items that were created as part of this line item.
+        orderLineItems.removeIf(li -> lineItemId.equals(li.getAssociatedLineItemId()));
+
         computeTotal();
+    }
+
+    private void checkLineItemInSet(OrderLineItem orderLineItem) {
+
+        if (StringUtils.isNotBlank(orderLineItem.getAssociatedLineItemId())) {
+            throw new BusinessLogicException("message.operationNotAllowed", "Cannot perform update line item on set line items.");
+        }
     }
 
     public void deleteAllOrderLineItems() {

@@ -75,7 +75,7 @@ class MerchandisingServiceImplTest {
 
         final OrderLineItem lineItem = new OrderLineItem(DummyObjects.productSnapshot(), 1, orderSettings);
 
-        order = orderService.addOrderLineItem(client, order.getId(), lineItem);
+        order = orderService.addOrderLineItem(client, order, lineItem);
 
         assertThat(order.getOrderLineItems()).satisfies(li -> {
             assertThat(li.getProductSnapshot().getPrice()).isEqualByComparingTo("100");
@@ -95,7 +95,7 @@ class MerchandisingServiceImplTest {
         assertThat(order.getDiscountedTotal().getAmount()).isEqualByComparingTo("45");
         assertThat(order.getOrderTotal()).isEqualByComparingTo("45");
 
-        order = orderService.addOrderLineItem(client, order.getId(), lineItem);
+        order = orderService.addOrderLineItem(client, order, lineItem);
 
         assertThat(order.getTotal().getAmount()).isEqualByComparingTo("190");
         assertThat(order.getDiscountedTotal().getAmount()).isEqualByComparingTo("152");
@@ -103,9 +103,9 @@ class MerchandisingServiceImplTest {
 
         order = orderService.updateOrderLineItemPrice(order, order.getOrderLineItems().get(0).getId(), BigDecimal.valueOf(30));
 
-        assertThat(order.getTotal().getAmount()).isEqualByComparingTo("125");
-        assertThat(order.getDiscountedTotal().getAmount()).isEqualByComparingTo("100");
-        assertThat(order.getOrderTotal()).isEqualByComparingTo("100");
+        assertThat(order.getTotal().getAmount()).isEqualByComparingTo("60");
+        assertThat(order.getDiscountedTotal().getAmount()).isEqualByComparingTo("48");
+        assertThat(order.getOrderTotal()).isEqualByComparingTo("48");
     }
 
     @Test

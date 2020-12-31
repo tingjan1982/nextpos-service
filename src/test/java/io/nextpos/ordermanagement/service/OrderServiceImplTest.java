@@ -8,6 +8,7 @@ import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
 import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.shared.DummyObjects;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @ChainedTransaction
@@ -123,7 +125,21 @@ class OrderServiceImplTest {
         final Order createdOrder = orderService.createOrder(order);
         final OrderLineItem orderLineItem = new OrderLineItem(DummyObjects.productSnapshot(), 1, orderSettings);
 
-        final Order orderWithLineItem = orderService.addOrderLineItem(client, createdOrder.getId(), orderLineItem);
+        final Order orderWithLineItem = orderService.addOrderLineItem(client, createdOrder, orderLineItem);
+
+        assertThat(orderWithLineItem.getOrderLineItems()).hasSize(1);
+
+        final OrderLineItem productSetLineItem = new OrderLineItem(DummyObjects.productSnapshot(), 2, orderSettings);
+        productSetLineItem.getChildLineItems().add(new OrderLineItem(DummyObjects.productSnapshot(), 2, orderSettings));
+        productSetLineItem.getChildLineItems().add(new OrderLineItem(DummyObjects.productSnapshot(), 2, orderSettings));
+
+        orderService.addOrderLineItem(client, orderWithLineItem, productSetLineItem);
+
+        assertThat(orderWithLineItem.getOrderLineItems()).hasSize(4);
+
+        assertThatThrownBy(() -> orderService.deleteOrderLineItem(orderWithLineItem, productSetLineItem.getChildLineItems().get(0).getId())).isInstanceOf(BusinessLogicException.class);
+
+        orderService.deleteOrderLineItem(orderWithLineItem, productSetLineItem.getId());
 
         assertThat(orderWithLineItem.getOrderLineItems()).hasSize(1);
 

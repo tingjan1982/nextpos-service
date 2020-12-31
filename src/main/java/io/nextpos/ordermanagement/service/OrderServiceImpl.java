@@ -139,7 +139,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order updateOrderLineItem(final Order order, final UpdateLineItem updateLineItem) {
 
-        order.updateOrderLineItem(updateLineItem, (lineItem) -> {
+        order.updateOrderLineItem(updateLineItem.getLineItemId(), (lineItem) -> {
             final ProductLevelOffer.GlobalProductDiscount globalProductDiscount = updateLineItem.getGlobalProductDiscount();
 
             if (globalProductDiscount != null) {
@@ -173,15 +173,20 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order addOrderLineItem(Client client, final String orderId, final OrderLineItem orderLineItem) {
-
-        final Order order = this.getOrder(orderId);
+    public Order addOrderLineItem(Client client, final Order order, final OrderLineItem orderLineItem) {
 
         if (order.isClosed()) {
             throw new BusinessLogicException("message.orderClosed", "Order is closed, cannot add OrderLineItem: " + order.getId());
         }
 
         order.addOrderLineItem(orderLineItem);
+
+        if (orderLineItem.hasChildLineItems()) {
+            orderLineItem.getChildLineItems().forEach(cli -> {
+                cli.setAssociatedLineItemId(orderLineItem.getId());
+                order.addOrderLineItem(cli);
+            });
+        }
 
         return merchandisingService.computeOffers(client, order);
     }

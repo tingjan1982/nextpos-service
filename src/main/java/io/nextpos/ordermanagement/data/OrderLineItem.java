@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.util.Assert;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
@@ -40,6 +41,10 @@ public class OrderLineItem implements OfferApplicableObject {
     private BigDecimal lineItemSubTotal = BigDecimal.ZERO;
 
     private AppliedOfferInfo appliedOfferInfo;
+
+    private String associatedLineItemId;
+
+    private transient List<OrderLineItem> childLineItems = new ArrayList<>();
 
     private Date createdDate;
 
@@ -84,13 +89,11 @@ public class OrderLineItem implements OfferApplicableObject {
     }
 
     public void updateQuantityAndProductOptions(int quantity, BigDecimal overridePrice, List<ProductSnapshot.ProductOptionSnapshot> productOptionSnapshots) {
-
-        this.quantity = quantity;
-        this.getProductSnapshot().setProductOptions(productOptionSnapshots);
-        this.getProductSnapshot().setOverridePrice(overridePrice);
-        modifiedDate = new Date();
-
-        computeSubTotal();
+        this.performOperation(li -> {
+            this.quantity = quantity;
+            this.getProductSnapshot().setProductOptions(productOptionSnapshots);
+            this.getProductSnapshot().setOverridePrice(overridePrice);
+        });
     }
 
     /**
@@ -181,6 +184,10 @@ public class OrderLineItem implements OfferApplicableObject {
         copy.modifiedDate = new Date();
 
         return copy;
+    }
+
+    public boolean hasChildLineItems() {
+        return !childLineItems.isEmpty();
     }
 
     public enum LineItemState {

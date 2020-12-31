@@ -1,11 +1,11 @@
 package io.nextpos.reporting.data;
 
+import io.nextpos.datetime.data.ZonedDateRange;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +14,8 @@ import java.util.List;
 @AllArgsConstructor
 public class CustomerStatsReport {
 
+    private ZonedDateRange dateRange;
+
     private List<CustomerStats> groupedCustomerStats = new ArrayList<>();
 
     @Data
@@ -21,27 +23,10 @@ public class CustomerStatsReport {
 
         private String id;
 
-        private LocalDate date;
+        private BigDecimal total = BigDecimal.ZERO;
 
         private BigDecimal averageSpending = BigDecimal.ZERO;
 
-        private BigDecimal total = BigDecimal.ZERO;
-
         private int customerCount;
-
-        private int maleCount;
-
-        private int femaleCount;
-
-        private int kidCount;
-
-        public static CustomerStats emptyObject(final String id, LocalDate date) {
-
-            final CustomerStatsReport.CustomerStats emptyObject = new CustomerStatsReport.CustomerStats();
-            emptyObject.setId(id);
-            emptyObject.setDate(date);
-
-            return emptyObject;
-        }
     }
 }

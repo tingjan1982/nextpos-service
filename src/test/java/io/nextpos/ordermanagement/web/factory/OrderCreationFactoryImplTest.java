@@ -83,5 +83,7 @@ class OrderCreationFactoryImplTest {
             assertThat(li.getProductSnapshot().getProductOptions()).hasSize(1);
 
         }, Index.atIndex(0));
+
+        // todo: test newOrderLineItem
     }
 }
