@@ -80,7 +80,10 @@ class SalesReportServiceImplTest {
         assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo("3272.50"); // (50 + 35) * 5 * 7 * 1.1
         assertThat(results.getSalesByPaymentMethod()).hasSize(1);
         assertThat(results.getSalesByRange()).hasSize(7);
-        assertThat(results.getSalesByRange()).allSatisfy(sales -> assertThat(sales.getTotal()).isEqualByComparingTo("467.5")); // (50 + 35) * 5 * 1.1
+        assertThat(results.getSalesByRange()).allSatisfy(sales -> {
+            assertThat(sales.getTotal()).isEqualByComparingTo("467.5"); // (50 + 35) * 5 * 1.1
+            assertThat(sales.getOrderCount()).isEqualByComparingTo(2);
+        });
         assertThat(results.getSalesByProduct()).hasSize(2);
 
         assertThat(results.getSalesByProduct()).allSatisfy(byProduct -> {

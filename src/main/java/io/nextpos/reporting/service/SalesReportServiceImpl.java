@@ -189,7 +189,8 @@ public class SalesReportServiceImpl implements SalesReportService {
         return Aggregation.bucket("dayOfYear").withBoundaries(daysOfYear).withDefaultBucket("Other")
                 .andOutput("dayOfYear").last().as("dayOfYear")
                 .andOutput("orderTotal").sum().as("total")
-                .andOutput("date").last().as("date");
+                .andOutput("date").last().as("date")
+                .andOutput("dayOfYear").count().as("orderCount");
     }
 
     private void enhanceResults(RangedSalesReport results,

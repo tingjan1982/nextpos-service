@@ -57,6 +57,8 @@ public class RangedSalesReport {
 
         private BigDecimal total = BigDecimal.ZERO;
 
+        private int orderCount;
+
         public static SalesByRange emptyObject(final String id, LocalDate date) {
             final SalesByRange salesByRange = new SalesByRange();
             salesByRange.setId(id);
