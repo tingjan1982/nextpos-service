@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.util.List;
 
 @RestController
 @RequestMapping("/reporting")
@@ -61,13 +62,7 @@ public class ReportingController {
 
         final RangedSalesReport rangedSalesReport = salesReportService.generateRangedSalesReport(client.getId(), zonedDateRange);
 
-        return new RangedSalesReportResponse(
-                rangedSalesReport.getDateRange(),
-                rangedSalesReport.getTotalSales().getSalesTotal(),
-                rangedSalesReport.getTotalSales(),
-                rangedSalesReport.getSalesByRange(),
-                rangedSalesReport.getSalesByProduct(),
-                rangedSalesReport.getSalesByLabel());
+        return new RangedSalesReportResponse(rangedSalesReport);
     }
 
     @GetMapping("/salesRankingReport")
@@ -90,9 +85,9 @@ public class ReportingController {
 
         return new RangedSalesReportResponse(
                 rangedSalesReport.getDateRange(),
-                rangedSalesReport.getTotalSales().getSalesTotal(),
                 rangedSalesReport.getTotalSales(),
                 rangedSalesReport.getSalesByRange(),
+                List.of(),
                 rangedSalesReport.getSalesByProduct(),
                 rangedSalesReport.getSalesByLabel());
     }
