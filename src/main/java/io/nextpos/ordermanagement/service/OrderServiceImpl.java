@@ -139,7 +139,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order updateOrderLineItem(final Order order, final UpdateLineItem updateLineItem) {
 
-        order.updateOrderLineItem(updateLineItem.getLineItemId(), (lineItem) -> {
+        order.productSetOrder().updateOrderLineItem(updateLineItem.getLineItemId(), (lineItem) -> {
             final ProductLevelOffer.GlobalProductDiscount globalProductDiscount = updateLineItem.getGlobalProductDiscount();
 
             if (globalProductDiscount != null) {
@@ -157,7 +157,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order updateOrderLineItemPrice(Order order, String lineItemId, BigDecimal overridePrice) {
 
-        order.updateOrderLineItem(lineItemId, (lineItem) -> {
+        order.productSetOrder().updateOrderLineItem(lineItemId, (lineItem) -> {
             lineItem.removeOffer();
             lineItem.getProductSnapshot().setOverridePrice(overridePrice);
         });
@@ -168,7 +168,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order deleteOrderLineItem(final Order order, final String lineItemId) {
 
-        order.deleteOrderLineItem(lineItemId);
+        final OrderLineItem orderLineItem = order.getOrderLineItem(lineItemId);
+        order.productSetOrder().deleteOrderLineItem(orderLineItem);
+
         return orderRepository.save(order);
     }
 
@@ -179,14 +181,7 @@ public class OrderServiceImpl implements OrderService {
             throw new BusinessLogicException("message.orderClosed", "Order is closed, cannot add OrderLineItem: " + order.getId());
         }
 
-        order.addOrderLineItem(orderLineItem);
-
-        if (orderLineItem.hasChildLineItems()) {
-            orderLineItem.getChildLineItems().forEach(cli -> {
-                cli.setAssociatedLineItemId(orderLineItem.getId());
-                order.addOrderLineItem(cli);
-            });
-        }
+        order.productSetOrder().addOrderLineItem(orderLineItem);
 
         return merchandisingService.computeOffers(client, order);
     }

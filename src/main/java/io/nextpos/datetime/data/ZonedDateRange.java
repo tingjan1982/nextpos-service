@@ -57,7 +57,7 @@ public class ZonedDateRange {
         final int toDayOfYear = zonedToDate.getDayOfYear();
 
         if (fromDayOfYear > toDayOfYear) {
-            final int lastDayOfYear = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth()).getDayOfYear();
+            final int lastDayOfYear = LocalDate.now().with(TemporalAdjusters.lastDayOfYear()).getDayOfYear();
             return IntStream.concat(IntStream.rangeClosed(1, toDayOfYear), IntStream.rangeClosed(fromDayOfYear, lastDayOfYear + 1));
         }
 
@@ -69,8 +69,8 @@ public class ZonedDateRange {
         final int toDayOfYear = zonedToDate.getDayOfYear();
 
         if (fromDayOfYear > toDayOfYear) {
-            final int lastDayOfYear = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth()).getDayOfYear();
-            return IntStream.concat(IntStream.rangeClosed(1, toDayOfYear), IntStream.rangeClosed(fromDayOfYear, lastDayOfYear));
+            final int lastDayOfYear = LocalDate.now().with(TemporalAdjusters.lastDayOfYear()).getDayOfYear();
+            return IntStream.concat(IntStream.rangeClosed(fromDayOfYear, lastDayOfYear), IntStream.rangeClosed(1, toDayOfYear));
         }
 
         return IntStream.rangeClosed(fromDayOfYear, toDayOfYear);

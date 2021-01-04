@@ -68,14 +68,14 @@ public class SplitOrderServiceImpl implements SplitOrderService {
         final Order sourceOrder = orderService.getOrder(sourceOrderId);
         final Order splitOrder = orderService.getOrder(splitOrderId);
 
-        splitOrder.getOrderLineItems().forEach(li -> {
+        for (OrderLineItem li : splitOrder.getOrderLineItems()) {
             sourceOrder.findOrderLineItem(li.getId()).ifPresentOrElse(l1 -> {
                 sourceOrder.updateOrderLineItem(l1, l2 -> l2.incrementQuantity(li.getQuantity()));
             }, () -> {
                 sourceOrder.getOrderLineItems().add(li);
                 sourceOrder.computeTotal();
             });
-        });
+        }
 
         orderService.deleteOrder(splitOrder);
 
@@ -87,11 +87,13 @@ public class SplitOrderServiceImpl implements SplitOrderService {
         final OrderLineItem sourceOrderLineItem = sourceOrder.getOrderLineItem(sourceLineItemId);
 
         targetOrder.findOrderLineItem(sourceLineItemId).ifPresentOrElse(li -> {
-            targetOrder.updateOrderLineItem(li, l -> l.incrementQuantity(1));
+            targetOrder.productSetOrder().updateOrderLineItem(li, l -> l.incrementQuantity(1));
+            sourceOrder.productSetOrder().updateOrderLineItem(sourceLineItemId, l -> l.decrementQuantity(1));
 
-        }, () -> targetOrder.addSplitOrderLineItem(sourceOrderLineItem));
-        
-        sourceOrder.updateOrderLineItem(sourceLineItemId, li -> li.decrementQuantity(1));
+        }, () -> {
+            targetOrder.productSetOrder().addSplitOrderLineItem(sourceOrderLineItem, sourceOrder);
+        });
+
         orderService.saveOrder(sourceOrder);
 
         return orderService.saveOrder(targetOrder);
@@ -146,7 +148,7 @@ public class SplitOrderServiceImpl implements SplitOrderService {
 
         final Order sourceOrder = orderService.getOrder(sourceOrderId);
         Integer headCount;
-        
+
         if ((headCount = (Integer) sourceOrder.getMetadata(Order.HEAD_COUNT)) == null) {
             return List.of();
         }

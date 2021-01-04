@@ -88,6 +88,44 @@ class SplitOrderServiceImplTest {
     }
 
     @Test
+    void newSplitOrder_WithProductSet() {
+
+        final Order sourceOrder = new Order(client.getId(), orderSettings);
+        sourceOrder.setState(Order.OrderState.DELIVERED);
+        orderService.saveOrder(sourceOrder);
+
+        final OrderLineItem productSetLineItem = new OrderLineItem(DummyObjects.productSnapshot(), 2, orderSettings);
+        productSetLineItem.getChildLineItems().add(new OrderLineItem(DummyObjects.productSnapshot(), 2, orderSettings));
+        productSetLineItem.getChildLineItems().add(new OrderLineItem(DummyObjects.productSnapshot(), 2, orderSettings));
+
+        orderService.addOrderLineItem(client, sourceOrder, productSetLineItem);
+
+        final Order targetOrder = splitOrderService.newSplitOrder(sourceOrder.getId(), productSetLineItem.getId());
+
+        assertThat(targetOrder).satisfies(o -> {
+            assertThat(o.getOrderLineItems()).hasSize(3);
+            assertThat(o.getOrderLineItem(productSetLineItem.getId())).satisfies(li -> {
+                assertThat(li).isNotNull();
+                assertThat(li.getQuantity()).isEqualTo(1);
+            });
+        });
+
+        assertThat(orderService.getOrder(sourceOrder.getId())).satisfies(o -> {
+            assertThat(o.getOrderLineItems()).hasSize(3);
+            assertThat(o.getOrderLineItems().get(0).getQuantity()).isEqualTo(1);
+        });
+
+        final Order updatedOrder = splitOrderService.updateLineItem(targetOrder.getId(), sourceOrder.getId(), productSetLineItem.getId());
+
+        assertThat(updatedOrder.getOrderLineItem(productSetLineItem.getId())).satisfies(li -> {
+            assertThat(li).isNotNull();
+            assertThat(li.getQuantity()).isEqualTo(2);
+        });
+
+        assertThat(orderService.getOrder(targetOrder.getId()).getOrderLineItems()).isEmpty();
+    }
+
+    @Test
     void revertSplitOrderLineItems() {
 
         final Order sourceOrder = new Order(client.getId(), orderSettings);

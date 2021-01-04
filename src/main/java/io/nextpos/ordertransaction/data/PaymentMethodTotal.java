@@ -9,7 +9,9 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class PaymentMethodTotal {
 
-    private String id;
+    private Object id;
+
+    private OrderTransaction.OrderTransactionStatus status;
 
     private OrderTransaction.PaymentMethod paymentMethod;
 

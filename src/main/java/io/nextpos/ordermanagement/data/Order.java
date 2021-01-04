@@ -36,7 +36,7 @@ import static io.nextpos.ordermanagement.data.Order.OrderState.*;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class Order extends MongoBaseObject implements WithClientId, OfferApplicableObject {
+public class Order extends MongoBaseObject implements WithClientId, OfferApplicableObject, OrderLineItemOperation {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Order.class);
 
@@ -212,6 +212,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         computeTotal();
     }
 
+    @Override
     public void addOrderLineItem(OrderLineItem orderLineItem) {
 
         addLineItemToOrder(orderLineItem);
@@ -263,23 +264,25 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         return true;
     }
 
-    public void addSplitOrderLineItem(OrderLineItem sourceOrderLineItem) {
+    @Override
+    public void addSplitOrderLineItem(OrderLineItem sourceOrderLineItem, Order sourceOrder) {
 
-        this.checkLineItemInSet(sourceOrderLineItem);
         this.orderLineItems.add(sourceOrderLineItem.splitCopy());
+        sourceOrder.updateOrderLineItem(sourceOrderLineItem, li -> li.decrementQuantity(1));
 
         computeTotal();
     }
 
+    @Override
     public void updateOrderLineItem(String lineItemId, Consumer<OrderLineItem> updateOperation) {
 
         final OrderLineItem orderLineItem = this.getOrderLineItem(lineItemId);
         this.updateOrderLineItem(orderLineItem, updateOperation);
     }
 
+    @Override
     public void updateOrderLineItem(OrderLineItem orderLineItem, Consumer<OrderLineItem> updateOperation) {
 
-        this.checkLineItemInSet(orderLineItem);
         orderLineItem.performOperation(updateOperation);
 
         if (orderLineItem.getQuantity() == 0) {
@@ -289,24 +292,12 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         computeTotal();
     }
 
-    public void deleteOrderLineItem(String lineItemId) {
-
-        final OrderLineItem orderLineItem = this.getOrderLineItem(lineItemId);
-        this.checkLineItemInSet(orderLineItem);
+    @Override
+    public void deleteOrderLineItem(OrderLineItem orderLineItem) {
 
         orderLineItems.remove(orderLineItem);
 
-        // removes associated line items that were created as part of this line item.
-        orderLineItems.removeIf(li -> lineItemId.equals(li.getAssociatedLineItemId()));
-
         computeTotal();
-    }
-
-    private void checkLineItemInSet(OrderLineItem orderLineItem) {
-
-        if (StringUtils.isNotBlank(orderLineItem.getAssociatedLineItemId())) {
-            throw new BusinessLogicException("message.operationNotAllowed", "Cannot perform update line item on set line items.");
-        }
     }
 
     public void deleteAllOrderLineItems() {
@@ -496,6 +487,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         return copy;
     }
 
+    public ProductSetOrder productSetOrder() {
+        return ProductSetOrder.newInstance(this);
+    }
+
     public enum OrderType {
         IN_STORE, TAKE_OUT, ONLINE
     }
@@ -554,7 +549,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         }
 
         public static EnumSet<OrderState> finalStates() {
-            return EnumSet.of(Order.OrderState.SETTLED, Order.OrderState.REFUNDED);
+            return EnumSet.of(SETTLED, COMPLETED, REFUNDED, CANCELLED, VOIDED);
         }
     }
 

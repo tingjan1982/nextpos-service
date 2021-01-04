@@ -55,7 +55,8 @@ public class SalesReportServiceImpl implements SalesReportService {
                 .sum("serviceCharge").as("serviceChargeTotal")
                 .sum("discount").as("discountTotal");
 
-        final GroupOperation salesByPaymentMethod = Aggregation.group("transactions.paymentDetails.paymentMethod")
+        final GroupOperation salesByPaymentMethod = Aggregation.group(Fields.from(Fields.field("status", "transactions.status"), Fields.field("paymentMethod", "transactions.paymentDetails.paymentMethod")))
+                .first("transactions.status").as("status")
                 .first("transactions.paymentDetails.paymentMethod").as("paymentMethod")
                 .sum(createToDecimal("transactions.orderTotal")).as("orderTotal")
                 .sum(createToDecimal("transactions.settleAmount")).as("settleAmount")
@@ -63,7 +64,6 @@ public class SalesReportServiceImpl implements SalesReportService {
                 .sum("discount").as("discount");
 
         final UnwindOperation flattenLineItems = Aggregation.unwind("lineItems");
-        final BucketOperationSupport<?, ?> salesByRange = createSalesByRangeFacet(zonedDateRange);
 
         final ConvertOperators.ToDecimal subTotalToDecimal = createToDecimal("lineItems.lineItemSubTotal");
         final GroupOperation salesByProduct = Aggregation.group("lineItems.productSnapshot.name")
@@ -80,7 +80,7 @@ public class SalesReportServiceImpl implements SalesReportService {
         final FacetOperation facets = Aggregation
                 .facet(salesTotal).as("totalSales")
                 .and(flattenTransactions, salesByPaymentMethod).as("salesByPaymentMethod")
-                .and(salesByRange).as("salesByRange")
+                .and(createSalesByRangeFacet()).as("salesByRange")
                 .and(flattenLineItems, salesByProduct, sortSalesByProduct).as("salesByProduct")
                 .and(flattenLineItems, salesByLabel, sortSalesByProduct).as("salesByLabel");
 
@@ -115,11 +115,7 @@ public class SalesReportServiceImpl implements SalesReportService {
 
         final UnwindOperation flattenLineItems = Aggregation.unwind("lineItems");
 
-        final MatchOperation filter = Aggregation.match(
-                Criteria.where("clientId").is(clientId)
-                        .and("state").ne(Order.OrderState.DELETED)
-                        .and("createdDate").gte(zonedDateRange.getFromDate()).lte(zonedDateRange.getToDate())
-        );
+        final MatchOperation filter = createMatchFilter(clientId, zonedDateRange);
 
         final GroupOperation salesTotal = Aggregation.group("clientId")
                 .sum("orderTotal").as("salesTotal");
@@ -178,19 +174,17 @@ public class SalesReportServiceImpl implements SalesReportService {
 
         return Aggregation.match(
                 Criteria.where("clientId").is(clientId)
-                        .and("state").ne(Order.OrderState.DELETED)
+                        .and("state").in(Order.OrderState.finalStates())
                         .and("createdDate").gte(zonedDateRange.getFromDate()).lte(zonedDateRange.getToDate()));
     }
 
-    private BucketOperationSupport<?, ?> createSalesByRangeFacet(ZonedDateRange zonedDateRange) {
+    private GroupOperation createSalesByRangeFacet() {
 
-        final Object[] daysOfYear = zonedDateRange.bucketDateRange().boxed().toArray(Integer[]::new);
-
-        return Aggregation.bucket("dayOfYear").withBoundaries(daysOfYear).withDefaultBucket("Other")
-                .andOutput("dayOfYear").last().as("dayOfYear")
-                .andOutput("orderTotal").sum().as("total")
-                .andOutput("date").last().as("date")
-                .andOutput("dayOfYear").count().as("orderCount");
+        return Aggregation.group("date")
+                .last("dayOfYear").as("dayOfYear")
+                .sum("orderTotal").as("total")
+                .last("date").as("date")
+                .count().as("orderCount");
     }
 
     private void enhanceResults(RangedSalesReport results,
