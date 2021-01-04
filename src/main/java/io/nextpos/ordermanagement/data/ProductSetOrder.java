@@ -38,9 +38,12 @@ public class ProductSetOrder implements OrderLineItemOperation {
         checkLineItemInSet(sourceOrderLineItem);
         order.addSplitOrderLineItem(sourceOrderLineItem, sourceOrder);
 
-        sourceOrder.getOrderLineItems().stream()
+        final List<Runnable> addOps = sourceOrder.getOrderLineItems().stream()
                 .filter(li -> sourceOrderLineItem.getId().equals(li.getAssociatedLineItemId()))
-                .forEach(li -> order.addSplitOrderLineItem(li, sourceOrder));
+                .map(li -> (Runnable) () -> order.addSplitOrderLineItem(li, sourceOrder))
+                .collect(Collectors.toList());
+
+        addOps.forEach(Runnable::run);
     }
 
     @Override

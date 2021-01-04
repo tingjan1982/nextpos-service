@@ -100,6 +100,9 @@ class SplitOrderServiceImplTest {
 
         orderService.addOrderLineItem(client, sourceOrder, productSetLineItem);
 
+        final OrderLineItem lineItem2 = new OrderLineItem(DummyObjects.productSnapshot(), 2, orderSettings);
+        orderService.addOrderLineItem(client, sourceOrder, lineItem2);
+
         final Order targetOrder = splitOrderService.newSplitOrder(sourceOrder.getId(), productSetLineItem.getId());
 
         assertThat(targetOrder).satisfies(o -> {
@@ -111,18 +114,33 @@ class SplitOrderServiceImplTest {
         });
 
         assertThat(orderService.getOrder(sourceOrder.getId())).satisfies(o -> {
-            assertThat(o.getOrderLineItems()).hasSize(3);
+            assertThat(o.getOrderLineItems()).hasSize(4);
             assertThat(o.getOrderLineItems().get(0).getQuantity()).isEqualTo(1);
         });
 
-        final Order updatedOrder = splitOrderService.updateLineItem(targetOrder.getId(), sourceOrder.getId(), productSetLineItem.getId());
+        Order updatedTargetOrder = splitOrderService.updateLineItem(sourceOrder.getId(), targetOrder.getId(), productSetLineItem.getId());
 
-        assertThat(updatedOrder.getOrderLineItem(productSetLineItem.getId())).satisfies(li -> {
-            assertThat(li).isNotNull();
-            assertThat(li.getQuantity()).isEqualTo(2);
+        assertThat(updatedTargetOrder).satisfies(o -> {
+            assertThat(o.getOrderLineItems()).hasSize(3);
+            assertThat(o.getOrderLineItem(productSetLineItem.getId())).satisfies(li -> {
+                assertThat(li).isNotNull();
+                assertThat(li.getQuantity()).isEqualTo(2);
+            });
         });
 
-        assertThat(orderService.getOrder(targetOrder.getId()).getOrderLineItems()).isEmpty();
+        assertThat(orderService.getOrder(sourceOrder.getId())).satisfies(o -> {
+            assertThat(o.getOrderLineItems()).hasSize(1);
+            assertThat(o.getOrderLineItems().get(0).getQuantity()).isEqualTo(2);
+        });
+
+        final Order revertedOrder = splitOrderService.updateLineItem(targetOrder.getId(), sourceOrder.getId(), productSetLineItem.getId());
+
+        assertThat(revertedOrder.getOrderLineItem(productSetLineItem.getId())).satisfies(li -> {
+            assertThat(li).isNotNull();
+            assertThat(li.getQuantity()).isEqualTo(1);
+        });
+
+        assertThat(orderService.getOrder(targetOrder.getId()).getOrderLineItems()).hasSize(3);
     }
 
     @Test
