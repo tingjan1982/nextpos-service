@@ -261,6 +261,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
             return false;
         }
 
+        if (!StringUtils.equals(orderLineItem.getAssociatedLineItemId(), existingLineItem.getAssociatedLineItemId())) {
+            return false;
+        }
+
         return true;
     }
 
