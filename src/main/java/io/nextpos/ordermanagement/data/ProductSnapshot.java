@@ -106,6 +106,7 @@ public class ProductSnapshot {
         final ProductSnapshot copy = new ProductSnapshot();
         copy.id = id;
         copy.name = name;
+        copy.internalName = internalName;
         copy.sku = sku;
         copy.price = price;
         copy.overridePrice = overridePrice;

@@ -226,6 +226,9 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
             LOGGER.info("Line item {} is mergeable, updating its quantity to {}", li, li.getQuantity() + orderLineItem.getQuantity());
             li.incrementQuantity(orderLineItem.getQuantity());
 
+            // line item that is mergeable will inherit id from the found line item id to make product set scenario work.
+            orderLineItem.setId(li.getId());
+
         }, () -> {
             final String orderLineItemId = this.id + "-" + internalCounter.getAndIncrement();
             orderLineItem.setId(orderLineItemId);
@@ -257,7 +260,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
             return false;
         }
 
-        if (orderLineItem.getProductSnapshot().getOverridePrice() != null) {
+        if (orderLineItem.getProductSnapshot().getOverridePrice() != null && StringUtils.isBlank(orderLineItem.getAssociatedLineItemId())) {
             return false;
         }
 

@@ -181,6 +181,7 @@ public class OrderLineItem implements OfferApplicableObject {
         copy.appliedOfferInfo = appliedOfferInfo != null ? appliedOfferInfo.copy() : null;
         copy.lineItemSubTotal = lineItemSubTotal;
         copy.associatedLineItemId = associatedLineItemId;
+        copy.childLineItems = childLineItems.stream().map(OrderLineItem::copy).collect(Collectors.toList());
 
         copy.createdDate = new Date();
         copy.modifiedDate = new Date();

@@ -129,19 +129,31 @@ class OrderServiceImplTest {
 
         assertThat(orderWithLineItem.getOrderLineItems()).hasSize(1);
 
-        final OrderLineItem productSetLineItem = new OrderLineItem(DummyObjects.productSnapshot(), 2, orderSettings);
-        productSetLineItem.getChildLineItems().add(new OrderLineItem(DummyObjects.productSnapshot(), 2, orderSettings));
-        productSetLineItem.getChildLineItems().add(new OrderLineItem(DummyObjects.productSnapshot(), 2, orderSettings));
+        final OrderLineItem productSetLineItem = new OrderLineItem(DummyObjects.productSnapshot("combo", new BigDecimal("100")), 2, orderSettings);
+        final ProductSnapshot rice = DummyObjects.productSnapshot("rice", new BigDecimal("100"));
+        rice.setOverridePrice(BigDecimal.ZERO);
+        productSetLineItem.getChildLineItems().add(new OrderLineItem(rice, 2, orderSettings));
+        final ProductSnapshot drink = DummyObjects.productSnapshot("drink", new BigDecimal("40"));
+        drink.setOverridePrice(BigDecimal.ZERO);
+        productSetLineItem.getChildLineItems().add(new OrderLineItem(drink, 2, orderSettings));
 
         orderService.addOrderLineItem(client, orderWithLineItem, productSetLineItem);
 
-        assertThat(orderWithLineItem.getOrderLineItems()).hasSize(4);
+        final OrderLineItem anotherProductSet = productSetLineItem.copy();
+        orderService.addOrderLineItem(client, orderWithLineItem, anotherProductSet);
+
+        final ProductSnapshot anotherRice = rice.copy();
+        anotherRice.setOverridePrice(null);
+
+        orderService.addOrderLineItem(client, orderWithLineItem, new OrderLineItem(anotherRice, 1, orderSettings));
+
+        assertThat(orderWithLineItem.getOrderLineItems()).hasSize(5);
 
         assertThatThrownBy(() -> orderService.deleteOrderLineItem(orderWithLineItem, productSetLineItem.getChildLineItems().get(0).getId())).isInstanceOf(BusinessLogicException.class);
 
         orderService.deleteOrderLineItem(orderWithLineItem, productSetLineItem.getId());
 
-        assertThat(orderWithLineItem.getOrderLineItems()).hasSize(1);
+        assertThat(orderWithLineItem.getOrderLineItems()).hasSize(2);
 
         final List<ProductSnapshot.ProductOptionSnapshot> productOptions = List.of(DummyObjects.productOptionSnapshot());
         UpdateLineItem updateLineItem = new UpdateLineItem(orderLineItem.getId(), 5, null, productOptions, ProductLevelOffer.GlobalProductDiscount.DISCOUNT_AMOUNT_OFF, new BigDecimal(20));
@@ -167,8 +179,8 @@ class OrderServiceImplTest {
             assertThat(o.getDiscountedTotal().getAmountWithoutTax()).isEqualByComparingTo("0");
             assertThat(o.getDiscountedTotal().getAmountWithTax()).isEqualByComparingTo("0");
             assertThat(o.getDiscountedTotal().getAmount()).isEqualByComparingTo("0");
-            assertThat(o.getServiceCharge()).isEqualByComparingTo("47.25");
-            assertThat(o.getOrderTotal()).isEqualByComparingTo(BigDecimal.valueOf((110 - 20) * 5 * 1.05 * 1.1));
+            assertThat(o.getServiceCharge()).isEqualByComparingTo("57.75");
+            assertThat(o.getOrderTotal()).isEqualByComparingTo(BigDecimal.valueOf(((110 - 20) * 5 + 100) * 1.05 * 1.1));
         });
 
         updateLineItem = new UpdateLineItem(orderLineItem.getId(), 5, new BigDecimal("50"), productOptions, ProductLevelOffer.GlobalProductDiscount.NO_DISCOUNT, BigDecimal.ZERO);
@@ -191,7 +203,6 @@ class OrderServiceImplTest {
         orderService.updateOrderLineItemPrice(updatedOrder, orderLineItem.getId(), BigDecimal.ZERO);
 
         assertThat(updatedOrder.getOrderLineItem(orderLineItem.getId()).getLineItemSubTotal()).isEqualByComparingTo("0");
-        assertThat(updatedOrder.getOrderTotal()).isEqualByComparingTo("0");
     }
 
     @Test
