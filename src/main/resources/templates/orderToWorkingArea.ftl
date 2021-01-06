@@ -16,12 +16,13 @@
             <text>${order.createdDate?string('MM/dd/yyyy HH:mm:ss')!"NA"}&#10;</text>
             <text>訂單: ${order.serialId!"NA"}&#10;</text>
             <text>桌號: ${order.oneTableInfo.displayName!"外帶"}&#10;</text>
-            <feed line="1"/>
-            <text width="3" height="2"/>
             <#list lineItems as li>
-                <text linespc="80"/>
-                <text>${li.productSnapshot.displayName}</text><text x="310">${li.quantity}&#10;</text>
+                <feed line="1"/>
+                <text width="2" height="2"/>
                 <text linespc="60"/>
+                <text>${li.productSnapshot.displayName}&#10;</text>
+                <text x="350">x ${li.quantity}&#10;</text>
+                <text width="2" height="2"/>
                 <#list li.productSnapshot.productOptions as option>
                     <text> &gt; ${option.optionName}: ${option.optionValue}&#10;</text>
                 </#list>

@@ -93,6 +93,7 @@ public class OrderResponse {
                             li.getSubTotal(),
                             li.getDiscountedSubTotal(),
                             li.getAppliedOfferInfo(),
+                            li.getAssociatedLineItemId(),
                             li.getCreatedDate(),
                             li.getModifiedDate(),
                             productSnapshot.getChildProducts());
@@ -166,6 +167,8 @@ public class OrderResponse {
         private TaxableAmount discountedSubTotal;
 
         private OfferApplicableObject.AppliedOfferInfo appliedOfferInfo;
+
+        private String associatedLineItemId;
 
         private Date createdDate;
 

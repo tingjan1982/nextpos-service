@@ -43,9 +43,15 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
     public boolean checkElectronicInvoiceEligibility(Client client) {
 
         final String aesKey = getAESKey(client);
-        final String ubn = client.getAttribute(Client.ClientAttributes.UBN.name());
+        final String ubn = client.getAttribute(Client.ClientAttributes.UBN);
+        final String companyName = client.getAttribute(Client.ClientAttributes.COMPANY_NAME);
+        final String companyAddress = client.getAttribute(Client.ClientAttributes.ADDRESS);
 
-        return StringUtils.isNotBlank(aesKey) && invoiceNumberRangeService.hasCurrentInvoiceNumberRange(ubn);
+        return StringUtils.isNotBlank(aesKey) &&
+                StringUtils.isNotBlank(ubn) &&
+                StringUtils.isNotBlank(companyName) &&
+                StringUtils.isNotBlank(companyAddress) &&
+                invoiceNumberRangeService.hasCurrentInvoiceNumberRange(ubn);
     }
 
     @Override

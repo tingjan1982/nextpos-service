@@ -110,6 +110,7 @@ public class StatsReportServiceImpl implements StatsReportService {
         final MatchOperation filter = Aggregation.match(
                 Criteria.where("clientId").is(clientId)
                         .and("state").ne(Order.OrderState.DELETED)
+                        .and("customerCount").gt(0)
                         .and("createdDate").gte(zonedDateRange.getFromDate()).lt(zonedDateRange.getToDate()));
 
 //        final LocalDate lastDayOfMonth = zonedDateRange.getZonedToDate().with(TemporalAdjusters.lastDayOfMonth()).toLocalDate();

@@ -60,12 +60,12 @@ public class OrderStateChangeListener {
             } else {
                 orderService.getOrderStateChangeByOrderId(order.getId()).ifPresent(sc -> event.getFuture().complete(new OrderStateChangeBean(sc)));
             }
+        } else {
+            final String errorMsg = String.format("Unable to process order action [%s] from the order state [%s], [orderId=%s]", orderAction, orderState, order.getId());
+            LOGGER.error("{}", errorMsg);
+
+            event.getFuture().completeExceptionally(new BusinessLogicException("message.unableToChangeState", errorMsg));
         }
-
-        final String errorMsg = String.format("Unable to process order action [%s] from the order state [%s], [orderId=%s]", orderAction, orderState, order.getId());
-        LOGGER.error("{}", errorMsg);
-
-        event.getFuture().completeExceptionally(new BusinessLogicException("message.unableToChangeState", errorMsg));
     }
 
     private boolean canOrderActionContinue(Order.OrderAction orderAction, Order order) {

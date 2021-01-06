@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
-import java.util.List;
 
 @RestController
 @RequestMapping("/reporting")
@@ -52,17 +51,11 @@ public class ReportingController {
                                                           @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
                                                           @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate) {
 
-        final ZonedDateRangeBuilder builder = ZonedDateRangeBuilder.builder(client, dateParameterType)
-                .date(date)
-                .dateRange(fromDate, toDate);
-
-        shiftService.getMostRecentShift(client.getId()).ifPresent(builder::shift);
-
-        final ZonedDateRange zonedDateRange = builder.build();
+        final ZonedDateRange zonedDateRange = createZonedDateRange(client, dateParameterType, date, fromDate, toDate);
 
         final RangedSalesReport rangedSalesReport = salesReportService.generateRangedSalesReport(client.getId(), zonedDateRange);
 
-        return new RangedSalesReportResponse(rangedSalesReport);
+        return new RangedSalesReportResponse(zonedDateRange, rangedSalesReport);
     }
 
     @GetMapping("/salesRankingReport")
@@ -73,26 +66,28 @@ public class ReportingController {
                                                            @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
                                                            @RequestParam(name = "labelId") String labelId) {
 
-        final ZonedDateRangeBuilder builder = ZonedDateRangeBuilder.builder(client, dateParameterType)
-                .date(date)
-                .dateRange(fromDate, toDate);
-
-        shiftService.getMostRecentShift(client.getId()).ifPresent(builder::shift);
-
-        final ZonedDateRange zonedDateRange = builder.build();
+        final ZonedDateRange zonedDateRange = createZonedDateRange(client, dateParameterType, date, fromDate, toDate);
 
         final RangedSalesReport rangedSalesReport = salesReportService.generateSalesRankingReport(client.getId(), zonedDateRange, labelId);
 
-        return new RangedSalesReportResponse(
-                rangedSalesReport.getDateRange(),
-                rangedSalesReport.getTotalSales(),
-                rangedSalesReport.getSalesByRange(),
-                List.of(),
-                rangedSalesReport.getSalesByProduct(),
-                rangedSalesReport.getSalesByLabel());
+        return new RangedSalesReportResponse(zonedDateRange, rangedSalesReport);
+    }
+
+    @GetMapping(value = "/customerStats", headers = "version=v2")
+    public CustomerStatsReportResponse getCustomerStatsReportV2(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                                @RequestParam(value = "rangeType") DateParameterType dateParameterType,
+                                                                @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
+                                                                @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate) {
+
+        final ZonedDateRange zonedDateRange = createZonedDateRange(client, dateParameterType, null, fromDate, toDate);
+
+        final CustomerStatsReport customerStatsOfThisMonth = statsReportService.generateCustomerStatsReport(client.getId(), zonedDateRange);
+
+        return new CustomerStatsReportResponse(zonedDateRange, customerStatsOfThisMonth.getGroupedCustomerStats(), null);
     }
 
     @GetMapping("/customerStats")
+    @Deprecated
     public CustomerStatsReportResponse getCustomerStatsReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                               @RequestParam(name = "year", required = false) Integer year,
                                                               @RequestParam(name = "month", required = false) Integer month) {
@@ -114,11 +109,36 @@ public class ReportingController {
         final CustomerStatsReport customerStatsOfThisMonthLastYear = statsReportService.generateCustomerStatsReport(client.getId(), zonedDateRangeLastYear);
 
         return new CustomerStatsReportResponse(
+                zonedDateRange,
                 customerStatsOfThisMonth.getGroupedCustomerStats(),
                 customerStatsOfThisMonthLastYear.getGroupedCustomerStats());
     }
 
+    @GetMapping(value = "/customerTraffic", headers = "version=v2")
+    public CustomerTrafficReportResponse getCustomerTrafficReportV2(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                                    @RequestParam(value = "rangeType") DateParameterType dateParameterType,
+                                                                    @RequestParam(name = "from", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
+                                                                    @RequestParam(name = "to", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate) {
+
+        final ZonedDateRange zonedDateRange = createZonedDateRange(client, dateParameterType, null, fromDate, toDate);
+        final CustomerTrafficReport customerTrafficReport = statsReportService.generateCustomerTrafficReport(client.getId(), zonedDateRange);
+
+        return new CustomerTrafficReportResponse(zonedDateRange, customerTrafficReport);
+    }
+
+    private ZonedDateRange createZonedDateRange(Client client, DateParameterType dateParameterType, LocalDate date, LocalDateTime fromDate, LocalDateTime toDate) {
+
+        final ZonedDateRangeBuilder builder = ZonedDateRangeBuilder.builder(client, dateParameterType)
+                .date(date)
+                .dateRange(fromDate, toDate);
+
+        shiftService.getMostRecentShift(client.getId()).ifPresent(builder::shift);
+
+        return builder.build();
+    }
+
     @GetMapping("/customerTraffic")
+    @Deprecated
     public CustomerTrafficReportResponse getCustomerTrafficReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                                   @RequestParam(name = "year", required = false) Integer year,
                                                                   @RequestParam(name = "month", required = false) Integer month) {
@@ -133,20 +153,7 @@ public class ReportingController {
 
         final CustomerTrafficReport customerTrafficReport = statsReportService.generateCustomerTrafficReport(client.getId(), zonedDateRange);
 
-        if (customerTrafficReport.getTotalCountObject().isPresent()) {
-            return new CustomerTrafficReportResponse(
-                    customerTrafficReport.getTotalCountObject().get(),
-                    customerTrafficReport.getOrdersByHour(),
-                    customerTrafficReport.getOrdersByType(),
-                    customerTrafficReport.getOrdersByAgeGroup(),
-                    customerTrafficReport.getOrdersByVisitFrequency());
-        } else {
-            final CustomerTrafficReportResponse empty = new CustomerTrafficReportResponse();
-            empty.setTotalCount(new CustomerTrafficReport.TotalCount());
-
-            return empty;
-        }
-
+        return new CustomerTrafficReportResponse(zonedDateRange, customerTrafficReport);
     }
 
     @GetMapping("/salesDistribution")
@@ -173,7 +180,7 @@ public class ReportingController {
 
         return timeCardReportService.getTimeCardReport(client, yearMonth);
     }
-    
+
     @GetMapping("/averageDeliveryTime")
     public OrderStateAverageTimeReportResponse getOrderStateAverageTimeReport(
             @RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,

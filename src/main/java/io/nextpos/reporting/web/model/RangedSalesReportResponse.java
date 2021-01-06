@@ -3,16 +3,14 @@ package io.nextpos.reporting.web.model;
 import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.ordertransaction.data.PaymentMethodTotal;
 import io.nextpos.reporting.data.RangedSalesReport;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
 @Data
-@AllArgsConstructor
-public class RangedSalesReportResponse {
-
-    private ZonedDateRange dateRange;
+@EqualsAndHashCode(callSuper = true)
+public class RangedSalesReportResponse extends BaseDateRangeResponse {
 
     private RangedSalesReport.TotalSales totalSales;
 
@@ -24,8 +22,8 @@ public class RangedSalesReportResponse {
 
     private List<RangedSalesReport.SalesByLabel> salesByLabels;
 
-    public RangedSalesReportResponse(RangedSalesReport report) {
-        dateRange = report.getDateRange();
+    public RangedSalesReportResponse(ZonedDateRange dateRange, RangedSalesReport report) {
+        super(dateRange);
         totalSales = report.getTotalSales();
         salesByRange = report.getSalesByRange();
         salesByPaymentMethods = report.getSalesByPaymentMethod();

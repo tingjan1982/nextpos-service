@@ -98,7 +98,8 @@ class PrinterInstructionsServiceImplTest {
     void createOrderToWorkingArea() {
 
         final Order order = new Order(client.getId(), orderSettings);
-        final ProductSnapshot coffeeP = DummyObjects.productSnapshot("Coffee", new BigDecimal("100"));
+        ProductSnapshot.ProductOptionSnapshot options = new ProductSnapshot.ProductOptionSnapshot("註記", "後上後上後上後上");
+        final ProductSnapshot coffeeP = DummyObjects.productSnapshot("義大利經典鹽烤杏齙菇", new BigDecimal("100"), options);
         coffeeP.setChildProducts(Arrays.asList(
                 new ProductSnapshot.ChildProductSnapshot("id", "sugar", null),
                 new ProductSnapshot.ChildProductSnapshot("id", "ice", "ICE")
