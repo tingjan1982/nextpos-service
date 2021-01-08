@@ -1,10 +1,7 @@
 package io.nextpos.client.service;
 
 import io.micrometer.core.instrument.util.StringUtils;
-import io.nextpos.client.data.Client;
-import io.nextpos.client.data.ClientRepository;
-import io.nextpos.client.data.ClientUser;
-import io.nextpos.client.data.ClientUserRepository;
+import io.nextpos.client.data.*;
 import io.nextpos.linkedaccount.service.LinkedClientAccountService;
 import io.nextpos.roles.data.Permission;
 import io.nextpos.shared.config.BootstrapConfig;
@@ -40,6 +37,8 @@ public class ClientServiceImpl implements ClientService {
 
     private final ClientUserRepository clientUserRepository;
 
+    private final ClientPasswordRegistryRepository clientPasswordRegistryRepository;
+
     private final JdbcClientDetailsService clientDetailsService;
 
     private final PasswordEncoder passwordEncoder;
@@ -47,9 +46,10 @@ public class ClientServiceImpl implements ClientService {
     private final LinkedClientAccountService linkedClientAccountService;
 
     @Autowired
-    public ClientServiceImpl(final ClientRepository clientRepository, final ClientUserRepository clientUserRepository, JdbcClientDetailsService clientDetailsService, PasswordEncoder passwordEncoder, LinkedClientAccountService linkedClientAccountService) {
+    public ClientServiceImpl(final ClientRepository clientRepository, final ClientUserRepository clientUserRepository, ClientPasswordRegistryRepository clientPasswordRegistryRepository, JdbcClientDetailsService clientDetailsService, PasswordEncoder passwordEncoder, LinkedClientAccountService linkedClientAccountService) {
         this.clientRepository = clientRepository;
         this.clientUserRepository = clientUserRepository;
+        this.clientPasswordRegistryRepository = clientPasswordRegistryRepository;
         this.clientDetailsService = clientDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.linkedClientAccountService = linkedClientAccountService;
@@ -235,10 +235,33 @@ public class ClientServiceImpl implements ClientService {
             throw new ObjectAlreadyExistsException(clientUser.getId().toString(), ClientUser.class);
         });
 
+        final ClientPasswordRegistry clientPasswordRegistry = checkClientUserPassword(clientUser);
+        clientPasswordRegistry.addPassword(clientUser.getId().getUsername(), clientUser.getPassword());
+        clientPasswordRegistryRepository.save(clientPasswordRegistry);
+
         final String encryptedPassword = passwordEncoder.encode(clientUser.getPassword());
         clientUser.setPassword(encryptedPassword);
 
         return clientUserRepository.save(clientUser);
+    }
+
+    private ClientPasswordRegistry checkClientUserPassword(ClientUser clientUser) {
+        
+        ClientPasswordRegistry clientPasswordRegistry = getOrCreateClientPasswordRegistry(clientUser.getClient());
+
+        if (clientPasswordRegistry.isPasswordUsed(clientUser.getPassword())) {
+            throw new BusinessLogicException("message.passwordUsed", "Choose another password");
+        }
+
+        return clientPasswordRegistry;
+    }
+
+    private ClientPasswordRegistry getOrCreateClientPasswordRegistry(Client client) {
+        return clientPasswordRegistryRepository.findByClient(client).orElseGet(() -> {
+            final ClientPasswordRegistry clientPasswordRegistry = new ClientPasswordRegistry(client);
+
+            return clientPasswordRegistryRepository.save(clientPasswordRegistry);
+        });
     }
 
     @Override
@@ -283,6 +306,10 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public void deleteClientUser(final Client client, final String username) {
+
+        final ClientPasswordRegistry clientPasswordRegistry = getOrCreateClientPasswordRegistry(client);
+        clientPasswordRegistry.removePassword(username);
+        clientPasswordRegistryRepository.save(clientPasswordRegistry);
 
         final ClientUser clientUser = this.getClientUser(client, username);
         clientUserRepository.delete(clientUser);

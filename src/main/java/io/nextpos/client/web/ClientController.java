@@ -4,6 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientInfo;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientActivationService;
+import io.nextpos.client.service.ClientBootstrapService;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.client.web.model.*;
 import io.nextpos.clienttracker.data.ClientUsageTrack;
@@ -37,6 +38,8 @@ public class ClientController {
 
     private final UserRoleService userRoleService;
 
+    private final ClientBootstrapService clientBootstrapService;
+
     private final ClientActivationService clientActivationService;
 
     private final ClientUserTrackingService clientUserTrackingService;
@@ -48,9 +51,10 @@ public class ClientController {
     private final OAuth2Helper oAuth2Helper;
 
     @Autowired
-    public ClientController(final ClientService clientService, final UserRoleService userRoleService, final ClientActivationService clientActivationService, ClientUserTrackingService clientUserTrackingService, ClientSubscriptionAccessService clientSubscriptionAccessService, EncryptionService encryptionService, final OAuth2Helper oAuth2Helper) {
+    public ClientController(final ClientService clientService, final UserRoleService userRoleService, ClientBootstrapService clientBootstrapService, final ClientActivationService clientActivationService, ClientUserTrackingService clientUserTrackingService, ClientSubscriptionAccessService clientSubscriptionAccessService, EncryptionService encryptionService, final OAuth2Helper oAuth2Helper) {
         this.clientService = clientService;
         this.userRoleService = userRoleService;
+        this.clientBootstrapService = clientBootstrapService;
         this.clientActivationService = clientActivationService;
         this.clientUserTrackingService = clientUserTrackingService;
         this.clientSubscriptionAccessService = clientSubscriptionAccessService;
@@ -67,6 +71,7 @@ public class ClientController {
         final Client createdClient = clientService.createClient(client);
 
         clientActivationService.initiateClientActivation(createdClient);
+        clientBootstrapService.bootstrapClient(createdClient);
 
         return toClientResponse(createdClient);
 
@@ -226,7 +231,8 @@ public class ClientController {
     }
 
     @PostMapping("/me/users")
-    public ClientUserResponse createClientUser(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @Valid @RequestBody ClientUserRequest clientUserRequest) {
+    public ClientUserResponse createClientUser(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                               @Valid @RequestBody ClientUserRequest clientUserRequest) {
 
         final ClientUser clientUser = fromClientUserRequest(client, clientUserRequest);
         final ClientUser createdClientUser = clientService.createClientUser(clientUser);

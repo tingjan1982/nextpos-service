@@ -1,10 +1,13 @@
 package io.nextpos.client.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.data.ClientPasswordRegistry;
+import io.nextpos.client.data.ClientPasswordRegistryRepository;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.linkedaccount.service.LinkedClientAccountService;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.config.SecurityConfig;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectAlreadyExistsException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +26,9 @@ class ClientServiceImplTest {
 
     @Autowired
     private ClientServiceImpl clientService;
+
+    @Autowired
+    private ClientPasswordRegistryRepository clientPasswordRegistryRepository;
 
     @Autowired
     private LinkedClientAccountService linkedClientAccountService;
@@ -61,19 +67,28 @@ class ClientServiceImplTest {
 
         final ClientUser createdUser = clientService.createClientUser(clientUser);
 
+        final ClientPasswordRegistry clientPasswordRegistry = clientPasswordRegistryRepository.findByClient(client).orElseThrow();
+        assertThat(clientPasswordRegistry.isPasswordUsed("admin")).isTrue();
+
         assertThat(createdUser).isNotNull();
         assertThat(createdUser.getPassword()).startsWith("{bcrypt}");
         assertThat(createdUser.getId()).isEqualTo(clientUser.getId());
 
         assertThatThrownBy(() -> clientService.createClientUser(clientUser)).isInstanceOf(ObjectAlreadyExistsException.class);
 
+        final ClientUser anotherUser = new ClientUser(new ClientUser.ClientUserId("user2", client.getUsername()), client,"admin", SecurityConfig.Role.ADMIN_ROLE);
+
+        assertThatThrownBy(() -> clientService.createClientUser(anotherUser)).isInstanceOf(BusinessLogicException.class);
+
+        anotherUser.setPassword("anotherpassword");
+        clientService.createClientUser(anotherUser);
+        assertThat(clientService.getClientUsers(client)).hasSize(2);
+
         final ClientUser loadedClientUser = clientService.loadClientUser(client, username);
         assertThat(loadedClientUser).isNotNull();
 
         final UserDetails userDetails = clientService.loadUserByUsername(username);
         assertThat(userDetails).isNotNull();
-
-        assertThat(clientService.getClientUsers(client)).hasSize(1);
 
         createdUser.setNickname("tom");
         createdUser.setPassword("password");
@@ -86,6 +101,7 @@ class ClientServiceImplTest {
         assertThat(updatedUser.getRoles()).contains(SecurityConfig.Role.USER_ROLE);
 
         clientService.deleteClientUser(client, username);
+        clientService.deleteClientUser(client, anotherUser.getId().getUsername());
 
         assertThat(clientService.getClientUsers(client)).isEmpty();
 

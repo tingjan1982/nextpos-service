@@ -4,6 +4,7 @@ import io.nextpos.subscription.data.SubscriptionPlan;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -22,6 +23,8 @@ public class SubscriptionPlanResponse {
 
     private final Map<SubscriptionPlan.PlanPeriod, BigDecimal> planPrices;
 
+    private final List<String> restrictedFeatures;
+
     public SubscriptionPlanResponse(SubscriptionPlan subscriptionPlan) {
         id = subscriptionPlan.getId();
         countryCode = subscriptionPlan.getCountryCode();
@@ -30,5 +33,6 @@ public class SubscriptionPlanResponse {
         description = subscriptionPlan.getDescription();
         planPrices = subscriptionPlan.getPlanPrices().entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getPlanMonthlyPrice()));
+        restrictedFeatures = subscriptionPlan.getSubscriptionLimit().getRestrictedFeatures();
     }
 }
