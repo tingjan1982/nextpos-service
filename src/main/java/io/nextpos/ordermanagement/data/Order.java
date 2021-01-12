@@ -519,6 +519,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
          */
         DELIVERED,
 
+        PAYMENT_IN_PROCESS,
+
         /**
          * When order is paid.
          */
@@ -577,7 +579,9 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
          */
         PARTIAL_DELIVER(IN_PROCESS, DELIVERED),
         DELIVER(IN_PROCESS, DELIVERED),
-        SETTLE(EnumSet.of(IN_PROCESS, DELIVERED), SETTLED),
+        ENTER_PAYMENT(DELIVERED, PAYMENT_IN_PROCESS),
+        EXIT_PAYMENT(PAYMENT_IN_PROCESS, DELIVERED),
+        SETTLE(EnumSet.of(IN_PROCESS, DELIVERED, PAYMENT_IN_PROCESS), SETTLED),
         CANCEL(EnumSet.of(SETTLED, COMPLETED), CANCELLED),
         VOID(EnumSet.of(SETTLED, COMPLETED, CANCELLED), VOIDED),
         REFUND(SETTLED, REFUNDED),

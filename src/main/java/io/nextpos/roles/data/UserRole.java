@@ -87,7 +87,7 @@ public class UserRole extends BaseObject implements ClientObject {
 
     public String getPermissionsAsString() {
         return permissions.stream()
-                .map(up -> up.getPermission().toString(up.getOperation()))
+                .map(UserPermission::toPermissionString)
                 .collect(Collectors.joining(","));
     }
 
@@ -117,6 +117,10 @@ public class UserRole extends BaseObject implements ClientObject {
 
         public static UserPermission of(Permission permission, Permission.Operation operation) {
             return new UserPermission(permission, operation);
+        }
+
+        public String toPermissionString() {
+            return permission.toString(operation);
         }
     }
 }

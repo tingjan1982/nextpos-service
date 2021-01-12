@@ -56,7 +56,6 @@ public enum PermissionBundle {
     )),
     
     MANAGE_SETTINGS("manageSettings", Arrays.asList(
-
             UserRole.UserPermission.of(Permission.TABLE_LAYOUT, Permission.Operation.WRITE),
             UserRole.UserPermission.of(Permission.TABLE_LAYOUT, Permission.Operation.DELETE),
             UserRole.UserPermission.of(Permission.TABLE, Permission.Operation.WRITE),
@@ -75,9 +74,9 @@ public enum PermissionBundle {
             UserRole.UserPermission.of(Permission.REPORT, Permission.Operation.READ)
     ));
 
-    private String messageKey;
+    private final String messageKey;
 
-    private List<UserRole.UserPermission> userPermissions;
+    private final List<UserRole.UserPermission> userPermissions;
 
 
     PermissionBundle(final String messageKey, final List<UserRole.UserPermission> userPermissions) {

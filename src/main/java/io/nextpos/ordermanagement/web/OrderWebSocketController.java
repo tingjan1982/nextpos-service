@@ -3,6 +3,7 @@ package io.nextpos.ordermanagement.web;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
@@ -26,9 +27,23 @@ public class OrderWebSocketController {
         this.orderService = orderService;
     }
 
-    @MessageMapping("/realtimeOrders")
-    @SendTo("/dest/realtimeOrders")
-    public List<Order> realtimeOrders(String clientId) {
+    @MessageMapping("/realtimeOrders/{clientId}")
+    @SendTo("/dest/realtimeOrders/{clientId}")
+    public List<Order> realtimeOrders(@DestinationVariable String clientId) {
         return orderService.getOrdersByState(clientId, Order.OrderState.IN_PROCESS);
+    }
+
+    @MessageMapping("/inflightOrders/{clientId}")
+    @SendTo("/dest/inflightOrders/{clientId}")
+    public String inflightOrders(@DestinationVariable String clientId) {
+
+        return clientId + ".inflightOrders.established";
+    }
+
+    @MessageMapping("/order/{orderId}")
+    @SendTo("/dest/order/{orderId}")
+    public String orderDetails(@DestinationVariable String orderId) {
+
+        return orderId + ".order.established";
     }
 }

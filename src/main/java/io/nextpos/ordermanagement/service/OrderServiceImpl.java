@@ -8,6 +8,8 @@ import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.event.LineItemStateChangeEvent;
 import io.nextpos.ordermanagement.event.OrderStateChangeEvent;
 import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
+import io.nextpos.shared.aspect.WebSocketClientOrder;
+import io.nextpos.shared.aspect.WebSocketClientOrders;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
@@ -66,6 +68,7 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
+    @WebSocketClientOrders
     public Order createOrder(final Order order) {
 
         shiftService.getActiveShiftOrThrows(order.getClientId());
@@ -127,6 +130,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @WebSocketClientOrders
     public void deleteOrder(final Order order) {
         orderRepository.delete(order);
     }
@@ -137,6 +141,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @WebSocketClientOrder
     public Order updateOrderLineItem(final Order order, final UpdateLineItem updateLineItem) {
 
         order.productSetOrder().updateOrderLineItem(updateLineItem.getLineItemId(), (lineItem) -> {
@@ -155,6 +160,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @WebSocketClientOrder
     public Order updateOrderLineItemPrice(Order order, String lineItemId, BigDecimal overridePrice) {
 
         order.productSetOrder().updateOrderLineItem(lineItemId, (lineItem) -> {
@@ -166,6 +172,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @WebSocketClientOrder
     public Order deleteOrderLineItem(final Order order, final String lineItemId) {
 
         final OrderLineItem orderLineItem = order.getOrderLineItem(lineItemId);
@@ -175,6 +182,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @WebSocketClientOrder
     public Order addOrderLineItem(Client client, final Order order, final OrderLineItem orderLineItem) {
 
         if (order.isClosed()) {
@@ -214,6 +222,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @WebSocketClientOrder
+    @WebSocketClientOrders
     public OrderStateChange transitionOrderState(final Order order, final Order.OrderAction orderAction, Optional<LineItemStateChangeEvent> lineItemStateChangeEvent) {
 
         final Order.OrderState orderState = orderAction.getValidNextState();
@@ -234,19 +244,22 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderLineItem> prepareLineItems(final String orderId, final List<String> lineItemIds) {
+    public Order prepareLineItems(final String orderId, final List<String> lineItemIds) {
         return publishLineItemEvent(orderId, lineItemIds, Order.OrderAction.PREPARE);
     }
 
     @Override
-    public List<OrderLineItem> deliverLineItems(String orderId, List<String> lineItemIds) {
+    @WebSocketClientOrder
+    public Order deliverLineItems(String orderId, List<String> lineItemIds) {
         return publishLineItemEvent(orderId, lineItemIds, Order.OrderAction.PARTIAL_DELIVER);
     }
 
-    private List<OrderLineItem> publishLineItemEvent(String orderId, List<String> lineItemIds, Order.OrderAction orderAction) {
+    private Order publishLineItemEvent(String orderId, List<String> lineItemIds, Order.OrderAction orderAction) {
+
+        final Order order = this.getOrder(orderId);
 
         if (!CollectionUtils.isEmpty(lineItemIds)) {
-            final Order order = this.getOrder(orderId);
+
             final List<OrderLineItem> orderLineItems = order.getOrderLineItems().stream()
                     .filter(li -> lineItemIds.contains(li.getId()))
                     .collect(Collectors.toList());
@@ -256,12 +269,10 @@ public class OrderServiceImpl implements OrderService {
                 applicationEventPublisher.publishEvent(new LineItemStateChangeEvent(this, order, orderAction, orderLineItems));
 
                 this.saveOrder(order);
-
-                return orderLineItems;
             }
         }
 
-        return List.of();
+        return order;
     }
 
     @Override

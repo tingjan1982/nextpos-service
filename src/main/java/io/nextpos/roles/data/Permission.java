@@ -13,8 +13,16 @@ public enum Permission {
 
     PRODUCT,
 
+    /**
+     * Client related permission.
+     */
     CLIENT,
+
+    /**
+     * User related permission
+     */
     CLIENT_USER,
+
     TIME_CARD,
 
     TABLE_LAYOUT,

@@ -51,9 +51,9 @@ public interface OrderService {
 
     Optional<OrderStateChange> getOrderStateChangeByOrderId(String orderId);
 
-    List<OrderLineItem> prepareLineItems(String orderId, List<String> lineItemIds);
+    Order prepareLineItems(String orderId, List<String> lineItemIds);
 
-    List<OrderLineItem> deliverLineItems(String orderId, List<String> lineItemIds);
+    Order deliverLineItems(String orderId, List<String> lineItemIds);
 
     Order copyOrder(String id);
 

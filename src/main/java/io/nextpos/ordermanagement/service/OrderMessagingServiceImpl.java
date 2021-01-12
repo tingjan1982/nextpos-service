@@ -29,6 +29,6 @@ public class OrderMessagingServiceImpl implements OrderMessagingService {
         LOGGER.info("Sending updated in process orders for: {}", clientId);
 
         final List<Order> inProcessOrders = orderService.getOrdersByState(clientId, Order.OrderState.IN_PROCESS);
-        messagingTemplate.convertAndSend("/dest/realtimeOrders", inProcessOrders);
+        messagingTemplate.convertAndSend("/dest/realtimeOrders/" + clientId, inProcessOrders);
     }
 }

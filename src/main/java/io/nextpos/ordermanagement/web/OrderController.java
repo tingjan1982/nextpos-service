@@ -22,8 +22,6 @@ import io.nextpos.shared.aspect.OrderLogAction;
 import io.nextpos.shared.aspect.OrderLogParam;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.web.ClientResolver;
-import io.nextpos.shared.web.model.SimpleObjectResponse;
-import io.nextpos.shared.web.model.SimpleObjectsResponse;
 import io.nextpos.tablelayout.service.TableLayoutService;
 import io.nextpos.tablelayout.web.model.TableDetailsResponse;
 import io.nextpos.workingarea.data.Printer;
@@ -31,7 +29,6 @@ import io.nextpos.workingarea.data.PrinterInstructions;
 import io.nextpos.workingarea.service.PrinterInstructionService;
 import io.nextpos.workingarea.service.WorkingAreaService;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +41,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -161,30 +157,7 @@ public class OrderController {
     }
 
     private OrdersResponse toOrdersResponse(final List<Order> orders) {
-
-        final Map<String, List<OrdersResponse.LightOrderResponse>> orderResponses = orders.stream()
-                .map(o -> {
-                    final boolean itemNeedAttention = o.getOrderLineItems().stream()
-                            .anyMatch(li -> DateUtils.addMinutes(li.getCreatedDate(), 30).before(new Date()));
-
-                    return new OrdersResponse.LightOrderResponse(o.getId(),
-                            o.getSerialId(),
-                            StringUtils.substringAfter(o.getSerialId(), "-"),
-                            o.getOrderType(),
-                            o.getOneTableInfo().getTableLayoutId(),
-                            o.getOneTableInfo().getTableLayoutName(),
-                            o.getOneTableInfo().getTableId(),
-                            o.getOneTableInfo().getDisplayName(),
-                            o.getTables(),
-                            o.getDemographicData().getCustomerCount(),
-                            o.getCreatedDate(),
-                            o.getState(),
-                            o.getOrderTotal(),
-                            itemNeedAttention);
-                })
-                .collect(Collectors.groupingBy(OrdersResponse.LightOrderResponse::getTableLayoutId, Collectors.toList()));
-
-        return new OrdersResponse(orderResponses);
+        return new OrdersResponse(orders);
     }
 
     @GetMapping("/availableTables")
@@ -382,30 +355,24 @@ public class OrderController {
 
     @PostMapping("/{id}/lineitems/prepare")
     @OrderLogAction
-    public SimpleObjectsResponse prepareLineItems(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+    public OrderResponse prepareLineItems(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                   @PathVariable final String id,
                                                   @Valid @RequestBody UpdateLineItemsRequest updateLineItemsRequest) {
 
-        final List<OrderLineItem> updatedOrderLineItems = orderService.prepareLineItems(id, updateLineItemsRequest.getLineItemIds());
-        final List<SimpleObjectResponse> simpleObjects = updatedOrderLineItems.stream()
-                .map(li -> new SimpleObjectResponse(li.getId(), li.getProductSnapshot().getName()))
-                .collect(Collectors.toList());
+        final Order updatedOrder = orderService.prepareLineItems(id, updateLineItemsRequest.getLineItemIds());
 
-        return new SimpleObjectsResponse(simpleObjects);
+        return OrderResponse.toOrderResponse(updatedOrder);
     }
 
     @PostMapping("/{id}/lineitems/deliver")
     @OrderLogAction
-    public SimpleObjectsResponse deliverLineItems(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+    public OrderResponse deliverLineItems(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                   @PathVariable final String id,
                                                   @Valid @RequestBody UpdateLineItemsRequest updateLineItemsRequest) {
 
-        final List<OrderLineItem> updatedOrderLineItems = orderService.deliverLineItems(id, updateLineItemsRequest.getLineItemIds());
-        final List<SimpleObjectResponse> simpleObjects = updatedOrderLineItems.stream()
-                .map(li -> new SimpleObjectResponse(li.getId(), li.getProductSnapshot().getName()))
-                .collect(Collectors.toList());
+        final Order updatedOrder = orderService.deliverLineItems(id, updateLineItemsRequest.getLineItemIds());
 
-        return new SimpleObjectsResponse(simpleObjects);
+        return OrderResponse.toOrderResponse(updatedOrder);
     }
 
     @PatchMapping("/{id}/lineitems/{lineItemId}")

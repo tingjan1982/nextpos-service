@@ -5,6 +5,9 @@ import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
 import io.nextpos.product.service.ProductLabelService;
 import io.nextpos.product.service.ProductService;
+import io.nextpos.roles.data.PermissionBundle;
+import io.nextpos.roles.data.UserRole;
+import io.nextpos.roles.service.UserRoleService;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
@@ -27,12 +30,15 @@ public class ClientBootstrapServiceImpl implements ClientBootstrapService {
 
     private final ProductService productService;
 
+    private final UserRoleService userRoleService;
+
     @Autowired
-    public ClientBootstrapServiceImpl(TableLayoutService tableLayoutService, WorkingAreaService workingAreaService, ProductLabelService productLabelService, ProductService productService) {
+    public ClientBootstrapServiceImpl(TableLayoutService tableLayoutService, WorkingAreaService workingAreaService, ProductLabelService productLabelService, ProductService productService, UserRoleService userRoleService) {
         this.tableLayoutService = tableLayoutService;
         this.workingAreaService = workingAreaService;
         this.productLabelService = productLabelService;
         this.productService = productService;
+        this.userRoleService = userRoleService;
     }
 
     @Override
@@ -73,5 +79,37 @@ public class ClientBootstrapServiceImpl implements ClientBootstrapService {
         cake.setWorkingArea(workingArea);
 
         productService.saveProduct(cake);
+
+        final UserRole staff = new UserRole(client, "員工");
+        staff.addPermissionBundle(PermissionBundle.CREATE_ORDER);
+
+        userRoleService.saveUserRole(staff);
+
+        final UserRole supervisor = new UserRole(client, "店長");
+        staff.addPermissionBundle(PermissionBundle.CREATE_ORDER);
+        staff.addPermissionBundle(PermissionBundle.DELETE_ORDER);
+        staff.addPermissionBundle(PermissionBundle.CLOSE_SHIFT);
+        staff.addPermissionBundle(PermissionBundle.APPLY_DISCOUNT);
+        staff.addPermissionBundle(PermissionBundle.MANAGE_STAFF);
+        staff.addPermissionBundle(PermissionBundle.MANAGE_PRODUCT);
+        staff.addPermissionBundle(PermissionBundle.MANAGE_SETTINGS);
+        staff.addPermissionBundle(PermissionBundle.MANAGE_ANNOUNCEMENT);
+
+        userRoleService.saveUserRole(supervisor);
+
+        final UserRole manager = new UserRole(client, "主管");
+        staff.addPermissionBundle(PermissionBundle.CREATE_ORDER);
+        staff.addPermissionBundle(PermissionBundle.DELETE_ORDER);
+        staff.addPermissionBundle(PermissionBundle.CLOSE_SHIFT);
+        staff.addPermissionBundle(PermissionBundle.APPLY_DISCOUNT);
+        staff.addPermissionBundle(PermissionBundle.MANAGE_STAFF);
+        staff.addPermissionBundle(PermissionBundle.MANAGE_STORE);
+        staff.addPermissionBundle(PermissionBundle.MANAGE_PRODUCT);
+        staff.addPermissionBundle(PermissionBundle.MANAGE_SETTINGS);
+        staff.addPermissionBundle(PermissionBundle.MANAGE_ANNOUNCEMENT);
+        staff.addPermissionBundle(PermissionBundle.VIEW_REPORT);
+
+        userRoleService.saveUserRole(manager);
+
     }
 }
