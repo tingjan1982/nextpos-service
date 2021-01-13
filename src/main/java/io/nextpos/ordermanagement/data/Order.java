@@ -550,11 +550,12 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
         public static List<OrderState> inflightStates() {
             return Arrays.asList(
-                    Order.OrderState.OPEN,
-                    Order.OrderState.IN_PROCESS,
-                    Order.OrderState.DELIVERED,
-                    Order.OrderState.SETTLED,
-                    Order.OrderState.REFUNDED);
+                    OPEN,
+                    IN_PROCESS,
+                    DELIVERED,
+                    PAYMENT_IN_PROCESS,
+                    SETTLED,
+                    REFUNDED);
         }
 
         public static EnumSet<OrderState> finalStates() {

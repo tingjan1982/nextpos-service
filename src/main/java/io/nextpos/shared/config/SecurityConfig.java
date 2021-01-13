@@ -431,6 +431,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
                     .addAuthorization(GET, "/orders/**", UserRole.UserPermission.of(Permission.ORDER, Permission.Operation.READ), Role.USER_ROLE)
                     .addAuthorization(POST, "/orders/**", UserRole.UserPermission.of(Permission.ORDER, Permission.Operation.WRITE), Role.USER_ROLE)
+                    .addAuthorization(DELETE, "/orders/*/lineitems/*", UserRole.UserPermission.of(Permission.ORDER, Permission.Operation.DELETE), Role.USER_ROLE)
                     .addAuthorization(DELETE, "/orders/**", UserRole.UserPermission.of(Permission.ORDER, Permission.Operation.DELETE), Role.MANAGER_ROLE)
 
                     .addAuthorization("/ordersets/**", UserRole.UserPermission.of(Permission.ORDER, Permission.Operation.ALL), Role.USER_ROLE)
