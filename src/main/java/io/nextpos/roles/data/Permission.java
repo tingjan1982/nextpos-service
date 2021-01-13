@@ -1,44 +1,55 @@
 package io.nextpos.roles.data;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public enum Permission {
 
+    /**
+     * Order related
+     */
     SHIFT,
     ORDER,
     DISCOUNT,
-
-    PRODUCT,
+    MEMBERSHIP,
 
     /**
-     * Client related permission.
+     * Product related
+     */
+    PRODUCT,
+    PRODUCT_TOGGLES,
+    OFFER,
+
+    /**
+     * Client and client user related permission.
      */
     CLIENT,
-
-    /**
-     * User related permission
-     */
     CLIENT_USER,
-
+    CURRENT_USER,
+    USER_ROLE,
     TIME_CARD,
 
+    /**
+     * Other setting related
+     */
     TABLE_LAYOUT,
     TABLE,
     WORKING_AREA,
     PRINTER,
+    ANNOUNCEMENT,
+    EINVOICE,
 
+    /**
+     * Advanced feature related
+     */
     REPORT,
-    ANNOUNCEMENT;
+    ROSTER;
 
     public static List<String> ALL_PERMISSION;
 
     static {
-        ALL_PERMISSION = Arrays.stream(Permission.values()).map(p -> {
-            return Arrays.stream(Operation.values()).map(p::toString).collect(Collectors.toList());
-        }).flatMap(Collection::stream).collect(Collectors.toList());
+        ALL_PERMISSION = Arrays.stream(Permission.values()).map(p -> p.toString(Operation.ALL)).collect(Collectors.toList());
     }
 
     public static List<String> allPermissions() {
@@ -50,6 +61,6 @@ public enum Permission {
     }
 
     public enum Operation {
-        READ, WRITE, DELETE
+        READ, WRITE, DELETE, ALL
     }
 }

@@ -86,30 +86,35 @@ public class ClientBootstrapServiceImpl implements ClientBootstrapService {
         userRoleService.saveUserRole(staff);
 
         final UserRole supervisor = new UserRole(client, "店長");
-        staff.addPermissionBundle(PermissionBundle.CREATE_ORDER);
-        staff.addPermissionBundle(PermissionBundle.DELETE_ORDER);
-        staff.addPermissionBundle(PermissionBundle.CLOSE_SHIFT);
-        staff.addPermissionBundle(PermissionBundle.APPLY_DISCOUNT);
-        staff.addPermissionBundle(PermissionBundle.MANAGE_STAFF);
-        staff.addPermissionBundle(PermissionBundle.MANAGE_PRODUCT);
-        staff.addPermissionBundle(PermissionBundle.MANAGE_SETTINGS);
-        staff.addPermissionBundle(PermissionBundle.MANAGE_ANNOUNCEMENT);
+        supervisor.addPermissionBundle(PermissionBundle.CREATE_ORDER);
+        supervisor.addPermissionBundle(PermissionBundle.DELETE_ORDER);
+        supervisor.addPermissionBundle(PermissionBundle.MANAGE_SHIFT);
+        supervisor.addPermissionBundle(PermissionBundle.APPLY_DISCOUNT);
+        supervisor.addPermissionBundle(PermissionBundle.MANAGE_MEMBERSHIP);
+        supervisor.addPermissionBundle(PermissionBundle.MANAGE_STAFF);
+        supervisor.addPermissionBundle(PermissionBundle.MANAGE_ROLE);
+        supervisor.addPermissionBundle(PermissionBundle.MANAGE_PRODUCT);
+        supervisor.addPermissionBundle(PermissionBundle.MANAGE_SETTINGS);
+        supervisor.addPermissionBundle(PermissionBundle.MANAGE_ANNOUNCEMENT);
 
         userRoleService.saveUserRole(supervisor);
 
         final UserRole manager = new UserRole(client, "主管");
-        staff.addPermissionBundle(PermissionBundle.CREATE_ORDER);
-        staff.addPermissionBundle(PermissionBundle.DELETE_ORDER);
-        staff.addPermissionBundle(PermissionBundle.CLOSE_SHIFT);
-        staff.addPermissionBundle(PermissionBundle.APPLY_DISCOUNT);
-        staff.addPermissionBundle(PermissionBundle.MANAGE_STAFF);
-        staff.addPermissionBundle(PermissionBundle.MANAGE_STORE);
-        staff.addPermissionBundle(PermissionBundle.MANAGE_PRODUCT);
-        staff.addPermissionBundle(PermissionBundle.MANAGE_SETTINGS);
-        staff.addPermissionBundle(PermissionBundle.MANAGE_ANNOUNCEMENT);
-        staff.addPermissionBundle(PermissionBundle.VIEW_REPORT);
+        manager.addPermissionBundle(PermissionBundle.CREATE_ORDER);
+        manager.addPermissionBundle(PermissionBundle.DELETE_ORDER);
+        manager.addPermissionBundle(PermissionBundle.MANAGE_SHIFT);
+        manager.addPermissionBundle(PermissionBundle.APPLY_DISCOUNT);
+        manager.addPermissionBundle(PermissionBundle.MANAGE_MEMBERSHIP);
+        manager.addPermissionBundle(PermissionBundle.MANAGE_STAFF);
+        manager.addPermissionBundle(PermissionBundle.MANAGE_ROLE);
+        manager.addPermissionBundle(PermissionBundle.MANAGE_PRODUCT);
+        manager.addPermissionBundle(PermissionBundle.MANAGE_SETTINGS);
+        manager.addPermissionBundle(PermissionBundle.MANAGE_ANNOUNCEMENT);
+        manager.addPermissionBundle(PermissionBundle.MANAGE_STORE);
+        manager.addPermissionBundle(PermissionBundle.MANAGE_EINVOICE);
+        manager.addPermissionBundle(PermissionBundle.VIEW_REPORT);
+        manager.addPermissionBundle(PermissionBundle.MANAGE_ROSTER);
 
         userRoleService.saveUserRole(manager);
-
     }
 }

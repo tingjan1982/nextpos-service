@@ -12,33 +12,49 @@ public enum PermissionBundle {
     BASE("base", Arrays.asList(
             UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.READ),
             UserRole.UserPermission.of(Permission.CLIENT_USER, Permission.Operation.READ),
+            UserRole.UserPermission.of(Permission.CURRENT_USER, Permission.Operation.READ),
+            UserRole.UserPermission.of(Permission.CURRENT_USER, Permission.Operation.WRITE),
+            UserRole.UserPermission.of(Permission.USER_ROLE, Permission.Operation.READ),
             UserRole.UserPermission.of(Permission.TIME_CARD, Permission.Operation.READ),
             UserRole.UserPermission.of(Permission.TIME_CARD, Permission.Operation.WRITE),
             UserRole.UserPermission.of(Permission.PRODUCT, Permission.Operation.READ),
+            UserRole.UserPermission.of(Permission.PRODUCT_TOGGLES, Permission.Operation.WRITE),
             UserRole.UserPermission.of(Permission.ORDER, Permission.Operation.READ),
             UserRole.UserPermission.of(Permission.SHIFT, Permission.Operation.READ),
+            UserRole.UserPermission.of(Permission.MEMBERSHIP, Permission.Operation.READ),
+            UserRole.UserPermission.of(Permission.MEMBERSHIP, Permission.Operation.WRITE),
             UserRole.UserPermission.of(Permission.TABLE_LAYOUT, Permission.Operation.READ),
             UserRole.UserPermission.of(Permission.TABLE, Permission.Operation.READ),
             UserRole.UserPermission.of(Permission.WORKING_AREA, Permission.Operation.READ),
             UserRole.UserPermission.of(Permission.PRINTER, Permission.Operation.READ),
-            UserRole.UserPermission.of(Permission.ANNOUNCEMENT, Permission.Operation.READ)
+            UserRole.UserPermission.of(Permission.ANNOUNCEMENT, Permission.Operation.READ),
+            UserRole.UserPermission.of(Permission.ROSTER, Permission.Operation.READ)
     )),
 
     CREATE_ORDER("createOrder", List.of(
-            UserRole.UserPermission.of(Permission.ORDER, Permission.Operation.WRITE),
-            UserRole.UserPermission.of(Permission.DISCOUNT, Permission.Operation.DELETE)
+            UserRole.UserPermission.of(Permission.ORDER, Permission.Operation.WRITE)
     )),
 
     DELETE_ORDER("deleteOrder", Collections.singletonList(
             UserRole.UserPermission.of(Permission.ORDER, Permission.Operation.DELETE)
     )),
 
-    CLOSE_SHIFT("closeShift", Collections.singletonList(
+    MANAGE_SHIFT("manageShift", Collections.singletonList(
             UserRole.UserPermission.of(Permission.SHIFT, Permission.Operation.WRITE)
     )),
 
     APPLY_DISCOUNT("applyDiscount", Collections.singletonList(
             UserRole.UserPermission.of(Permission.DISCOUNT, Permission.Operation.WRITE)
+    )),
+
+    MANAGE_MEMBERSHIP("manageMembership", List.of(
+            UserRole.UserPermission.of(Permission.MEMBERSHIP, Permission.Operation.WRITE),
+            UserRole.UserPermission.of(Permission.MEMBERSHIP, Permission.Operation.DELETE)
+    )),
+
+    MANAGE_ROLE("manageRole", List.of(
+            UserRole.UserPermission.of(Permission.USER_ROLE, Permission.Operation.WRITE),
+            UserRole.UserPermission.of(Permission.USER_ROLE, Permission.Operation.DELETE)
     )),
 
     MANAGE_PRODUCT("manageProduct", Arrays.asList(
@@ -70,8 +86,18 @@ public enum PermissionBundle {
             UserRole.UserPermission.of(Permission.ANNOUNCEMENT, Permission.Operation.WRITE)
     )),
 
+    MANAGE_EINVOICE("manageEInvoice", Arrays.asList(
+            UserRole.UserPermission.of(Permission.EINVOICE, Permission.Operation.READ),
+            UserRole.UserPermission.of(Permission.EINVOICE, Permission.Operation.WRITE)
+    )),
+
     VIEW_REPORT("viewReport", Collections.singletonList(
             UserRole.UserPermission.of(Permission.REPORT, Permission.Operation.READ)
+    )),
+
+    MANAGE_ROSTER("manageRoster", List.of(
+            UserRole.UserPermission.of(Permission.ROSTER, Permission.Operation.WRITE),
+        UserRole.UserPermission.of(Permission.ROSTER, Permission.Operation.DELETE)
     ));
 
     private final String messageKey;

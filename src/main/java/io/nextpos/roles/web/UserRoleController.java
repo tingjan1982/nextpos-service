@@ -64,7 +64,7 @@ public class UserRoleController {
     }
 
     @GetMapping("/{id}")
-    public UserRoleResponse createUserRole(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+    public UserRoleResponse getUserRole(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                            @PathVariable String id) {
 
         final UserRole userRole = clientObjectOwnershipService.checkOwnership(client, () -> userRoleService.getUserRole(id));

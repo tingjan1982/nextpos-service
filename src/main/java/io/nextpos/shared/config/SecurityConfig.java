@@ -2,6 +2,8 @@ package io.nextpos.shared.config;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
+import io.nextpos.roles.data.Permission;
+import io.nextpos.roles.data.UserRole;
 import io.nextpos.shared.exception.ConfigurationException;
 import io.nextpos.shared.web.RequestIdContextFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -267,6 +269,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         private final RequestIdContextFilter requestIdContextFilter;
 
+        @Value("${resourceServerStateless}")
+        private boolean resourceServerStateless;
+
         @Autowired
         public ResourceServer(final ResourceServerTokenServices tokenService, final RequestIdContextFilter requestIdContextFilter) {
             this.tokenServices = tokenService;
@@ -277,7 +282,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         public void configure(ResourceServerSecurityConfigurer config) {
             config.tokenServices(tokenServices)
                     .resourceId(OAuthSettings.RESOURCE_ID)
-                    .stateless(true);
+                    .stateless(resourceServerStateless);
         }
 
         /**
@@ -299,10 +304,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .cors().and()
                     .addFilterBefore(requestIdContextFilter, WebAsyncManagerIntegrationFilter.class)
                     .authorizeRequests()
-                    .antMatchers("/clients/default", "/account/**", "/error", "/favicon.ico", "/ws/**").permitAll();
+                    .antMatchers("/account/**", "/error", "/favicon.ico", "/ws/**").permitAll();
 
             this.authorizeClientRequests(http);
-            this.authorizeClientSettingRequests(http);
             this.authorizeClientStatusRequests(http);
             this.authorizeUserRoleRequests(http);
             this.authorizeLinkedClientAccountRequests(http);
@@ -316,12 +320,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             this.authorizeMembershipRequests(http);
             this.authorizeClientSubscriptionRequests(http);
             this.authorizeRosterPlanRequests(http);
+            this.authorizeInventoryRequests(http);
 
             http.authorizeRequests().anyRequest().authenticated();
-
-//                    .antMatchers(HttpMethod.POST, "/clients/me/users").access("hasAuthority('ADMIN') and #oauth2.hasScopeMatching('client:write')")
-//                    .antMatchers(HttpMethod.GET, "/products/**", "/productoptions/**").access("hasAnyAuthority('USER') and #oauth2.hasScopeMatching('product:.*')")
-//                    .antMatchers(HttpMethod.POST, "/products/**", "/productoptions/**").access("hasAuthority('USER') and #oauth2.hasScopeMatching('product:.*')")
         }
 
         private void authorizeClientRequests(final HttpSecurity http) throws Exception {
@@ -331,36 +332,37 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers(POST, "/clients/resetPassword").access("hasAuthority('MASTER')")
                     .antMatchers(DELETE, "/clients/*/hard").access("hasAuthority('MASTER')")
                     .antMatchers(POST, "/clients").permitAll()
-                    .antMatchers(GET, "/clients/default").permitAll()
-                    .antMatchers(GET, "/clients/me", "/clients/*").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/clients/me", "/clients/me/*").hasAuthority(Role.ADMIN_ROLE)
-                    .antMatchers(DELETE, "/clients/me").hasAuthority(Role.ADMIN_ROLE)
-                    .antMatchers(GET, "/clients/me/users").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(GET, "/clients/me/users/*").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/clients/me/users/*").hasAuthority(Role.OWNER_ROLE)
-                    .antMatchers(PATCH, "/clients/me/users/currentUser/password").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(PATCH, "/clients/me/users/**").hasAuthority(Role.OWNER_ROLE)
-                    .antMatchers(DELETE, "/clients/me/users/*").hasAuthority(Role.OWNER_ROLE);
+                    .antMatchers(GET, "/clients/default").permitAll();
+
+            HttpSecurityDecorator.newInstance(http)
+                    .addAuthorization(GET, "/clients/me/users/**", UserRole.UserPermission.of(Permission.CLIENT_USER, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/clients/me/users/**", UserRole.UserPermission.of(Permission.CLIENT_USER, Permission.Operation.WRITE), Role.OWNER_ROLE)
+                    .addAuthorization(PATCH, "/clients/me/users/currentUser/password", UserRole.UserPermission.of(Permission.CURRENT_USER, Permission.Operation.WRITE), Role.USER_ROLE)
+                    .addAuthorization(PATCH, "/clients/me/users/*/password", UserRole.UserPermission.of(Permission.CLIENT_USER, Permission.Operation.WRITE), Role.OWNER_ROLE)
+                    .addAuthorization(DELETE, "/clients/me/users/*", UserRole.UserPermission.of(Permission.CLIENT_USER, Permission.Operation.DELETE), Role.OWNER_ROLE)
+
+                    .addAuthorization(GET, "/clients/**", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/clients/me/**", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.WRITE), Role.OWNER_ROLE)
+                    .addAuthorization(DELETE, "/clients/me", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.DELETE), Role.ADMIN_ROLE)
+                    .decorate();
         }
 
         private void authorizeClientStatusRequests(HttpSecurity http) throws Exception {
 
-            http.authorizeRequests()
-                    .antMatchers("/clientstatus/**").hasAuthority(Role.USER_ROLE);
-        }
-
-        private void authorizeClientSettingRequests(HttpSecurity http) throws Exception {
-
-            http.authorizeRequests()
-                    .antMatchers("/clientSettings/**").hasAuthority(Role.OWNER_ROLE);
+            HttpSecurityDecorator.newInstance(http)
+                    .addAuthorization("/clientstatus/**", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(GET,"/clientSettings/**", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST,"/clientSettings/**", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.WRITE), Role.OWNER_ROLE)
+                    .decorate();
         }
 
         private void authorizeUserRoleRequests(HttpSecurity http) throws Exception {
 
-            http.authorizeRequests()
-                    .antMatchers(GET, "/roles/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/roles/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(DELETE, "/roles/**").hasAuthority(Role.MANAGER_ROLE);
+            HttpSecurityDecorator.newInstance(http)
+                    .addAuthorization(GET, "/roles/**", UserRole.UserPermission.of(Permission.USER_ROLE, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/roles/**", UserRole.UserPermission.of(Permission.USER_ROLE, Permission.Operation.WRITE), Role.USER_ROLE)
+                    .addAuthorization(DELETE, "/roles/**", UserRole.UserPermission.of(Permission.USER_ROLE, Permission.Operation.DELETE), Role.USER_ROLE)
+                    .decorate();
         }
 
         private void authorizeLinkedClientAccountRequests(HttpSecurity http) throws Exception {
@@ -371,91 +373,119 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         private void authorizeTimeCardRequests(final HttpSecurity http) throws Exception {
 
-            http.authorizeRequests()
-                    .antMatchers("/timecards/**").hasAuthority(Role.USER_ROLE);
+            HttpSecurityDecorator.newInstance(http)
+                    .addAuthorization("/timecards/**", UserRole.UserPermission.of(Permission.TIME_CARD, Permission.Operation.ALL), Role.USER_ROLE)
+                    .decorate();
         }
 
         private void authorizeTablesAndWorkingAreaRequests(final HttpSecurity http) throws Exception {
 
-            http.authorizeRequests()
-                    .antMatchers(GET, "/tablelayouts/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/tablelayouts/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(DELETE, "/tablelayouts/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(GET, "/workingareas/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/workingareas/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(DELETE, "/workingareas/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(GET, "/printers/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/printers/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(DELETE, "/printers/**").hasAuthority(Role.MANAGER_ROLE);
+            HttpSecurityDecorator.newInstance(http)
+                    .addAuthorization(GET, "/tablelayouts/**", UserRole.UserPermission.of(Permission.TABLE_LAYOUT, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/tablelayouts/**", UserRole.UserPermission.of(Permission.TABLE_LAYOUT, Permission.Operation.WRITE), Role.MANAGER_ROLE)
+                    .addAuthorization(DELETE, "/tablelayouts/**", UserRole.UserPermission.of(Permission.TABLE_LAYOUT, Permission.Operation.DELETE), Role.MANAGER_ROLE)
+
+                    .addAuthorization(GET, "/workingareas/**", UserRole.UserPermission.of(Permission.WORKING_AREA, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/workingareas/**", UserRole.UserPermission.of(Permission.WORKING_AREA, Permission.Operation.WRITE), Role.MANAGER_ROLE)
+                    .addAuthorization(DELETE, "/workingareas/**", UserRole.UserPermission.of(Permission.WORKING_AREA, Permission.Operation.DELETE), Role.MANAGER_ROLE)
+
+                    .addAuthorization(GET, "/printers/**", UserRole.UserPermission.of(Permission.PRINTER, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/printers/**", UserRole.UserPermission.of(Permission.PRINTER, Permission.Operation.WRITE), Role.MANAGER_ROLE)
+                    .addAuthorization(DELETE, "/printers/**", UserRole.UserPermission.of(Permission.PRINTER, Permission.Operation.DELETE), Role.MANAGER_ROLE)
+                    .decorate();
         }
 
         private void authorizeProductRequests(final HttpSecurity http) throws Exception {
 
-            http.authorizeRequests()
-                    .antMatchers(GET, "/products/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/products/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(DELETE, "/products/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(GET, "/productoptions/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/productoptions/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(DELETE, "/productoptions/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(GET, "/labels/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/labels/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(DELETE, "/labels/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers("/searches/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(GET, "/offers/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/offers/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(DELETE, "/offers/**").hasAuthority(Role.MANAGER_ROLE);
+            HttpSecurityDecorator.newInstance(http)
+                    .addAuthorization(GET, "/products/**", UserRole.UserPermission.of(Permission.PRODUCT, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(GET, "/searchces/**", UserRole.UserPermission.of(Permission.PRODUCT, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/products/*/togglePin", UserRole.UserPermission.of(Permission.PRODUCT_TOGGLES, Permission.Operation.WRITE), Role.USER_ROLE)
+                    .addAuthorization(POST, "/products/*/toggleOutOfStock", UserRole.UserPermission.of(Permission.PRODUCT_TOGGLES, Permission.Operation.WRITE), Role.USER_ROLE)
+                    .addAuthorization(POST, "/products/**", UserRole.UserPermission.of(Permission.PRODUCT, Permission.Operation.WRITE), Role.MANAGER_ROLE)
+                    .addAuthorization(DELETE, "/products/**", UserRole.UserPermission.of(Permission.PRODUCT, Permission.Operation.DELETE), Role.MANAGER_ROLE)
+
+                    .addAuthorization(GET, "/productoptions/**", UserRole.UserPermission.of(Permission.PRODUCT, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/productoptions/**", UserRole.UserPermission.of(Permission.PRODUCT, Permission.Operation.WRITE), Role.MANAGER_ROLE)
+                    .addAuthorization(DELETE, "/productoptions/**", UserRole.UserPermission.of(Permission.PRODUCT, Permission.Operation.DELETE), Role.MANAGER_ROLE)
+
+                    .addAuthorization(GET, "/labels/**", UserRole.UserPermission.of(Permission.PRODUCT, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/labels/**", UserRole.UserPermission.of(Permission.PRODUCT, Permission.Operation.WRITE), Role.MANAGER_ROLE)
+                    .addAuthorization(DELETE, "/labels/**", UserRole.UserPermission.of(Permission.PRODUCT, Permission.Operation.DELETE), Role.MANAGER_ROLE)
+
+                    .addAuthorization(GET, "/offers/**", UserRole.UserPermission.of(Permission.OFFER, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/offers/**", UserRole.UserPermission.of(Permission.OFFER, Permission.Operation.WRITE), Role.MANAGER_ROLE)
+                    .addAuthorization(DELETE, "/offers/**", UserRole.UserPermission.of(Permission.OFFER, Permission.Operation.DELETE), Role.MANAGER_ROLE)
+                    .decorate();
         }
 
         private void authorizeShiftAndOrderRequests(final HttpSecurity http) throws Exception {
 
-            http.authorizeRequests()
-                    .antMatchers(POST, "/orders/*/applyDiscount").access("#oauth2.hasScope('write:discount') or hasAuthority('MANAGER')")
-                    .antMatchers("/shifts/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(GET, "/orders/**").hasAuthority(Role.USER_ROLE)
-                    .regexMatchers(POST, "\\/orders(\\/?((?!applyDiscount).)+)").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(DELETE, "/orders/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers("/ordersets/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers("/splitOrders/**").hasAuthority(Role.USER_ROLE);
+            HttpSecurityDecorator.newInstance(http)
+                    .addAuthorization(GET, "/shifts/**", UserRole.UserPermission.of(Permission.SHIFT, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/shifts/**", UserRole.UserPermission.of(Permission.SHIFT, Permission.Operation.WRITE), Role.USER_ROLE)
+
+                    .addAuthorization(POST, "/orders/*/applyDiscount", UserRole.UserPermission.of(Permission.DISCOUNT, Permission.Operation.WRITE), Role.MANAGER_ROLE)
+                    .addAuthorization(POST, "/orders/*/removeDiscount", UserRole.UserPermission.of(Permission.DISCOUNT, Permission.Operation.WRITE), Role.MANAGER_ROLE)
+                    .addAuthorization(POST, "/orders/*/waiveServiceCharge", UserRole.UserPermission.of(Permission.DISCOUNT, Permission.Operation.WRITE), Role.MANAGER_ROLE)
+
+                    .addAuthorization(GET, "/orders/**", UserRole.UserPermission.of(Permission.ORDER, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/orders/**", UserRole.UserPermission.of(Permission.ORDER, Permission.Operation.WRITE), Role.USER_ROLE)
+                    .addAuthorization(DELETE, "/orders/**", UserRole.UserPermission.of(Permission.ORDER, Permission.Operation.DELETE), Role.MANAGER_ROLE)
+
+                    .addAuthorization("/ordersets/**", UserRole.UserPermission.of(Permission.ORDER, Permission.Operation.ALL), Role.USER_ROLE)
+                    .addAuthorization("/splitOrders/**", UserRole.UserPermission.of(Permission.ORDER, Permission.Operation.ALL), Role.USER_ROLE)
+                    .decorate();
         }
 
         private void authorizeAnnouncementRequests(final HttpSecurity http) throws Exception {
 
-            http.authorizeRequests()
-                    .antMatchers(GET, "/announcements/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers(POST, "/announcements/**").hasAuthority(Role.MANAGER_ROLE)
-                    .antMatchers(DELETE, "/announcements/**").hasAuthority(Role.MANAGER_ROLE);
+            HttpSecurityDecorator.newInstance(http)
+                    .addAuthorization(GET, "/announcements/**", UserRole.UserPermission.of(Permission.ANNOUNCEMENT, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/announcements/**", UserRole.UserPermission.of(Permission.ANNOUNCEMENT, Permission.Operation.WRITE), Role.MANAGER_ROLE)
+                    .addAuthorization(DELETE, "/announcements/**", UserRole.UserPermission.of(Permission.ANNOUNCEMENT, Permission.Operation.DELETE), Role.MANAGER_ROLE)
+                    .decorate();
         }
 
         private void authorizeReportingRequests(final HttpSecurity http) throws Exception {
 
-            http.authorizeRequests()
-                    .antMatchers("/reporting/**").hasAuthority(Role.OWNER_ROLE);
+            HttpSecurityDecorator.newInstance(http)
+                    .addAuthorization(GET, "/reporting/**", UserRole.UserPermission.of(Permission.REPORT, Permission.Operation.READ), Role.OWNER_ROLE)
+                    .decorate();
         }
 
         private void authorizeInvoiceNumberRequests(HttpSecurity http) throws Exception {
 
-            http.authorizeRequests()
-                    .antMatchers("/einvoices/**").hasAuthority(Role.USER_ROLE)
-                    .antMatchers("/invoiceNumbers/**").hasAuthority(Role.OWNER_ROLE);
+            HttpSecurityDecorator.newInstance(http)
+                    .addAuthorization("/einvoices/**", UserRole.UserPermission.of(Permission.EINVOICE, Permission.Operation.ALL), Role.MANAGER_ROLE)
+                    .addAuthorization("/invoiceNumbers/**", UserRole.UserPermission.of(Permission.EINVOICE, Permission.Operation.ALL), Role.MANAGER_ROLE)
+                    .decorate();
         }
 
         private void authorizeMembershipRequests(HttpSecurity http) throws Exception {
 
-            http.authorizeRequests()
-                    .antMatchers("/memberships/**").hasAuthority(Role.USER_ROLE);
+            HttpSecurityDecorator.newInstance(http)
+                    .addAuthorization(GET, "/memberships/**", UserRole.UserPermission.of(Permission.MEMBERSHIP, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/memberships/**", UserRole.UserPermission.of(Permission.MEMBERSHIP, Permission.Operation.WRITE), Role.USER_ROLE)
+                    .addAuthorization(DELETE, "/memberships/**", UserRole.UserPermission.of(Permission.MEMBERSHIP, Permission.Operation.DELETE), Role.MANAGER_ROLE)
+                    .decorate();
         }
 
         private void authorizeClientSubscriptionRequests(HttpSecurity http) throws Exception {
 
-            http.authorizeRequests()
-                    .antMatchers("/clientSubscriptions/**").hasAuthority(Role.USER_ROLE);
+            HttpSecurityDecorator.newInstance(http)
+                    .addAuthorization(GET,"/clientSubscriptions/**", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST,"/clientSubscriptions/**", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.WRITE), Role.OWNER_ROLE)
+                    .decorate();
         }
 
         private void authorizeRosterPlanRequests(HttpSecurity http) throws Exception {
 
-            http.authorizeRequests()
-                    .antMatchers("/rosterPlans/**").hasAuthority(Role.USER_ROLE);
+            HttpSecurityDecorator.newInstance(http)
+                    .addAuthorization(GET,"/rosterPlans/**", UserRole.UserPermission.of(Permission.ROSTER, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST,"/rosterPlans/**", UserRole.UserPermission.of(Permission.ROSTER, Permission.Operation.WRITE), Role.MANAGER_ROLE)
+                    .addAuthorization(DELETE,"/rosterPlans/**", UserRole.UserPermission.of(Permission.ROSTER, Permission.Operation.DELETE), Role.MANAGER_ROLE)
+                    .decorate();
         }
 
         private void authorizeInventoryRequests(HttpSecurity http) throws Exception {

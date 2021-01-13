@@ -122,5 +122,9 @@ public class UserRole extends BaseObject implements ClientObject {
         public String toPermissionString() {
             return permission.toString(operation);
         }
+
+        public String toWildcardPermission() {
+            return ".*:" + permission.name().toLowerCase();
+        }
     }
 }
