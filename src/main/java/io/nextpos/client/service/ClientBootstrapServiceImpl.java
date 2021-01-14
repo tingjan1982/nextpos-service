@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 @Service
 @ChainedTransaction
@@ -80,6 +81,12 @@ public class ClientBootstrapServiceImpl implements ClientBootstrapService {
 
         productService.saveProduct(cake);
 
+        bootstrapUserRoles(client);
+    }
+
+    @Override
+    public Map<String, UserRole> bootstrapUserRoles(Client client) {
+
         final UserRole staff = new UserRole(client, "員工");
         staff.addPermissionBundle(PermissionBundle.CREATE_ORDER);
 
@@ -116,5 +123,7 @@ public class ClientBootstrapServiceImpl implements ClientBootstrapService {
         manager.addPermissionBundle(PermissionBundle.MANAGE_ROSTER);
 
         userRoleService.saveUserRole(manager);
+
+        return Map.of(staff.getName(), staff, supervisor.getName(), supervisor, manager.getName(), manager);
     }
 }

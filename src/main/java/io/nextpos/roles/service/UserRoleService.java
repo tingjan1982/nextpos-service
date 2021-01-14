@@ -1,6 +1,7 @@
 package io.nextpos.roles.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.data.ClientUser;
 import io.nextpos.roles.data.UserRole;
 
 import java.util.List;
@@ -16,6 +17,8 @@ public interface UserRoleService {
     List<UserRole> getUserRoles(Client client);
 
     UserRole updateUserRole(UserRole userRole);
+
+    void removeClientUserRole(ClientUser clientUser);
 
     void deleteUserRole(UserRole userRole);
 

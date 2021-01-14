@@ -49,7 +49,9 @@ public enum Permission {
     public static List<String> ALL_PERMISSION;
 
     static {
-        ALL_PERMISSION = Arrays.stream(Permission.values()).map(p -> p.toString(Operation.ALL)).collect(Collectors.toList());
+        ALL_PERMISSION = Arrays.stream(Permission.values())
+                .map(p -> p.toString(Operation.ALL))
+                .collect(Collectors.toList());
     }
 
     public static List<String> allPermissions() {

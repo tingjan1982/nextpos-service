@@ -546,7 +546,9 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         /**
          * When order is marked as completed to indicate it can be filtered out when trying to display current orders.
          */
-        COMPLETED;
+        COMPLETED,
+
+        PREV_FROM_STATE;
 
         public static List<OrderState> inflightStates() {
             return Arrays.asList(
@@ -580,8 +582,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
          */
         PARTIAL_DELIVER(IN_PROCESS, DELIVERED),
         DELIVER(IN_PROCESS, DELIVERED),
-        ENTER_PAYMENT(DELIVERED, PAYMENT_IN_PROCESS),
-        EXIT_PAYMENT(PAYMENT_IN_PROCESS, DELIVERED),
+        ENTER_PAYMENT(EnumSet.of(IN_PROCESS, DELIVERED), PAYMENT_IN_PROCESS),
+        EXIT_PAYMENT(PAYMENT_IN_PROCESS, PREV_FROM_STATE),
         SETTLE(EnumSet.of(IN_PROCESS, DELIVERED, PAYMENT_IN_PROCESS), SETTLED),
         CANCEL(EnumSet.of(SETTLED, COMPLETED), CANCELLED),
         VOID(EnumSet.of(SETTLED, COMPLETED, CANCELLED), VOIDED),

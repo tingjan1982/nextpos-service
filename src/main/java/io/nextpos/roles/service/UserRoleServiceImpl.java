@@ -1,6 +1,8 @@
 package io.nextpos.roles.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.data.ClientUser;
+import io.nextpos.client.data.ClientUserRepository;
 import io.nextpos.roles.data.UserRole;
 import io.nextpos.roles.data.UserRoleRepository;
 import io.nextpos.shared.exception.ObjectNotFoundException;
@@ -16,9 +18,12 @@ public class UserRoleServiceImpl implements UserRoleService {
 
     private final UserRoleRepository userRoleRepository;
 
+    private final ClientUserRepository clientUserRepository;
+
     @Autowired
-    public UserRoleServiceImpl(final UserRoleRepository userRoleRepository) {
+    public UserRoleServiceImpl(final UserRoleRepository userRoleRepository, ClientUserRepository clientUserRepository) {
         this.userRoleRepository = userRoleRepository;
+        this.clientUserRepository = clientUserRepository;
     }
 
     @Override
@@ -49,6 +54,20 @@ public class UserRoleServiceImpl implements UserRoleService {
         userRole.getClientUsers().forEach((id, user) -> user.setUserRole(userRole));
 
         return userRoleRepository.save(userRole);
+    }
+
+    @Override
+    public void removeClientUserRole(ClientUser clientUser) {
+
+        if (clientUser.getUserRole() != null) {
+            clientUserRepository.loadById(clientUser.getId()).ifPresent(cu -> {
+                final UserRole userRole = cu.getUserRole();
+                cu.removeUserRole();
+
+                saveUserRole(userRole);
+                clientUserRepository.save(cu);
+            });
+        }
     }
 
     @Override

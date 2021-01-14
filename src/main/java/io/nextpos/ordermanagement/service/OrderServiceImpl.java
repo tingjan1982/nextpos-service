@@ -226,10 +226,13 @@ public class OrderServiceImpl implements OrderService {
     @WebSocketClientOrders
     public OrderStateChange transitionOrderState(final Order order, final Order.OrderAction orderAction, Optional<LineItemStateChangeEvent> lineItemStateChangeEvent) {
 
-        final Order.OrderState orderState = orderAction.getValidNextState();
-
+        Order.OrderState orderState = orderAction.getValidNextState();
         final OrderStateChange orderStateChange = orderStateChangeRepository.findById(order.getId())
                 .orElse(new OrderStateChange(order.getId(), order.getClientId()));
+
+        if (orderState == Order.OrderState.PREV_FROM_STATE) {
+            orderState = orderStateChange.getPreviousEntry().getFromState();
+        }
 
         orderStateChange.addStateChange(order.getState(), orderState);
         orderStateChangeRepository.save(orderStateChange);

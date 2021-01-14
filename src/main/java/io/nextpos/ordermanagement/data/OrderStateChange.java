@@ -1,5 +1,6 @@
 package io.nextpos.ordermanagement.data;
 
+import io.nextpos.shared.exception.BusinessLogicException;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -39,6 +40,15 @@ public class OrderStateChange {
 
     public Optional<OrderStateChangeEntry> getLastEntry() {
         return stateChanges.isEmpty() ? Optional.empty() : Optional.of(stateChanges.get(0));
+    }
+
+    public OrderStateChangeEntry getPreviousEntry() {
+
+        if (stateChanges.isEmpty()) {
+            throw new BusinessLogicException("message.noPreviousEntry", "Please check order state change as there is no recorded state change entries");
+        }
+
+        return stateChanges.get(stateChanges.size() - 1);
     }
 
     public Optional<OrderDuration> getOrderPreparationDuration() {

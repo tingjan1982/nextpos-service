@@ -310,7 +310,7 @@ public class ClientController {
             final UserRole userRole = userRoleService.loadUserRole(updateClientUserRequest.getUserRoleId());
             clientUser.setUserRole(userRole);
         } else {
-            clientUser.removeUserRole();
+            userRoleService.removeClientUserRole(clientUser);
         }
     }
 

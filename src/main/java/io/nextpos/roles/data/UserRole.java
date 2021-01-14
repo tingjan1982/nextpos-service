@@ -45,6 +45,7 @@ public class UserRole extends BaseObject implements ClientObject {
      * Stores the permission bundles for role screen rendering.
      */
     @ElementCollection(fetch = FetchType.EAGER)
+    //@Enumerated(EnumType.STRING)
     @Fetch(FetchMode.SUBSELECT)
     @CollectionTable(name = "client_user_role_permission_bundle", joinColumns = @JoinColumn(name = "role_id"))
     private Set<PermissionBundle> permissionBundles = new HashSet<>();
