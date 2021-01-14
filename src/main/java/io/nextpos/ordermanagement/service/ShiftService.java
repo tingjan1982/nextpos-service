@@ -12,6 +12,8 @@ public interface ShiftService {
 
     Shift openShift(String clientId, BigDecimal openingBalance);
 
+    void saveShift(Shift shift);
+
     ClosingShiftTransactionReport getClosingShiftReport(String clientId, String shiftId);
 
     Shift balanceClosingShift(String shiftId);

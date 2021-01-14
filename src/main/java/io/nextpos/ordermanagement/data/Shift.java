@@ -14,10 +14,7 @@ import javax.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 @Document
@@ -37,6 +34,7 @@ public class Shift extends MongoBaseObject {
 
     private ShiftStatus shiftStatus;
 
+    private List<DeletedLineItem> deletedLineItems = new ArrayList<>();
 
     public Shift(final String clientId, final Date startTimestamp, final String shiftStartBy, final BigDecimal openingBalance) {
         this.clientId = clientId;
@@ -84,10 +82,15 @@ public class Shift extends MongoBaseObject {
         shiftStatus = ShiftStatus.ACTIVE;
     }
 
+    public void addDeletedLineItem(Order order, OrderLineItem orderLineItem) {
 
-    @Override
-    public boolean isNew() {
-        return id == null;
+        final DeletedLineItem deletedLineItem = new DeletedLineItem(order.getId(),
+                orderLineItem.getProductSnapshot().getName(),
+                orderLineItem.getQuantity(),
+                orderLineItem.getLineItemSubTotal(),
+                new Date());
+
+        deletedLineItems.add(deletedLineItem);
     }
 
     @Data
@@ -183,6 +186,22 @@ public class Shift extends MongoBaseObject {
         public boolean isBalanced() {
             return BigDecimal.ZERO.compareTo(difference) == 0;
         }
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DeletedLineItem {
+
+        private String orderId;
+
+        private String productName;
+
+        private int quantity;
+
+        private BigDecimal total;
+
+        private Date deletedDate;
     }
 
     public enum ShiftStatus {

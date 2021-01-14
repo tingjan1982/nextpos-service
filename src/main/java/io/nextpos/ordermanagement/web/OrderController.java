@@ -114,8 +114,12 @@ public class OrderController {
 
     private OrdersByRangeResponse toOrdersByRangeResponse(final List<Order> orders, final ZonedDateRange zonedDateRange) {
 
-        final List<OrdersByRangeResponse.LightOrderResponse> orderResponses = orders.stream().
-                map(o -> new OrdersByRangeResponse.LightOrderResponse(o.getId(),
+        final BigDecimal ordersTotal = orders.stream()
+                .map(Order::getOrderTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        final List<OrdersByRangeResponse.LightOrderResponse> orderResponses = orders.stream()
+                .map(o -> new OrdersByRangeResponse.LightOrderResponse(o.getId(),
                         o.getSerialId(),
                         o.getOrderType(),
                         o.getCreatedDate(),
@@ -123,7 +127,7 @@ public class OrderController {
                         o.getTotal(),
                         o.getOrderTotal())).collect(Collectors.toList());
 
-        return new OrdersByRangeResponse(zonedDateRange, orderResponses);
+        return new OrdersByRangeResponse(zonedDateRange, ordersTotal, orderResponses);
     }
 
     private ZonedDateRange resolveDateRange(Client client, DateParameterType dateParameterType, final String shiftId, final LocalDateTime fromDateParam, final LocalDateTime toDateParam) {

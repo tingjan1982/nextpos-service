@@ -16,6 +16,8 @@ public class OrdersByRangeResponse {
 
     private ZonedDateRange dateRange;
 
+    private BigDecimal ordersTotal;
+
     private List<LightOrderResponse> orders;
 
     @Data

@@ -178,6 +178,10 @@ public class OrderServiceImpl implements OrderService {
         final OrderLineItem orderLineItem = order.getOrderLineItem(lineItemId);
         order.productSetOrder().deleteOrderLineItem(orderLineItem);
 
+        final Shift activeShift = shiftService.getActiveShiftOrThrows(order.getClientId());
+        activeShift.addDeletedLineItem(order, orderLineItem);
+        shiftService.saveShift(activeShift);
+
         return orderRepository.save(order);
     }
 

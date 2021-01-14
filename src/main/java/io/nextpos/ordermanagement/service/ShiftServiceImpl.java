@@ -62,6 +62,11 @@ public class ShiftServiceImpl implements ShiftService {
     }
 
     @Override
+    public void saveShift(Shift shift) {
+        shiftRepository.save(shift);
+    }
+
+    @Override
     public ClosingShiftTransactionReport getClosingShiftReport(String clientId, String shiftId) {
 
         final Shift shift = getShift(shiftId);

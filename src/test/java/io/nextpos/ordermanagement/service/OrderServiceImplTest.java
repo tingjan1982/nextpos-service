@@ -41,6 +41,9 @@ class OrderServiceImplTest {
     private OrderService orderService;
 
     @Autowired
+    private ShiftService shiftService;
+
+    @Autowired
     private OrderSettings orderSettings;
 
     @Autowired
@@ -154,6 +157,9 @@ class OrderServiceImplTest {
         orderService.deleteOrderLineItem(orderWithLineItem, productSetLineItem.getId());
 
         assertThat(orderWithLineItem.getOrderLineItems()).hasSize(2);
+
+        final Shift activeShift = shiftService.getActiveShiftOrThrows(client.getId());
+        assertThat(activeShift.getDeletedLineItems()).hasSize(1);
 
         final List<ProductSnapshot.ProductOptionSnapshot> productOptions = List.of(DummyObjects.productOptionSnapshot());
         UpdateLineItem updateLineItem = new UpdateLineItem(orderLineItem.getId(), 5, null, productOptions, ProductLevelOffer.GlobalProductDiscount.DISCOUNT_AMOUNT_OFF, new BigDecimal(20));

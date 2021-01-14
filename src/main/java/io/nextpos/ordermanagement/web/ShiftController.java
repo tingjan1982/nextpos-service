@@ -154,6 +154,7 @@ public class ShiftController {
                 shift.getClientId(),
                 shift.getShiftStatus(),
                 openShiftResponse,
-                closeShiftResponse);
+                closeShiftResponse,
+                shift.getDeletedLineItems());
     }
 }

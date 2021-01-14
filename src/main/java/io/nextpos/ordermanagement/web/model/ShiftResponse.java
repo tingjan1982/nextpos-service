@@ -8,6 +8,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -24,6 +25,8 @@ public class ShiftResponse {
     private OpenShiftDetailsResponse open;
 
     private CloseShiftDetailsResponse close;
+
+    private List<Shift.DeletedLineItem> deletedLineItems;
 
     @Data
     @AllArgsConstructor
