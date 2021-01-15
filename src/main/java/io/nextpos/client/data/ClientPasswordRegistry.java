@@ -1,5 +1,6 @@
 package io.nextpos.client.data;
 
+import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.model.BaseObject;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -21,7 +22,7 @@ public class ClientPasswordRegistry extends BaseObject {
     @GeneratedValue(generator = "uuid")
     @GenericGenerator(name = "uuid", strategy = "uuid2")
     private String id;
-    
+
     @ManyToOne
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
@@ -47,5 +48,15 @@ public class ClientPasswordRegistry extends BaseObject {
 
     public void removePassword(String username) {
         passwords.remove(username);
+    }
+
+    public String getUserByPassword(String password) {
+
+        return passwords.entrySet().stream()
+                .filter(e -> e.getValue().equals(password))
+                .map(Map.Entry::getKey)
+                .findFirst().orElseThrow(() -> {
+                    throw new ObjectNotFoundException("NA", ClientPasswordRegistry.class);
+                });
     }
 }

@@ -46,6 +46,8 @@ public class ClientBootstrapServiceImpl implements ClientBootstrapService {
     public void bootstrapClient(Client client) {
 
         final TableLayout firstFloor = new TableLayout(client, "1F");
+        tableLayoutService.saveTableLayout(firstFloor);
+
         firstFloor.addTableDetails(new TableLayout.TableDetails("A1", 4));
         firstFloor.addTableDetails(new TableLayout.TableDetails("A2", 4));
         firstFloor.addTableDetails(new TableLayout.TableDetails("A3", 4));

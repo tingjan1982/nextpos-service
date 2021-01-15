@@ -41,6 +41,8 @@ public interface ClientService extends UserDetailsService {
 
     ClientUser loadClientUser(Client client, String username);
 
+    String getClientUsernameByPassword(Client client, String password);
+
     List<ClientUser> getClientUsers(Client client);
 
     ClientUser saveClientUser(ClientUser clientUser);

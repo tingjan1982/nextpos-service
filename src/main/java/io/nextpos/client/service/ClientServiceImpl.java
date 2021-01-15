@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.util.StringUtils;
 import io.nextpos.client.data.*;
 import io.nextpos.linkedaccount.service.LinkedClientAccountService;
 import io.nextpos.roles.data.Permission;
+import io.nextpos.shared.auth.AuthenticationHelper;
 import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.shared.config.SecurityConfig;
 import io.nextpos.shared.exception.BusinessLogicException;
@@ -11,10 +12,8 @@ import io.nextpos.shared.exception.ObjectAlreadyExistsException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.JpaTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -45,14 +44,17 @@ public class ClientServiceImpl implements ClientService {
 
     private final LinkedClientAccountService linkedClientAccountService;
 
+    private final AuthenticationHelper authenticationHelper;
+
     @Autowired
-    public ClientServiceImpl(final ClientRepository clientRepository, final ClientUserRepository clientUserRepository, ClientPasswordRegistryRepository clientPasswordRegistryRepository, JdbcClientDetailsService clientDetailsService, PasswordEncoder passwordEncoder, LinkedClientAccountService linkedClientAccountService) {
+    public ClientServiceImpl(final ClientRepository clientRepository, final ClientUserRepository clientUserRepository, ClientPasswordRegistryRepository clientPasswordRegistryRepository, JdbcClientDetailsService clientDetailsService, PasswordEncoder passwordEncoder, LinkedClientAccountService linkedClientAccountService, AuthenticationHelper authenticationHelper) {
         this.clientRepository = clientRepository;
         this.clientUserRepository = clientUserRepository;
         this.clientPasswordRegistryRepository = clientPasswordRegistryRepository;
         this.clientDetailsService = clientDetailsService;
         this.passwordEncoder = passwordEncoder;
         this.linkedClientAccountService = linkedClientAccountService;
+        this.authenticationHelper = authenticationHelper;
     }
 
     /**
@@ -145,6 +147,11 @@ public class ClientServiceImpl implements ClientService {
     public ClientUser updateClientUserPassword(Client client, ClientUser clientUser, String newPassword) {
 
         clientUser.setPassword(newPassword);
+        final ClientPasswordRegistry clientPasswordRegistry = checkClientUserPassword(clientUser);
+        clientPasswordRegistry.removePassword(clientUser.getId().getUsername());
+        clientPasswordRegistry.addPassword(clientUser.getId().getUsername(), clientUser.getPassword());
+        clientPasswordRegistryRepository.save(clientPasswordRegistry);
+
         final ClientUser updatedClientUser = this.saveClientUser(clientUser);
 
         if (clientUser.isDefaultUser()) {
@@ -283,6 +290,13 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
+    public String getClientUsernameByPassword(Client client, String password) {
+
+        final ClientPasswordRegistry clientPasswordRegistry = getOrCreateClientPasswordRegistry(client);
+        return clientPasswordRegistry.getUserByPassword(password);
+    }
+
+    @Override
     public List<ClientUser> getClientUsers(final Client client) {
         return linkedClientAccountService.getLinkedClientAccountResources(client, clientUserRepository::findAllByClientIn);
     }
@@ -318,7 +332,7 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
 
-        final String clientUsername = findCurrentClientUsername();
+        final String clientUsername = authenticationHelper.resolveCurrentClientId();
         final Client client = this.getClientByUsername(clientUsername).orElseThrow(() -> {
             throw new UsernameNotFoundException("Client cannot be resolved by the username: " + username);
         });
@@ -330,23 +344,5 @@ public class ClientServiceImpl implements ClientService {
         final String joinedAuthorities = clientUser.getRoles() + "," + clientUser.getPermissions();
         final Collection<? extends GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(joinedAuthorities);
         return new User(clientUser.getId().getUsername(), clientUser.getPassword(), authorities);
-    }
-
-    /**
-     * This only works during /oauth/token.
-     */
-    private String findCurrentClientUsername() {
-
-        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication != null) {
-            final Object principal = authentication.getPrincipal();
-
-            if (principal instanceof User) {
-                return ((User) principal).getUsername();
-            }
-        }
-
-        return null;
     }
 }

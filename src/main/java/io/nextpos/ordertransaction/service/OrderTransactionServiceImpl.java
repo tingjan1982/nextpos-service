@@ -43,7 +43,7 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
         final Order order = orderService.getOrder(orderTransaction.getOrderId());
 
         if (Order.OrderState.finalStates().contains(order.getState())) {
-            throw new BusinessLogicException("Cannot create order transaction. The order has been finalized: " + order.getId());
+            throw new BusinessLogicException("message.orderFinalized", "Cannot create order transaction. The order has been finalized: " + order.getId());
         }
 
         LOGGER.info("Creating order transaction for order {}", order.getId());

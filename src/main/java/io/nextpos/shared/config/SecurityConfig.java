@@ -7,6 +7,7 @@ import io.nextpos.roles.data.UserRole;
 import io.nextpos.shared.exception.ConfigurationException;
 import io.nextpos.shared.web.RequestIdContextFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -35,6 +36,7 @@ import org.springframework.security.oauth2.provider.token.*;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
+import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
@@ -134,9 +136,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     @Primary
-    public DefaultTokenServices tokenServices() {
-        DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
+    public TokenServicesWrapper tokenServices(@Qualifier("customEnhancer") TokenEnhancerChain tokenEnhancer) {
+        TokenServicesWrapper defaultTokenServices = new TokenServicesWrapper();
         defaultTokenServices.setTokenStore(tokenStore());
+        defaultTokenServices.setTokenEnhancer(tokenEnhancer);
         defaultTokenServices.setSupportRefreshToken(true);
         return defaultTokenServices;
     }
@@ -188,6 +191,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     /**
      * Authorization server configuration
      */
+    @Component
     @EnableAuthorizationServer
     public static class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
 
@@ -228,6 +232,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .userDetailsService(clientService);
         }
 
+        @Bean("customEnhancer")
+        public TokenEnhancerChain TokenEnhancerChain() {
+            final TokenEnhancerChain enhancerChain = new TokenEnhancerChain();
+            final ClientTokenEnhancer clientTokenEnhancer = new ClientTokenEnhancer(clientService);
+            enhancerChain.setTokenEnhancers(Arrays.asList(clientTokenEnhancer, accessTokenConverter));
+            final DefaultOAuth2RequestFactory oAuth2RequestFactory = new DefaultOAuth2RequestFactory(clientDetailsService);
+            oAuth2RequestFactory.setCheckUserScopes(true);
+
+            return enhancerChain;
+        }
+
         @Override
         public void configure(final ClientDetailsServiceConfigurer clients) throws Exception {
             clients.withClientDetails(clientDetailsService);
@@ -261,7 +276,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         }
     }
 
-
+    @Component
     @EnableResourceServer
     public static class ResourceServer extends ResourceServerConfigurerAdapter {
 
