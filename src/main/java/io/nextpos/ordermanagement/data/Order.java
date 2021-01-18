@@ -575,7 +575,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
          * This includes scenarios of submitting the initial order, customer adding more orders during and after delivery.
          */
         SUBMIT(EnumSet.of(OPEN, IN_PROCESS, DELIVERED), IN_PROCESS),
-        DELETE(EnumSet.of(OPEN, IN_PROCESS, DELIVERED, SETTLED, REFUNDED, COMPLETED), DELETED),
+        DELETE(EnumSet.of(OPEN, IN_PROCESS, DELIVERED, PAYMENT_IN_PROCESS, SETTLED, REFUNDED, COMPLETED), DELETED),
         PREPARE(EnumSet.of(IN_PROCESS), IN_PROCESS),
         /**
          * Used to mark line item as delivered.

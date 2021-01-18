@@ -126,9 +126,13 @@ public class Shift extends MongoBaseObject {
 
         private String closingRemark;
 
+        public ClosingBalanceDetails getClosingBalance(OrderTransaction.PaymentMethod paymentMethod) {
+            return closingBalances.getOrDefault(paymentMethod, new ClosingBalanceDetails());
+        }
+
         public void balanceClosingShift(OrderTransaction.PaymentMethod paymentMethod, final BigDecimal startingBalance) {
 
-            closingShiftReport.getTotalByPaymentMethod(paymentMethod).ifPresent(total -> {
+            closingShiftReport.getShiftTotal(paymentMethod).ifPresent(total -> {
                 final BigDecimal orderTotal = total.getOrderTotal();
 
                 if (closingBalances.containsKey(paymentMethod)) {
@@ -144,7 +148,7 @@ public class Shift extends MongoBaseObject {
             if (closingBalanceDetails != null) {
                 closingBalances.put(paymentMethod, closingBalanceDetails);
 
-                closingShiftReport.getTotalByPaymentMethod(paymentMethod).ifPresent(p -> {
+                closingShiftReport.getShiftTotal(paymentMethod).ifPresent(p -> {
                     final BigDecimal orderTotal = p.getOrderTotal();
                     BigDecimal difference = closingBalanceDetails.getClosingBalance().subtract(orderTotal).subtract(startingBalance);
                     closingBalanceDetails.setDifference(difference);
@@ -172,7 +176,7 @@ public class Shift extends MongoBaseObject {
     public static class ClosingBalanceDetails {
 
         @PositiveOrZero
-        private BigDecimal closingBalance;
+        private BigDecimal closingBalance = BigDecimal.ZERO;
 
         private BigDecimal difference = BigDecimal.ZERO;
 
@@ -209,32 +213,42 @@ public class Shift extends MongoBaseObject {
         /**
          * Indicates no active shift.
          */
-        INACTIVE,
+        INACTIVE(false),
 
         /**
          * Indicates shift is active.
          */
-        ACTIVE,
+        ACTIVE(false),
 
         /**
          * Indicates shift has initiated closing.
          */
-        CLOSING,
+        CLOSING(false),
 
         /**
          * Indicates shift is pending confirmation to close.
          */
-        CONFIRM_CLOSE,
+        CONFIRM_CLOSE(false),
 
         /**
          * Shift is ended and closing balance matches the opening balance.
          */
-        BALANCED,
+        BALANCED(true),
 
         /**
          * Opposite of BALANCED.
          */
-        UNBALANCED
+        UNBALANCED(true);
+
+        private final boolean finalState;
+
+        ShiftStatus(boolean finalState) {
+            this.finalState = finalState;
+        }
+
+        public boolean isFinalState() {
+            return finalState;
+        }
     }
 
     public enum ShiftAction {

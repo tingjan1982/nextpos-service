@@ -25,14 +25,6 @@ public class ClosingShiftTransactionReport {
 
     private List<OrderCount> orderCountByState;
 
-    public int getTotalOrderCount() {
-        if (!CollectionUtils.isEmpty(totalOrderCount)) {
-            return totalOrderCount.get(0).getOrderCount();
-        }
-
-        return 0;
-    }
-
     public Map<OrderTransaction.PaymentMethod, PaymentMethodTotal> getTotalByPaymentMethod() {
 
         if (!CollectionUtils.isEmpty(totalByPaymentMethod)) {
@@ -40,6 +32,14 @@ public class ClosingShiftTransactionReport {
         }
 
         return Map.of();
+    }
+
+    public OrderSummary getOneOrderSummary() {
+        return CollectionUtils.isEmpty(orderSummary) ? new OrderSummary() : orderSummary.get(0);
+    }
+
+    public int getTotalOrderCount() {
+        return !CollectionUtils.isEmpty(totalOrderCount) ? totalOrderCount.get(0).getOrderCount() : 0;
     }
 
     public Map<Order.OrderState, OrderCount> getOrderCountByState() {
@@ -51,8 +51,11 @@ public class ClosingShiftTransactionReport {
         return Map.of();
     }
 
-    public Optional<PaymentMethodTotal> getTotalByPaymentMethod(OrderTransaction.PaymentMethod paymentMethod) {
+    public OrderCount getOrderCount(Order.OrderState orderState) {
+        return getOrderCountByState().getOrDefault(orderState, new OrderCount());
+    }
 
+    public Optional<PaymentMethodTotal> getShiftTotal(OrderTransaction.PaymentMethod paymentMethod) {
         return totalByPaymentMethod.stream()
                 .filter(p -> p.getPaymentMethod() == paymentMethod)
                 .findFirst();
@@ -64,13 +67,13 @@ public class ClosingShiftTransactionReport {
 
         private String id;
 
-        private BigDecimal orderTotal;
+        private BigDecimal orderTotal = BigDecimal.ZERO;
 
-        private BigDecimal settleAmount;
+        private BigDecimal settleAmount = BigDecimal.ZERO;
 
-        private BigDecimal serviceCharge;
+        private BigDecimal serviceCharge = BigDecimal.ZERO;
 
-        private BigDecimal discount;
+        private BigDecimal discount = BigDecimal.ZERO;
 
         private int orderCount;
     }

@@ -7,6 +7,8 @@ import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.Shift;
 import io.nextpos.ordermanagement.data.ShiftRepository;
+import io.nextpos.ordertransaction.data.OrderTransaction;
+import io.nextpos.ordertransaction.service.OrderTransactionService;
 import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.BusinessLogicException;
@@ -42,6 +44,9 @@ class ShiftServiceImplTest {
     private OrderService orderService;
 
     @Autowired
+    private OrderTransactionService orderTransactionService;
+
+    @Autowired
     private ShiftRepository shiftRepository;
 
     @Autowired
@@ -64,7 +69,7 @@ class ShiftServiceImplTest {
 
     @Test
     @WithMockUser("dummyUser")
-    void openAndCloseShift() {
+    void openAndCloseShift() throws Exception {
 
         final Shift openedShift = shiftService.openShift(clientId, BigDecimal.valueOf(1000));
 
@@ -76,21 +81,28 @@ class ShiftServiceImplTest {
             assertThat(s.getShiftStatus()).isEqualTo(Shift.ShiftStatus.ACTIVE);
         });
 
-        final Order order = new Order(clientId, orderSettings);
-        orderService.createOrder(order);
+        final Order order = createOrder(OrderTransaction.PaymentMethod.CASH, false);
+        orderService.deleteOrderLineItem(order, order.getOrderLineItems().get(0).getId());
 
         // there should be an active shift.
         assertThatCode(() -> shiftService.getActiveShift(clientId)).doesNotThrowAnyException();
         assertThatThrownBy(() -> shiftService.initiateCloseShift(clientId)).isInstanceOf(BusinessLogicException.class);
 
-        orderService.deleteOrder(order);
+        orderService.performOrderAction(order.getId(), Order.OrderAction.DELETE);
+
+        createOrder(OrderTransaction.PaymentMethod.CASH, true);
+        createOrder(OrderTransaction.PaymentMethod.CARD, true);
 
         assertThat(shiftService.initiateCloseShift(clientId)).satisfies(s -> {
             assertThat(s.getEnd().getClosingShiftReport()).isNotNull();
             assertThat(s.getShiftStatus()).isEqualTo(Shift.ShiftStatus.CLOSING);
         });
 
-        final Shift closingShift = shiftService.closeShift(clientId, Shift.ClosingBalanceDetails.of(BigDecimal.valueOf(1000)), Shift.ClosingBalanceDetails.of(BigDecimal.valueOf(2000)));
+        final Shift.ClosingBalanceDetails cashClosingBalance = Shift.ClosingBalanceDetails.of(BigDecimal.valueOf(1000));
+        cashClosingBalance.setUnbalanceReason("算錯");
+        final Shift.ClosingBalanceDetails cardClosingBalance = Shift.ClosingBalanceDetails.of(BigDecimal.valueOf(2000));
+        cardClosingBalance.setUnbalanceReason("單不見了");
+        final Shift closingShift = shiftService.closeShift(clientId, cashClosingBalance, cardClosingBalance);
 
         assertThat(closingShift).satisfies(s -> {
             assertThat(s.getStart().getWho()).isEqualTo("dummyUser");
@@ -103,9 +115,27 @@ class ShiftServiceImplTest {
         final Shift closedShift = shiftService.confirmCloseShift(clientId, "closing remark");
         assertThat(closedShift).satisfies(s -> assertThat(s.getEnd().getClosingRemark()).isNotNull());
 
+        shiftService.sendShiftReport(client, closedShift.getId(), "rain.io.app@gmail.com").get();
+
         final Optional<Shift> mostRecentShift = shiftService.getMostRecentShift(clientId);
         assertThat(mostRecentShift).isPresent();
         assertThat(mostRecentShift).get().isEqualTo(closedShift);
+    }
+
+    private Order createOrder(OrderTransaction.PaymentMethod paymentMethod, boolean settle) {
+
+        final Order order = Order.newOrder(clientId, Order.OrderType.IN_STORE, orderSettings);
+        order.addOrderLineItem(DummyObjects.productSnapshot(), 2);
+        order.setState(Order.OrderState.DELIVERED);
+
+        orderService.createOrder(order);
+
+        if (settle) {
+            orderTransactionService.createOrderTransaction(client, new OrderTransaction(order, paymentMethod, OrderTransaction.BillType.SINGLE, order.getOrderTotal()));
+            orderService.performOrderAction(order.getId(), Order.OrderAction.COMPLETE);
+        }
+
+        return order;
     }
 
     @Test

@@ -20,7 +20,7 @@ public class DynamicEmailDetails extends NotificationDetails {
 
     private String templateId;
 
-    private Map<String, String> templateData = new HashMap<>();
+    private Map<String, Object> templateData = new HashMap<>();
 
     private Binary attachment;
 
@@ -31,7 +31,7 @@ public class DynamicEmailDetails extends NotificationDetails {
         this.templateId = templateId;
     }
 
-    public void addTemplateData(String key, String value) {
+    public void addTemplateData(String key, Object value) {
         templateData.put(key, value);
     }
 }

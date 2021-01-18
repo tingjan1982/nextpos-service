@@ -8,6 +8,7 @@ import io.nextpos.shared.auth.AuthenticationHelper;
 import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.shared.config.SecurityConfig;
 import io.nextpos.shared.exception.BusinessLogicException;
+import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.exception.ObjectAlreadyExistsException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.JpaTransaction;
@@ -229,6 +230,10 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public void deleteClient(final String id) {
         clientRepository.findById(id).ifPresent(client -> {
+            if (client.getClientName().equalsIgnoreCase("attic")) {
+                throw new GeneralApplicationException("You cannot delete this client: " + client.getClientName());
+            }
+
             clientDetailsService.removeClientDetails(client.getUsername());
             clientUserRepository.deleteClientUsersByClientId(client.getUsername());
             clientRepository.delete(client);

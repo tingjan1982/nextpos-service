@@ -33,7 +33,7 @@ public interface OrderService {
 
     List<Order> getOrdersByState(String clientId, Order.OrderState orderState);
 
-    void deleteOrder(Order order);
+    void deleteOrder(String orderId);
 
     void deleteOrderByOrderId(String orderId);
 

@@ -1,17 +1,23 @@
 package io.nextpos.ordermanagement.service;
 
+import io.nextpos.client.data.Client;
 import io.nextpos.datetime.data.ZonedDateRange;
+import io.nextpos.notification.data.DynamicEmailDetails;
+import io.nextpos.notification.data.NotificationDetails;
+import io.nextpos.notification.service.NotificationService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderRepository;
 import io.nextpos.ordermanagement.data.Shift;
 import io.nextpos.ordermanagement.data.ShiftRepository;
 import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
+import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.service.OrderTransactionReportService;
-import io.nextpos.shared.auth.OAuth2Helper;
+import io.nextpos.shared.auth.AuthenticationHelper;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.exception.ShiftException;
 import io.nextpos.shared.service.annotation.MongoTransaction;
+import io.nextpos.shared.util.DateTimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +28,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 @MongoTransaction
@@ -31,18 +38,21 @@ public class ShiftServiceImpl implements ShiftService {
 
     private final OrderTransactionReportService orderTransactionReportService;
 
+    private final NotificationService notificationService;
+
     private final ShiftRepository shiftRepository;
 
     private final OrderRepository orderRepository;
 
-    private final OAuth2Helper oAuth2Helper;
+    private final AuthenticationHelper authenticationHelper;
 
     @Autowired
-    public ShiftServiceImpl(final OrderTransactionReportService orderTransactionReportService, final ShiftRepository shiftRepository, final OrderRepository orderRepository, final OAuth2Helper oAuth2Helper) {
+    public ShiftServiceImpl(final OrderTransactionReportService orderTransactionReportService, NotificationService notificationService, final ShiftRepository shiftRepository, final OrderRepository orderRepository, AuthenticationHelper authenticationHelper) {
         this.orderTransactionReportService = orderTransactionReportService;
+        this.notificationService = notificationService;
         this.shiftRepository = shiftRepository;
         this.orderRepository = orderRepository;
-        this.oAuth2Helper = oAuth2Helper;
+        this.authenticationHelper = authenticationHelper;
     }
 
     @Override
@@ -55,7 +65,7 @@ public class ShiftServiceImpl implements ShiftService {
             return activeShift.get();
         }
 
-        final String currentUser = oAuth2Helper.getCurrentPrincipal();
+        final String currentUser = authenticationHelper.resolveCurrentUsername();
         final Shift shift = new Shift(clientId, new Date(), currentUser, openingBalance);
 
         return shiftRepository.save(shift);
@@ -104,7 +114,7 @@ public class ShiftServiceImpl implements ShiftService {
         final Shift shift = getCurrentShiftOrThrows(clientId);
         Shift.ShiftAction.CLOSE.checkShiftStatus(shift);
 
-        final String currentUser = oAuth2Helper.getCurrentPrincipal();
+        final String currentUser = authenticationHelper.resolveCurrentUsername();
         shift.closeShift(currentUser, cash, card);
 
         return shiftRepository.save(shift);
@@ -160,6 +170,51 @@ public class ShiftServiceImpl implements ShiftService {
     public List<Shift> getShifts(final String clientId, final ZonedDateRange zonedDateRange) {
 
         return shiftRepository.findAllByClientIdAndStart_TimestampBetween(clientId, zonedDateRange.getFromDate(), zonedDateRange.getToDate(), Sort.by(Sort.Order.desc("start.timestamp")));
+    }
+
+    @Override
+    public CompletableFuture<NotificationDetails> sendShiftReport(Client client, String shiftId, String emailAddress) {
+
+        final Shift shift = this.getShift(shiftId);
+
+        if (!shift.getShiftStatus().isFinalState()) {
+            throw new BusinessLogicException("message.shiftNotClosed", "Please close the shift before sending the shift report");
+        }
+
+        DynamicEmailDetails notificationDetails = new DynamicEmailDetails(shift.getClientId(), emailAddress, "d-a1b0553668d34b2f84a4cd1c2e1689d6");
+        notificationDetails.addTemplateData("client", client.getClientName());
+        notificationDetails.addTemplateData("shiftOpenDate", DateTimeUtil.formatDateTime(shift.getStart().toLocalDateTime(client.getZoneId())));
+        notificationDetails.addTemplateData("shiftCloseDate", DateTimeUtil.formatDateTime(shift.getEnd().toLocalDateTime(client.getZoneId())));
+        final ClosingShiftTransactionReport closingShiftReport = shift.getEnd().getClosingShiftReport();
+
+        final Shift.ClosingBalanceDetails cashBalance = shift.getEnd().getClosingBalance(OrderTransaction.PaymentMethod.CASH);
+
+        closingShiftReport.getShiftTotal(OrderTransaction.PaymentMethod.CASH).ifPresent(t -> {
+            notificationDetails.addTemplateData("cashTotal", t.getOrderTotal());
+            notificationDetails.addTemplateData("openBalance", shift.getStart().getBalance());
+            notificationDetails.addTemplateData("actualCashTotal", cashBalance.getClosingBalance());
+            notificationDetails.addTemplateData("cashDifference", cashBalance.getDifference());
+            notificationDetails.addTemplateData("cashReason", cashBalance.getUnbalanceReason());
+        });
+
+        final Shift.ClosingBalanceDetails cardBalance = shift.getEnd().getClosingBalance(OrderTransaction.PaymentMethod.CARD);
+
+        closingShiftReport.getShiftTotal(OrderTransaction.PaymentMethod.CARD).ifPresent(t -> {
+            notificationDetails.addTemplateData("cardTotal", t.getOrderTotal());
+            notificationDetails.addTemplateData("actualCardTotal", cardBalance.getClosingBalance());
+            notificationDetails.addTemplateData("cardDifference", cardBalance.getDifference());
+            notificationDetails.addTemplateData("cardReason", cardBalance.getUnbalanceReason());
+        });
+
+        notificationDetails.addTemplateData("shiftTotal", closingShiftReport.getOneOrderSummary().getOrderTotal());
+        notificationDetails.addTemplateData("closingRemark", shift.getEnd().getClosingRemark());
+        notificationDetails.addTemplateData("orderCount", closingShiftReport.getTotalOrderCount());
+        notificationDetails.addTemplateData("deletedOrderCount", closingShiftReport.getOrderCount(Order.OrderState.DELETED).getOrderCount());
+        notificationDetails.addTemplateData("discountTotal", closingShiftReport.getOneOrderSummary().getDiscount());
+        notificationDetails.addTemplateData("serviceChargeTotal", closingShiftReport.getOneOrderSummary().getDiscount());
+        notificationDetails.addTemplateData("deletedLineItems", shift.getDeletedLineItems());
+
+        return notificationService.sendNotification(notificationDetails);
     }
 
     private Shift getCurrentShiftOrThrows(String clientId) {

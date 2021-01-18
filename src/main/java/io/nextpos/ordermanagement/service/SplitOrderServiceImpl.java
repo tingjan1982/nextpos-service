@@ -77,7 +77,7 @@ public class SplitOrderServiceImpl implements SplitOrderService {
             });
         }
 
-        orderService.deleteOrder(splitOrder);
+        orderService.deleteOrder(splitOrderId);
 
         return orderService.saveOrder(sourceOrder);
     }

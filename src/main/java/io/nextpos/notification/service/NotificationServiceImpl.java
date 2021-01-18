@@ -27,6 +27,9 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.CompletableFuture;
 
 /**
+ * Sendgrid Handlebars reference:
+ * https://sendgrid.com/docs/for-developers/sending-email/using-handlebars/#handlebarjs-reference
+ *
  * Send email using Mailgun, a trusted 3rd party email service.
  * https://cloud.google.com/compute/docs/tutorials/sending-mail/using-mailgun
  * <p>

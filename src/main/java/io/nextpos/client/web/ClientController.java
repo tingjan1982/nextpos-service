@@ -333,17 +333,9 @@ public class ClientController {
             throw new GeneralApplicationException("Default client user cannot be updated.");
         }
 
-        clientUser.setPassword(request.getPassword());
+        clientService.updateClientUserPassword(client, clientUser, request.getPassword());
 
-        return toClientUserResponse(clientService.saveClientUser(clientUser));
-    }
-
-    @DeleteMapping("/me/users/{username}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteClientUser(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                 @PathVariable final String username) {
-
-        clientService.deleteClientUser(client, username);
+        return toClientUserResponse(clientUser);
     }
 
     @PatchMapping("/me/users/currentUser/password")
@@ -355,6 +347,14 @@ public class ClientController {
         final ClientUser updatedClientUser = clientService.updateClientUserPassword(client, currentUser, request.getPassword());
 
         return toClientUserResponse(updatedClientUser);
+    }
+
+    @DeleteMapping("/me/users/{username}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteClientUser(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                 @PathVariable final String username) {
+
+        clientService.deleteClientUser(client, username);
     }
 
     private ClientUserResponse toClientUserResponse(ClientUser clientUser) {

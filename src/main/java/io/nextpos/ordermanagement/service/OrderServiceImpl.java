@@ -131,8 +131,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @WebSocketClientOrders
-    public void deleteOrder(final Order order) {
-        orderRepository.delete(order);
+    public void deleteOrder(final String orderId) {
+        orderRepository.deleteById(orderId);
     }
 
     @Override

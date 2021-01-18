@@ -19,6 +19,7 @@ public class OAuth2HelperImpl implements OAuth2Helper {
         this.authenticationHelper = authenticationHelper;
     }
 
+    @Deprecated
     @Override
     public String getCurrentPrincipal() {
         return authenticationHelper.resolveCurrentUsername();
@@ -26,6 +27,6 @@ public class OAuth2HelperImpl implements OAuth2Helper {
 
     @Override
     public ClientUser resolveCurrentClientUser(Client client) {
-        return clientService.getClientUser(client, this.getCurrentPrincipal());
+        return clientService.getClientUser(client, authenticationHelper.resolveCurrentUsername());
     }
 }

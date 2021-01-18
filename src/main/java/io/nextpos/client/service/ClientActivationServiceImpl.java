@@ -126,7 +126,7 @@ public class ClientActivationServiceImpl implements ClientActivationService {
         final long now = System.currentTimeMillis();
 
         if ((now - timestamp) > TimeUnit.DAYS.toMillis(1)) {
-            final String resendClientActivationLink = resolveHostName() + "/account/resendActivationLink?clientId=" + clientId;
+            final String resendClientActivationLink = resolveHostName() + "/account/resendClientActivation?clientId=" + clientId;
             final ClientActivationResult result = new ClientActivationResult(clientId, ClientActivationResult.ActivationStatus.EXPIRED);
             result.setClientActivationLink(resendClientActivationLink);
 

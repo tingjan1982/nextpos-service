@@ -14,6 +14,7 @@ import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -93,6 +94,14 @@ public class ShiftController {
         final Shift shift = shiftService.balanceClosingShift(shiftId);
 
         return toShiftResponse(shift);
+    }
+
+    @PostMapping("/{shiftId}/email")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void emailShiftReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                 @PathVariable String shiftId) {
+
+        shiftService.sendShiftReport(client, shiftId, client.getUsername());
     }
 
     @PostMapping("/open")
