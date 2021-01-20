@@ -68,8 +68,11 @@ public class WorkingAreaController {
     }
 
     @GetMapping("/workingareas")
-    public WorkingAreasResponse getWorkingAreas(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
-        List<WorkingArea> workingAreas = workingAreaService.getWorkingAreas(client);
+    public WorkingAreasResponse getWorkingAreas(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                @RequestParam(name = "usedInProduct", required = false, defaultValue = "true") boolean usedInProduct,
+                                                @RequestParam(name = "usedInRoster", required = false, defaultValue = "true") boolean usedInRoster) {
+
+        List<WorkingArea> workingAreas = workingAreaService.getWorkingAreas(client, usedInProduct, usedInRoster);
 
         final List<WorkingAreaResponse> workingAreaResponses = workingAreas.stream()
                 .map(this::toWorkingAreaResponse).collect(Collectors.toList());

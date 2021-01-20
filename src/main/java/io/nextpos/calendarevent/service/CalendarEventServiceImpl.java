@@ -2,7 +2,8 @@ package io.nextpos.calendarevent.service;
 
 import io.nextpos.calendarevent.data.CalendarEvent;
 import io.nextpos.calendarevent.data.CalendarEventRepository;
-import io.nextpos.client.data.Client;
+import io.nextpos.calendarevent.data.CalendarEventSeries;
+import io.nextpos.calendarevent.data.CalendarEventSeriesRepository;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 
@@ -21,11 +23,14 @@ public class CalendarEventServiceImpl implements CalendarEventService {
 
     private final CalendarEventRepository calendarEventRepository;
 
+    private final CalendarEventSeriesRepository calendarEventSeriesRepository;
+
     private final MongoTemplate mongoTemplate;
 
     @Autowired
-    public CalendarEventServiceImpl(CalendarEventRepository calendarEventRepository, MongoTemplate mongoTemplate) {
+    public CalendarEventServiceImpl(CalendarEventRepository calendarEventRepository, CalendarEventSeriesRepository calendarEventSeriesRepository, MongoTemplate mongoTemplate) {
         this.calendarEventRepository = calendarEventRepository;
+        this.calendarEventSeriesRepository = calendarEventSeriesRepository;
         this.mongoTemplate = mongoTemplate;
     }
 
@@ -65,26 +70,75 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     }
 
     @Override
+    public List<CalendarEvent> getCalendarEvents(String clientId, CalendarEvent.EventType eventType, Date from, Date to) {
+        return calendarEventRepository.findAllByClientIdAndEventTypeAndStartTimeBetween(clientId, eventType, from, to);
+    }
+
+    @Deprecated
+    @Override
     public List<CalendarEvent> getCalendarEventsForEventOwner(String clientId, String eventOwnerId, CalendarEvent.OwnerType ownerType) {
 
         return calendarEventRepository.findAllByClientIdAndEventOwner_OwnerIdAndEventOwner_OwnerType(clientId, eventOwnerId, ownerType);
     }
 
     @Override
-    public List<CalendarEvent> getCalendarEventsForEventResource(Client client, Date from, Date to, CalendarEvent.EventType eventType, CalendarEvent.EventResource eventResource) {
+    public List<CalendarEvent> getCalendarEvents(String clientId, CalendarEvent.EventType eventType, CalendarEvent.EventResource eventResource, Date from, Date to) {
 
-        return calendarEventRepository.findAllByClientIdAndEventTypeAndEventResourcesContainingAndStartTimeBetween(
-                client.getId(),
-                eventType,
-                eventResource,
-                from,
-                to);
+        Query query = Query.query(where("clientId").is(clientId)
+                .and("eventType").is(eventType)
+                .and("eventResources").elemMatch(where("resourceId").is(eventResource.getResourceId()))
+                .and("startTime").gte(from).lte(to));
+
+        return mongoTemplate.find(query, CalendarEvent.class);
     }
 
+    @Deprecated
     @Override
     public void deleteCalendarEvents(String clientId, String eventOwnerId, CalendarEvent.OwnerType ownerType) {
 
-        Query query = Query.query(where("clientId").is(clientId).and("eventOwner.ownerId").is(eventOwnerId).and("eventOwner.ownerType").is(ownerType));
+        Query query = Query.query(where("clientId").is(clientId)
+                .and("eventOwner.ownerId").is(eventOwnerId)
+                .and("eventOwner.ownerType").is(ownerType));
+
         mongoTemplate.remove(query, CalendarEvent.class);
+    }
+
+    @Override
+    public CalendarEvent updateCalendarEvent(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime) {
+
+        final CalendarEventSeries eventSeries = calendarEvent.getEventSeries();
+
+        if (eventSeries != null) {
+            final List<CalendarEvent> seriesEvents = calendarEventRepository.findAllByClientIdAndEventSeries_Id(calendarEvent.getClientId(), eventSeries.getId());
+            seriesEvents.forEach(e -> {
+                e.update(calendarEvent, startTime, endTime);
+                this.saveCalendarEvent(e);
+            });
+
+        } else {
+            this.saveCalendarEvent(calendarEvent);
+        }
+
+        return calendarEvent;
+    }
+
+    @Override
+    public void deleteCalendarEvent(CalendarEvent calendarEvent) {
+        final CalendarEventSeries eventSeries = calendarEvent.getEventSeries();
+
+        if (eventSeries != null) {
+            final List<CalendarEvent> seriesEvents = calendarEventRepository.findAllByClientIdAndEventSeries_Id(calendarEvent.getClientId(), eventSeries.getId());
+            seriesEvents.forEach(calendarEventRepository::delete);
+
+            calendarEventSeriesRepository.delete(eventSeries);
+
+        } else {
+            calendarEventRepository.delete(calendarEvent);
+        }
+    }
+
+    @Override
+    public CalendarEventSeries saveCalendarEventSeries(CalendarEventSeries calendarEventSeries) {
+        return calendarEventSeriesRepository.save(calendarEventSeries);
     }
 }

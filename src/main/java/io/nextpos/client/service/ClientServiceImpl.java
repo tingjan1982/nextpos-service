@@ -277,6 +277,11 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
+    public ClientUser getCurrentClientUser(Client client) {
+        return this.getClientUser(client, authenticationHelper.resolveCurrentUsername());
+    }
+
+    @Override
     public ClientUser getClientUser(final Client client, final String username) {
 
         final ClientUser.ClientUserId clientUserId = new ClientUser.ClientUserId(username, client.getUsername());

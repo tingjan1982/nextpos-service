@@ -21,6 +21,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Deprecated
 @RestController
 @RequestMapping("/rosterPlans")
 public class RosterPlanController {
@@ -80,10 +81,10 @@ public class RosterPlanController {
     @PostMapping("/{id}/entries")
     public RosterPlanResponse addRosterEntry(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                              @PathVariable String id,
-                                             @Valid @RequestBody RosterEntryRequest request) {
+                                             @Valid @RequestBody RosterEventRequest request) {
 
         final RosterPlan rosterPlan = rosterPlanService.getRosterPlan(id);
-        rosterPlan.addRosterEntry(request.getDayOfWeek(), request.getStartTime(), request.getEndTime());
+        //rosterPlan.addRosterEntry(request.getStartTime(), request.getEndTime());
 
         return toResponse(rosterPlanService.saveRosterPlan(rosterPlan));
     }
@@ -108,11 +109,7 @@ public class RosterPlanController {
                                                          @PathVariable String id) {
 
         final RosterPlan rosterPlan = rosterPlanService.getRosterPlan(id);
-        final List<CalendarEventResponse> results = rosterPlanService.createRosterPlanEvents(client, rosterPlan).stream()
-                .map(CalendarEventResponse::new)
-                .collect(Collectors.toList());
-
-        return new CalendarEventsResponse(results);
+        return new CalendarEventsResponse(rosterPlanService.createRosterPlanEvents(client, rosterPlan));
     }
 
     @GetMapping("/{id}/events")
@@ -120,11 +117,7 @@ public class RosterPlanController {
                                                       @PathVariable String id) {
 
         final RosterPlan rosterPlan = rosterPlanService.getRosterPlan(id);
-        final List<CalendarEventResponse> results = rosterPlanService.getRosterPlanEvents(rosterPlan).stream()
-                .map(CalendarEventResponse::new)
-                .collect(Collectors.toList());
-
-        return new CalendarEventsResponse(results);
+        return new CalendarEventsResponse(rosterPlanService.getRosterPlanEvents(rosterPlan));
     }
 
     @DeleteMapping("/{id}/events")

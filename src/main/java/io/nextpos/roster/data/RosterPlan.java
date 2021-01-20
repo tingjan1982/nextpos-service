@@ -1,7 +1,7 @@
 package io.nextpos.roster.data;
 
 import io.nextpos.shared.model.MongoBaseObject;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.bson.types.ObjectId;
@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @CompoundIndexes({@CompoundIndex(name = "unique_per_client_index", def = "{'clientId': 1, 'rosterMonth': 1}", unique = true)})
 @Data
 @EqualsAndHashCode(callSuper = true)
+@Deprecated
 public class RosterPlan extends MongoBaseObject {
 
     @Id
@@ -36,6 +37,7 @@ public class RosterPlan extends MongoBaseObject {
 
     private AtomicInteger internalCounter = new AtomicInteger(1);
 
+    @Deprecated
     private Map<DayOfWeek, List<RosterEntry>> rosterEntries = new TreeMap<>();
 
 
@@ -59,7 +61,7 @@ public class RosterPlan extends MongoBaseObject {
     }
 
     @Data
-    @AllArgsConstructor
+    @Builder
     public static class RosterEntry {
 
         private String id;

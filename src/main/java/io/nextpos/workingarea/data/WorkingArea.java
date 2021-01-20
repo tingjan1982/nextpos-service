@@ -33,6 +33,10 @@ public class WorkingArea extends BaseObject implements ClientObject {
 
     private int noOfPrintCopies;
 
+    private boolean usedInProduct = true;
+
+    private boolean usedInRoster = true;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(joinColumns = @JoinColumn(name = "working_area_id"), inverseJoinColumns = @JoinColumn(name = "printer_id"))
     @Fetch(FetchMode.SUBSELECT)

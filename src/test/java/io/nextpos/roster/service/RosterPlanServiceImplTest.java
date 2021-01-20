@@ -1,32 +1,33 @@
 package io.nextpos.roster.service;
 
 import io.nextpos.calendarevent.data.CalendarEvent;
+import io.nextpos.calendarevent.data.CalendarEventSeries;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientService;
-import io.nextpos.roster.data.RosterPlan;
 import io.nextpos.shared.DummyObjects;
-import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
-import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import java.util.Map;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @ChainedTransaction
 class RosterPlanServiceImplTest {
 
     private final RosterPlanService rosterPlanService;
+
+    private final RosterObjectHelper rosterObjectHelper;
 
     private final ClientService clientService;
 
@@ -35,8 +36,9 @@ class RosterPlanServiceImplTest {
     private ClientUser clientUser;
 
     @Autowired
-    RosterPlanServiceImplTest(RosterPlanService rosterPlanService, ClientService clientService) {
+    RosterPlanServiceImplTest(RosterPlanService rosterPlanService, RosterObjectHelper rosterObjectHelper, ClientService clientService) {
         this.rosterPlanService = rosterPlanService;
+        this.rosterObjectHelper = rosterObjectHelper;
         this.clientService = clientService;
     }
 
@@ -46,76 +48,56 @@ class RosterPlanServiceImplTest {
         client.setTimezone("UTC");
         clientService.saveClient(client);
 
-        clientUser = new ClientUser(new ClientUser.ClientUserId("joelin", client.getId()), client,"12341234", "USER");
+        clientUser = new ClientUser(new ClientUser.ClientUserId("joe", client.getUsername()), client,"12341234", "USER");
         clientService.saveClientUser(clientUser);
+
+        ClientUser lin = new ClientUser(new ClientUser.ClientUserId("lin", client.getUsername()), client,"12341234", "USER");
+        clientService.saveClientUser(lin);
     }
 
     @Test
-    void saveRosterPlan() {
+    @WithMockUser
+    void crudRosterEvent() {
 
-        final RosterPlan rosterPlan = new RosterPlan(client.getId(), YearMonth.now());
-        rosterPlan.addRosterEntry(DayOfWeek.MONDAY, LocalTime.now(), LocalTime.now().plusHours(4));
-        rosterPlanService.saveRosterPlan(rosterPlan);
+        final CalendarEvent calendarEvent = rosterObjectHelper.createRosterEvent(client, "Morning shift", LocalDateTime.now(), LocalDateTime.now().plusHours(8));
+        final List<CalendarEvent> createdRosterEvents = rosterPlanService.createRosterEvent(client, CalendarEventSeries.EventRepeat.WEEKLY, calendarEvent);
 
-        assertThat(rosterPlan.getId()).isNotNull();
-        assertThat(rosterPlan.getRosterMonth()).isNotNull();
-        assertThat(rosterPlan.getClientId()).isEqualTo(client.getId());
+        assertThat(createdRosterEvents).isNotEmpty();
+        assertThat(createdRosterEvents).allSatisfy(e -> {
+            assertThat(e.getEventSeries()).isNotNull();
+            assertThat(e.getStartTime()).isBefore(e.getEndTime());
+        });
 
-        assertThatCode(() -> rosterPlanService.getRosterPlan(rosterPlan.getId())).doesNotThrowAnyException();
-        assertThat(rosterPlanService.getRosterPlans(client)).isNotEmpty();
-
-        rosterPlanService.deleteRosterPlan(rosterPlan);
-
-        assertThatThrownBy(() -> rosterPlanService.getRosterPlan(rosterPlan.getId())).isInstanceOf(ObjectNotFoundException.class);
-    }
-
-    @Test
-    void createCalendarEventFromRosterPlan() {
-
-        final RosterPlan rosterPlan = new RosterPlan(client.getId(), YearMonth.now());
-        rosterPlan.addRosterEntry(DayOfWeek.MONDAY, LocalTime.now(), LocalTime.now().plusHours(4));
-        rosterPlan.addRosterEntry(DayOfWeek.TUESDAY, LocalTime.now(), LocalTime.now().plusHours(8));
-        rosterPlan.addRosterEntry(DayOfWeek.WEDNESDAY, LocalTime.now(), LocalTime.now().plusHours(8));
-        rosterPlan.addRosterEntry(DayOfWeek.THURSDAY, LocalTime.now(), LocalTime.now().plusHours(8));
-        rosterPlan.addRosterEntry(DayOfWeek.FRIDAY, LocalTime.now(), LocalTime.now().plusHours(8));
-        rosterPlan.addRosterEntry(DayOfWeek.SATURDAY, LocalTime.now(), LocalTime.now().plusHours(8));
-        rosterPlan.addRosterEntry(DayOfWeek.SUNDAY, LocalTime.now(), LocalTime.now().plusHours(8));
-        rosterPlanService.saveRosterPlan(rosterPlan);
-
-        final List<CalendarEvent> events = rosterPlanService.createRosterPlanEvents(client, rosterPlan);
-
-        assertThat(rosterPlanService.getRosterPlan(rosterPlan.getId()).getStatus()).isEqualByComparingTo(RosterPlan.RosterPlanStatus.LOCKED);
-
-        final int eventCount = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth()).getDayOfMonth();
-
-        assertThat(events).hasSize(eventCount);
-
-        events.forEach(e -> {
-            final CalendarEvent updatedCalendarEvent = rosterPlanService.assignRosterPlanEventToStaffMember(e, clientUser);
-            assertThat(updatedCalendarEvent.getEventResources()).allSatisfy(r -> {
-                assertThat(r.getResourceId()).isNotNull();
-                assertThat(r.getResourceType()).isEqualByComparingTo(CalendarEvent.ResourceType.STAFF);
-                assertThat(r.getResourceName()).isNotNull();
+        assertThat(rosterPlanService.getRosterEvent(calendarEvent.getId())).satisfies(e -> {
+            assertThat(e.getEventName()).isEqualTo("Morning shift");
+            assertThat(e.getEventOwner()).satisfies(o -> {
+                assertThat(o.getOwnerId()).isNotNull();
+                assertThat(o.getOwnerType()).isEqualByComparingTo(CalendarEvent.OwnerType.STAFF);
+                assertThat(o.getOwnerType()).isNotNull();
             });
+
+            assertThat(e.getEventResources()).isEmpty();
         });
 
-        assertThat(rosterPlanService.getRosterPlanEvents(rosterPlan)).hasSize(eventCount);
-        assertThat(rosterPlanService.getStaffMemberRoster(client, clientUser, YearMonth.now())).hasSize(eventCount);
+        calendarEvent.setEventName("Noon shift");
+        rosterPlanService.updateRosterEvent(calendarEvent, LocalTime.of(10, 30), LocalTime.of(3, 30));
 
-        events.forEach(e -> {
-            final CalendarEvent updatedCalendarEvent = rosterPlanService.removeStaffMemberFromRosterPlanEvent(e, clientUser);
-            assertThat(updatedCalendarEvent.getEventResources()).isEmpty();
+        final List<CalendarEvent> rosterEvents = rosterPlanService.getRosterEvents(client, YearMonth.now());
+        assertThat(rosterEvents).isNotEmpty();
+        assertThat(rosterEvents).allSatisfy(e -> {
+            assertThat(e.getEventName()).isEqualTo("Noon shift");
         });
 
-        events.forEach(e -> {
-            rosterPlanService.updateRosterPlanEventStaffMembers(e, List.of(clientUser, clientUser));
-            assertThat(e.getEventResources()).hasSize(1);
-        });
+        Map<String, List<String>> workingAreaToUsernames = Map.of("bar", List.of("joe", "lin"));
+        final CalendarEvent updatedRosterEvent = rosterPlanService.updateRosterEventResources(calendarEvent, rosterObjectHelper.createRosterEventResources(client, workingAreaToUsernames));
 
-        rosterPlanService.deleteRosterPlanEvents(rosterPlan);
+        assertThat(updatedRosterEvent.getEventResources()).hasSize(2);
 
-        assertThat(rosterPlanService.getRosterPlan(rosterPlan.getId()).getStatus()).isEqualByComparingTo(RosterPlan.RosterPlanStatus.ACTIVE);
+        final List<CalendarEvent> clientUserEvents = rosterPlanService.getTodaysClientUserRosterEvents(client, clientUser);
+        assertThat(clientUserEvents).hasSize(1);
 
-        assertThat(rosterPlanService.getRosterPlanEvents(rosterPlan)).isEmpty();
+        rosterPlanService.deleteRosterEvent(calendarEvent.getId());
+
+        assertThat(rosterPlanService.getRosterEvents(client, YearMonth.now())).isEmpty();
     }
 }

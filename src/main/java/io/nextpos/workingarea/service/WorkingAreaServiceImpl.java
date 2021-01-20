@@ -54,6 +54,11 @@ public class WorkingAreaServiceImpl implements WorkingAreaService {
     }
 
     @Override
+    public List<WorkingArea> getWorkingAreas(Client client, boolean usedInProduct, boolean usedInRoster) {
+        return workingAreaRepository.findAllByClientAndUsedInProductAndUsedInRoster(client, usedInProduct, usedInRoster);
+    }
+
+    @Override
     public void deleteWorkingArea(final WorkingArea workingArea) {
 
         if (!checkWorkingAreaDeletable(workingArea)) {

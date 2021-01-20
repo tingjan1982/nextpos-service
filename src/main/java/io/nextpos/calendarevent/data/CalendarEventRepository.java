@@ -9,5 +9,7 @@ public interface CalendarEventRepository extends MongoRepository<CalendarEvent, 
 
     List<CalendarEvent> findAllByClientIdAndEventOwner_OwnerIdAndEventOwner_OwnerType(String clientId, String eventOwnerId, CalendarEvent.OwnerType ownerType);
 
-    List<CalendarEvent> findAllByClientIdAndEventTypeAndEventResourcesContainingAndStartTimeBetween(String clientId, CalendarEvent.EventType eventType, CalendarEvent.EventResource eventResource, Date from, Date to);
+    List<CalendarEvent> findAllByClientIdAndEventTypeAndStartTimeBetween(String clientId, CalendarEvent.EventType eventType, Date from, Date to);
+
+    List<CalendarEvent> findAllByClientIdAndEventSeries_Id(String clientId, String eventSeriesId);
 }

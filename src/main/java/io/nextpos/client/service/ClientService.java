@@ -37,6 +37,8 @@ public interface ClientService extends UserDetailsService {
 
     ClientUser createClientUser(ClientUser clientUser);
 
+    ClientUser getCurrentClientUser(Client client);
+
     ClientUser getClientUser(Client client, String username);
 
     ClientUser loadClientUser(Client client, String username);

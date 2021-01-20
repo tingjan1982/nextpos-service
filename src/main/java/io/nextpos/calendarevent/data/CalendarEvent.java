@@ -1,13 +1,20 @@
 package io.nextpos.calendarevent.data;
 
 import io.nextpos.shared.model.MongoBaseObject;
+import io.nextpos.shared.util.DateTimeUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -21,6 +28,8 @@ public class CalendarEvent extends MongoBaseObject {
     private String id;
 
     private String clientId;
+
+    private ZoneId zoneId;
 
     private EventType eventType;
 
@@ -36,13 +45,15 @@ public class CalendarEvent extends MongoBaseObject {
 
     private Date startTime;
 
-    /**
-     * optional
-     */
     private Date endTime;
 
-    public CalendarEvent(String clientId, EventType eventType, String eventName, EventOwner eventOwner, Date startTime, Date endTime) {
+    @DBRef
+    private CalendarEventSeries eventSeries;
+
+    public CalendarEvent(String clientId, ZoneId zoneId, EventType eventType, String eventName, EventOwner eventOwner, Date startTime, Date endTime) {
+        this.id = ObjectId.get().toString();
         this.clientId = clientId;
+        this.zoneId = zoneId;
         this.eventType = eventType;
         this.eventName = eventName;
         this.eventOwner = eventOwner;
@@ -62,6 +73,34 @@ public class CalendarEvent extends MongoBaseObject {
 
     public void removeAllEventResources() {
         this.eventResources.clear();
+    }
+
+    public CalendarEvent copy(Date startTime, Date endTime) {
+
+        return new CalendarEvent(this.clientId,
+                this.zoneId,
+                this.eventType,
+                this.eventName,
+                this.eventOwner,
+                startTime,
+                endTime);
+    }
+
+    public void update(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime) {
+
+        setEventName(calendarEvent.getEventName());
+
+        LocalDate startDate = this.getStartTime().toInstant().atZone(zoneId).toLocalDate();
+        LocalDateTime startDt = LocalDateTime.of(startDate, startTime);
+        LocalDate endDate = this.getStartTime().toInstant().atZone(zoneId).toLocalDate();
+        LocalDateTime endDt = LocalDateTime.of(endDate, endTime);
+
+        if (endDt.compareTo(startDt) >= 0) {
+            endDt = endDt.plusDays(1);
+        }
+
+        setStartTime(DateTimeUtil.toDate(zoneId, startDt));
+        setEndTime(DateTimeUtil.toDate(zoneId, endDt));
     }
 
     public enum EventType {
@@ -97,7 +136,12 @@ public class CalendarEvent extends MongoBaseObject {
     }
 
     public enum OwnerType {
-        ROSTER, CUSTOMER, MEMBER
+
+        @Deprecated
+        ROSTER,
+        CUSTOMER,
+        MEMBER,
+        STAFF
     }
 
     @Data
@@ -116,6 +160,13 @@ public class CalendarEvent extends MongoBaseObject {
         private ResourceType resourceType;
 
         private String resourceName;
+
+        private String workingArea;
+
+        public EventResource(String resourceId, ResourceType resourceType) {
+            this.resourceId = resourceId;
+            this.resourceType = resourceType;
+        }
     }
 
     public enum ResourceType {
