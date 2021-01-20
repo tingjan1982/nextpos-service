@@ -21,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -70,6 +71,7 @@ class StatsReportServiceImplTest {
     }
 
     @Test
+    @WithMockUser
     void generateCustomerTrafficReport() {
 
         final LocalDateTime today = LocalDateTime.now();

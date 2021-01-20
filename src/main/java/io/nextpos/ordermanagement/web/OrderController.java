@@ -329,12 +329,11 @@ public class OrderController {
 
     @DeleteMapping("/{id}")
     @OrderLogAction
-    public OrderStateChangeResponse deleteOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                @PathVariable final String id) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                            @PathVariable final String id) {
 
-        OrderStateChangeBean orderStateChangeBean = orderService.performOrderAction(id, Order.OrderAction.DELETE);
-
-        return toOrderStateChangeResponse(orderStateChangeBean);
+        orderService.markOrderAsDeleted(id);
     }
 
 
@@ -360,8 +359,8 @@ public class OrderController {
     @PostMapping("/{id}/lineitems/prepare")
     @OrderLogAction
     public OrderResponse prepareLineItems(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                  @PathVariable final String id,
-                                                  @Valid @RequestBody UpdateLineItemsRequest updateLineItemsRequest) {
+                                          @PathVariable final String id,
+                                          @Valid @RequestBody UpdateLineItemsRequest updateLineItemsRequest) {
 
         final Order updatedOrder = orderService.prepareLineItems(id, updateLineItemsRequest.getLineItemIds());
 
@@ -371,8 +370,8 @@ public class OrderController {
     @PostMapping("/{id}/lineitems/deliver")
     @OrderLogAction
     public OrderResponse deliverLineItems(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                  @PathVariable final String id,
-                                                  @Valid @RequestBody UpdateLineItemsRequest updateLineItemsRequest) {
+                                          @PathVariable final String id,
+                                          @Valid @RequestBody UpdateLineItemsRequest updateLineItemsRequest) {
 
         final Order updatedOrder = orderService.deliverLineItems(id, updateLineItemsRequest.getLineItemIds());
 

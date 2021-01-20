@@ -35,9 +35,9 @@ public interface OrderService {
 
     void deleteOrder(String orderId);
 
-    void deleteOrderByOrderId(String orderId);
-
     OrderStateChange transitionOrderState(Order order, Order.OrderAction orderAction, final Optional<LineItemStateChangeEvent> lineItemStateChangeEvent);
+
+    void markOrderAsDeleted(String orderId);
 
     Order updateOrderLineItem(Order order, UpdateLineItem updateLineItem);
 

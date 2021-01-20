@@ -105,7 +105,7 @@ public class UserTimeCardController {
         return new UserTimeCardsResponse(userTimeCards);
     }
 
-    private UserTimeCardResponse toUserTimeCardResponse(final UserTimeCard userTimeCard) {
+    private UserTimeCardResponse toUserTimeCardResponse(UserTimeCard userTimeCard) {
         final Duration workingDuration = userTimeCard.getWorkingDuration();
 
         return new UserTimeCardResponse(

@@ -136,8 +136,16 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void deleteOrderByOrderId(String orderId) {
-        orderRepository.deleteById(orderId);
+    @WebSocketClientOrders
+    public void markOrderAsDeleted(String orderId) {
+
+        this.performOrderAction(orderId, Order.OrderAction.DELETE);
+
+        final Order order = this.getOrder(orderId);
+        final Shift activeShift = shiftService.getActiveShiftOrThrows(order.getClientId());
+        order.getOrderLineItems().forEach(li -> activeShift.addDeletedLineItem(order, li));
+
+        shiftService.saveShift(activeShift);
     }
 
     @Override

@@ -28,7 +28,7 @@ public class AuthenticationHelper {
             return new OAuth2Strategy(authentication);
         }
 
-        throw new GeneralApplicationException("Should not reach here. Current authentication class type is not supported: " + authentication.getClass());
+        throw new GeneralApplicationException("Should not reach here. Current authentication class type is not supported: " + authentication);
     }
 
     private interface AuthenticationValueStrategy {

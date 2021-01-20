@@ -134,7 +134,7 @@ public class OrderSetServiceImpl implements OrderSetService {
                 .filter(os -> !os.getOrderId().equals(orderSet.getMainOrderId()))
                 .forEach(os -> {
                     LOGGER.info("Deleting merged oder id {}", os.getOrderId());
-                    orderService.deleteOrderByOrderId(os.getOrderId());
+                    orderService.deleteOrder(os.getOrderId());
                 });
 
         orderSet.setStatus(OrderSet.OrderSetStatus.COMPLETED);

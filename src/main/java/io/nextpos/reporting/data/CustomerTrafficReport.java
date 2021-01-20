@@ -57,34 +57,22 @@ public class CustomerTrafficReport {
                     CustomerTrafficReport.OrdersByVisitFrequency::emptyObject,
                     this::setOrdersByVisitFrequency);
 
-            BigDecimal oneHundred = BigDecimal.valueOf(100);
+            this.getOrdersByType().forEach(order -> order.setPercentage(calculatePercentage(order.getOrderCount(), total.getOrderCount())));
 
-            this.getOrdersByType().forEach(order -> {
-                final BigDecimal percentage = BigDecimal.valueOf(order.getOrderCount()).divide(BigDecimal.valueOf(total.getOrderCount()), 2, RoundingMode.CEILING).multiply(oneHundred);
-                order.setPercentage(percentage);
-            });
+            this.getOrdersByAgeGroup().forEach(order -> order.setPercentage(calculatePercentage(order.getOrderCount(), total.getOrderCount())));
 
-            this.getOrdersByAgeGroup().forEach(order -> {
-                final BigDecimal percentage = BigDecimal.valueOf(order.getOrderCount()).divide(BigDecimal.valueOf(total.getOrderCount()), 2, RoundingMode.CEILING).multiply(oneHundred);
-                order.setPercentage(percentage);
-            });
-
-            this.getOrdersByVisitFrequency().forEach(order -> {
-                final BigDecimal percentage = BigDecimal.valueOf(order.getOrderCount()).divide(BigDecimal.valueOf(total.getOrderCount()), 2, RoundingMode.CEILING).multiply(oneHundred);
-                order.setPercentage(percentage);
-            });
+            this.getOrdersByVisitFrequency().forEach(order -> order.setPercentage(calculatePercentage(order.getOrderCount(), total.getOrderCount())));
 
             if (total.customerCount > 0) {
-                final BigDecimal malePercentage = BigDecimal.valueOf(total.maleCount).divide(BigDecimal.valueOf(total.customerCount), 2, RoundingMode.CEILING).multiply(oneHundred);
-                total.setMalePercentage(malePercentage);
-
-                final BigDecimal femalePercentage = BigDecimal.valueOf(total.femaleCount).divide(BigDecimal.valueOf(total.customerCount), 2, RoundingMode.CEILING).multiply(oneHundred);
-                total.setFemalePercentage(femalePercentage);
-
-                final BigDecimal kidPercentage = BigDecimal.valueOf(total.kidCount).divide(BigDecimal.valueOf(total.customerCount), 2, RoundingMode.CEILING).multiply(oneHundred);
-                total.setKidPercentage(kidPercentage);
+                total.setMalePercentage(calculatePercentage(total.getMaleCount(), total.getCustomerCount()));
+                total.setFemalePercentage(calculatePercentage(total.getFemaleCount(), total.getCustomerCount()));
+                total.setKidPercentage(calculatePercentage(total.getKidCount(), total.getCustomerCount()));
             }
         });
+    }
+
+    private BigDecimal calculatePercentage(int dividend, int divisor) {
+        return new BigDecimal(dividend).divide(new BigDecimal(divisor), 3, RoundingMode.HALF_UP).multiply(new BigDecimal(100));
     }
 
     @Data
