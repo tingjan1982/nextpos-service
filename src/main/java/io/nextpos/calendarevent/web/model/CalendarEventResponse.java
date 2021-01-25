@@ -2,9 +2,12 @@ package io.nextpos.calendarevent.web.model;
 
 import io.nextpos.calendarevent.data.CalendarEvent;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Data
 public class CalendarEventResponse {
@@ -15,7 +18,7 @@ public class CalendarEventResponse {
 
     private final CalendarEvent.EventOwner eventOwner;
 
-    private final List<CalendarEvent.EventResource> eventResources;
+    private final Map<String, List<CalendarEvent.EventResource>> eventResources;
 
     private final CalendarEvent.EventDetails eventDetails;
 
@@ -30,7 +33,9 @@ public class CalendarEventResponse {
         id = calendarEvent.getId();
         eventType = calendarEvent.getEventType();
         eventOwner = calendarEvent.getEventOwner();
-        eventResources = calendarEvent.getEventResources();
+        eventResources = calendarEvent.getEventResources().stream()
+                .collect(Collectors.groupingBy(e -> StringUtils.isNotBlank(e.getWorkingArea()) ? e.getWorkingArea() : "_default"));
+
         eventDetails = calendarEvent.getEventDetails();
         status = calendarEvent.getStatus();
         startTime = calendarEvent.getStartTime();

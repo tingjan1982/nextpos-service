@@ -161,6 +161,7 @@ public class CalendarEvent extends MongoBaseObject {
 
         private String resourceName;
 
+        @EqualsAndHashCode.Include
         private String workingArea;
 
         public EventResource(String resourceId, ResourceType resourceType) {
