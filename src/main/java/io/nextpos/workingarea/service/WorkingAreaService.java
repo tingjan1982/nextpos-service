@@ -14,7 +14,7 @@ public interface WorkingAreaService {
 
     List<WorkingArea> getWorkingAreas(Client client);
 
-    List<WorkingArea> getWorkingAreas(Client client, boolean usedInProduct, boolean usedInRoster);
+    List<WorkingArea> getWorkingAreas(Client client, WorkingArea.Visibility visibility);
 
     void deleteWorkingArea(WorkingArea workingArea);
 

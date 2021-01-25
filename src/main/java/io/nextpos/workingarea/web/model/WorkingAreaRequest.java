@@ -1,10 +1,12 @@
 package io.nextpos.workingarea.web.model;
 
+import io.nextpos.workingarea.data.WorkingArea;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.util.List;
 
@@ -19,9 +21,8 @@ public class WorkingAreaRequest {
     @Positive
     private int noOfPrintCopies;
 
-    private boolean usedInProduct;
-
-    private boolean usedInRoster;
+    @NotNull
+    private WorkingArea.Visibility visibility;
 
     private List<String> printerIds;
 }

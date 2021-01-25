@@ -1,5 +1,6 @@
 package io.nextpos.workingarea.web.model;
 
+import io.nextpos.workingarea.data.WorkingArea;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -18,4 +19,6 @@ public class WorkingAreaResponse {
     private List<String> printerIds;
 
     private List<PrinterResponse> printers;
+
+    private WorkingArea.Visibility visibility;
 }

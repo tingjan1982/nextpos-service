@@ -16,6 +16,8 @@ public class CalendarEventResponse {
 
     private final CalendarEvent.EventType eventType;
 
+    private final String eventName;
+
     private final CalendarEvent.EventOwner eventOwner;
 
     private final Map<String, List<CalendarEvent.EventResource>> eventResources;
@@ -32,6 +34,7 @@ public class CalendarEventResponse {
     public CalendarEventResponse(CalendarEvent calendarEvent) {
         id = calendarEvent.getId();
         eventType = calendarEvent.getEventType();
+        eventName = calendarEvent.getEventName();
         eventOwner = calendarEvent.getEventOwner();
         eventResources = calendarEvent.getEventResources().stream()
                 .collect(Collectors.groupingBy(e -> StringUtils.isNotBlank(e.getWorkingArea()) ? e.getWorkingArea() : "_default"));

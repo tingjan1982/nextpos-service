@@ -54,8 +54,13 @@ public class WorkingAreaServiceImpl implements WorkingAreaService {
     }
 
     @Override
-    public List<WorkingArea> getWorkingAreas(Client client, boolean usedInProduct, boolean usedInRoster) {
-        return workingAreaRepository.findAllByClientAndUsedInProductAndUsedInRoster(client, usedInProduct, usedInRoster);
+    public List<WorkingArea> getWorkingAreas(Client client, WorkingArea.Visibility visibility) {
+
+        if (visibility == WorkingArea.Visibility.ALL) {
+            return getWorkingAreas(client);
+        }
+
+        return workingAreaRepository.findAllByClientAndVisibility(client, visibility);
     }
 
     @Override

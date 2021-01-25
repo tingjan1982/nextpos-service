@@ -49,8 +49,7 @@ public class WorkingAreaController {
 
         final WorkingArea workingArea = new WorkingArea(client, workingAreaRequest.getName());
         workingArea.setNoOfPrintCopies(workingAreaRequest.getNoOfPrintCopies());
-        workingArea.setUsedInProduct(workingAreaRequest.isUsedInProduct());
-        workingArea.setUsedInRoster(workingAreaRequest.isUsedInRoster());
+        workingArea.setVisibility(workingAreaRequest.getVisibility());
 
         workingAreaService.saveWorkingArea(workingArea);
 
@@ -72,10 +71,9 @@ public class WorkingAreaController {
 
     @GetMapping("/workingareas")
     public WorkingAreasResponse getWorkingAreas(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                @RequestParam(name = "usedInProduct", required = false, defaultValue = "true") boolean usedInProduct,
-                                                @RequestParam(name = "usedInRoster", required = false, defaultValue = "true") boolean usedInRoster) {
+                                                @RequestParam(name = "visibility", required = false, defaultValue = "ALL") WorkingArea.Visibility visibility) {
 
-        List<WorkingArea> workingAreas = workingAreaService.getWorkingAreas(client, usedInProduct, usedInRoster);
+        List<WorkingArea> workingAreas = workingAreaService.getWorkingAreas(client, visibility);
 
         final List<WorkingAreaResponse> workingAreaResponses = workingAreas.stream()
                 .map(this::toWorkingAreaResponse).collect(Collectors.toList());
@@ -98,8 +96,7 @@ public class WorkingAreaController {
 
         workingArea.setName(workingAreaRequest.getName());
         workingArea.setNoOfPrintCopies(workingAreaRequest.getNoOfPrintCopies());
-        workingArea.setUsedInProduct(workingAreaRequest.isUsedInProduct());
-        workingArea.setUsedInRoster(workingAreaRequest.isUsedInRoster());
+        workingArea.setVisibility(workingAreaRequest.getVisibility());
 
         workingArea.clearPrinters();
 
@@ -120,7 +117,8 @@ public class WorkingAreaController {
                 savedWorkingArea.getName(),
                 savedWorkingArea.getNoOfPrintCopies(),
                 printerIds,
-                printerResponses);
+                printerResponses,
+                savedWorkingArea.getVisibility());
     }
 
     @DeleteMapping("/workingareas/{id}")

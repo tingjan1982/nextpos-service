@@ -33,9 +33,8 @@ public class WorkingArea extends BaseObject implements ClientObject {
 
     private int noOfPrintCopies;
 
-    private boolean usedInProduct = true;
-
-    private boolean usedInRoster = true;
+    @Enumerated(EnumType.STRING)
+    private Visibility visibility;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(joinColumns = @JoinColumn(name = "working_area_id"), inverseJoinColumns = @JoinColumn(name = "printer_id"))
@@ -47,6 +46,7 @@ public class WorkingArea extends BaseObject implements ClientObject {
     public WorkingArea(final Client client, final String name) {
         this.client = client;
         this.name = name;
+        this.visibility = Visibility.ALL;
     }
 
     public void clearPrinters() {
@@ -58,5 +58,9 @@ public class WorkingArea extends BaseObject implements ClientObject {
     public void addPrinter(Printer printer) {
         printers.add(printer);
         printer.getWorkingAreas().add(this);
+    }
+
+    public enum Visibility {
+        ALL, PRODUCT, ROSTER
     }
 }

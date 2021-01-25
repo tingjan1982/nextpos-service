@@ -8,13 +8,13 @@ import io.nextpos.product.data.ProductLabelRepository;
 import io.nextpos.product.data.ProductRepository;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.BusinessLogicException;
+import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.WorkingArea;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Set;
@@ -22,7 +22,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-@Transactional
+@ChainedTransaction
 class WorkingAreaServiceImplTest {
 
     @Autowired
@@ -60,9 +60,20 @@ class WorkingAreaServiceImplTest {
         assertThat(savedBar.getName()).isEqualTo("bar");
         assertThat(savedBar.getPrinters()).hasSize(1);
         assertThat(printer.getWorkingAreas()).hasSize(1);
-
         assertThatCode(() -> workingAreaService.getWorkingArea(savedBar.getId())).doesNotThrowAnyException();
-        assertThat(workingAreaService.getWorkingAreas(client)).hasSize(1);
+
+        final WorkingArea outside = new WorkingArea(client, "outside");
+        outside.setVisibility(WorkingArea.Visibility.ROSTER);
+        workingAreaService.saveWorkingArea(outside);
+
+        final WorkingArea kitchen = new WorkingArea(client, "kitchen");
+        kitchen.setVisibility(WorkingArea.Visibility.PRODUCT);
+        workingAreaService.saveWorkingArea(kitchen);
+
+        assertThat(workingAreaService.getWorkingAreas(client)).hasSize(3);
+        assertThat(workingAreaService.getWorkingAreas(client, WorkingArea.Visibility.ALL)).hasSize(3);
+        assertThat(workingAreaService.getWorkingAreas(client, WorkingArea.Visibility.PRODUCT)).hasSize(1);
+        assertThat(workingAreaService.getWorkingAreas(client, WorkingArea.Visibility.ROSTER)).hasSize(1);
 
         final Product product = Product.builder(client).productNameAndPrice("p1", new BigDecimal("100")).build();
         product.setWorkingArea(savedBar);
