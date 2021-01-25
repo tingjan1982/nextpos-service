@@ -7,7 +7,6 @@ import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.product.data.ProductOptionVersion;
 import io.nextpos.product.data.ProductVersion;
 import io.nextpos.settings.data.CountrySettings;
-import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.workingarea.data.WorkingArea;
 
@@ -23,7 +22,7 @@ public class DummyObjects {
     }
 
     public static ClientUser dummyClientUser(Client client) {
-        return new ClientUser(new ClientUser.ClientUserId("test-user", BootstrapConfig.MASTER_CLIENT), client, "password", "ADMIN,USER");
+        return new ClientUser(new ClientUser.ClientUserId("test-user", client.getUsername()), client, "password", "ADMIN,USER");
     }
 
     public static ProductVersion dummyProductVersion() {

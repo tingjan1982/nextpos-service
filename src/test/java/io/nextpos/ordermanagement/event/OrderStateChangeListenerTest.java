@@ -5,13 +5,13 @@ import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.BusinessLogicException;
+import io.nextpos.shared.service.annotation.ChainedTransaction;
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
-@Transactional
+@ChainedTransaction
 class OrderStateChangeListenerTest {
 
     @Autowired
@@ -88,14 +88,14 @@ class OrderStateChangeListenerTest {
 
         final CompletableFuture<OrderStateChangeBean> future = new CompletableFuture<>();
         eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.SUBMIT, new CompletableFuture<>()));
+        eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.DELIVER, new CompletableFuture<>()));
+        eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.SETTLE, new CompletableFuture<>()));
         eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.CANCEL, future));
 
         final OrderStateChange orderStateChange = future.get().getOrderStateChange();
 
         assertThat(orderStateChange.getOrderId()).isEqualTo(order.getId());
-        assertThat(orderStateChange.getStateChanges()).hasSize(2);
-        assertThat(orderStateChange.getStateChanges()).satisfies(entry -> assertThat(entry.getToState()).isEqualTo(Order.OrderState.IN_PROCESS), Index.atIndex(0));
-        assertThat(orderStateChange.getStateChanges()).satisfies(entry -> assertThat(entry.getToState()).isEqualTo(Order.OrderState.CANCELLED), Index.atIndex(1));
+        assertThat(orderStateChange.getStateChanges()).hasSize(4);
     }
 
     @Test

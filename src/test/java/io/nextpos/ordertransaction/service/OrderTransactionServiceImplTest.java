@@ -4,15 +4,17 @@ import io.nextpos.client.data.Client;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoiceRepository;
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderRepository;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.BusinessLogicException;
+import io.nextpos.shared.service.annotation.ChainedTransaction;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.ZoneId;
@@ -25,7 +27,6 @@ import java.util.concurrent.Executors;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-@Transactional
 class OrderTransactionServiceImplTest {
 
     @Autowired
@@ -33,6 +34,9 @@ class OrderTransactionServiceImplTest {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     @Autowired
     private ElectronicInvoiceRepository electronicInvoiceRepository;
@@ -43,7 +47,13 @@ class OrderTransactionServiceImplTest {
     @Autowired
     private OrderSettings orderSettings;
 
+    @AfterEach
+    void cleanup() {
+        orderRepository.deleteAll();
+    }
+
     @Test
+    @ChainedTransaction
     void createSingleOrderTransaction() {
 
         final String clientId = client.getId();
@@ -77,13 +87,13 @@ class OrderTransactionServiceImplTest {
 
         final Order order = createMockOrder();
 
-        ExecutorService executor = Executors.newFixedThreadPool(5);
+        ExecutorService executor = Executors.newFixedThreadPool(1);
 
         final Callable<String> task = () -> {
-            final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), client.getId(), order.getOrderTotal(), BigDecimal.valueOf(200),
+            final OrderTransaction orderTransaction = new OrderTransaction(order,
                     OrderTransaction.PaymentMethod.CARD,
                     OrderTransaction.BillType.SINGLE,
-                    List.of());
+                    order.getOrderTotal());
 
             orderTransactionService.createOrderTransaction(client, orderTransaction);
 
@@ -96,6 +106,7 @@ class OrderTransactionServiceImplTest {
     }
 
     @Test
+    @ChainedTransaction
     void cancelOrderTransaction() {
 
         final Order order = createMockOrder();
@@ -119,14 +130,12 @@ class OrderTransactionServiceImplTest {
     }
 
     @Test
+    @ChainedTransaction
     void getOrderByInvoiceNumber() {
 
         final Order order = createMockOrder();
 
-        final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), client.getId(), order.getOrderTotal(), BigDecimal.valueOf(150),
-                OrderTransaction.PaymentMethod.CARD,
-                OrderTransaction.BillType.SINGLE,
-                List.of());
+        final OrderTransaction orderTransaction = new OrderTransaction(order, OrderTransaction.PaymentMethod.CASH, OrderTransaction.BillType.SINGLE, order.getOrderTotal());
 
         final ElectronicInvoice electronicInvoice = createMockElectronicInvoice(order);
         orderTransaction.getInvoiceDetails().setElectronicInvoice(electronicInvoice);
@@ -137,8 +146,8 @@ class OrderTransactionServiceImplTest {
 
     private ElectronicInvoice createMockElectronicInvoice(Order order) {
 
-        final ElectronicInvoice electronicInvoice = new ElectronicInvoice(order.getId(),
-                client.getId(),
+        final ElectronicInvoice electronicInvoice = new ElectronicInvoice(client.getId(),
+                order.getId(),
                 "AA-10001001",
                 ElectronicInvoice.InvoiceStatus.CREATED,
                 new ElectronicInvoice.InvoicePeriod(ZoneId.systemDefault()),

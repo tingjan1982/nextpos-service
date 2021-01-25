@@ -46,8 +46,11 @@ public class WorkingAreaController {
      * PersistentObjectException: detached entity passed to persist: io.nextpos.workingarea.data.Printer] with root cause
      */
     private WorkingArea fromWorkingAreaRequest(final Client client, final WorkingAreaRequest workingAreaRequest) {
+
         final WorkingArea workingArea = new WorkingArea(client, workingAreaRequest.getName());
         workingArea.setNoOfPrintCopies(workingAreaRequest.getNoOfPrintCopies());
+        workingArea.setUsedInProduct(workingAreaRequest.isUsedInProduct());
+        workingArea.setUsedInRoster(workingAreaRequest.isUsedInRoster());
 
         workingAreaService.saveWorkingArea(workingArea);
 
@@ -95,6 +98,8 @@ public class WorkingAreaController {
 
         workingArea.setName(workingAreaRequest.getName());
         workingArea.setNoOfPrintCopies(workingAreaRequest.getNoOfPrintCopies());
+        workingArea.setUsedInProduct(workingAreaRequest.isUsedInProduct());
+        workingArea.setUsedInRoster(workingAreaRequest.isUsedInRoster());
 
         workingArea.clearPrinters();
 

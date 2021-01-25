@@ -19,5 +19,9 @@ public class WorkingAreaRequest {
     @Positive
     private int noOfPrintCopies;
 
+    private boolean usedInProduct;
+
+    private boolean usedInRoster;
+
     private List<String> printerIds;
 }

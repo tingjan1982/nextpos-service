@@ -5,6 +5,8 @@ import io.nextpos.inventorymanagement.data.Inventory;
 import io.nextpos.inventorymanagement.data.InventoryOrder;
 import io.nextpos.inventorymanagement.data.InventoryTransaction;
 import io.nextpos.inventorymanagement.data.Supplier;
+import io.nextpos.shared.service.annotation.ChainedTransaction;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -24,7 +26,6 @@ import java.util.concurrent.Executors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
-//@ChainedTransaction
 class InventoryServiceImplTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InventoryServiceImplTest.class);
@@ -55,7 +56,13 @@ class InventoryServiceImplTest {
         stock = inventoryService.createStock(client.getId(), "2020blue", inventoryQuantity);
     }
 
+    @AfterEach
+    void cleanup() {
+        inventoryService.deleteInventory(inventoryService.getInventory(stock.getId()));
+    }
+
     @Test
+    @ChainedTransaction
     void inventoryLifecycle() {
 
         assertThat(inventoryService.getInventory(stock.getId())).satisfies(i -> {

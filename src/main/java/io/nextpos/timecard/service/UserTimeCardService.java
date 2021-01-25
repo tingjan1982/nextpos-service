@@ -5,7 +5,6 @@ import io.nextpos.timecard.data.UserTimeCard;
 
 import java.time.YearMonth;
 import java.util.List;
-import java.util.Optional;
 
 public interface UserTimeCardService {
 
@@ -13,9 +12,7 @@ public interface UserTimeCardService {
 
     UserTimeCard clockOut(Client client);
 
-    Optional<UserTimeCard> getActiveTimeCard(Client client);
-
-    Optional<UserTimeCard> getMostRecentTimeCard(Client client);
+    UserTimeCard getMostRecentTimeCard(Client client);
 
     UserTimeCard getUserTimeCardById(String id);
 

@@ -4,6 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.shared.service.annotation.MongoTransaction;
+import io.nextpos.shared.util.DateTimeUtil;
 import io.nextpos.timecard.data.TimeCardReport;
 import io.nextpos.timecard.data.UserTimeCard;
 import org.bson.Document;
@@ -15,12 +16,8 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,8 +45,8 @@ public class TimeCardReportServiceImpl implements TimeCardReportService {
                 .and(context -> Document.parse("{ $dayOfMonth: {date: '$clockIn', timezone: 'Asia/Taipei'} }")).as("day")
                 .andExpression("(clockOut - clockIn) / (1000 * 60 * 60)").as("hour");
 
-        final LocalDate fromDate = yearMonth.atDay(1);
-        final LocalDate toDate = yearMonth.atEndOfMonth().plusDays(1);
+        final Date fromDate = DateTimeUtil.toDate(client.getZoneId(), yearMonth.atDay(1).atStartOfDay());
+        final Date toDate = DateTimeUtil.toDate(client.getZoneId(), yearMonth.atEndOfMonth().atTime(23, 59, 59).plusDays(1));
 
         final MatchOperation filter = Aggregation.match(Criteria.where("clientId").is(client.getId())
                 .and("clockIn").gte(fromDate).lt(toDate));

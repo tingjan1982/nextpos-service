@@ -4,6 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.shared.DummyObjects;
+import io.nextpos.shared.util.DateTimeUtil;
 import io.nextpos.timecard.data.TimeCardReport;
 import io.nextpos.timecard.data.UserTimeCard;
 import io.nextpos.timecard.data.UserTimeCardRepository;
@@ -56,7 +57,7 @@ class TimeCardReportServiceImplTest {
         final LocalDateTime firstOfMonth = now.withDayOfMonth(1);
         final LocalDateTime lastOfMonth = YearMonth.now().atEndOfMonth().atStartOfDay();
 
-        createUserTimeCard(username, firstOfMonth, firstOfMonth.plus(5, ChronoUnit.HOURS));
+        createUserTimeCard(username, firstOfMonth, firstOfMonth.plusHours(5));
 
         createUserTimeCard(username, now, now.plus(1, ChronoUnit.HALF_DAYS));
         createUserTimeCard(username, now, now.plusDays(1));
@@ -109,8 +110,8 @@ class TimeCardReportServiceImplTest {
     void createUserTimeCard(String username, LocalDateTime clockIn, LocalDateTime clockOut) {
 
         UserTimeCard userTimeCard = new UserTimeCard(client.getId(), username, null);
-        userTimeCard.setClockIn(clockIn);
-        userTimeCard.setClockOut(clockOut);
+        userTimeCard.setClockIn(DateTimeUtil.toDate(client.getZoneId(), clockIn));
+        userTimeCard.setClockOut(DateTimeUtil.toDate(client.getZoneId(), clockOut));
 
         userTimeCardRepository.save(userTimeCard);
     }

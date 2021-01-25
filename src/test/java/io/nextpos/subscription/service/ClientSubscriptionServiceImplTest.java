@@ -91,15 +91,14 @@ class ClientSubscriptionServiceImplTest {
             assertThat(inv.getSubscriptionPeriod(client.getZoneId())).isNotBlank();
         });
 
-        clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(clientSubscriptionInvoice.getInvoiceIdentifier());
+        final ClientSubscriptionInvoice activatedInvoice = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(clientSubscriptionInvoice.getInvoiceIdentifier());
 
-        assertThat(clientSubscriptionInvoice.getClientSubscription()).satisfies(cs -> {
+        assertThat(activatedInvoice.getClientSubscription()).satisfies(cs -> {
             assertThat(cs.getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.ACTIVE);
             assertThat(cs.getPlanStartDate()).isNotNull();
         });
-        assertThat(clientSubscriptionInvoice.getClientSubscription().getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.ACTIVE);
-        assertThat(clientSubscriptionInvoice.getPaymentDate()).isNotNull();
-        assertThat(clientSubscriptionInvoice.getStatus()).isEqualByComparingTo(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID);
+        assertThat(activatedInvoice.getPaymentDate()).isNotNull();
+        assertThat(activatedInvoice.getStatus()).isEqualByComparingTo(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID);
 
         final ClientSubscription currentClientSubscription = clientSubscriptionService.getCurrentClientSubscription(client.getId());
         clientSubscriptionService.lapseClientSubscription(currentClientSubscription);

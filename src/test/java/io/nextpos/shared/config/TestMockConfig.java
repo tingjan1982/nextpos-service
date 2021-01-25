@@ -17,6 +17,7 @@ import io.nextpos.client.data.ClientUser;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
+import io.nextpos.shared.auth.AuthenticationHelper;
 import io.nextpos.shared.auth.OAuth2Helper;
 import org.awaitility.Awaitility;
 import org.awaitility.Duration;
@@ -39,6 +40,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
 
@@ -182,7 +184,7 @@ public class TestMockConfig {
          * Create collections dynamically.
          */
         @PostConstruct
-        public void afterPropertiesSet() {
+        public void afterPropertiesSet() throws Exception {
 
             final ServerAddress address = mongoClient.getClusterDescription().getServerDescriptions().get(0).getAddress();
             BasicDBList members = new BasicDBList();
@@ -191,6 +193,8 @@ public class TestMockConfig {
             config.put("members", members);
             MongoDatabase admin = mongoClient.getDatabase("admin");
             admin.runCommand(new Document("replSetInitiate", config));
+
+            TimeUnit.SECONDS.sleep(2);
 
             Awaitility.await().atMost(Duration.TWO_MINUTES).until(() -> {
                 try (ClientSession session = mongoClient.startSession()) {
@@ -226,6 +230,19 @@ public class TestMockConfig {
 
         Mockito.when(mock.getCurrentPrincipal()).thenReturn(clientUser.getId().getUsername());
         Mockito.when(mock.resolveCurrentClientUser(any(Client.class))).thenReturn(clientUser);
+
+        return mock;
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "nomock", havingValue = "false", matchIfMissing = true)
+    public AuthenticationHelper authenticationHelper() {
+        final AuthenticationHelper mock = Mockito.mock(AuthenticationHelper.class);
+        final Client client = DummyObjects.dummyClient();
+        final ClientUser clientUser = DummyObjects.dummyClientUser(client);
+
+        Mockito.when(mock.resolveCurrentUsername()).thenReturn(clientUser.getId().getUsername());
+        Mockito.when(mock.resolveCurrentClientId()).thenReturn(client.getUsername());
 
         return mock;
     }
