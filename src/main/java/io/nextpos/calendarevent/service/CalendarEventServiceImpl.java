@@ -104,11 +104,11 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     }
 
     @Override
-    public CalendarEvent updateCalendarEvent(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime) {
+    public CalendarEvent updateCalendarEvent(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime, boolean applyToSeries) {
 
         final CalendarEventSeries eventSeries = calendarEvent.getEventSeries();
 
-        if (eventSeries != null) {
+        if (eventSeries != null && applyToSeries) {
             final List<CalendarEvent> seriesEvents = calendarEventRepository.findAllByClientIdAndEventSeries_Id(calendarEvent.getClientId(), eventSeries.getId());
             seriesEvents.forEach(e -> {
                 e.update(calendarEvent, startTime, endTime);
@@ -123,10 +123,10 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     }
 
     @Override
-    public void deleteCalendarEvent(CalendarEvent calendarEvent) {
+    public void deleteCalendarEvent(CalendarEvent calendarEvent, boolean applyToSeries) {
         final CalendarEventSeries eventSeries = calendarEvent.getEventSeries();
 
-        if (eventSeries != null) {
+        if (eventSeries != null && applyToSeries) {
             final List<CalendarEvent> seriesEvents = calendarEventRepository.findAllByClientIdAndEventSeries_Id(calendarEvent.getClientId(), eventSeries.getId());
             seriesEvents.forEach(calendarEventRepository::delete);
 

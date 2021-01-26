@@ -80,7 +80,7 @@ class RosterPlanServiceImplTest {
         });
 
         calendarEvent.setEventName("Noon shift");
-        rosterPlanService.updateRosterEvent(calendarEvent, LocalTime.of(10, 30), LocalTime.of(3, 30));
+        rosterPlanService.updateRosterEvent(calendarEvent, LocalTime.of(10, 30), LocalTime.of(3, 30), true);
 
         final List<CalendarEvent> rosterEvents = rosterPlanService.getRosterEvents(client, YearMonth.now());
         assertThat(rosterEvents).isNotEmpty();
@@ -96,7 +96,7 @@ class RosterPlanServiceImplTest {
         final List<CalendarEvent> clientUserEvents = rosterPlanService.getTodaysClientUserRosterEvents(client, clientUser);
         assertThat(clientUserEvents).hasSize(1);
 
-        rosterPlanService.deleteRosterEvent(calendarEvent.getId());
+        rosterPlanService.deleteRosterEvent(calendarEvent.getId(), true);
 
         assertThat(rosterPlanService.getRosterEvents(client, YearMonth.now())).isEmpty();
     }

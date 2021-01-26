@@ -1,6 +1,7 @@
 package io.nextpos.calendarevent.web.model;
 
 import io.nextpos.calendarevent.data.CalendarEvent;
+import io.nextpos.calendarevent.data.CalendarEventSeries;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,6 +31,7 @@ public class CalendarEventResponse {
 
     private final Date endTime;
 
+    private CalendarEventSeries.EventRepeat eventRepeat;
 
     public CalendarEventResponse(CalendarEvent calendarEvent) {
         id = calendarEvent.getId();
@@ -43,6 +45,9 @@ public class CalendarEventResponse {
         status = calendarEvent.getStatus();
         startTime = calendarEvent.getStartTime();
         endTime = calendarEvent.getEndTime();
-    }
 
+        if (calendarEvent.getEventSeries() != null) {
+            eventRepeat = calendarEvent.getEventSeries().getEventRepeat();
+        }
+    }
 }

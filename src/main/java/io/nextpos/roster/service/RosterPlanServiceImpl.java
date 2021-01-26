@@ -128,8 +128,8 @@ public class RosterPlanServiceImpl implements RosterPlanService {
     }
 
     @Override
-    public CalendarEvent updateRosterEvent(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime) {
-        return calendarEventService.updateCalendarEvent(calendarEvent, startTime, endTime);
+    public CalendarEvent updateRosterEvent(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime, boolean applyToSeries) {
+        return calendarEventService.updateCalendarEvent(calendarEvent, startTime, endTime, applyToSeries);
     }
 
     @Override
@@ -138,9 +138,9 @@ public class RosterPlanServiceImpl implements RosterPlanService {
     }
 
     @Override
-    public void deleteRosterEvent(String id) {
+    public void deleteRosterEvent(String id, boolean applyToSeries) {
         final CalendarEvent calendarEvent = calendarEventService.getCalendarEvent(id);
-        calendarEventService.deleteCalendarEvent(calendarEvent);
+        calendarEventService.deleteCalendarEvent(calendarEvent, applyToSeries);
     }
 
     @Deprecated

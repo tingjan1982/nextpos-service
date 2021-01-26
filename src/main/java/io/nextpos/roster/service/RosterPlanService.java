@@ -28,11 +28,11 @@ public interface RosterPlanService {
 
     CalendarEvent getRosterEvent(String id);
 
-    CalendarEvent updateRosterEvent(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime);
+    CalendarEvent updateRosterEvent(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime, boolean applyToSeries);
 
     CalendarEvent updateRosterEventResources(CalendarEvent calendarEvent, List<CalendarEvent.EventResource> eventResources);
 
-    void deleteRosterEvent(String id);
+    void deleteRosterEvent(String id, boolean applyToSeries);
 
     List<CalendarEvent> createRosterPlanEvents(Client client, RosterPlan rosterPlan);
 

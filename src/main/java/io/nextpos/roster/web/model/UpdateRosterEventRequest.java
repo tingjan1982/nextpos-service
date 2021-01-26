@@ -19,4 +19,6 @@ public class UpdateRosterEventRequest {
 
     @NotNull
     private LocalDateTime endTime;
+
+    private boolean applyToSeries;
 }

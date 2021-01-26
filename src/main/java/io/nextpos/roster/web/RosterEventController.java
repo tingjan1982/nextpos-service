@@ -86,7 +86,8 @@ public class RosterEventController {
 
         final CalendarEvent updatedCalendarEvent = rosterPlanService.updateRosterEvent(rosterEvent,
                 request.getStartTime().toLocalTime(),
-                request.getEndTime().toLocalTime());
+                request.getEndTime().toLocalTime(),
+                request.isApplyToSeries());
 
         return new CalendarEventResponse(updatedCalendarEvent);
     }
@@ -122,6 +123,13 @@ public class RosterEventController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteRosterEvent(@PathVariable String id) {
 
-        rosterPlanService.deleteRosterEvent(id);
+        rosterPlanService.deleteRosterEvent(id, false);
+    }
+
+    @DeleteMapping("/{id}/all")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteRosterEventSeries(@PathVariable String id) {
+
+        rosterPlanService.deleteRosterEvent(id, true);
     }
 }

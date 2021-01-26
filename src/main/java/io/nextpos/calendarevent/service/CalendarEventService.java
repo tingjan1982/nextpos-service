@@ -27,9 +27,9 @@ public interface CalendarEventService {
 
     void deleteCalendarEvents(String clientId, String eventOwnerId, CalendarEvent.OwnerType ownerType);
 
-    CalendarEvent updateCalendarEvent(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime);
+    CalendarEvent updateCalendarEvent(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime, boolean applyToSeries);
 
-    void deleteCalendarEvent(CalendarEvent calendarEvent);
+    void deleteCalendarEvent(CalendarEvent calendarEvent, boolean applyToSeries);
 
     CalendarEventSeries saveCalendarEventSeries(CalendarEventSeries calendarEventSeries);
 }
