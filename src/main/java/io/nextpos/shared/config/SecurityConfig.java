@@ -366,8 +366,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
             HttpSecurityDecorator.newInstance(http)
                     .addAuthorization("/clientstatus/**", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.READ), Role.USER_ROLE)
-                    .addAuthorization(GET,"/clientSettings/**", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.READ), Role.USER_ROLE)
-                    .addAuthorization(POST,"/clientSettings/**", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.WRITE), Role.OWNER_ROLE)
+                    .addAuthorization(GET, "/clientSettings/**", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/clientSettings/**", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.WRITE), Role.OWNER_ROLE)
                     .decorate();
         }
 
@@ -490,17 +490,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         private void authorizeClientSubscriptionRequests(HttpSecurity http) throws Exception {
 
             HttpSecurityDecorator.newInstance(http)
-                    .addAuthorization(GET,"/clientSubscriptions/**", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.READ), Role.USER_ROLE)
-                    .addAuthorization(POST,"/clientSubscriptions/**", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.WRITE), Role.OWNER_ROLE)
+                    .addAuthorization(GET, "/clientSubscriptions/**", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/clientSubscriptions/**", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.WRITE), Role.OWNER_ROLE)
                     .decorate();
         }
 
         private void authorizeRosterPlanRequests(HttpSecurity http) throws Exception {
 
             HttpSecurityDecorator.newInstance(http)
-                    .addAuthorization(GET,"/rosterPlans/**", UserRole.UserPermission.of(Permission.ROSTER, Permission.Operation.READ), Role.USER_ROLE)
-                    .addAuthorization(POST,"/rosterPlans/**", UserRole.UserPermission.of(Permission.ROSTER, Permission.Operation.WRITE), Role.MANAGER_ROLE)
-                    .addAuthorization(DELETE,"/rosterPlans/**", UserRole.UserPermission.of(Permission.ROSTER, Permission.Operation.DELETE), Role.MANAGER_ROLE)
+                    .addAuthorization(GET, "/rosterEvents/**", UserRole.UserPermission.of(Permission.ROSTER, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/rosterEvents/**", UserRole.UserPermission.of(Permission.ROSTER, Permission.Operation.WRITE), Role.MANAGER_ROLE)
+                    .addAuthorization(DELETE, "/rosterEvents/**", UserRole.UserPermission.of(Permission.ROSTER, Permission.Operation.DELETE), Role.MANAGER_ROLE)
                     .decorate();
         }
 

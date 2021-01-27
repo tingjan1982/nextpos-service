@@ -9,6 +9,7 @@ import io.nextpos.client.service.ClientService;
 import io.nextpos.roster.service.RosterObjectHelper;
 import io.nextpos.roster.service.RosterPlanService;
 import io.nextpos.roster.web.model.RosterEventRequest;
+import io.nextpos.roster.web.model.RosterResourceRequest;
 import io.nextpos.roster.web.model.UpdateRosterEventRequest;
 import io.nextpos.shared.util.DateTimeUtil;
 import io.nextpos.shared.web.ClientResolver;

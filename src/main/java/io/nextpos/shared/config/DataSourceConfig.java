@@ -16,7 +16,6 @@ import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.product.data.Product;
 import io.nextpos.roles.data.UserRole;
-import io.nextpos.roster.data.RosterPlan;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.converter.Decimal128ToBigDecimal;
 import io.nextpos.shared.converter.DocumentToYearMonth;
@@ -81,7 +80,6 @@ import java.util.List;
         InvoiceNumberRange.class,
         SubscriptionPlan.class,
         CalendarEvent.class,
-        RosterPlan.class,
         Inventory.class})
 @EnableMongoAuditing
 @EnableRetry

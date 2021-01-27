@@ -1,4 +1,4 @@
-package io.nextpos.roster.web;
+package io.nextpos.roster.web.model;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

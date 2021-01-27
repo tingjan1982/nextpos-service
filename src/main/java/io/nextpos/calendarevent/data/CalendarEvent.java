@@ -140,8 +140,6 @@ public class CalendarEvent extends MongoBaseObject {
 
     public enum OwnerType {
 
-        @Deprecated
-        ROSTER,
         CUSTOMER,
         MEMBER,
         STAFF

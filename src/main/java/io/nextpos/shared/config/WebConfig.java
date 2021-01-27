@@ -66,7 +66,6 @@ public class WebConfig implements WebMvcConfigurer {
                 "/invoiceNumbers/*",
                 "/clientSubscriptions/*",
                 "/memberships/*",
-                "/rosterPlans/*",
                 "/rosterEvents/*",
                 "/linkedClientAccounts/*",
                 "/inventories/*");

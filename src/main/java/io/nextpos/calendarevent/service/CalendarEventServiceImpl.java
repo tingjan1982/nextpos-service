@@ -47,24 +47,10 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     }
 
     @Override
-    public CalendarEvent addEventResource(CalendarEvent calendarEvent, CalendarEvent.EventResource eventResource) {
-
-        calendarEvent.addEventSource(eventResource);
-        return saveCalendarEvent(calendarEvent);
-    }
-
-    @Override
-    public CalendarEvent removeEventResource(CalendarEvent calendarEvent, CalendarEvent.EventResource eventResource) {
-
-        calendarEvent.removeEventResource(eventResource);
-        return saveCalendarEvent(calendarEvent);
-    }
-
-    @Override
     public CalendarEvent updateEventResources(CalendarEvent calendarEvent, List<CalendarEvent.EventResource> eventResources) {
 
         calendarEvent.removeAllEventResources();
-        eventResources.forEach(er -> this.addEventResource(calendarEvent, er));
+        eventResources.forEach(calendarEvent::addEventSource);
 
         return saveCalendarEvent(calendarEvent);
     }
@@ -72,13 +58,6 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     @Override
     public List<CalendarEvent> getCalendarEvents(String clientId, CalendarEvent.EventType eventType, Date from, Date to) {
         return calendarEventRepository.findAllByClientIdAndEventTypeAndStartTimeBetween(clientId, eventType, from, to);
-    }
-
-    @Deprecated
-    @Override
-    public List<CalendarEvent> getCalendarEventsForEventOwner(String clientId, String eventOwnerId, CalendarEvent.OwnerType ownerType) {
-
-        return calendarEventRepository.findAllByClientIdAndEventOwner_OwnerIdAndEventOwner_OwnerType(clientId, eventOwnerId, ownerType);
     }
 
     @Override
@@ -90,17 +69,6 @@ public class CalendarEventServiceImpl implements CalendarEventService {
                 .and("startTime").gte(from).lte(to));
 
         return mongoTemplate.find(query, CalendarEvent.class);
-    }
-
-    @Deprecated
-    @Override
-    public void deleteCalendarEvents(String clientId, String eventOwnerId, CalendarEvent.OwnerType ownerType) {
-
-        Query query = Query.query(where("clientId").is(clientId)
-                .and("eventOwner.ownerId").is(eventOwnerId)
-                .and("eventOwner.ownerType").is(ownerType));
-
-        mongoTemplate.remove(query, CalendarEvent.class);
     }
 
     @Override

@@ -9,5 +9,5 @@ public interface WorkingAreaRepository extends JpaRepository<WorkingArea, String
 
     List<WorkingArea> findAllByClient(Client client);
 
-    List<WorkingArea> findAllByClientAndVisibility(Client client, WorkingArea.Visibility visibility);
+    List<WorkingArea> findAllByClientAndVisibilityIn(Client client, List<WorkingArea.Visibility> visibility);
 }

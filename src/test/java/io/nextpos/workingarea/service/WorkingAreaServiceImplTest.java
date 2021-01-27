@@ -72,8 +72,8 @@ class WorkingAreaServiceImplTest {
 
         assertThat(workingAreaService.getWorkingAreas(client)).hasSize(3);
         assertThat(workingAreaService.getWorkingAreas(client, WorkingArea.Visibility.ALL)).hasSize(3);
-        assertThat(workingAreaService.getWorkingAreas(client, WorkingArea.Visibility.PRODUCT)).hasSize(1);
-        assertThat(workingAreaService.getWorkingAreas(client, WorkingArea.Visibility.ROSTER)).hasSize(1);
+        assertThat(workingAreaService.getWorkingAreas(client, WorkingArea.Visibility.PRODUCT)).hasSize(2);
+        assertThat(workingAreaService.getWorkingAreas(client, WorkingArea.Visibility.ROSTER)).hasSize(2);
 
         final Product product = Product.builder(client).productNameAndPrice("p1", new BigDecimal("100")).build();
         product.setWorkingArea(savedBar);
