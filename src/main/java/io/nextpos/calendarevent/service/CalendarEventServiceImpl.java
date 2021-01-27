@@ -104,14 +104,14 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     }
 
     @Override
-    public CalendarEvent updateCalendarEvent(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime, boolean applyToSeries) {
+    public CalendarEvent updateCalendarEvent(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime, long daysDiff, boolean applyToSeries) {
 
         final CalendarEventSeries eventSeries = calendarEvent.getEventSeries();
 
         if (eventSeries != null && applyToSeries) {
             final List<CalendarEvent> seriesEvents = calendarEventRepository.findAllByClientIdAndEventSeries_Id(calendarEvent.getClientId(), eventSeries.getId());
             seriesEvents.forEach(e -> {
-                e.update(calendarEvent, startTime, endTime);
+                e.update(calendarEvent, startTime, endTime, daysDiff);
                 this.saveCalendarEvent(e);
             });
 

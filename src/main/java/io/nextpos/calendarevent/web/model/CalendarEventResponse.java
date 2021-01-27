@@ -31,6 +31,8 @@ public class CalendarEventResponse {
 
     private final Date endTime;
 
+    private final String eventColor;
+
     private CalendarEventSeries.EventRepeat eventRepeat;
 
     public CalendarEventResponse(CalendarEvent calendarEvent) {
@@ -45,6 +47,7 @@ public class CalendarEventResponse {
         status = calendarEvent.getStatus();
         startTime = calendarEvent.getStartTime();
         endTime = calendarEvent.getEndTime();
+        eventColor = calendarEvent.getEventColor();
 
         if (calendarEvent.getEventSeries() != null) {
             eventRepeat = calendarEvent.getEventSeries().getEventRepeat();

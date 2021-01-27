@@ -128,8 +128,8 @@ public class RosterPlanServiceImpl implements RosterPlanService {
     }
 
     @Override
-    public CalendarEvent updateRosterEvent(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime, boolean applyToSeries) {
-        return calendarEventService.updateCalendarEvent(calendarEvent, startTime, endTime, applyToSeries);
+    public CalendarEvent updateRosterEvent(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime, long daysDiff, boolean applyToSeries) {
+        return calendarEventService.updateCalendarEvent(calendarEvent, startTime, endTime, daysDiff, applyToSeries);
     }
 
     @Override

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @RestController
@@ -48,7 +49,11 @@ public class RosterEventController {
     }
 
     private CalendarEvent fromRosterEntryRequest(Client client, RosterEventRequest request) {
-        return rosterObjectHelper.createRosterEvent(client, request.getEventName(), request.getStartTime(), request.getEndTime());
+
+        final CalendarEvent rosterEvent = rosterObjectHelper.createRosterEvent(client, request.getEventName(), request.getStartTime(), request.getEndTime());
+        rosterEvent.setEventColor(request.getEventColor());
+
+        return rosterEvent;
     }
 
     @GetMapping
@@ -82,21 +87,26 @@ public class RosterEventController {
                                                    @Valid @RequestBody UpdateRosterEventRequest request) {
 
         final CalendarEvent rosterEvent = rosterPlanService.getRosterEvent(id);
+
+        final long daysDiff = ChronoUnit.DAYS.between(rosterEvent.getStartTime().toInstant(), request.getStartTime().atZone(client.getZoneId()).toInstant());
+
         updateFromRequest(client, rosterEvent, request);
 
         final CalendarEvent updatedCalendarEvent = rosterPlanService.updateRosterEvent(rosterEvent,
                 request.getStartTime().toLocalTime(),
                 request.getEndTime().toLocalTime(),
+                daysDiff,
                 request.isApplyToSeries());
 
         return new CalendarEventResponse(updatedCalendarEvent);
     }
 
-    private void updateFromRequest(Client client, CalendarEvent rosterEvent, @Valid UpdateRosterEventRequest request) {
+    private void updateFromRequest(Client client, CalendarEvent rosterEvent, UpdateRosterEventRequest request) {
 
         rosterEvent.setEventName(request.getEventName());
         rosterEvent.setStartTime(DateTimeUtil.toDate(client.getZoneId(), request.getStartTime()));
         rosterEvent.setEndTime(DateTimeUtil.toDate(client.getZoneId(), request.getEndTime()));
+        rosterEvent.setEventColor(request.getEventColor());
     }
 
     @PostMapping("/{id}/resources")

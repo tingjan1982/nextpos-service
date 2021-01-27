@@ -23,4 +23,6 @@ public class RosterEventRequest {
 
     @NotNull
     private LocalDateTime endTime;
+
+    private String eventColor;
 }

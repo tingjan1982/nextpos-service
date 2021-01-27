@@ -44,6 +44,13 @@ import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
 
+/**
+ * Start MongoDb in replica for transaction support. Part of the code is referenced from MongoAutoConfiguration.
+ * <p>
+ * https://github.com/spring-projects/spring-boot/issues/20182
+ * https://github.com/flapdoodle-oss/de.flapdoodle.embed.mongo/issues/257
+ * https://www.programcreek.com/java-api-examples/?api=de.flapdoodle.embed.mongo.config.Storage
+ */
 @Configuration
 @ConditionalOnProperty(value = "script", havingValue = "false", matchIfMissing = true)
 public class TestMockConfig {
@@ -69,6 +76,7 @@ public class TestMockConfig {
                 .build();
 
         MongodConfigBuilder builder = new MongodConfigBuilder().version(determineVersion(embeddedProperties)).cmdOptions(cmdOptions);
+        builder.stopTimeoutInMillis(6000);
 
         EmbeddedMongoProperties.Storage storage = embeddedProperties.getStorage();
         if (storage != null) {
@@ -107,63 +115,6 @@ public class TestMockConfig {
         return InetAddress.getByName(this.properties.getHost());
     }
 
-//    /**
-//     * Start MongoDb in replica for transaction support. Part of the code is referenced from MongoAutoConfiguration.
-//     * <p>
-//     * https://github.com/spring-projects/spring-boot/issues/20182
-//     * https://github.com/flapdoodle-oss/de.flapdoodle.embed.mongo/issues/257
-//     * https://www.programcreek.com/java-api-examples/?api=de.flapdoodle.embed.mongo.config.Storage
-//     */
-//    @Bean
-//    public MongoClient mongo(MongoProperties properties, ObjectProvider<MongoClientOptions> options, Environment environment) {
-//
-//        //final MongoClient client = new MongoClientFactory(properties, environment).createMongoClient(options.getIfAvailable());
-//        MongoClientOptions mongoClientOptions = options.getIfAvailable();
-//
-//        if (mongoClientOptions == null) {
-//            mongoClientOptions = MongoClientOptions.builder().build();
-//        }
-//
-//        int port = 0;
-//
-//        if (environment != null) {
-//            String localPort = environment.getProperty("local.mongo.port");
-//            if (localPort != null) {
-//                port = Integer.parseInt(localPort);
-//            }
-//        }
-//
-//        String host = (this.properties.getHost() != null) ? this.properties.getHost() : "localhost";
-//        MongoClient client = new MongoClient(new ServerAddress(host, port), mongoClientOptions);
-//
-//        ServerAddress address = client.getAllAddress().get(0);
-//        BasicDBList members = new BasicDBList();
-//        members.add(new Document("_id", 0).append("host", address.getHost() + ":" + address.getPort()));
-//        Document config = new Document("_id", "rep0");
-//        config.put("members", members);
-//        MongoDatabase admin = client.getDatabase("admin");
-//        admin.runCommand(new Document("replSetInitiate", config));
-//
-//        Awaitility.await().atMost(Duration.ONE_MINUTE).until(() -> {
-//            try (ClientSession session = client.startSession()) {
-//                return true;
-//            } catch (Exception ex) {
-//                return false;
-//            }
-//        });
-//
-//
-//        return client;
-//    }
-
-//    @Bean
-//    public MongoClientOptions mongoClientOptions() {
-//        return MongoClientOptions.builder()
-//                .requiredReplicaSetName("rep0").build();
-//    }
-
-
-
     @Bean
     public MongoInitializer mongoInitializer(MongoClient mongoClient, MongoTemplate mongoTemplate) {
         return new MongoInitializer(mongoClient, mongoTemplate);
@@ -194,6 +145,7 @@ public class TestMockConfig {
             MongoDatabase admin = mongoClient.getDatabase("admin");
             admin.runCommand(new Document("replSetInitiate", config));
 
+            // this allows time for replica set to finish initiation.
             TimeUnit.SECONDS.sleep(2);
 
             Awaitility.await().atMost(Duration.TWO_MINUTES).until(() -> {

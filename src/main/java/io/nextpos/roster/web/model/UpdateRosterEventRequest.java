@@ -20,5 +20,7 @@ public class UpdateRosterEventRequest {
     @NotNull
     private LocalDateTime endTime;
 
+    private String eventColor;
+
     private boolean applyToSeries;
 }

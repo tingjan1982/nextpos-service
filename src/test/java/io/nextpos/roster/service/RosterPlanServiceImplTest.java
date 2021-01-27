@@ -80,7 +80,7 @@ class RosterPlanServiceImplTest {
         });
 
         calendarEvent.setEventName("Noon shift");
-        rosterPlanService.updateRosterEvent(calendarEvent, LocalTime.of(10, 30), LocalTime.of(3, 30), true);
+        rosterPlanService.updateRosterEvent(calendarEvent, LocalTime.of(10, 30), LocalTime.of(3, 30), 2, true);
 
         final List<CalendarEvent> rosterEvents = rosterPlanService.getRosterEvents(client, YearMonth.now());
         assertThat(rosterEvents).isNotEmpty();

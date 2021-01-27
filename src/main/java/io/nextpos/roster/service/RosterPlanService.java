@@ -28,7 +28,7 @@ public interface RosterPlanService {
 
     CalendarEvent getRosterEvent(String id);
 
-    CalendarEvent updateRosterEvent(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime, boolean applyToSeries);
+    CalendarEvent updateRosterEvent(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime, long daysDiff, boolean applyToSeries);
 
     CalendarEvent updateRosterEventResources(CalendarEvent calendarEvent, List<CalendarEvent.EventResource> eventResources);
 
