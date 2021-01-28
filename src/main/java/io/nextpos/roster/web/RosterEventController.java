@@ -46,7 +46,7 @@ public class RosterEventController {
         final CalendarEvent calendarEvent = fromRosterEntryRequest(client, request);
         final List<CalendarEvent> rosterEventSeries = rosterPlanService.createRosterEvent(client, request.getEventRepeat(), calendarEvent);
 
-        return toResponse(rosterEventSeries);
+        return toResponse(client, rosterEventSeries);
     }
 
     private CalendarEvent fromRosterEntryRequest(Client client, RosterEventRequest request) {
@@ -63,7 +63,7 @@ public class RosterEventController {
                                                   @RequestParam(name = "month") Integer month) {
 
         final List<CalendarEvent> rosterEvents = rosterPlanService.getRosterEvents(client, YearMonth.of(year, month));
-        return toResponse(rosterEvents);
+        return toResponse(client, rosterEvents);
     }
 
     @GetMapping("/me")
@@ -72,7 +72,7 @@ public class RosterEventController {
         final ClientUser currentClientUser = clientService.getCurrentClientUser(client);
         final List<CalendarEvent> rosterEvents = rosterPlanService.getTodaysClientUserRosterEvents(client, currentClientUser);
 
-        return toResponse(rosterEvents);
+        return toResponse(client, rosterEvents);
     }
 
     @GetMapping("/{id}")
@@ -126,8 +126,8 @@ public class RosterEventController {
         return rosterObjectHelper.createRosterEventResources(client, request.getWorkingAreaToUsernames());
     }
 
-    private CalendarEventsResponse toResponse(List<CalendarEvent> rosterEvents) {
-        return new CalendarEventsResponse(rosterEvents);
+    private CalendarEventsResponse toResponse(Client client, List<CalendarEvent> rosterEvents) {
+        return new CalendarEventsResponse(client.getZoneId(), rosterEvents);
     }
 
     @DeleteMapping("/{id}")
