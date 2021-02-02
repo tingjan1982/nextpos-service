@@ -18,7 +18,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Socket:
  * https://www.baeldung.com/a-guide-to-java-sockets
- *
+ * <p>
  * Calculate LRC:
  * https://stackoverflow.com/questions/6221886/calculating-lrc-in-java
  */

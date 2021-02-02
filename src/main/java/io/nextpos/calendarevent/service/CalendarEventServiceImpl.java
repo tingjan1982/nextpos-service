@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -47,10 +47,30 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     }
 
     @Override
-    public CalendarEvent updateEventResources(CalendarEvent calendarEvent, List<CalendarEvent.EventResource> eventResources) {
+    public CalendarEvent updateSelfEventResources(CalendarEvent calendarEvent, String resourceId, List<CalendarEvent.EventResource> eventResources) {
+
+        calendarEvent.getEventResources().removeIf(er -> er.getResourceId().equals(resourceId));
+
+        eventResources.forEach(calendarEvent::addEventSource);
+
+        return saveCalendarEvent(calendarEvent);
+    }
+
+    @Override
+    public CalendarEvent updateEventResources(CalendarEvent calendarEvent, List<CalendarEvent.EventResource> eventResources, boolean applyToSeries) {
 
         calendarEvent.removeAllEventResources();
         eventResources.forEach(calendarEvent::addEventSource);
+        final CalendarEventSeries eventSeries = calendarEvent.getEventSeries();
+
+        if (eventSeries != null) {
+            final List<CalendarEvent> seriesEvents = calendarEventRepository.findAllByClientIdAndEventSeries_Id(calendarEvent.getClientId(), eventSeries.getId());
+            seriesEvents.forEach(e -> {
+                e.removeAllEventResources();
+                eventResources.forEach(e::addEventSource);
+                this.saveCalendarEvent(e);
+            });
+        }
 
         return saveCalendarEvent(calendarEvent);
     }
@@ -72,16 +92,26 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     }
 
     @Override
-    public CalendarEvent updateCalendarEvent(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime, long daysDiff, boolean applyToSeries) {
+    public CalendarEvent updateCalendarEvent(CalendarEvent calendarEvent, LocalDateTime startTime, LocalDateTime endTime, long daysDiff, boolean applyToSeries) {
 
         final CalendarEventSeries eventSeries = calendarEvent.getEventSeries();
 
-        if (eventSeries != null && applyToSeries) {
-            final List<CalendarEvent> seriesEvents = calendarEventRepository.findAllByClientIdAndEventSeries_Id(calendarEvent.getClientId(), eventSeries.getId());
-            seriesEvents.forEach(e -> {
-                e.update(calendarEvent, startTime, endTime, daysDiff);
-                this.saveCalendarEvent(e);
-            });
+        if (eventSeries != null) {
+            if (applyToSeries) {
+                final List<CalendarEvent> seriesEvents = calendarEventRepository.findAllByClientIdAndEventSeries_Id(calendarEvent.getClientId(), eventSeries.getId());
+                seriesEvents.forEach(e -> {
+                    e.update(calendarEvent, startTime.toLocalTime(), endTime.toLocalTime(), daysDiff);
+                    this.saveCalendarEvent(e);
+                });
+            } else {
+                final boolean dateChanged = !calendarEvent.getStartTime().toInstant().equals(startTime.atZone(calendarEvent.getZoneId()).toInstant());
+
+                if (dateChanged) {
+                    calendarEvent.setEventSeries(null);
+                }
+
+                this.saveCalendarEvent(calendarEvent);
+            }
 
         } else {
             this.saveCalendarEvent(calendarEvent);

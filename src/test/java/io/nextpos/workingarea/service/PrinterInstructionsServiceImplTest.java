@@ -152,33 +152,33 @@ class PrinterInstructionsServiceImplTest {
         final Order order = new Order(client.getId(), orderSettings);
         order.setSerialId("20201010-150");
         order.addOrderLineItem(DummyObjects.productSnapshot("coffee", BigDecimal.valueOf(55)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
         order.addOrderLineItem(DummyObjects.productSnapshot("bagel", BigDecimal.valueOf(70)), 2);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式1", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式2", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式3", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式4", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式5", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式6", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式7", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式8", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式9", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式10", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式11", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式12", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式13", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式14", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式15", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
 
-        final OrderTransaction orderTransaction = new OrderTransaction(new ObjectId().toString(), client.getId(), order.getOrderTotal(), order.getOrderTotal(),
+        orderService.saveOrder(order);
+
+        final OrderTransaction orderTransaction = new OrderTransaction(order,
                 OrderTransaction.PaymentMethod.CARD,
                 OrderTransaction.BillType.SINGLE,
-                List.of(new OrderTransaction.BillLineItem("coffee", 1, BigDecimal.valueOf(55), BigDecimal.valueOf(55)),
-                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
-                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
-                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
-                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
-                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
-                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
-                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
-                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
-                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
-                        new OrderTransaction.BillLineItem("黑美式", 1, BigDecimal.valueOf(45), BigDecimal.valueOf(45)),
-                        new OrderTransaction.BillLineItem("bagel", 2, BigDecimal.valueOf(70), BigDecimal.valueOf(140))));
+                order.getOrderTotal());
 
         orderTransaction.setId(ObjectId.get().toString());
         orderTransaction.setCreatedDate(new Date());

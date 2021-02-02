@@ -79,13 +79,16 @@ public class CalendarEvent extends MongoBaseObject {
 
     public CalendarEvent copy(Date startTime, Date endTime) {
 
-        return new CalendarEvent(this.clientId,
+        final CalendarEvent copy = new CalendarEvent(this.clientId,
                 this.zoneId,
                 this.eventType,
                 this.eventName,
                 this.eventOwner,
                 startTime,
                 endTime);
+        copy.setEventColor(this.eventColor);
+
+        return copy;
     }
 
     public void update(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime, long daysDiff) {
@@ -98,7 +101,7 @@ public class CalendarEvent extends MongoBaseObject {
         LocalDate endDate = this.getStartTime().toInstant().atZone(zoneId).toLocalDate().plusDays(daysDiff);
         LocalDateTime endDt = LocalDateTime.of(endDate, endTime);
 
-        if (endDt.compareTo(startDt) >= 0) {
+        if (endDt.compareTo(startDt) <= 0) {
             endDt = endDt.plusDays(1);
         }
 

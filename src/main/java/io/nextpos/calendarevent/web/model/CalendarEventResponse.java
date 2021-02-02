@@ -23,6 +23,8 @@ public class CalendarEventResponse {
 
     private final Map<String, List<CalendarEvent.EventResource>> eventResources;
 
+    private List<CalendarEvent.EventResource> myEventResources;
+
     private final CalendarEvent.EventDetails eventDetails;
 
     private final CalendarEvent.EventStatus status;

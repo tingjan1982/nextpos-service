@@ -499,7 +499,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
             HttpSecurityDecorator.newInstance(http)
                     .addAuthorization(GET, "/rosterEvents/**", UserRole.UserPermission.of(Permission.ROSTER, Permission.Operation.READ), Role.USER_ROLE)
-                    .addAuthorization(POST, "/rosterEvents/**", UserRole.UserPermission.of(Permission.ROSTER, Permission.Operation.WRITE), Role.MANAGER_ROLE)
+                    .addAuthorization(POST, "/rosterEvents/**", UserRole.UserPermission.of(Permission.ROSTER, Permission.Operation.WRITE), Role.USER_ROLE)
                     .addAuthorization(DELETE, "/rosterEvents/**", UserRole.UserPermission.of(Permission.ROSTER, Permission.Operation.DELETE), Role.MANAGER_ROLE)
                     .decorate();
         }

@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
@@ -80,7 +81,7 @@ class RosterPlanServiceImplTest {
         });
 
         calendarEvent.setEventName("Noon shift");
-        rosterPlanService.updateRosterEvent(calendarEvent, LocalTime.of(10, 30), LocalTime.of(3, 30), 2, true);
+        rosterPlanService.updateRosterEvent(calendarEvent, LocalDateTime.of(LocalDate.now(), LocalTime.of(10, 30)), LocalDateTime.of(LocalDate.now(), LocalTime.of(3, 30)), 2, true);
 
         final List<CalendarEvent> rosterEvents = rosterPlanService.getRosterEvents(client, YearMonth.now());
         assertThat(rosterEvents).isNotEmpty();
@@ -89,7 +90,7 @@ class RosterPlanServiceImplTest {
         });
 
         Map<String, List<String>> workingAreaToUsernames = Map.of("bar", List.of("joe", "lin"));
-        final CalendarEvent updatedRosterEvent = rosterPlanService.updateRosterEventResources(calendarEvent, rosterObjectHelper.createRosterEventResources(client, workingAreaToUsernames));
+        final CalendarEvent updatedRosterEvent = rosterPlanService.updateRosterEventResources(calendarEvent, rosterObjectHelper.createRosterEventResources(client, workingAreaToUsernames), true);
 
         assertThat(updatedRosterEvent.getEventResources()).hasSize(2);
 

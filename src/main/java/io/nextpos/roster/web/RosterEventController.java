@@ -11,6 +11,7 @@ import io.nextpos.roster.service.RosterPlanService;
 import io.nextpos.roster.web.model.RosterEventRequest;
 import io.nextpos.roster.web.model.RosterResourceRequest;
 import io.nextpos.roster.web.model.UpdateRosterEventRequest;
+import io.nextpos.shared.auth.AuthenticationHelper;
 import io.nextpos.shared.util.DateTimeUtil;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,8 @@ import javax.validation.Valid;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/rosterEvents")
@@ -30,12 +33,15 @@ public class RosterEventController {
 
     private final ClientService clientService;
 
+    private final AuthenticationHelper authenticationHelper;
+
     private final RosterObjectHelper rosterObjectHelper;
 
     @Autowired
-    public RosterEventController(RosterPlanService rosterPlanService, ClientService clientService, RosterObjectHelper rosterObjectHelper) {
+    public RosterEventController(RosterPlanService rosterPlanService, ClientService clientService, AuthenticationHelper authenticationHelper, RosterObjectHelper rosterObjectHelper) {
         this.rosterPlanService = rosterPlanService;
         this.clientService = clientService;
+        this.authenticationHelper = authenticationHelper;
         this.rosterObjectHelper = rosterObjectHelper;
     }
 
@@ -94,10 +100,15 @@ public class RosterEventController {
         updateFromRequest(client, rosterEvent, request);
 
         final CalendarEvent updatedCalendarEvent = rosterPlanService.updateRosterEvent(rosterEvent,
-                request.getStartTime().toLocalTime(),
-                request.getEndTime().toLocalTime(),
+                request.getStartTime(),
+                request.getEndTime(),
                 daysDiff,
                 request.isApplyToSeries());
+
+        if (request.getWorkingAreaToUsernames() != null) {
+            final List<CalendarEvent.EventResource> rosterEventResources = rosterObjectHelper.createRosterEventResources(client, request.getWorkingAreaToUsernames());
+            rosterPlanService.updateRosterEventResources(updatedCalendarEvent, rosterEventResources, request.isApplyToSeries());
+        }
 
         return new CalendarEventResponse(updatedCalendarEvent);
     }
@@ -116,14 +127,20 @@ public class RosterEventController {
                                                       @Valid @RequestBody RosterResourceRequest request) {
 
         final CalendarEvent rosterEvent = rosterPlanService.getRosterEvent(id);
-        final List<CalendarEvent.EventResource> eventResources = fromRosterResourceRequest(client, request);
+        final String username = authenticationHelper.resolveCurrentUsername();
+        final List<CalendarEvent.EventResource> eventResources = fromRosterResourceRequest(client, username, request);
 
-        final CalendarEvent updatedCalendarEvent = rosterPlanService.updateRosterEventResources(rosterEvent, eventResources);
+        final CalendarEvent updatedCalendarEvent = rosterPlanService.updateSelfRosterEventResources(rosterEvent, username, eventResources);
         return new CalendarEventResponse(updatedCalendarEvent);
     }
 
-    private List<CalendarEvent.EventResource> fromRosterResourceRequest(Client client, RosterResourceRequest request) {
-        return rosterObjectHelper.createRosterEventResources(client, request.getWorkingAreaToUsernames());
+    private List<CalendarEvent.EventResource> fromRosterResourceRequest(Client client, String username, RosterResourceRequest request) {
+
+        final Map<String, List<String>> workingAreaToUsernames = request.getWorkingAreas().stream()
+                .map(wa -> Map.entry(wa, List.of(username)))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        return rosterObjectHelper.createRosterEventResources(client, workingAreaToUsernames);
     }
 
     private CalendarEventsResponse toResponse(Client client, List<CalendarEvent> rosterEvents) {

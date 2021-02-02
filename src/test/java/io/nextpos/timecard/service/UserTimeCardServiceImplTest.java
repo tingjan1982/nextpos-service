@@ -70,7 +70,7 @@ class UserTimeCardServiceImplTest {
                 LocalDateTime.of(LocalDate.now(), LocalTime.of(8, 30)),
                 LocalDateTime.of(LocalDate.now(), LocalTime.of(13, 30)));
         rosterPlanService.createRosterEvent(client, CalendarEventSeries.EventRepeat.NONE, calendarEvent);
-        rosterPlanService.updateRosterEventResources(calendarEvent, rosterObjectHelper.createRosterEventResources(client, Map.of("bar", List.of("test-user"))));
+        rosterPlanService.updateRosterEventResources(calendarEvent, rosterObjectHelper.createRosterEventResources(client, Map.of("bar", List.of("test-user"))), true);
 
         CalendarEvent calendarEvent2 = rosterObjectHelper.createRosterEvent(client,
                 "Second morning",
@@ -78,7 +78,7 @@ class UserTimeCardServiceImplTest {
                 LocalDateTime.of(LocalDate.now(), LocalTime.of(14, 30)));
 
         rosterPlanService.createRosterEvent(client, CalendarEventSeries.EventRepeat.NONE, calendarEvent2);
-        rosterPlanService.updateRosterEventResources(calendarEvent2, rosterObjectHelper.createRosterEventResources(client, Map.of("bar", List.of("test-user"))));
+        rosterPlanService.updateRosterEventResources(calendarEvent2, rosterObjectHelper.createRosterEventResources(client, Map.of("bar", List.of("test-user"))), true);
     }
 
     @Test

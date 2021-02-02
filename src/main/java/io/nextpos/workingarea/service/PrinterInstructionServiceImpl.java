@@ -10,6 +10,7 @@ import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.service.annotation.JpaTransaction;
+import io.nextpos.shared.util.ImageCodeUtil;
 import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.PrinterInstructions;
 import io.nextpos.workingarea.data.WorkingArea;
@@ -38,12 +39,15 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
 
     private final ClientService clientService;
 
+    private final ImageCodeUtil imageCodeUtil;
+
     private final Configuration freeMarkerCfg;
 
     @Autowired
-    public PrinterInstructionServiceImpl(final WorkingAreaService workingAreaService, ClientService clientService, final Configuration freeMarkerCfg) {
+    public PrinterInstructionServiceImpl(final WorkingAreaService workingAreaService, ClientService clientService, ImageCodeUtil imageCodeUtil, final Configuration freeMarkerCfg) {
         this.workingAreaService = workingAreaService;
         this.clientService = clientService;
+        this.imageCodeUtil = imageCodeUtil;
         this.freeMarkerCfg = freeMarkerCfg;
     }
 
@@ -164,7 +168,14 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
         try {
             electronicInvoiceTemplate = freeMarkerCfg.getTemplate("eInvoice.ftl");
             final StringWriter writer = new StringWriter();
-            electronicInvoiceTemplate.process(Map.of("client", client, "order", order, "orderTransaction", orderTransaction, "electronicInvoice", electronicInvoice.get()), writer);
+            final ElectronicInvoice eInvoice = electronicInvoice.get();
+            final String qrcode1ImageBinary = imageCodeUtil.generateBase64ImageBinary(() -> imageCodeUtil.generateQRCode(eInvoice.getQrCode1Content()));
+            eInvoice.setQrCode1ImageBinary(qrcode1ImageBinary);
+
+            final String qrcode2ImageBinary = imageCodeUtil.generateBase64ImageBinary(() -> imageCodeUtil.generateQRCode(eInvoice.getQrCode2Content()));
+            eInvoice.setQrCode2ImageBinary(qrcode2ImageBinary);
+
+            electronicInvoiceTemplate.process(Map.of("client", client, "order", order, "orderTransaction", orderTransaction, "electronicInvoice", eInvoice), writer);
 
             return writer.toString();
 

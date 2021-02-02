@@ -12,6 +12,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Reference:
+ *
+ * https://stackoverflow.com/questions/28342814/group-by-multiple-field-names-in-java-8/28344135
+ */
 @Data
 public class CalendarEventsResponse {
 
@@ -28,7 +33,7 @@ public class CalendarEventsResponse {
                 .map(e -> {
                     final LocalDate date = DateTimeUtil.toLocalDateTime(zoneId, e.getStartTime()).toLocalDate();
                     return e.getEventResources().stream()
-                            .map(er -> new SingleResourceEvent(date, er.getResourceId(), new CalendarEventResponse(e)))
+                            .map(er -> new SingleResourceEvent(date, er.getResourceId(), e))
                             .collect(Collectors.toList());
                 })
                 .flatMap(Collection::stream)
@@ -59,6 +64,18 @@ public class CalendarEventsResponse {
         private String resource;
 
         private CalendarEventResponse event;
+
+        public SingleResourceEvent(LocalDate date, String resource, CalendarEvent event) {
+            this.date = date;
+            this.resource = resource;
+            this.event = new CalendarEventResponse(event);
+
+            final List<CalendarEvent.EventResource> myEventResources = event.getEventResources().stream()
+                    .filter(er -> er.getResourceId().equals(this.resource))
+                    .collect(Collectors.toList());
+
+            this.event.setMyEventResources(myEventResources);
+        }
     }
 
     @Data

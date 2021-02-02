@@ -11,7 +11,10 @@ import io.nextpos.shared.util.DateTimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Date;
@@ -93,13 +96,18 @@ public class RosterPlanServiceImpl implements RosterPlanService {
     }
 
     @Override
-    public CalendarEvent updateRosterEvent(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime, long daysDiff, boolean applyToSeries) {
+    public CalendarEvent updateRosterEvent(CalendarEvent calendarEvent, LocalDateTime startTime, LocalDateTime endTime, long daysDiff, boolean applyToSeries) {
         return calendarEventService.updateCalendarEvent(calendarEvent, startTime, endTime, daysDiff, applyToSeries);
     }
 
     @Override
-    public CalendarEvent updateRosterEventResources(CalendarEvent calendarEvent, List<CalendarEvent.EventResource> eventResources) {
-        return calendarEventService.updateEventResources(calendarEvent, eventResources);
+    public CalendarEvent updateSelfRosterEventResources(CalendarEvent calendarEvent, String username, List<CalendarEvent.EventResource> eventResources) {
+        return calendarEventService.updateSelfEventResources(calendarEvent, username, eventResources);
+    }
+
+    @Override
+    public CalendarEvent updateRosterEventResources(CalendarEvent calendarEvent, List<CalendarEvent.EventResource> eventResources, boolean applyToSeries) {
+        return calendarEventService.updateEventResources(calendarEvent, eventResources, applyToSeries);
     }
 
     @Override

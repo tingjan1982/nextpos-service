@@ -30,21 +30,23 @@
                 <text>&#10;</text>
                 <barcode type="code39" align="center" width="1" height="45">${electronicInvoice.barcodeContent}</barcode>
                 <page>
-                    <area x="0" y="0" width="420" height="270"/>
+                    <area x="0" y="0" width="420" height="200"/>
                     <direction dir="left_to_right"/>
-                    <text x="5"/>
-                    <command>1D286B040031413200</command>
-                    <command>1D286B0300314303</command>
-                    <command>1D286B0300314531</command>
-                    <command>${electronicInvoice.qrCode1ContentAsHex}</command>
-                    <command>1D286B0300315130</command>
+                    <text x="15" y="160"/>
+                    <image width="160" height="160" color="color_1" mode="mono">${electronicInvoice.qrCode1ImageBinary}</image>
+<#--                    <command>1D286B040031413200</command>-->
+<#--                    <command>1D286B0300314303</command>-->
+<#--                    <command>1D286B0300314531</command>-->
+<#--                    <command>${electronicInvoice.qrCode1ContentAsHex}</command>-->
+<#--                    <command>1D286B0300315130</command>-->
 <#--                    <symbol type="qrcode_model_2" level="level_l" width="3">${electronicInvoice.qrCode1Content}</symbol>-->
-                    <text x="180"/>
-                    <command>1D286B040031413200</command>
-                    <command>1D286B0300314303</command>
-                    <command>1D286B0300314531</command>
-                    <command>${electronicInvoice.qrCode2ContentAsHex}</command>
-                    <command>1D286B0300315130</command>
+                    <text x="170" y="160"/>
+                    <image width="160" height="160" color="color_1" mode="mono">${electronicInvoice.qrCode2ImageBinary}</image>
+<#--                    <command>1D286B040031413200</command>-->
+<#--                    <command>1D286B0300314303</command>-->
+<#--                    <command>1D286B0300314531</command>-->
+<#--                    <command>${electronicInvoice.qrCode2ContentAsHex}</command>-->
+<#--                    <command>1D286B0300315130</command>-->
 <#--                    <symbol type="qrcode_model_2" level="level_l" width="3">${electronicInvoice.qrCode2Content}</symbol>-->
                 </page>
                 <text align="left"/>
