@@ -10,6 +10,7 @@ import io.nextpos.merchandising.data.Offer;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.merchandising.service.MerchandisingService;
 import io.nextpos.ordermanagement.data.*;
+import io.nextpos.ordermanagement.service.OrderMessagingService;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordermanagement.service.ShiftService;
 import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
@@ -53,6 +54,8 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    private final OrderMessagingService orderMessagingService;
+
     private final OrderTransactionService orderTransactionService;
 
     private final ClientObjectOwnershipService clientObjectOwnershipService;
@@ -72,8 +75,9 @@ public class OrderController {
     private final MembershipService membershipService;
 
     @Autowired
-    public OrderController(final OrderService orderService, final OrderTransactionService orderTransactionService, final ClientObjectOwnershipService clientObjectOwnershipService, final TableLayoutService tableLayoutService, final OrderCreationFactory orderCreationFactory, final MerchandisingService merchandisingService, final ShiftService shiftService, PrinterInstructionService printerInstructionService, WorkingAreaService workingAreaService, MembershipService membershipService) {
+    public OrderController(final OrderService orderService, OrderMessagingService orderMessagingService, final OrderTransactionService orderTransactionService, final ClientObjectOwnershipService clientObjectOwnershipService, final TableLayoutService tableLayoutService, final OrderCreationFactory orderCreationFactory, final MerchandisingService merchandisingService, final ShiftService shiftService, PrinterInstructionService printerInstructionService, WorkingAreaService workingAreaService, MembershipService membershipService) {
         this.orderService = orderService;
+        this.orderMessagingService = orderMessagingService;
         this.orderTransactionService = orderTransactionService;
         this.clientObjectOwnershipService = clientObjectOwnershipService;
         this.tableLayoutService = tableLayoutService;
@@ -164,6 +168,12 @@ public class OrderController {
         return new OrdersResponse(orders);
     }
 
+    @GetMapping("/inProcess")
+    public InProcessOrderLineItems getInProcessOrders(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        return orderService.getInProcessOrderLineItems(client.getId());
+    }
+
     @GetMapping("/availableTables")
     public TablesResponse getTables(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
@@ -187,6 +197,16 @@ public class OrderController {
 
         final Order order = orderTransactionService.getOrderByInvoiceNumber(invNumber);
         return OrderResponse.toOrderResponse(order);
+    }
+
+    @PostMapping("/lineItemOrdering")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void lineItemOrdering(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                 @Valid @RequestBody LineItemOrderingRequest request) {
+
+        orderService.orderLineItems(request.getLineItemOrderings());
+
+        orderMessagingService.sendOrderLineItems(client.getId(), false);
     }
 
     @GetMapping("/{id}")

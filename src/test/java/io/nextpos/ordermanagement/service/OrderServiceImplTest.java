@@ -5,6 +5,7 @@ import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.ordermanagement.data.*;
+import io.nextpos.ordermanagement.service.bean.LineItemOrdering;
 import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
 import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.shared.DummyObjects;
@@ -12,6 +13,8 @@ import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
+import io.nextpos.workingarea.data.WorkingArea;
+import io.nextpos.workingarea.service.WorkingAreaService;
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +51,9 @@ class OrderServiceImplTest {
 
     @Autowired
     private TableLayoutService tableLayoutService;
+
+    @Autowired
+    private WorkingAreaService workingAreaService;
 
     @Autowired
     private OrderIdCounterRepository orderIdCounterRepository;
@@ -158,7 +164,7 @@ class OrderServiceImplTest {
 
         assertThat(orderWithLineItem.getOrderLineItems()).hasSize(2);
 
-        final Shift activeShift = shiftService.getActiveShiftOrThrows(client.getId());
+        Shift activeShift = shiftService.getActiveShiftOrThrows(client.getId());
         assertThat(activeShift.getDeletedLineItems()).hasSize(1);
 
         final List<ProductSnapshot.ProductOptionSnapshot> productOptions = List.of(DummyObjects.productOptionSnapshot());
@@ -208,6 +214,9 @@ class OrderServiceImplTest {
 
         orderService.updateOrderLineItemPrice(updatedOrder, orderLineItem.getId(), BigDecimal.ZERO);
 
+        activeShift = shiftService.getActiveShiftOrThrows(client.getId());
+        assertThat(activeShift.getDeletedLineItems()).hasSize(2);
+
         assertThat(updatedOrder.getOrderLineItem(orderLineItem.getId()).getLineItemSubTotal()).isEqualByComparingTo("0");
     }
 
@@ -235,6 +244,51 @@ class OrderServiceImplTest {
 
         final List<Order> shouldBeEmpty = orderService.getOrders(client, zonedDateRange2);
         assertThat(shouldBeEmpty).isEmpty();
+    }
+
+    @Test
+    void inProcessOrderLineItems() {
+
+        final InProcessOrderLineItems emptyOrderLineItems = orderService.getInProcessOrderLineItems(client.getId());
+
+        assertThat(emptyOrderLineItems.getResults()).isEmpty();
+
+        final WorkingArea bar = new WorkingArea(client, "bar");
+        workingAreaService.saveWorkingArea(bar);
+
+        final Order order1 = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
+        order1.addOrderLineItem(DummyObjects.productSnapshot(), 1);
+        final OrderLineItem orderLineItem = new OrderLineItem(DummyObjects.productSnapshot(), 2, orderSettings);
+        orderLineItem.setWorkingAreaId(bar.getId());
+        order1.addOrderLineItem(orderLineItem);
+        orderService.saveOrder(order1);
+        orderService.performOrderAction(order1.getId(), Order.OrderAction.SUBMIT);
+
+        final Order order2 = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
+        OrderLineItem li2 = order2.addOrderLineItem(DummyObjects.productSnapshot(), 3);
+        OrderLineItem li3 = order2.addOrderLineItem(DummyObjects.productSnapshot(), 4);
+        OrderLineItem li4 = order2.addOrderLineItem(DummyObjects.productSnapshot(), 5);
+        orderService.saveOrder(order2);
+        orderService.performOrderAction(order2.getId(), Order.OrderAction.SUBMIT);
+
+        final InProcessOrderLineItems orderLineItems = orderService.getInProcessOrderLineItems(client.getId());
+
+        assertThat(orderLineItems.getResults()).hasSize(2);
+
+        orderService.orderLineItems(List.of(createLineItemOrdering(order2, li4),
+                createLineItemOrdering(order2, li3),
+                createLineItemOrdering(order2, li2)));
+
+        final InProcessOrderLineItems sortedOrderLineItems = orderService.getInProcessOrderLineItems(client.getId());
+
+        assertThat(sortedOrderLineItems.getResults()).hasSize(2);
+        assertThat(sortedOrderLineItems.getResults().values()).allSatisfy(lis -> {
+            assertThat(lis).isSortedAccordingTo(InProcessOrderLineItem.getComparator());
+        });
+    }
+
+    private LineItemOrdering createLineItemOrdering(Order order, OrderLineItem orderLineItem) {
+        return new LineItemOrdering(order.getId(), orderLineItem.getId());
     }
 
     @Test

@@ -1,14 +1,12 @@
 package io.nextpos.ordermanagement.web;
 
-import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.InProcessOrderLineItems;
 import io.nextpos.ordermanagement.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
-
-import java.util.List;
 
 /**
  * Reference on WebSocket
@@ -29,8 +27,8 @@ public class OrderWebSocketController {
 
     @MessageMapping("/realtimeOrders/{clientId}")
     @SendTo("/dest/realtimeOrders/{clientId}")
-    public List<Order> realtimeOrders(@DestinationVariable String clientId) {
-        return orderService.getOrdersByState(clientId, Order.OrderState.IN_PROCESS);
+    public InProcessOrderLineItems realtimeOrders(@DestinationVariable String clientId) {
+        return orderService.getInProcessOrderLineItems(clientId);
     }
 
     @MessageMapping("/inflightOrders/{clientId}")

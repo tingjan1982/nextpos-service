@@ -1,13 +1,11 @@
 package io.nextpos.ordermanagement.service;
 
-import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.InProcessOrderLineItems;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class OrderMessagingServiceImpl implements OrderMessagingService {
@@ -25,10 +23,13 @@ public class OrderMessagingServiceImpl implements OrderMessagingService {
     }
 
     @Override
-    public void sendOrders(final String clientId) {
-        LOGGER.info("Sending updated in process orders for: {}", clientId);
+    public void sendOrderLineItems(final String clientId, boolean needAlert) {
 
-        final List<Order> inProcessOrders = orderService.getOrdersByState(clientId, Order.OrderState.IN_PROCESS);
-        messagingTemplate.convertAndSend("/dest/realtimeOrders/" + clientId, inProcessOrders);
+        LOGGER.info("Sending updated in-process order line items for: {}", clientId);
+
+        final InProcessOrderLineItems inProcessOrderLineItems = orderService.getInProcessOrderLineItems(clientId);
+        inProcessOrderLineItems.setNeedAlert(needAlert);
+
+        messagingTemplate.convertAndSend("/dest/realtimeOrders/" + clientId, inProcessOrderLineItems);
     }
 }

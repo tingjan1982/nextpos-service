@@ -50,6 +50,8 @@ public class OrderResponse {
 
     private final BigDecimal serviceCharge;
 
+    private final boolean serviceChargeEnabled;
+
     private final BigDecimal orderTotal;
 
     private final BigDecimal orderTotalWithoutServiceCharge;
@@ -100,6 +102,9 @@ public class OrderResponse {
 
                 }).collect(Collectors.toList());
 
+        final OrderSettings originalOrderSettings = (OrderSettings) order.getMetadata(Order.ORIGINAL_ORDER_SETTINGS);
+        boolean serviceChargeEnabled = originalOrderSettings.getServiceCharge().compareTo(BigDecimal.ZERO) != 0;
+
         final OrderResponse response = new OrderResponse(order.getId(),
                 order.getSerialId(),
                 order.getOrderType(),
@@ -114,6 +119,7 @@ public class OrderResponse {
                 order.getDiscountedTotal(),
                 order.getDiscount(),
                 order.getServiceCharge(),
+                serviceChargeEnabled,
                 order.getOrderTotal(),
                 order.getOrderTotalWithoutServiceCharge(),
                 order.getCurrency(),

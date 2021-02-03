@@ -2,5 +2,5 @@ package io.nextpos.ordermanagement.service;
 
 public interface OrderMessagingService {
 
-    void sendOrders(String clientId);
+    void sendOrderLineItems(String clientId, boolean needAlert);
 }

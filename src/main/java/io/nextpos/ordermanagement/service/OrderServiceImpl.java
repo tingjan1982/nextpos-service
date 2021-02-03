@@ -7,13 +7,16 @@ import io.nextpos.merchandising.service.MerchandisingService;
 import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.event.LineItemStateChangeEvent;
 import io.nextpos.ordermanagement.event.OrderStateChangeEvent;
+import io.nextpos.ordermanagement.service.bean.LineItemOrdering;
 import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
 import io.nextpos.shared.aspect.WebSocketClientOrder;
 import io.nextpos.shared.aspect.WebSocketClientOrders;
+import io.nextpos.shared.auth.AuthenticationHelper;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.MongoTransaction;
+import io.nextpos.workingarea.service.WorkingAreaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +33,10 @@ import org.springframework.util.CollectionUtils;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -48,6 +51,8 @@ public class OrderServiceImpl implements OrderService {
 
     private final MerchandisingService merchandisingService;
 
+    private final WorkingAreaService workingAreaService;
+
     private final OrderRepository orderRepository;
 
     private final OrderStateChangeRepository orderStateChangeRepository;
@@ -56,14 +61,18 @@ public class OrderServiceImpl implements OrderService {
 
     private final ApplicationEventPublisher applicationEventPublisher;
 
+    private final AuthenticationHelper authenticationHelper;
+
     @Autowired
-    public OrderServiceImpl(final ShiftService shiftService, final MerchandisingService merchandisingService, final OrderRepository orderRepository, final OrderStateChangeRepository orderStateChangeRepository, MongoTemplate mongoTemplate, final ApplicationEventPublisher applicationEventPublisher) {
+    public OrderServiceImpl(final ShiftService shiftService, final MerchandisingService merchandisingService, WorkingAreaService workingAreaService, final OrderRepository orderRepository, final OrderStateChangeRepository orderStateChangeRepository, MongoTemplate mongoTemplate, final ApplicationEventPublisher applicationEventPublisher, AuthenticationHelper authenticationHelper) {
         this.shiftService = shiftService;
         this.merchandisingService = merchandisingService;
+        this.workingAreaService = workingAreaService;
         this.orderRepository = orderRepository;
         this.orderStateChangeRepository = orderStateChangeRepository;
         this.mongoTemplate = mongoTemplate;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.authenticationHelper = authenticationHelper;
     }
 
 
@@ -130,6 +139,24 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public InProcessOrderLineItems getInProcessOrderLineItems(String clientId) {
+
+        final Map<String, List<InProcessOrderLineItem>> groupedOrders = this.getOrdersByState(clientId, Order.OrderState.IN_PROCESS).stream()
+                .flatMap(o -> {
+                    final Map<String, List<OrderLineItem>> lineItemsGroupedByWorkingArea =
+                            OrderVisitors.get(o, OrderVisitors.OrderLineItemGrouper.instance(workingAreaService));
+
+                    return lineItemsGroupedByWorkingArea.entrySet().stream()
+                            .map(e -> InProcessOrderLineItem.orderLineItems(o, e.getKey(), e.getValue()))
+                            .flatMap(Collection::stream);
+                })
+                .sorted(InProcessOrderLineItem.getComparator())
+                .collect(Collectors.groupingBy(InProcessOrderLineItem::getWorkingArea));
+
+        return new InProcessOrderLineItems(groupedOrders);
+    }
+
+    @Override
     @WebSocketClientOrders
     public void deleteOrder(final String orderId) {
         orderRepository.deleteById(orderId);
@@ -143,7 +170,8 @@ public class OrderServiceImpl implements OrderService {
 
         final Order order = this.getOrder(orderId);
         final Shift activeShift = shiftService.getActiveShiftOrThrows(order.getClientId());
-        order.getOrderLineItems().forEach(li -> activeShift.addDeletedLineItem(order, li));
+        final String username = authenticationHelper.resolveCurrentUsername();
+        order.getOrderLineItems().forEach(li -> activeShift.addDeletedLineItem(order, li, username));
 
         shiftService.saveShift(activeShift);
     }
@@ -174,6 +202,17 @@ public class OrderServiceImpl implements OrderService {
         order.productSetOrder().updateOrderLineItem(lineItemId, (lineItem) -> {
             lineItem.removeOffer();
             lineItem.getProductSnapshot().setOverridePrice(overridePrice);
+
+            final String username = authenticationHelper.resolveCurrentUsername();
+            final Shift activeShift = shiftService.getActiveShiftOrThrows(order.getClientId());
+
+            if (overridePrice.compareTo(BigDecimal.ZERO) == 0) {
+                activeShift.addDeletedLineItem(order, lineItem, username);
+            } else {
+                activeShift.removeDeletedLineItem(lineItem);
+            }
+
+            shiftService.saveShift(activeShift);
         });
 
         return orderRepository.save(order);
@@ -186,8 +225,9 @@ public class OrderServiceImpl implements OrderService {
         final OrderLineItem orderLineItem = order.getOrderLineItem(lineItemId);
         order.productSetOrder().deleteOrderLineItem(orderLineItem);
 
+        final String username = authenticationHelper.resolveCurrentUsername();
         final Shift activeShift = shiftService.getActiveShiftOrThrows(order.getClientId());
-        activeShift.addDeletedLineItem(order, orderLineItem);
+        activeShift.addDeletedLineItem(order, orderLineItem, username);
         shiftService.saveShift(activeShift);
 
         return orderRepository.save(order);
@@ -317,5 +357,18 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return orderIdCounter.getOrderId();
+    }
+
+    @Override
+    public void orderLineItems(List<LineItemOrdering> lineItemOrderings) {
+
+        Map<String, Order> orders = new HashMap<>();
+        AtomicInteger index = new AtomicInteger(1);
+        for (LineItemOrdering lineItemOrdering : lineItemOrderings) {
+            Order order = orders.computeIfAbsent(lineItemOrdering.getOrderId(), this::getOrder);
+            order.findOrderLineItem(lineItemOrdering.getLineItemId()).ifPresent(li -> li.setOrder(index.getAndIncrement()));
+        }
+
+        orders.values().forEach(this::saveOrder);
     }
 }

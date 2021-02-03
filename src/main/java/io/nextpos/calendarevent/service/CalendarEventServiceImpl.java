@@ -63,7 +63,7 @@ public class CalendarEventServiceImpl implements CalendarEventService {
         eventResources.forEach(calendarEvent::addEventSource);
         final CalendarEventSeries eventSeries = calendarEvent.getEventSeries();
 
-        if (eventSeries != null) {
+        if (eventSeries != null && applyToSeries) {
             final List<CalendarEvent> seriesEvents = calendarEventRepository.findAllByClientIdAndEventSeries_Id(calendarEvent.getClientId(), eventSeries.getId());
             seriesEvents.forEach(e -> {
                 e.removeAllEventResources();

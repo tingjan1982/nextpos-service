@@ -50,6 +50,7 @@ public class OrderLineItem implements OfferApplicableObject {
 
     private Date modifiedDate;
 
+    private int order;
 
     public OrderLineItem(final ProductSnapshot productSnapshot, final int quantity, OrderSettings orderSettings) {
         this.productSnapshot = productSnapshot;
@@ -160,7 +161,6 @@ public class OrderLineItem implements OfferApplicableObject {
 //        final TaxableAmount subTotal = discountedSubTotal != null && !discountedSubTotal.isZero() ? discountedSubTotal : this.subTotal;
 //        return subTotal.getAmount();
 //    }
-
     public OrderLineItem splitCopy() {
 
         final OrderLineItem lineItem = this.copy();
@@ -195,14 +195,24 @@ public class OrderLineItem implements OfferApplicableObject {
 
     public enum LineItemState {
 
-        OPEN,
+        OPEN(false),
 
-        IN_PROCESS,
+        IN_PROCESS(true),
 
-        ALREADY_IN_PROCESS,
+        ALREADY_IN_PROCESS(true),
 
-        PREPARED,
+        PREPARED(false),
 
-        DELIVERED
+        DELIVERED(false);
+
+        private final boolean preparing;
+
+        LineItemState(boolean preparing) {
+            this.preparing = preparing;
+        }
+
+        public boolean isPreparing() {
+            return preparing;
+        }
     }
 }

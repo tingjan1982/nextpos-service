@@ -4,6 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.event.LineItemStateChangeEvent;
+import io.nextpos.ordermanagement.service.bean.LineItemOrdering;
 import io.nextpos.ordermanagement.service.bean.UpdateLineItem;
 
 import java.math.BigDecimal;
@@ -33,6 +34,8 @@ public interface OrderService {
 
     List<Order> getOrdersByState(String clientId, Order.OrderState orderState);
 
+    InProcessOrderLineItems getInProcessOrderLineItems(String clientId);
+
     void deleteOrder(String orderId);
 
     OrderStateChange transitionOrderState(Order order, Order.OrderAction orderAction, final Optional<LineItemStateChangeEvent> lineItemStateChangeEvent);
@@ -58,4 +61,6 @@ public interface OrderService {
     Order copyOrder(String id);
 
     String generateSerialId(String clientId);
+
+    void orderLineItems(List<LineItemOrdering> lineItemOrderings);
 }

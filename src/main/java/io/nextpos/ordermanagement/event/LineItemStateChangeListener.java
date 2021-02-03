@@ -77,7 +77,7 @@ public class LineItemStateChangeListener {
         }
 
         orderService.saveOrder(order);
-        orderMessagingService.sendOrders(order.getClientId());
+        orderMessagingService.sendOrderLineItems(order.getClientId(), true);
 
         LOGGER.info("Line item state changes are completed: {}", lineItems);
     }

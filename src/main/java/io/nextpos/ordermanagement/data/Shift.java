@@ -82,15 +82,21 @@ public class Shift extends MongoBaseObject {
         shiftStatus = ShiftStatus.ACTIVE;
     }
 
-    public void addDeletedLineItem(Order order, OrderLineItem orderLineItem) {
+    public void addDeletedLineItem(Order order, OrderLineItem orderLineItem, String username) {
 
         final DeletedLineItem deletedLineItem = new DeletedLineItem(order.getId(),
+                orderLineItem.getId(),
                 orderLineItem.getProductSnapshot().getName(),
                 orderLineItem.getQuantity(),
                 orderLineItem.getLineItemSubTotal(),
-                new Date());
+                new Date(),
+                username);
 
         deletedLineItems.add(deletedLineItem);
+    }
+
+    public void removeDeletedLineItem(OrderLineItem orderLineItem) {
+        deletedLineItems.removeIf(li -> li.getLineItemId().equals(orderLineItem.getId()));
     }
 
     @Data
@@ -199,6 +205,8 @@ public class Shift extends MongoBaseObject {
 
         private String orderId;
 
+        private String lineItemId;
+
         private String productName;
 
         private int quantity;
@@ -206,6 +214,8 @@ public class Shift extends MongoBaseObject {
         private BigDecimal total;
 
         private Date deletedDate;
+
+        private String deletedBy;
     }
 
     public enum ShiftStatus {
