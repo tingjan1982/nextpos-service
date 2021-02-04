@@ -2,10 +2,11 @@ package io.nextpos.roster.service;
 
 import io.nextpos.calendarevent.data.CalendarEvent;
 import io.nextpos.calendarevent.data.CalendarEventSeries;
+import io.nextpos.calendarevent.service.bean.EventRepeatObject;
+import io.nextpos.calendarevent.service.bean.UpdateCalendarEventObject;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientService;
-import io.nextpos.roster.service.bean.EventRepeatObject;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,10 +49,10 @@ class RosterPlanServiceImplTest {
         client.setTimezone("UTC");
         clientService.saveClient(client);
 
-        clientUser = new ClientUser(new ClientUser.ClientUserId("joe", client.getUsername()), client,"12341234", "USER");
+        clientUser = new ClientUser(new ClientUser.ClientUserId("joe", client.getUsername()), client, "12341234", "USER");
         clientService.saveClientUser(clientUser);
 
-        ClientUser lin = new ClientUser(new ClientUser.ClientUserId("lin", client.getUsername()), client,"12341234", "USER");
+        ClientUser lin = new ClientUser(new ClientUser.ClientUserId("lin", client.getUsername()), client, "12341234", "USER");
         clientService.saveClientUser(lin);
     }
 
@@ -80,13 +81,29 @@ class RosterPlanServiceImplTest {
         });
 
         calendarEvent.setEventName("Noon shift");
-        rosterPlanService.updateRosterEvent(calendarEvent, LocalDateTime.of(LocalDate.now(), LocalTime.of(10, 30)), LocalDateTime.of(LocalDate.now(), LocalTime.of(3, 30)), 2, true);
+        rosterPlanService.updateRosterEvent(client, calendarEvent, new UpdateCalendarEventObject(null,
+                LocalDateTime.of(LocalDate.now(), LocalTime.of(10, 30)),
+                LocalDateTime.of(LocalDate.now(), LocalTime.of(3, 30)),
+                2,
+                true,
+                List.of()));
 
         final List<CalendarEvent> rosterEvents = rosterPlanService.getRosterEvents(client, YearMonth.now());
         assertThat(rosterEvents).isNotEmpty();
         assertThat(rosterEvents).allSatisfy(e -> {
             assertThat(e.getEventName()).isEqualTo("Noon shift");
+            assertThat(e.getStartTime()).hasHourOfDay(10);
+            assertThat(e.getStartTime()).hasMinute(30);
+            assertThat(e.getEndTime()).hasHourOfDay(3);
+            assertThat(e.getEndTime()).hasMinute(30);
+            assertThat(e.getEventSeries().getEventRepeat()).isEqualByComparingTo(CalendarEventSeries.EventRepeat.WEEKLY);
         });
+
+        rosterPlanService.updateRosterEvent(client, calendarEvent, UpdateCalendarEventObject.eventRepeatChange(CalendarEventSeries.EventRepeat.DAILY));
+
+        final int days = Period.between(LocalDate.now(), LocalDate.now().with(TemporalAdjusters.lastDayOfMonth()).plusDays(1)).getDays();
+
+        assertThat(rosterPlanService.getRosterEvents(client, YearMonth.now())).hasSize(days);
 
         Map<String, List<String>> workingAreaToUsernames = Map.of("bar", List.of("joe", "lin"));
         final CalendarEvent updatedRosterEvent = rosterPlanService.updateRosterEventResources(calendarEvent, rosterObjectHelper.createRosterEventResources(client, workingAreaToUsernames), true);
@@ -95,6 +112,10 @@ class RosterPlanServiceImplTest {
 
         final List<CalendarEvent> clientUserEvents = rosterPlanService.getTodaysClientUserRosterEvents(client, clientUser);
         assertThat(clientUserEvents).hasSize(1);
+
+        rosterPlanService.updateRosterEvent(client, calendarEvent, UpdateCalendarEventObject.eventRepeatChange(CalendarEventSeries.EventRepeat.NONE));
+
+        assertThat(rosterPlanService.getRosterEvents(client, YearMonth.now())).hasSize(1);
 
         rosterPlanService.deleteRosterEvent(calendarEvent.getId(), true);
 

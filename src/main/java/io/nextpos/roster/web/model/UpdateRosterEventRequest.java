@@ -1,5 +1,6 @@
 package io.nextpos.roster.web.model;
 
+import io.nextpos.calendarevent.data.CalendarEventSeries;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,6 +16,10 @@ public class UpdateRosterEventRequest {
 
     @NotBlank
     private String eventName;
+
+    private CalendarEventSeries.EventRepeat eventRepeat;
+
+    private LocalDateTime repeatEndDate;
 
     @NotNull
     private LocalDateTime startTime;

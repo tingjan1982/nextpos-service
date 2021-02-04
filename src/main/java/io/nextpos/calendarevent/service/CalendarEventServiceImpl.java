@@ -4,14 +4,19 @@ import io.nextpos.calendarevent.data.CalendarEvent;
 import io.nextpos.calendarevent.data.CalendarEventRepository;
 import io.nextpos.calendarevent.data.CalendarEventSeries;
 import io.nextpos.calendarevent.data.CalendarEventSeriesRepository;
+import io.nextpos.calendarevent.service.bean.EventRepeatObject;
+import io.nextpos.calendarevent.service.bean.UpdateCalendarEventObject;
+import io.nextpos.client.data.Client;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
+import io.nextpos.shared.util.DateTimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -21,6 +26,8 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 @ChainedTransaction
 public class CalendarEventServiceImpl implements CalendarEventService {
 
+    private final EventSeriesCreator eventSeriesCreator;
+
     private final CalendarEventRepository calendarEventRepository;
 
     private final CalendarEventSeriesRepository calendarEventSeriesRepository;
@@ -28,10 +35,23 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     private final MongoTemplate mongoTemplate;
 
     @Autowired
-    public CalendarEventServiceImpl(CalendarEventRepository calendarEventRepository, CalendarEventSeriesRepository calendarEventSeriesRepository, MongoTemplate mongoTemplate) {
+    public CalendarEventServiceImpl(EventSeriesCreator eventSeriesCreator, CalendarEventRepository calendarEventRepository, CalendarEventSeriesRepository calendarEventSeriesRepository, MongoTemplate mongoTemplate) {
+        this.eventSeriesCreator = eventSeriesCreator;
         this.calendarEventRepository = calendarEventRepository;
         this.calendarEventSeriesRepository = calendarEventSeriesRepository;
         this.mongoTemplate = mongoTemplate;
+    }
+
+    @Override
+    public List<CalendarEvent> createCalendarEvent(Client client, CalendarEvent baseCalendarEvent, EventRepeatObject eventRepeatObj) {
+
+        final CalendarEventSeries.EventRepeat eventRepeat = eventRepeatObj.getEventRepeat();
+
+        if (eventRepeat == CalendarEventSeries.EventRepeat.NONE) {
+            return List.of(calendarEventRepository.save(baseCalendarEvent));
+        } else {
+            return eventSeriesCreator.createEventSeriesEvent(client, baseCalendarEvent, eventRepeatObj);
+        }
     }
 
     @Override
@@ -92,32 +112,64 @@ public class CalendarEventServiceImpl implements CalendarEventService {
     }
 
     @Override
-    public CalendarEvent updateCalendarEvent(CalendarEvent calendarEvent, LocalDateTime startTime, LocalDateTime endTime, long daysDiff, boolean applyToSeries) {
+    public List<CalendarEvent> updateCalendarEvent(Client client, CalendarEvent calendarEvent, UpdateCalendarEventObject updateCalendarEvent) {
 
-        final CalendarEventSeries eventSeries = calendarEvent.getEventSeries();
+        List<CalendarEvent> updatedCalendarEvents = new ArrayList<>();
+        boolean noHandleEventRepeatChange = this.noHandleEventRepeatChange(calendarEvent, updateCalendarEvent.getEventRepeat());
 
-        if (eventSeries != null) {
-            if (applyToSeries) {
-                final List<CalendarEvent> seriesEvents = calendarEventRepository.findAllByClientIdAndEventSeries_Id(calendarEvent.getClientId(), eventSeries.getId());
-                seriesEvents.forEach(e -> {
-                    e.update(calendarEvent, startTime.toLocalTime(), endTime.toLocalTime(), daysDiff);
-                    this.saveCalendarEvent(e);
-                });
-            } else {
-                final boolean dateChanged = !calendarEvent.getStartTime().toInstant().equals(startTime.atZone(calendarEvent.getZoneId()).toInstant());
+        if (noHandleEventRepeatChange) {
+            final CalendarEventSeries eventSeries = calendarEvent.getEventSeries();
 
-                if (dateChanged) {
-                    calendarEvent.setEventSeries(null);
+            if (eventSeries != null) {
+                final LocalDateTime startTime = updateCalendarEvent.getStartTime();
+                final LocalDateTime endTime = updateCalendarEvent.getEndTime();
+
+                if (updateCalendarEvent.isApplyToSeries()) {
+                    final List<CalendarEvent> seriesEvents = calendarEventRepository.findAllByClientIdAndEventSeries_Id(calendarEvent.getClientId(), eventSeries.getId());
+
+                    seriesEvents.forEach(e -> {
+                        e.update(calendarEvent, startTime.toLocalTime(), endTime.toLocalTime(), updateCalendarEvent.getDaysDiff());
+                        e.removeAllEventResources();
+                        updateCalendarEvent.getEventResources().forEach(e::addEventSource);
+
+                        updatedCalendarEvents.add(this.saveCalendarEvent(e));
+                    });
+                } else {
+                    final boolean dateChanged = !calendarEvent.getStartTime().toInstant().equals(startTime.atZone(calendarEvent.getZoneId()).toInstant());
+
+                    if (dateChanged) {
+                        calendarEvent.setEventSeries(null);
+                    }
+
+                    updatedCalendarEvents.add(this.saveCalendarEvent(calendarEvent));
                 }
 
-                this.saveCalendarEvent(calendarEvent);
+            } else {
+                updatedCalendarEvents.add(this.saveCalendarEvent(calendarEvent));
             }
-
         } else {
-            this.saveCalendarEvent(calendarEvent);
+            this.deleteCalendarEvent(calendarEvent, true);
+            final List<CalendarEvent> calendarEvents = this.createCalendarEvent(client, calendarEvent, updateCalendarEvent.getEventRepeat());
+            updatedCalendarEvents.addAll(calendarEvents);
         }
 
-        return calendarEvent;
+        return updatedCalendarEvents;
+    }
+
+    private boolean noHandleEventRepeatChange(CalendarEvent calendarEvent, EventRepeatObject eventRepeatObj) {
+
+        if (eventRepeatObj == null) {
+            return true;
+        }
+
+        final CalendarEventSeries.EventRepeat eventRepeat = eventRepeatObj.getEventRepeat();
+
+        if (calendarEvent.getEventSeries() != null) {
+            return calendarEvent.getEventSeries().getEventRepeat() == eventRepeatObj.getEventRepeat() &&
+                    DateTimeUtil.dateEquals(calendarEvent.getEventSeries().localRepeatEndDate(), eventRepeatObj.getRepeatEndDate());
+        } else {
+            return eventRepeat == CalendarEventSeries.EventRepeat.NONE;
+        }
     }
 
     @Override
@@ -133,10 +185,5 @@ public class CalendarEventServiceImpl implements CalendarEventService {
         } else {
             calendarEventRepository.delete(calendarEvent);
         }
-    }
-
-    @Override
-    public CalendarEventSeries saveCalendarEventSeries(CalendarEventSeries calendarEventSeries) {
-        return calendarEventSeriesRepository.save(calendarEventSeries);
     }
 }

@@ -1,12 +1,12 @@
 package io.nextpos.timecard.service;
 
 import io.nextpos.calendarevent.data.CalendarEvent;
+import io.nextpos.calendarevent.service.bean.EventRepeatObject;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.roster.service.RosterObjectHelper;
 import io.nextpos.roster.service.RosterPlanService;
-import io.nextpos.roster.service.bean.EventRepeatObject;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.util.DateTimeUtil;
 import io.nextpos.timecard.data.UserTimeCard;

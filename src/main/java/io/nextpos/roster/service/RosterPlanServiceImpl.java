@@ -1,18 +1,17 @@
 package io.nextpos.roster.service;
 
 import io.nextpos.calendarevent.data.CalendarEvent;
-import io.nextpos.calendarevent.data.CalendarEventSeries;
 import io.nextpos.calendarevent.service.CalendarEventService;
+import io.nextpos.calendarevent.service.bean.EventRepeatObject;
+import io.nextpos.calendarevent.service.bean.UpdateCalendarEventObject;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
-import io.nextpos.roster.service.bean.EventRepeatObject;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.shared.util.DateTimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.Date;
 import java.util.List;
@@ -23,24 +22,14 @@ public class RosterPlanServiceImpl implements RosterPlanService {
 
     private final CalendarEventService calendarEventService;
 
-    private final EventSeriesCreator eventSeriesCreator;
-
     @Autowired
-    public RosterPlanServiceImpl(CalendarEventService calendarEventService, EventSeriesCreator eventSeriesCreator) {
+    public RosterPlanServiceImpl(CalendarEventService calendarEventService) {
         this.calendarEventService = calendarEventService;
-        this.eventSeriesCreator = eventSeriesCreator;
     }
 
     @Override
     public List<CalendarEvent> createRosterEvent(Client client, CalendarEvent baseCalendarEvent, EventRepeatObject eventRepeatObject) {
-
-        final CalendarEventSeries.EventRepeat eventRepeat = eventRepeatObject.getEventRepeat();
-
-        if (eventRepeat == CalendarEventSeries.EventRepeat.NONE) {
-            return List.of(calendarEventService.saveCalendarEvent(baseCalendarEvent));
-        } else {
-            return eventSeriesCreator.createEventSeriesEvent(client, baseCalendarEvent, eventRepeat, eventRepeatObject.getRepeatEndDate());
-        }
+        return calendarEventService.createCalendarEvent(client, baseCalendarEvent, eventRepeatObject);
     }
 
     @Override
@@ -68,8 +57,8 @@ public class RosterPlanServiceImpl implements RosterPlanService {
     }
 
     @Override
-    public CalendarEvent updateRosterEvent(CalendarEvent calendarEvent, LocalDateTime startTime, LocalDateTime endTime, long daysDiff, boolean applyToSeries) {
-        return calendarEventService.updateCalendarEvent(calendarEvent, startTime, endTime, daysDiff, applyToSeries);
+    public List<CalendarEvent> updateRosterEvent(Client client, CalendarEvent calendarEvent, UpdateCalendarEventObject updateRosterEvent) {
+        return calendarEventService.updateCalendarEvent(client, calendarEvent, updateRosterEvent);
     }
 
     @Override

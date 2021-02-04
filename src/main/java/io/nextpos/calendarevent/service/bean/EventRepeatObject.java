@@ -1,4 +1,4 @@
-package io.nextpos.roster.service.bean;
+package io.nextpos.calendarevent.service.bean;
 
 import io.nextpos.calendarevent.data.CalendarEventSeries;
 import lombok.AllArgsConstructor;

@@ -1,6 +1,8 @@
 package io.nextpos.roster.web;
 
 import io.nextpos.calendarevent.data.CalendarEvent;
+import io.nextpos.calendarevent.service.bean.EventRepeatObject;
+import io.nextpos.calendarevent.service.bean.UpdateCalendarEventObject;
 import io.nextpos.calendarevent.web.model.CalendarEventResponse;
 import io.nextpos.calendarevent.web.model.CalendarEventsResponse;
 import io.nextpos.client.data.Client;
@@ -8,7 +10,6 @@ import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.roster.service.RosterObjectHelper;
 import io.nextpos.roster.service.RosterPlanService;
-import io.nextpos.roster.service.bean.EventRepeatObject;
 import io.nextpos.roster.web.model.RosterEventRequest;
 import io.nextpos.roster.web.model.RosterResourceRequest;
 import io.nextpos.roster.web.model.UpdateRosterEventRequest;
@@ -90,36 +91,33 @@ public class RosterEventController {
     }
 
     @PostMapping("/{id}")
-    public CalendarEventResponse updateRosterEvent(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                   @PathVariable String id,
-                                                   @Valid @RequestBody UpdateRosterEventRequest request) {
+    public CalendarEventsResponse updateRosterEvent(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                    @PathVariable String id,
+                                                    @Valid @RequestBody UpdateRosterEventRequest request) {
 
         final CalendarEvent rosterEvent = rosterPlanService.getRosterEvent(id);
+        final UpdateCalendarEventObject updateRosterEvent = updateFromRequest(client, rosterEvent, request);
 
-        final long daysDiff = ChronoUnit.DAYS.between(rosterEvent.getStartTime().toInstant(), request.getStartTime().atZone(client.getZoneId()).toInstant());
+        final List<CalendarEvent> updatedCalendarEvents = rosterPlanService.updateRosterEvent(client, rosterEvent, updateRosterEvent);
 
-        updateFromRequest(client, rosterEvent, request);
-
-        final CalendarEvent updatedCalendarEvent = rosterPlanService.updateRosterEvent(rosterEvent,
-                request.getStartTime(),
-                request.getEndTime(),
-                daysDiff,
-                request.isApplyToSeries());
-
-        if (request.getWorkingAreaToUsernames() != null) {
-            final List<CalendarEvent.EventResource> rosterEventResources = rosterObjectHelper.createRosterEventResources(client, request.getWorkingAreaToUsernames());
-            rosterPlanService.updateRosterEventResources(updatedCalendarEvent, rosterEventResources, request.isApplyToSeries());
-        }
-
-        return new CalendarEventResponse(updatedCalendarEvent);
+        return toResponse(client, updatedCalendarEvents);
     }
 
-    private void updateFromRequest(Client client, CalendarEvent rosterEvent, UpdateRosterEventRequest request) {
+    private UpdateCalendarEventObject updateFromRequest(Client client, CalendarEvent rosterEvent, UpdateRosterEventRequest request) {
 
         rosterEvent.setEventName(request.getEventName());
         rosterEvent.setStartTime(DateTimeUtil.toDate(client.getZoneId(), request.getStartTime()));
         rosterEvent.setEndTime(DateTimeUtil.toDate(client.getZoneId(), request.getEndTime()));
         rosterEvent.setEventColor(request.getEventColor());
+
+        final List<CalendarEvent.EventResource> rosterEventResources = rosterObjectHelper.createRosterEventResources(client, request.getWorkingAreaToUsernames());
+        rosterEvent.removeAllEventResources();
+        rosterEventResources.forEach(rosterEvent::addEventSource);
+
+        final long daysDiff = ChronoUnit.DAYS.between(rosterEvent.getStartTime().toInstant(), request.getStartTime().atZone(client.getZoneId()).toInstant());
+        final EventRepeatObject eventRepeat = new EventRepeatObject(request.getEventRepeat(), request.getRepeatEndDate());
+
+        return new UpdateCalendarEventObject(eventRepeat, request.getStartTime(), request.getEndTime(), daysDiff, request.isApplyToSeries(), rosterEventResources);
     }
 
     @PostMapping("/{id}/resources")

@@ -39,6 +39,8 @@ public class CalendarEventResponse {
 
     private CalendarEventSeries.EventRepeat eventRepeat;
 
+    private Date repeatEndDate;
+
     public CalendarEventResponse(CalendarEvent calendarEvent) {
         id = calendarEvent.getId();
         eventType = calendarEvent.getEventType();
@@ -53,9 +55,12 @@ public class CalendarEventResponse {
         endTime = calendarEvent.getEndTime();
         eventColor = calendarEvent.getEventColor();
 
-        if (calendarEvent.getEventSeries() != null) {
-            eventSeriesId = calendarEvent.getEventSeries().getId();
-            eventRepeat = calendarEvent.getEventSeries().getEventRepeat();
+        final CalendarEventSeries eventSeries = calendarEvent.getEventSeries();
+
+        if (eventSeries != null) {
+            eventSeriesId = eventSeries.getId();
+            eventRepeat = eventSeries.getEventRepeat();
+            repeatEndDate = eventSeries.getRepeatEndDate();
         }
     }
 }

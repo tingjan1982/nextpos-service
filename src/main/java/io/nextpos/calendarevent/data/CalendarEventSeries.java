@@ -36,6 +36,10 @@ public class CalendarEventSeries extends MongoBaseObject {
         this.repeatEndDate = DateTimeUtil.toDate(zoneId, repeatEndDate);
     }
 
+    public LocalDateTime localRepeatEndDate() {
+        return DateTimeUtil.toLocalDateTime(zoneId, repeatEndDate);
+    }
+
     public enum EventRepeat {
         NONE, DAILY, WEEKLY
     }

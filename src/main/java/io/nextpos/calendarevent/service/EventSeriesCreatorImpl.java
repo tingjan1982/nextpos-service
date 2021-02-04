@@ -1,14 +1,15 @@
-package io.nextpos.roster.service;
+package io.nextpos.calendarevent.service;
 
 import io.nextpos.calendarevent.data.CalendarEvent;
+import io.nextpos.calendarevent.data.CalendarEventRepository;
 import io.nextpos.calendarevent.data.CalendarEventSeries;
-import io.nextpos.calendarevent.service.CalendarEventService;
+import io.nextpos.calendarevent.data.CalendarEventSeriesRepository;
+import io.nextpos.calendarevent.service.bean.EventRepeatObject;
 import io.nextpos.client.data.Client;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.util.DateTimeUtil;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
@@ -18,30 +19,34 @@ import java.util.List;
 @Component
 public class EventSeriesCreatorImpl implements EventSeriesCreator {
 
-    private final CalendarEventService calendarEventService;
+    private final CalendarEventRepository calendarEventRepository;
 
-    public EventSeriesCreatorImpl(CalendarEventService calendarEventService) {
-        this.calendarEventService = calendarEventService;
+    private final CalendarEventSeriesRepository calendarEventSeriesRepository;
+
+    public EventSeriesCreatorImpl(CalendarEventRepository calendarEventRepository, CalendarEventSeriesRepository calendarEventSeriesRepository) {
+        this.calendarEventRepository = calendarEventRepository;
+        this.calendarEventSeriesRepository = calendarEventSeriesRepository;
     }
 
     @Override
-    public List<CalendarEvent> createEventSeriesEvent(Client client, CalendarEvent baseCalendarEvent, CalendarEventSeries.EventRepeat eventRepeat, LocalDateTime repeatEndDate) {
+    public List<CalendarEvent> createEventSeriesEvent(Client client, CalendarEvent baseCalendarEvent, EventRepeatObject eventRepeatObj) {
 
         final ZoneId zoneId = client.getZoneId();
-        LocalDateTime resolvedRepeatEndDate = resolveRepeatEndDate(repeatEndDate);
+        CalendarEventSeries.EventRepeat eventRepeat = eventRepeatObj.getEventRepeat();
+        LocalDateTime repeatEndDate = resolveRepeatEndDate(baseCalendarEvent, eventRepeatObj.getRepeatEndDate());
 
-        final CalendarEventSeries calendarEventSeries = new CalendarEventSeries(client.getId(), client.getZoneId(), eventRepeat, resolvedRepeatEndDate);
-        calendarEventService.saveCalendarEventSeries(calendarEventSeries);
+        final CalendarEventSeries calendarEventSeries = new CalendarEventSeries(client.getId(), client.getZoneId(), eventRepeat, repeatEndDate);
+        calendarEventSeriesRepository.save(calendarEventSeries);
 
         List<CalendarEvent> calendarEvents = new ArrayList<>();
         baseCalendarEvent.setEventSeries(calendarEventSeries);
-        calendarEvents.add(this.createRosterEvent(baseCalendarEvent));
+        calendarEvents.add(this.saveCalendarEvent(baseCalendarEvent));
 
         LocalDateTime nextStartTime = DateTimeUtil.toLocalDateTime(zoneId, baseCalendarEvent.getStartTime());
         LocalDateTime nextEndTime = DateTimeUtil.toLocalDateTime(zoneId, baseCalendarEvent.getEndTime());
         LocalDateTime lastDayOfTheSeries = lastDayOfTheSeries(nextStartTime, eventRepeat);
 
-        while (nextStartTime.compareTo(lastDayOfTheSeries) < 0 && nextStartTime.compareTo(resolvedRepeatEndDate) < 0) {
+        while (nextStartTime.compareTo(lastDayOfTheSeries) < 0 && nextStartTime.compareTo(repeatEndDate) < 0) {
             nextStartTime = resolveNextTime(nextStartTime, eventRepeat);
             nextEndTime = resolveNextTime(nextEndTime, eventRepeat);
 
@@ -49,15 +54,15 @@ public class EventSeriesCreatorImpl implements EventSeriesCreator {
                     DateTimeUtil.toDate(zoneId, nextStartTime),
                     DateTimeUtil.toDate(zoneId, nextEndTime));
             copiedCalendarEvent.setEventSeries(calendarEventSeries);
-            calendarEvents.add(this.createRosterEvent(copiedCalendarEvent));
+            calendarEvents.add(this.saveCalendarEvent(copiedCalendarEvent));
         }
 
         return calendarEvents;
     }
 
-    private LocalDateTime resolveRepeatEndDate(LocalDateTime repeatEndDate) {
+    private LocalDateTime resolveRepeatEndDate(CalendarEvent calendarEvent, LocalDateTime repeatEndDate) {
 
-        final LocalDateTime endOfMonth = LocalDate.now().with(TemporalAdjusters.lastDayOfMonth()).atTime(23, 59, 59);
+        final LocalDateTime endOfMonth = DateTimeUtil.toLocalDate(calendarEvent.getZoneId(), calendarEvent.getStartTime()).with(TemporalAdjusters.lastDayOfMonth()).atTime(23, 59, 59);
 
         if (repeatEndDate == null || repeatEndDate.compareTo(endOfMonth) > 0) {
             return endOfMonth;
@@ -91,7 +96,7 @@ public class EventSeriesCreatorImpl implements EventSeriesCreator {
         }
     }
 
-    private CalendarEvent createRosterEvent(CalendarEvent calendarEvent) {
-        return calendarEventService.saveCalendarEvent(calendarEvent);
+    private CalendarEvent saveCalendarEvent(CalendarEvent calendarEvent) {
+        return calendarEventRepository.save(calendarEvent);
     }
 }
