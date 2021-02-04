@@ -8,6 +8,7 @@ import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.roster.service.RosterObjectHelper;
 import io.nextpos.roster.service.RosterPlanService;
+import io.nextpos.roster.service.bean.EventRepeatObject;
 import io.nextpos.roster.web.model.RosterEventRequest;
 import io.nextpos.roster.web.model.RosterResourceRequest;
 import io.nextpos.roster.web.model.UpdateRosterEventRequest;
@@ -50,7 +51,7 @@ public class RosterEventController {
                                                     @Valid @RequestBody RosterEventRequest request) {
 
         final CalendarEvent calendarEvent = fromRosterEntryRequest(client, request);
-        final List<CalendarEvent> rosterEventSeries = rosterPlanService.createRosterEvent(client, request.getEventRepeat(), calendarEvent);
+        final List<CalendarEvent> rosterEventSeries = rosterPlanService.createRosterEvent(client, calendarEvent, new EventRepeatObject(request.getEventRepeat(), request.getRepeatEndDate()));
 
         return toResponse(client, rosterEventSeries);
     }

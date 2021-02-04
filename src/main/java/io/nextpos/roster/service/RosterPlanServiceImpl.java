@@ -5,7 +5,7 @@ import io.nextpos.calendarevent.data.CalendarEventSeries;
 import io.nextpos.calendarevent.service.CalendarEventService;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
-import io.nextpos.shared.exception.GeneralApplicationException;
+import io.nextpos.roster.service.bean.EventRepeatObject;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.shared.util.DateTimeUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +14,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
-import java.time.ZoneId;
-import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -26,49 +23,24 @@ public class RosterPlanServiceImpl implements RosterPlanService {
 
     private final CalendarEventService calendarEventService;
 
+    private final EventSeriesCreator eventSeriesCreator;
+
     @Autowired
-    public RosterPlanServiceImpl(CalendarEventService calendarEventService) {
+    public RosterPlanServiceImpl(CalendarEventService calendarEventService, EventSeriesCreator eventSeriesCreator) {
         this.calendarEventService = calendarEventService;
+        this.eventSeriesCreator = eventSeriesCreator;
     }
 
     @Override
-    public List<CalendarEvent> createRosterEvent(Client client, CalendarEventSeries.EventRepeat eventRepeat, CalendarEvent baseCalendarEvent) {
+    public List<CalendarEvent> createRosterEvent(Client client, CalendarEvent baseCalendarEvent, EventRepeatObject eventRepeatObject) {
 
-        switch (eventRepeat) {
-            case WEEKLY:
-                final CalendarEventSeries calendarEventSeries = new CalendarEventSeries(client.getId(), eventRepeat);
-                calendarEventService.saveCalendarEventSeries(calendarEventSeries);
+        final CalendarEventSeries.EventRepeat eventRepeat = eventRepeatObject.getEventRepeat();
 
-                List<CalendarEvent> calendarEvents = new ArrayList<>();
-                baseCalendarEvent.setEventSeries(calendarEventSeries);
-                calendarEvents.add(this.createRosterEvent(baseCalendarEvent));
-
-                final ZoneId zoneId = client.getZoneId();
-                LocalDateTime nextStartTime = DateTimeUtil.toLocalDateTime(zoneId, baseCalendarEvent.getStartTime());
-                LocalDateTime nextEndTime = DateTimeUtil.toLocalDateTime(zoneId, baseCalendarEvent.getEndTime());
-                LocalDateTime lastDayOfTheSeries = nextStartTime.with(TemporalAdjusters.lastInMonth(nextStartTime.getDayOfWeek()));
-
-                while (nextStartTime.compareTo(lastDayOfTheSeries) < 0) {
-                    nextStartTime = nextStartTime.with(TemporalAdjusters.next(nextStartTime.getDayOfWeek()));
-                    nextEndTime = nextEndTime.with(TemporalAdjusters.next(nextStartTime.getDayOfWeek()));
-
-                    final CalendarEvent copiedCalendarEvent = baseCalendarEvent.copy(
-                            DateTimeUtil.toDate(zoneId, nextStartTime),
-                            DateTimeUtil.toDate(zoneId, nextEndTime));
-                    copiedCalendarEvent.setEventSeries(calendarEventSeries);
-                    calendarEvents.add(this.createRosterEvent(copiedCalendarEvent));
-                }
-
-                return calendarEvents;
-            case NONE:
-                return List.of(this.createRosterEvent(baseCalendarEvent));
-            default:
-                throw new GeneralApplicationException("Not all EventRepeat type is accommodated: " + eventRepeat.name());
+        if (eventRepeat == CalendarEventSeries.EventRepeat.NONE) {
+            return List.of(calendarEventService.saveCalendarEvent(baseCalendarEvent));
+        } else {
+            return eventSeriesCreator.createEventSeriesEvent(client, baseCalendarEvent, eventRepeat, eventRepeatObject.getRepeatEndDate());
         }
-    }
-
-    private CalendarEvent createRosterEvent(CalendarEvent calendarEvent) {
-        return calendarEventService.saveCalendarEvent(calendarEvent);
     }
 
     @Override

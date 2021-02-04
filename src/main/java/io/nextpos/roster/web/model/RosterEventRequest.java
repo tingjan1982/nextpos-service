@@ -18,6 +18,8 @@ public class RosterEventRequest {
     @NotNull
     private CalendarEventSeries.EventRepeat eventRepeat;
 
+    private LocalDateTime repeatEndDate;
+
     @NotNull
     private LocalDateTime startTime;
 

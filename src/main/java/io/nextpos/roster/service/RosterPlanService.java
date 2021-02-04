@@ -1,9 +1,9 @@
 package io.nextpos.roster.service;
 
 import io.nextpos.calendarevent.data.CalendarEvent;
-import io.nextpos.calendarevent.data.CalendarEventSeries;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
+import io.nextpos.roster.service.bean.EventRepeatObject;
 
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface RosterPlanService {
 
-    List<CalendarEvent> createRosterEvent(Client client, CalendarEventSeries.EventRepeat eventRepeat, CalendarEvent baseCalendarEvent);
+    List<CalendarEvent> createRosterEvent(Client client, CalendarEvent baseCalendarEvent, EventRepeatObject eventRepeatObject);
 
     List<CalendarEvent> getRosterEvents(Client client, YearMonth yearMonth);
 

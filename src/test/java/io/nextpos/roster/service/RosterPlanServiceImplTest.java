@@ -5,6 +5,7 @@ import io.nextpos.calendarevent.data.CalendarEventSeries;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientService;
+import io.nextpos.roster.service.bean.EventRepeatObject;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,10 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.YearMonth;
+import java.time.*;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Map;
 
@@ -61,7 +60,7 @@ class RosterPlanServiceImplTest {
     void crudRosterEvent() {
 
         final CalendarEvent calendarEvent = rosterObjectHelper.createRosterEvent(client, "Morning shift", LocalDateTime.now(), LocalDateTime.now().plusHours(8));
-        final List<CalendarEvent> createdRosterEvents = rosterPlanService.createRosterEvent(client, CalendarEventSeries.EventRepeat.WEEKLY, calendarEvent);
+        final List<CalendarEvent> createdRosterEvents = rosterPlanService.createRosterEvent(client, calendarEvent, EventRepeatObject.eventRepeat(CalendarEventSeries.EventRepeat.WEEKLY));
 
         assertThat(createdRosterEvents).isNotEmpty();
         assertThat(createdRosterEvents).allSatisfy(e -> {
@@ -100,5 +99,28 @@ class RosterPlanServiceImplTest {
         rosterPlanService.deleteRosterEvent(calendarEvent.getId(), true);
 
         assertThat(rosterPlanService.getRosterEvents(client, YearMonth.now())).isEmpty();
+    }
+
+    @Test
+    @WithMockUser
+    void seriesEvent() {
+
+        final CalendarEvent calendarEvent = rosterObjectHelper.createRosterEvent(client, "Morning shift", LocalDateTime.now(), LocalDateTime.now().plusHours(8));
+        final List<CalendarEvent> createdRosterEvents = rosterPlanService.createRosterEvent(client,
+                calendarEvent,
+                new EventRepeatObject(CalendarEventSeries.EventRepeat.DAILY, null));
+
+        final int days = Period.between(LocalDate.now(), LocalDate.now().with(TemporalAdjusters.lastDayOfMonth()).plusDays(1)).getDays();
+
+        assertThat(createdRosterEvents).hasSize(days);
+
+        final LocalDate endOfWeek = LocalDate.now().with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+        final List<CalendarEvent> createdRosterEvents2 = rosterPlanService.createRosterEvent(client,
+                calendarEvent,
+                new EventRepeatObject(CalendarEventSeries.EventRepeat.DAILY, endOfWeek.atStartOfDay()));
+
+        final int days2 = Period.between(LocalDate.now(), endOfWeek.plusDays(1)).getDays();
+
+        assertThat(createdRosterEvents2).hasSize(days2);
     }
 }

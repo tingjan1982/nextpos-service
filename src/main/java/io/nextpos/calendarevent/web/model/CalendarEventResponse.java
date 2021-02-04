@@ -35,6 +35,8 @@ public class CalendarEventResponse {
 
     private final String eventColor;
 
+    private String eventSeriesId;
+
     private CalendarEventSeries.EventRepeat eventRepeat;
 
     public CalendarEventResponse(CalendarEvent calendarEvent) {
@@ -52,6 +54,7 @@ public class CalendarEventResponse {
         eventColor = calendarEvent.getEventColor();
 
         if (calendarEvent.getEventSeries() != null) {
+            eventSeriesId = calendarEvent.getEventSeries().getId();
             eventRepeat = calendarEvent.getEventSeries().getEventRepeat();
         }
     }

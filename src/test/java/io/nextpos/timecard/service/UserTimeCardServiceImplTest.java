@@ -1,12 +1,12 @@
 package io.nextpos.timecard.service;
 
 import io.nextpos.calendarevent.data.CalendarEvent;
-import io.nextpos.calendarevent.data.CalendarEventSeries;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.roster.service.RosterObjectHelper;
 import io.nextpos.roster.service.RosterPlanService;
+import io.nextpos.roster.service.bean.EventRepeatObject;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.util.DateTimeUtil;
 import io.nextpos.timecard.data.UserTimeCard;
@@ -69,7 +69,7 @@ class UserTimeCardServiceImplTest {
                 "Morning",
                 LocalDateTime.of(LocalDate.now(), LocalTime.of(8, 30)),
                 LocalDateTime.of(LocalDate.now(), LocalTime.of(13, 30)));
-        rosterPlanService.createRosterEvent(client, CalendarEventSeries.EventRepeat.NONE, calendarEvent);
+        rosterPlanService.createRosterEvent(client, calendarEvent, EventRepeatObject.none());
         rosterPlanService.updateRosterEventResources(calendarEvent, rosterObjectHelper.createRosterEventResources(client, Map.of("bar", List.of("test-user"))), true);
 
         CalendarEvent calendarEvent2 = rosterObjectHelper.createRosterEvent(client,
@@ -77,7 +77,7 @@ class UserTimeCardServiceImplTest {
                 LocalDateTime.of(LocalDate.now(), LocalTime.of(9, 30)),
                 LocalDateTime.of(LocalDate.now(), LocalTime.of(14, 30)));
 
-        rosterPlanService.createRosterEvent(client, CalendarEventSeries.EventRepeat.NONE, calendarEvent2);
+        rosterPlanService.createRosterEvent(client, calendarEvent2, EventRepeatObject.none());
         rosterPlanService.updateRosterEventResources(calendarEvent2, rosterObjectHelper.createRosterEventResources(client, Map.of("bar", List.of("test-user"))), true);
     }
 
