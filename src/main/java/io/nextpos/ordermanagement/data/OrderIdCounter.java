@@ -32,8 +32,16 @@ public class OrderIdCounter extends MongoBaseObject {
         return orderIdPrefix + "-" + counter;
     }
 
-    @Override
-    public boolean isNew() {
-        return id == null;
+
+    @Data
+    public static class OrderCounterSummary {
+
+        private String id;
+
+        private String clientId;
+
+        private String orderIdPrefix;
+
+        private int orderCount;
     }
 }

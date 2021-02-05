@@ -14,23 +14,23 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class ClientResponse {
 
-    private String id;
+    private final String id;
 
-    private String clientName;
+    private final String clientName;
 
-    private String username;
+    private final String username;
 
-    private String encryptedPassword;
+    private final String encryptedPassword;
 
-    private String country;
+    private final String country;
 
-    private String timezone;
+    private final String timezone;
 
-    private Client.Status status;
+    private final Client.Status status;
 
-    private Map<String, String> attributes;
+    private final Map<String, String> attributes;
 
-    private Map<ClientSetting.SettingName, ClientSettingResponse> clientSettings;
+    private final Map<ClientSetting.SettingName, ClientSettingResponse> clientSettings;
 
     private ClientInfoResponse clientInfo;
 

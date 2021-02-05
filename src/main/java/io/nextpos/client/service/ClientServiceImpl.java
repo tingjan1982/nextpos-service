@@ -13,6 +13,7 @@ import io.nextpos.shared.exception.ObjectAlreadyExistsException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.JpaTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
@@ -144,6 +145,22 @@ public class ClientServiceImpl implements ClientService {
         });
     }
 
+//    @Override
+//    public void updateClientUsername(Client client, String username) {
+//
+//        final BaseClientDetails existingClientDetails = (BaseClientDetails) clientDetailsService.loadClientByClientId(client.getUsername());
+//        existingClientDetails.setClientId(username);
+//        clientDetailsService.addClientDetails(existingClientDetails);
+//
+//        client.setUsername(username);
+//        this.saveClient(client);
+//
+//        clientUserRepository.findAllByClientIn(List.of(client)).forEach(cu -> {
+//
+//        });
+//
+//    }
+
     @Override
     public ClientUser updateClientUserPassword(Client client, ClientUser clientUser, String newPassword) {
 
@@ -217,7 +234,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public List<Client> getClients() {
-        return clientRepository.findAll();
+        return clientRepository.findAll(Sort.by(Sort.Order.desc("createdTime")));
     }
 
     @Override

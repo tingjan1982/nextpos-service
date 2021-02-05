@@ -7,6 +7,7 @@ import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.product.data.ProductOptionVersion;
 import io.nextpos.product.data.ProductVersion;
 import io.nextpos.settings.data.CountrySettings;
+import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.workingarea.data.WorkingArea;
 
@@ -19,6 +20,10 @@ public class DummyObjects {
 
     public static Client dummyClient() {
         return new Client("test", "rain.io.app@gmail.com", "secret", "TW", "Asia/Taipei");
+    }
+
+    public static Client dummyClient(String clientName) {
+        return new Client(clientName, "rain.io.app@gmail.com", "secret", BootstrapConfig.DEFAULT_COUNTRY_CODE, BootstrapConfig.DEFAULT_TIME_ZONE);
     }
 
     public static ClientUser dummyClientUser(Client client) {
