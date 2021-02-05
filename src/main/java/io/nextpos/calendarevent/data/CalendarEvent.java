@@ -86,7 +86,9 @@ public class CalendarEvent extends MongoBaseObject {
                 this.eventOwner,
                 startTime,
                 endTime);
+
         copy.setEventColor(this.eventColor);
+        copy.setEventResources(this.eventResources);
 
         return copy;
     }
