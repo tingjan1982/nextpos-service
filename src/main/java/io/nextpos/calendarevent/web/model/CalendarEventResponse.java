@@ -57,6 +57,8 @@ public class CalendarEventResponse {
 
         final CalendarEventSeries eventSeries = calendarEvent.getEventSeries();
 
+        eventSeriesId = id;
+
         if (eventSeries != null) {
             eventSeriesId = eventSeries.getId();
             eventRepeat = eventSeries.getEventRepeat();
