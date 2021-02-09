@@ -82,11 +82,11 @@ public class TimeCardReportServiceImpl implements TimeCardReportService {
                 .collect(Collectors.toMap(TimeCardReport.UserShift::getId, t -> t));
 
         clientUsers.forEach(u -> {
-            final TimeCardReport.UserShift emptyUserShift = new TimeCardReport.UserShift(u.getId().getUsername(),
+            final TimeCardReport.UserShift emptyUserShift = new TimeCardReport.UserShift(u.getUsername(),
                     u.getNickname(),
                     0,
                     BigDecimal.ZERO);
-            userShifts.putIfAbsent(u.getId().getUsername(), emptyUserShift);
+            userShifts.putIfAbsent(u.getUsername(), emptyUserShift);
         });
 
         final List<TimeCardReport.UserShift> sortedUserTimeCards = new ArrayList<>(userShifts.values());

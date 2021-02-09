@@ -49,10 +49,10 @@ class RosterPlanServiceImplTest {
         client.setTimezone("UTC");
         clientService.saveClient(client);
 
-        clientUser = new ClientUser(new ClientUser.ClientUserId("joe", client.getUsername()), client, "12341234", "USER");
+        clientUser = new ClientUser(client, "joe", "12341234", "USER");
         clientService.saveClientUser(clientUser);
 
-        ClientUser lin = new ClientUser(new ClientUser.ClientUserId("lin", client.getUsername()), client, "12341234", "USER");
+        ClientUser lin = new ClientUser(client, "lin", "12341234", "USER");
         clientService.saveClientUser(lin);
     }
 

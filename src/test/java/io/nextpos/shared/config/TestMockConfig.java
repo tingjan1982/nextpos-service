@@ -180,7 +180,7 @@ public class TestMockConfig {
         final OAuth2Helper mock = Mockito.mock(OAuth2Helper.class);
         final ClientUser clientUser = DummyObjects.dummyClientUser(client);
 
-        Mockito.when(mock.getCurrentPrincipal()).thenReturn(clientUser.getId().getUsername());
+        Mockito.when(mock.getCurrentPrincipal()).thenReturn(clientUser.getUsername());
         Mockito.when(mock.resolveCurrentClientUser(any(Client.class))).thenReturn(clientUser);
 
         return mock;
@@ -193,7 +193,7 @@ public class TestMockConfig {
         final Client client = DummyObjects.dummyClient();
         final ClientUser clientUser = DummyObjects.dummyClientUser(client);
 
-        Mockito.when(mock.resolveCurrentUsername()).thenReturn(clientUser.getId().getUsername());
+        Mockito.when(mock.resolveCurrentUsername()).thenReturn(clientUser.getUsername());
         Mockito.when(mock.resolveCurrentClientId()).thenReturn(client.getUsername());
 
         return mock;

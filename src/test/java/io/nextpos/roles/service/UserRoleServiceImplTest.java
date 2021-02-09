@@ -62,7 +62,7 @@ class UserRoleServiceImplTest {
         assertThat(updatedUserRole.getPermissionBundles()).hasSize(3);
         assertThat(updatedUserRole.getPermissions()).isNotNull();
 
-        final ClientUser userToCheck = clientService.getClientUser(client, clientUser.getId().getUsername());
+        final ClientUser userToCheck = clientService.getClientUser(client, clientUser.getUsername());
 
         assertThat(userToCheck.getUserRole().getPermissionBundles()).hasSize(updatedUserRole.getPermissionBundles().size());
         assertThat(userToCheck.getUserRole().getPermissions()).hasSize(updatedUserRole.getPermissions().size());

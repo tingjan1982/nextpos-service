@@ -86,7 +86,7 @@ public class ClientServiceImpl implements ClientService {
                 .map(GrantedAuthority::getAuthority).collect(Collectors.joining(","));
 
         // client's default user will use email as the username.
-        final ClientUser defaultClientUser = new ClientUser(new ClientUser.ClientUserId(client.getUsername(), client.getUsername()), client, plainPassword, roles);
+        final ClientUser defaultClientUser = new ClientUser(client, client.getUsername(), plainPassword, roles);
         defaultClientUser.setNickname(client.getClientName());
         defaultClientUser.setPermissions(permissions);
 
@@ -145,29 +145,32 @@ public class ClientServiceImpl implements ClientService {
         });
     }
 
-//    @Override
-//    public void updateClientUsername(Client client, String username) {
-//
-//        final BaseClientDetails existingClientDetails = (BaseClientDetails) clientDetailsService.loadClientByClientId(client.getUsername());
-//        existingClientDetails.setClientId(username);
-//        clientDetailsService.addClientDetails(existingClientDetails);
-//
-//        client.setUsername(username);
-//        this.saveClient(client);
-//
-//        clientUserRepository.findAllByClientIn(List.of(client)).forEach(cu -> {
-//
-//        });
-//
-//    }
+    @Override
+    public void updateUsernameForClient(Client client, String username, String password) {
+
+        this.authenticateClient(client.getUsername(), password);
+
+        final BaseClientDetails existingClientDetails = (BaseClientDetails) clientDetailsService.loadClientByClientId(client.getUsername());
+        existingClientDetails.setClientId(username);
+        existingClientDetails.setClientSecret(password);
+        clientDetailsService.addClientDetails(existingClientDetails);
+        clientDetailsService.removeClientDetails(client.getUsername());
+
+        final ClientUser clientUser = this.getClientUser(client, client.getUsername());
+        clientUser.setUsername(username);
+        this.saveClientUser(clientUser);
+
+        client.setUsername(username);
+        this.saveClient(client);
+    }
 
     @Override
     public ClientUser updateClientUserPassword(Client client, ClientUser clientUser, String newPassword) {
 
         clientUser.setPassword(newPassword);
         final ClientPasswordRegistry clientPasswordRegistry = checkClientUserPassword(clientUser);
-        clientPasswordRegistry.removePassword(clientUser.getId().getUsername());
-        clientPasswordRegistry.addPassword(clientUser.getId().getUsername(), clientUser.getPassword());
+        clientPasswordRegistry.removePassword(clientUser.getUsername());
+        clientPasswordRegistry.addPassword(clientUser.getUsername(), clientUser.getPassword());
         clientPasswordRegistryRepository.save(clientPasswordRegistry);
 
         final ClientUser updatedClientUser = this.saveClientUser(clientUser);
@@ -252,7 +255,7 @@ public class ClientServiceImpl implements ClientService {
             }
 
             clientDetailsService.removeClientDetails(client.getUsername());
-            clientUserRepository.deleteClientUsersByClientId(client.getUsername());
+            clientUserRepository.deleteAllByClient(client);
             clientRepository.delete(client);
         });
     }
@@ -260,12 +263,12 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ClientUser createClientUser(final ClientUser clientUser) {
 
-        clientUserRepository.findByIdAndClient(clientUser.getId(), clientUser.getClient()).ifPresent(u -> {
-            throw new ObjectAlreadyExistsException(clientUser.getId().toString(), ClientUser.class);
+        clientUserRepository.findByClientAndUsername(clientUser.getClient(), clientUser.getUsername()).ifPresent(u -> {
+            throw new ObjectAlreadyExistsException(clientUser.getUsername(), ClientUser.class);
         });
 
         final ClientPasswordRegistry clientPasswordRegistry = checkClientUserPassword(clientUser);
-        clientPasswordRegistry.addPassword(clientUser.getId().getUsername(), clientUser.getPassword());
+        clientPasswordRegistry.addPassword(clientUser.getUsername(), clientUser.getPassword());
         clientPasswordRegistryRepository.save(clientPasswordRegistry);
 
         final String encryptedPassword = passwordEncoder.encode(clientUser.getPassword());
@@ -301,18 +304,16 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ClientUser getClientUser(final Client client, final String username) {
 
-        final ClientUser.ClientUserId clientUserId = new ClientUser.ClientUserId(username, client.getUsername());
-        return clientUserRepository.findById(clientUserId).orElseThrow(() -> {
-            throw new ObjectNotFoundException(clientUserId.toString(), ClientUser.class);
+        return clientUserRepository.findByClientAndUsername(client, username).orElseThrow(() -> {
+            throw new ObjectNotFoundException(username, ClientUser.class);
         });
     }
 
     @Override
     public ClientUser loadClientUser(Client client, String username) {
 
-        final ClientUser.ClientUserId clientUserId = new ClientUser.ClientUserId(username, client.getUsername());
-        return clientUserRepository.loadById(clientUserId).orElseThrow(() -> {
-            throw new ObjectNotFoundException(clientUserId.toString(), ClientUser.class);
+        return clientUserRepository.loadById(client, username).orElseThrow(() -> {
+            throw new ObjectNotFoundException(username, ClientUser.class);
         });
     }
 
@@ -348,11 +349,12 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public void deleteClientUser(final Client client, final String username) {
 
+        final ClientUser clientUser = this.getClientUser(client, username);
+
         final ClientPasswordRegistry clientPasswordRegistry = getOrCreateClientPasswordRegistry(client);
-        clientPasswordRegistry.removePassword(username);
+        clientPasswordRegistry.removePassword(clientUser.getUsername());
         clientPasswordRegistryRepository.save(clientPasswordRegistry);
 
-        final ClientUser clientUser = this.getClientUser(client, username);
         clientUserRepository.delete(clientUser);
     }
 
@@ -364,12 +366,12 @@ public class ClientServiceImpl implements ClientService {
             throw new UsernameNotFoundException("Client cannot be resolved by the username: " + username);
         });
 
-        final ClientUser clientUser = linkedClientAccountService.getLinkedClientAccountResources(client, (clients) -> clientUserRepository.findByIdUsernameAndClientIn(username, clients).orElseThrow(() -> {
+        final ClientUser clientUser = linkedClientAccountService.getLinkedClientAccountResources(client, (clients) -> clientUserRepository.findByUsernameAndClientIn(username, clients).orElseThrow(() -> {
             throw new UsernameNotFoundException("Username does not exist: " + username);
         }));
 
         final String joinedAuthorities = clientUser.getRoles() + "," + clientUser.getPermissions();
         final Collection<? extends GrantedAuthority> authorities = AuthorityUtils.commaSeparatedStringToAuthorityList(joinedAuthorities);
-        return new User(clientUser.getId().getUsername(), clientUser.getPassword(), authorities);
+        return new User(clientUser.getUsername(), clientUser.getPassword(), authorities);
     }
 }

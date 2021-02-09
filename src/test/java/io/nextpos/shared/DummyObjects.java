@@ -27,7 +27,7 @@ public class DummyObjects {
     }
 
     public static ClientUser dummyClientUser(Client client) {
-        return new ClientUser(new ClientUser.ClientUserId("test-user", client.getUsername()), client, "password", "ADMIN,USER");
+        return new ClientUser(client, "test-user", "password", "ADMIN,USER");
     }
 
     public static ProductVersion dummyProductVersion() {

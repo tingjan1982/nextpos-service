@@ -44,7 +44,7 @@ public class RosterObjectHelper {
                 .map(e -> e.getValue().stream()
                         .map(u -> {
                             final ClientUser clientUser = clientService.getClientUser(client, u);
-                            return new CalendarEvent.EventResource(clientUser.getId().getUsername(),
+                            return new CalendarEvent.EventResource(clientUser.getId(),
                                     CalendarEvent.ResourceType.STAFF,
                                     clientUser.getName(),
                                     e.getKey());

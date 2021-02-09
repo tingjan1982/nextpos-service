@@ -4,12 +4,15 @@ import io.micrometer.core.instrument.util.StringUtils;
 import io.nextpos.roles.data.UserRole;
 import io.nextpos.shared.config.SecurityConfig;
 import io.nextpos.shared.model.BaseObject;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import java.io.Serializable;
 
-@Entity(name = "client_user")
+@Entity(name = "client_users")
 @NamedEntityGraph(name = "ClientUser.userRole",
         attributeNodes = @NamedAttributeNode(value = "userRole", subgraph = "ClientUser.userRole.clientUsers"),
         subgraphs = {
@@ -21,17 +24,22 @@ import java.io.Serializable;
 )
 @Data
 @EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor
 public class ClientUser extends BaseObject {
 
-    @EmbeddedId
-    private ClientUserId id;
+    @Id
+    @GeneratedValue(generator = "uuid")
+    @GenericGenerator(name = "uuid", strategy = "uuid2")
+    @Column(name = "id")
+    private String id;
 
     @ManyToOne
-    @JoinColumn(name = "client_ref_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Client client;
+
+    @Column(nullable = false)
+    private String username;
 
     private String nickname;
 
@@ -54,8 +62,8 @@ public class ClientUser extends BaseObject {
     @Column(length = 1000)
     private String permissions;
 
-    public ClientUser(ClientUserId id, Client client, String password, String roles) {
-        this.id = id;
+    public ClientUser(Client client, String username, String password, String roles) {
+        this.username = username;
         this.client = client;
         this.password = password;
         this.roles = roles;
@@ -81,25 +89,10 @@ public class ClientUser extends BaseObject {
      * Represent a meaningful name. Nickname comes first.
      */
     public String getName() {
-        return StringUtils.isNotBlank(nickname) ? nickname : id.username;
+        return StringUtils.isNotBlank(nickname) ? nickname : username;
     }
 
     public boolean isDefaultUser() {
         return roles.contains(SecurityConfig.Role.ADMIN_ROLE);
-    }
-
-    /**
-     * https://www.baeldung.com/jpa-composite-primary-keys
-     */
-    @Embeddable
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class ClientUserId implements Serializable {
-
-        private String username;
-
-        // todo: this should be renamed to clientUsername to avoid confusion.
-        private String clientId;
     }
 }

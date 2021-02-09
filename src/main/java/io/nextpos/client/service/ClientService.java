@@ -15,6 +15,8 @@ public interface ClientService extends UserDetailsService {
 
     Client authenticateClient(String clientId, String password);
 
+    void updateUsernameForClient(Client client, String username, String password);
+
     ClientUser updateClientUserPassword(Client client, ClientUser clientUser, String newPassword);
 
     void updateDefaultClientUserPassword(Client client, String newPassword);

@@ -4,13 +4,12 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.client.web.model.ClientResponse;
 import io.nextpos.client.web.model.ClientsResponse;
+import io.nextpos.client.web.model.UpdateClientUsernameRequest;
 import io.nextpos.ordermanagement.data.OrderIdCounter;
 import io.nextpos.ordermanagement.service.OrderCounterService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -55,5 +54,12 @@ public class ClientAdminController {
         }
         
         return clientResponse;
+    }
+
+    @PatchMapping("/{id}/username")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateClientUsername(@PathVariable String id, @RequestBody UpdateClientUsernameRequest request) {
+
+        clientService.getClient(id).ifPresent(c -> clientService.updateUsernameForClient(c, request.getNewUsername(), request.getPassword()));
     }
 }

@@ -39,7 +39,7 @@ public class UserRole extends BaseObject implements ClientObject {
     @OneToMany(mappedBy = "userRole", cascade = CascadeType.MERGE)
     @MapKey
     @Fetch(FetchMode.SUBSELECT)
-    private Map<ClientUser.ClientUserId, ClientUser> clientUsers = new HashMap<>();
+    private Map<String, ClientUser> clientUsers = new HashMap<>();
 
     /**
      * Stores the permission bundles for role screen rendering.

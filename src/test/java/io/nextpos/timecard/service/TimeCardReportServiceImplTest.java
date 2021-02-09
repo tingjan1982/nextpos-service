@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
@@ -93,11 +92,10 @@ class TimeCardReportServiceImplTest {
     @Test
     void getTimeCardReport_CheckEnhanceResult() {
 
-        final Instant now = Instant.now();
         createUserTimeCard("zoe", LocalDateTime.now(), LocalDateTime.now().plusDays(1));
-        final ClientUser user1 = new ClientUser(new ClientUser.ClientUserId("sig", client.getUsername()), client,"1qaz2wsx", "USER");
+        final ClientUser user1 = new ClientUser(client, "sig", "1qaz2wsx", "USER");
         clientService.saveClientUser(user1);
-        final ClientUser user2 = new ClientUser(new ClientUser.ClientUserId("ada", client.getUsername()), client,"1qaz2wsx", "USER");
+        final ClientUser user2 = new ClientUser(client, "ada", "1qaz2wsx", "USER");
         clientService.saveClientUser(user2);
 
         final TimeCardReport result = timeCardReportService.getTimeCardReport(client, YearMonth.now());

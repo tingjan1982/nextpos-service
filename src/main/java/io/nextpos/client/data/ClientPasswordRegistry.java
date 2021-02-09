@@ -31,7 +31,7 @@ public class ClientPasswordRegistry extends BaseObject {
     @ElementCollection(fetch = FetchType.EAGER)
     @MapKeyColumn(name = "username")
     @Column(name = "password")
-    @CollectionTable(name = "client_used_passwords", joinColumns = @JoinColumn(name = "client_id"))
+    @CollectionTable(joinColumns = @JoinColumn(name = "client_id"))
     private Map<String, String> passwords = new HashMap<>();
 
     public ClientPasswordRegistry(Client client) {

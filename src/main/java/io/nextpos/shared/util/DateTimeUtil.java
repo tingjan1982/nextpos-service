@@ -26,6 +26,6 @@ public class DateTimeUtil {
     }
 
     public static boolean dateEquals(LocalDateTime date1, LocalDateTime date2) {
-        return date1.compareTo(date2) == 0;
+        return date1 != null && date2 != null && date1.compareTo(date2) == 0;
     }
 }

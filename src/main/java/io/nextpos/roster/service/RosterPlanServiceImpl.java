@@ -78,6 +78,6 @@ public class RosterPlanServiceImpl implements RosterPlanService {
     }
 
     private CalendarEvent.EventResource toEventResource(ClientUser clientUser) {
-        return new CalendarEvent.EventResource(clientUser.getId().getUsername(), CalendarEvent.ResourceType.STAFF);
+        return new CalendarEvent.EventResource(clientUser.getId(), CalendarEvent.ResourceType.STAFF);
     }
 }
