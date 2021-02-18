@@ -84,6 +84,8 @@ public class Shift extends MongoBaseObject {
 
     public void addDeletedLineItem(Order order, OrderLineItem orderLineItem, String username) {
 
+        this.removeDeletedLineItem(orderLineItem);
+
         final DeletedLineItem deletedLineItem = new DeletedLineItem(order.getId(),
                 orderLineItem.getId(),
                 orderLineItem.getProductSnapshot().getName(),

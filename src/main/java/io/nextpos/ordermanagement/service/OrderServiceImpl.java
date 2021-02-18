@@ -199,21 +199,21 @@ public class OrderServiceImpl implements OrderService {
     @WebSocketClientOrder
     public Order updateOrderLineItemPrice(Order order, String lineItemId, BigDecimal overridePrice) {
 
-        order.productSetOrder().updateOrderLineItem(lineItemId, (lineItem) -> {
-            lineItem.removeOffer();
-            lineItem.getProductSnapshot().setOverridePrice(overridePrice);
-
-            final String username = authenticationHelper.resolveCurrentUsername();
-            final Shift activeShift = shiftService.getActiveShiftOrThrows(order.getClientId());
-
-            if (overridePrice.compareTo(BigDecimal.ZERO) == 0) {
-                activeShift.addDeletedLineItem(order, lineItem, username);
-            } else {
-                activeShift.removeDeletedLineItem(lineItem);
-            }
-
-            shiftService.saveShift(activeShift);
+        final OrderLineItem lineItem = order.productSetOrder().updateOrderLineItem(lineItemId, (li) -> {
+            li.removeOffer();
+            li.getProductSnapshot().setOverridePrice(overridePrice);
         });
+
+        final String username = authenticationHelper.resolveCurrentUsername();
+        final Shift activeShift = shiftService.getActiveShiftOrThrows(order.getClientId());
+
+        if (overridePrice.compareTo(BigDecimal.ZERO) == 0) {
+            activeShift.addDeletedLineItem(order, lineItem, username);
+        } else {
+            activeShift.removeDeletedLineItem(lineItem);
+        }
+
+        shiftService.saveShift(activeShift);
 
         return orderRepository.save(order);
     }

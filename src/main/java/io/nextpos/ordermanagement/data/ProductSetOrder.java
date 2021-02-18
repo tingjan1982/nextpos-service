@@ -47,10 +47,12 @@ public class ProductSetOrder implements OrderLineItemOperation {
     }
 
     @Override
-    public void updateOrderLineItem(String lineItemId, Consumer<OrderLineItem> updateOperation) {
+    public OrderLineItem updateOrderLineItem(String lineItemId, Consumer<OrderLineItem> updateOperation) {
 
         final OrderLineItem orderLineItem = order.getOrderLineItem(lineItemId);
         this.updateOrderLineItem(orderLineItem, updateOperation);
+
+        return orderLineItem;
     }
 
     @Override

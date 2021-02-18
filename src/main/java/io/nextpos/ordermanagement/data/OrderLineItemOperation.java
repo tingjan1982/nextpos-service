@@ -8,7 +8,7 @@ public interface OrderLineItemOperation {
 
     void addSplitOrderLineItem(OrderLineItem sourceOrderLineItem, Order sourceOrder);
 
-    void updateOrderLineItem(String lineItemId, Consumer<OrderLineItem> updateOperation);
+    OrderLineItem updateOrderLineItem(String lineItemId, Consumer<OrderLineItem> updateOperation);
 
     void updateOrderLineItem(OrderLineItem orderLineItem, Consumer<OrderLineItem> updateOperation);
 

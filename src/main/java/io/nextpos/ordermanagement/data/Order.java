@@ -260,6 +260,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
             return false;
         }
 
+        if (existingLineItem.getProductSnapshot().getOverridePrice() != null) {
+            return false;
+        }
+
         if (orderLineItem.getProductSnapshot().getOverridePrice() != null && StringUtils.isBlank(orderLineItem.getAssociatedLineItemId())) {
             return false;
         }
@@ -281,10 +285,12 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     }
 
     @Override
-    public void updateOrderLineItem(String lineItemId, Consumer<OrderLineItem> updateOperation) {
+    public OrderLineItem updateOrderLineItem(String lineItemId, Consumer<OrderLineItem> updateOperation) {
 
         final OrderLineItem orderLineItem = this.getOrderLineItem(lineItemId);
         this.updateOrderLineItem(orderLineItem, updateOperation);
+
+        return orderLineItem;
     }
 
     @Override
