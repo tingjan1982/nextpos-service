@@ -16,16 +16,12 @@ public class PrinterResponse {
 
     private String ipAddress;
 
-    @Deprecated
-    private Printer.ServiceType serviceType;
-
     private Set<Printer.ServiceType> serviceTypes;
 
     public PrinterResponse(Printer printer) {
         id = printer.getId();
         name = printer.getName();
         ipAddress = printer.getIpAddress();
-        serviceType = printer.getServiceType();
         serviceTypes = printer.getServiceTypes();
 
     }

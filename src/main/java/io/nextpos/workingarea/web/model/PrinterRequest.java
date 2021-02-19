@@ -1,6 +1,5 @@
 package io.nextpos.workingarea.web.model;
 
-import io.nextpos.shared.model.validator.ValidEnum;
 import io.nextpos.shared.model.validator.ValidIpAddress;
 import io.nextpos.workingarea.data.Printer;
 import lombok.AllArgsConstructor;
@@ -21,13 +20,6 @@ public class PrinterRequest {
 
     @ValidIpAddress
     private String ipAddress;
-
-    /**
-     * Use serviceTypes instead.
-     */
-    @Deprecated
-    @ValidEnum(enumType = Printer.ServiceType.class)
-    private String serviceType;
 
     private Set<Printer.ServiceType> serviceTypes = new HashSet<>();
 

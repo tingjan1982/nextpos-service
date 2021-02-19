@@ -12,7 +12,6 @@ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Disabled
@@ -44,8 +43,8 @@ public class UpdatePrinterServiceTypes {
         printerRepository.findAll().forEach(p -> {
             count.incrementAndGet();
             LOGGER.info("Found printer {}", p.getName());
-            p.setServiceTypes(Set.of(p.getServiceType()));
-            LOGGER.info("Check printer service type: {}", p.getServiceType() == p.getServiceTypes().iterator().next());
+//            p.setServiceTypes(Set.of(p.getServiceType()));
+//            LOGGER.info("Check printer service type: {}", p.getServiceType() == p.getServiceTypes().iterator().next());
 
             // it seems like if record is modified within a transaction, changes will be flushed and persisted without explicit save.
             //printerRepository.save(p);

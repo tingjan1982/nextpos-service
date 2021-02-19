@@ -148,9 +148,6 @@ public class WorkingAreaController {
                 printerRequest.getIpAddress(),
                 printerRequest.getServiceTypes());
 
-        final Printer.ServiceType serviceType = Printer.ServiceType.valueOf(printerRequest.getServiceType());
-        printer.setServiceType(serviceType);
-
         return printer;
     }
 
@@ -203,7 +200,6 @@ public class WorkingAreaController {
         printer.setName(printerRequest.getName());
         printer.setIpAddress(printerRequest.getIpAddress());
         printer.replaceServiceTypes(printerRequest.getServiceTypes());
-        printer.setServiceType(Printer.ServiceType.valueOf(printerRequest.getServiceType()));
     }
 
     private PrinterResponse toPrinterResponse(final Printer printer) {

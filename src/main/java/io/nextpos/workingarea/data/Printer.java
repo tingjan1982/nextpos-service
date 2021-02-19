@@ -35,9 +35,6 @@ public class Printer extends BaseObject implements ClientObject {
 
     private String ipAddress;
 
-    @Deprecated
-    private ServiceType serviceType;
-
     @ElementCollection(fetch = FetchType.EAGER)
     @Fetch(FetchMode.SUBSELECT)
     @CollectionTable(joinColumns = @JoinColumn(name = "printer_id"))
