@@ -33,7 +33,7 @@ public class CalendarEventsResponse {
                 .map(e -> {
                     final LocalDate date = DateTimeUtil.toLocalDateTime(zoneId, e.getStartTime()).toLocalDate();
                     return e.getEventResources().stream()
-                            .map(er -> new SingleResourceEvent(date, er.getResourceId(), e))
+                            .map(er -> new SingleResourceEvent(date, er.getResourceName(), e))
                             .collect(Collectors.toList());
                 })
                 .flatMap(Collection::stream)
