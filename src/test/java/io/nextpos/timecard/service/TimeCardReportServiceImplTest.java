@@ -107,7 +107,7 @@ class TimeCardReportServiceImplTest {
 
     void createUserTimeCard(String username, LocalDateTime clockIn, LocalDateTime clockOut) {
 
-        UserTimeCard userTimeCard = new UserTimeCard(client.getId(), username, null);
+        UserTimeCard userTimeCard = ObjectHelper.testTimeCard(client.getId(), username);
         userTimeCard.setClockIn(DateTimeUtil.toDate(client.getZoneId(), clockIn));
         userTimeCard.setClockOut(DateTimeUtil.toDate(client.getZoneId(), clockOut));
 

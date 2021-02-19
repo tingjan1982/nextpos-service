@@ -38,7 +38,7 @@ public class TimeCardReportServiceImpl implements TimeCardReportService {
     public TimeCardReport getTimeCardReport(final Client client, final YearMonth yearMonth) {
 
         ProjectionOperation projection = Aggregation.project("clientId")
-                .and("username").as("username")
+                .and("userId").as("userId")
                 .and("nickname").as("nickname")
                 .and("clockIn").as("clockIn")
                 .and("clockOut").as("clockOut")
@@ -52,7 +52,7 @@ public class TimeCardReportServiceImpl implements TimeCardReportService {
                 .and("clockIn").gte(fromDate).lt(toDate));
 
         final SortOperation sortByClockIn = Aggregation.sort(Sort.Direction.DESC, "clockIn");
-        final AggregationOperation userTimeCards = Aggregation.group("username")
+        final AggregationOperation userTimeCards = Aggregation.group("userId")
                 .first("nickname").as("nickname")
                 .count().as("totalShifts")
                 .sum("hour").as("totalHours");
@@ -82,11 +82,11 @@ public class TimeCardReportServiceImpl implements TimeCardReportService {
                 .collect(Collectors.toMap(TimeCardReport.UserShift::getId, t -> t));
 
         clientUsers.forEach(u -> {
-            final TimeCardReport.UserShift emptyUserShift = new TimeCardReport.UserShift(u.getUsername(),
+            final TimeCardReport.UserShift emptyUserShift = new TimeCardReport.UserShift(u.getId(),
                     u.getNickname(),
                     0,
                     BigDecimal.ZERO);
-            userShifts.putIfAbsent(u.getUsername(), emptyUserShift);
+            userShifts.putIfAbsent(u.getId(), emptyUserShift);
         });
 
         final List<TimeCardReport.UserShift> sortedUserTimeCards = new ArrayList<>(userShifts.values());

@@ -9,11 +9,22 @@ import java.util.List;
 @AllArgsConstructor
 public class ClientUserResponse {
 
+    private String id;
+
+    /**
+     * Used for display purpose.
+     */
+    private String displayName;
+
+    /**
+     * This is used for edit user screen.
+     */
     private String nickname;
 
+    /**
+     * This is used for authentication.
+     */
     private String username;
-
-    private String displayName;
 
     private String encryptedPassword;
 

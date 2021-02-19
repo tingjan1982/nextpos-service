@@ -26,6 +26,8 @@ public class ClientResponse {
 
     private final String timezone;
 
+    private final Client.ClientType clientType;
+
     private final Client.Status status;
 
     private final Map<String, String> attributes;
@@ -44,6 +46,7 @@ public class ClientResponse {
         encryptedPassword = client.getMasterPassword();
         country = client.getCountryCode();
         timezone = client.getTimezone();
+        clientType = client.getClientType();
         status = client.getStatus();
         attributes = client.getAttributes();
 

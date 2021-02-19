@@ -86,8 +86,7 @@ public class ClientServiceImpl implements ClientService {
                 .map(GrantedAuthority::getAuthority).collect(Collectors.joining(","));
 
         // client's default user will use email as the username.
-        final ClientUser defaultClientUser = new ClientUser(client, client.getUsername(), plainPassword, roles);
-        defaultClientUser.setNickname(client.getClientName());
+        final ClientUser defaultClientUser = new ClientUser(client, client.getUsername(), client.getClientName(), plainPassword, roles);
         defaultClientUser.setPermissions(permissions);
 
         this.createClientUser(defaultClientUser);

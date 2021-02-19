@@ -243,7 +243,7 @@ public class ClientController {
     private ClientUser fromClientUserRequest(Client client, ClientUserRequest clientUserRequest) {
 
         final String roles = String.join(",", clientUserRequest.getRoles());
-        final ClientUser clientUser = new ClientUser(client, clientUserRequest.getUsername(), clientUserRequest.getPassword(), roles);
+        final ClientUser clientUser = new ClientUser(client, clientUserRequest.getUsername().trim().toLowerCase(), clientUserRequest.getPassword(), roles);
 
         if (StringUtils.isNotBlank(clientUserRequest.getNickname())) {
             clientUser.setNickname(clientUserRequest.getNickname().trim());
@@ -359,9 +359,10 @@ public class ClientController {
     private ClientUserResponse toClientUserResponse(ClientUser clientUser) {
 
         final List<String> roles = Arrays.asList(clientUser.getRoles().split(","));
-        return new ClientUserResponse(clientUser.getNickname(),
-                clientUser.getUsername(),
+        return new ClientUserResponse(clientUser.getId(),
                 clientUser.getName(),
+                clientUser.getNickname(),
+                clientUser.getUsername(),
                 clientUser.getPassword(),
                 roles,
                 clientUser.getUserRole() != null ? clientUser.getUserRole().getId() : null,

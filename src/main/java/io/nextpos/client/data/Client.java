@@ -46,6 +46,9 @@ public class Client extends BaseObject {
     private String timezone;
 
     @Enumerated(EnumType.STRING)
+    private ClientType clientType;
+
+    @Enumerated(EnumType.STRING)
     private Status status = Status.PENDING_ACTIVE;
 
     @OneToOne(mappedBy = "client", cascade = CascadeType.ALL)
@@ -235,5 +238,9 @@ public class Client extends BaseObject {
          * Used to encrypt QR code content
          */
         AES_KEY
+    }
+
+    public enum ClientType {
+        FOOD_BEVERAGE, RETAIL
     }
 }

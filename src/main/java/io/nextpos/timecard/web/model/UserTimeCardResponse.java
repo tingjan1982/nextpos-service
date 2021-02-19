@@ -15,9 +15,19 @@ public class UserTimeCardResponse {
 
     private String id;
 
+    /**
+     * todo: Remove in the future when frontend remove its use.
+     */
+    @Deprecated
     private String username;
 
+    /**
+     * todo: Remove in the future when frontend remove its use.
+     */
+    @Deprecated
     private String nickname;
+
+    private String displayName;
 
     private Date clockIn;
 
@@ -37,6 +47,7 @@ public class UserTimeCardResponse {
         id = userTimeCard.getId();
         username = userTimeCard.getUsername();
         nickname = userTimeCard.getNickname();
+        displayName = userTimeCard.getNickname();
         clockIn = userTimeCard.getClockIn();
         clockOut = userTimeCard.getClockOut();
         timeCardStatus = userTimeCard.getTimeCardStatus();

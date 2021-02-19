@@ -38,9 +38,13 @@ public class ClientUser extends BaseObject {
     @EqualsAndHashCode.Exclude
     private Client client;
 
+    /**
+     * This exists solely for the convenience of frontend passing username value as id for authentication.
+     */
     @Column(nullable = false)
     private String username;
 
+    //@Column(nullable = false)
     private String nickname;
 
     private String password;
@@ -62,9 +66,19 @@ public class ClientUser extends BaseObject {
     @Column(length = 1000)
     private String permissions;
 
+    @Deprecated
     public ClientUser(Client client, String username, String password, String roles) {
         this.username = username;
+        this.nickname = username;
         this.client = client;
+        this.password = password;
+        this.roles = roles;
+    }
+
+    public ClientUser(Client client, String username, String nickname, String password, String roles) {
+        this.client = client;
+        this.username = username;
+        this.nickname = nickname;
         this.password = password;
         this.roles = roles;
     }
@@ -86,7 +100,7 @@ public class ClientUser extends BaseObject {
 
 
     /**
-     * Represent a meaningful name. Nickname comes first.
+     * Represent a meaningful name. todo: change to return nickname when ClientUserRequest.nickname has NotBlank validation.
      */
     public String getName() {
         return StringUtils.isNotBlank(nickname) ? nickname : username;

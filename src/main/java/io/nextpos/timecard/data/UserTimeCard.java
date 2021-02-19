@@ -27,6 +27,11 @@ public class UserTimeCard extends MongoBaseObject implements WithClientId {
 
     private String clientId;
 
+    /**
+     * i.e. ClientUser.id
+     */
+    private String userId;
+
     private String username;
 
     private String nickname;
@@ -40,8 +45,9 @@ public class UserTimeCard extends MongoBaseObject implements WithClientId {
     @DBRef
     private CalendarEvent matchedRoster;
 
-    public UserTimeCard(final String clientId, final String username, final String nickname) {
+    public UserTimeCard(String clientId, String userId, String username, String nickname) {
         this.clientId = clientId;
+        this.userId = userId;
         this.username = username;
         this.nickname = nickname;
 

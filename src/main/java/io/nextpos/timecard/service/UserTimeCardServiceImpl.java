@@ -49,7 +49,7 @@ public class UserTimeCardServiceImpl implements UserTimeCardService {
         }
 
         final ClientUser clientUser = clientService.getCurrentClientUser(client);
-        final UserTimeCard userTimeCard = new UserTimeCard(client.getId(), clientUser.getUsername(), clientUser.getNickname());
+        final UserTimeCard userTimeCard = new UserTimeCard(client.getId(), clientUser.getId(), clientUser.getUsername(), clientUser.getNickname());
         userTimeCard.clockIn();
 
         final List<CalendarEvent> clientUserRosters = rosterPlanService.getTodaysClientUserRosterEvents(client, clientUser);
@@ -93,7 +93,7 @@ public class UserTimeCardServiceImpl implements UserTimeCardService {
         return userTimeCardRepository.findFirstByClientIdAndUsernameOrderByCreatedDateDesc(client.getId(), username).orElseGet(() -> {
 
             final ClientUser clientUser = clientService.getCurrentClientUser(client);
-            final UserTimeCard card = new UserTimeCard(client.getId(), clientUser.getUsername(), clientUser.getNickname());
+            final UserTimeCard card = new UserTimeCard(client.getId(), clientUser.getId(), clientUser.getUsername(), clientUser.getNickname());
             card.setTimeCardStatus(UserTimeCard.TimeCardStatus.INACTIVE);
 
             return card;
