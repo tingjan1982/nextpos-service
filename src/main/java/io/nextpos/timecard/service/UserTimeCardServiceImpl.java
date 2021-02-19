@@ -108,11 +108,11 @@ public class UserTimeCardServiceImpl implements UserTimeCardService {
     }
 
     @Override
-    public List<UserTimeCard> getUserTimeCardsByYearMonth(Client client, String username, YearMonth yearMonth) {
+    public List<UserTimeCard> getUserTimeCardsByYearMonth(Client client, String userId, YearMonth yearMonth) {
 
-        return userTimeCardRepository.findAllByClientIdAndUsernameAndClockInDateRange(
+        return userTimeCardRepository.findAllByClientIdAndUserIdAndClockInDateRange(
                 client.getId(),
-                username,
+                userId,
                 yearMonth.atDay(1),
                 yearMonth.atEndOfMonth().plusDays(1),
                 Sort.by(Sort.Direction.ASC, "clockIn")

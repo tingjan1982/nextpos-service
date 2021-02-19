@@ -16,5 +16,5 @@ public interface UserTimeCardService {
 
     UserTimeCard getUserTimeCardById(String id);
 
-    List<UserTimeCard> getUserTimeCardsByYearMonth(Client client, String username, YearMonth yearMonth);
+    List<UserTimeCard> getUserTimeCardsByYearMonth(Client client, String userId, YearMonth yearMonth);
 }
