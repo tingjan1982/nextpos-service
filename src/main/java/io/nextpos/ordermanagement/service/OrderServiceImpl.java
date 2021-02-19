@@ -207,7 +207,7 @@ public class OrderServiceImpl implements OrderService {
         final String username = authenticationHelper.resolveCurrentUsername();
         final Shift activeShift = shiftService.getActiveShiftOrThrows(order.getClientId());
 
-        if (overridePrice.compareTo(BigDecimal.ZERO) == 0) {
+        if (overridePrice != null && overridePrice.compareTo(BigDecimal.ZERO) == 0) {
             activeShift.addDeletedLineItem(order, lineItem, username);
         } else {
             activeShift.removeDeletedLineItem(lineItem);
