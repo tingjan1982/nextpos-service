@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -77,14 +76,12 @@ public class ProductLabelServiceImpl implements ProductLabelService {
                 .peek(p -> p.setWorkingArea(productLabel.getWorkingArea()))
                 .collect(Collectors.toList());
 
-        if (!CollectionUtils.isEmpty(productLabel.getProductOptionOfLabels())) {
-            final ProductOption[] productOptions = productLabel.getProductOptionOfLabels().stream()
-                    .map(ProductOptionRelation.ProductOptionOfLabel::getProductOption).toArray(ProductOption[]::new);
+        final ProductOption[] productOptions = productLabel.getProductOptionOfLabels().stream()
+                .map(ProductOptionRelation.ProductOptionOfLabel::getProductOption).toArray(ProductOption[]::new);
 
-            LOGGER.info("Applying {} product options to {} products belong to product label: {}", productOptions.length, productsToUpdate.size(), productLabel.getName());
+        LOGGER.info("Applying {} product options to {} products belong to product label: {}", productOptions.length, productsToUpdate.size(), productLabel.getName());
 
-            productsToUpdate.forEach(p -> p.replaceProductOptions(productOptions));
-        }
+        productsToUpdate.forEach(p -> p.replaceProductOptions(productOptions));
 
         LOGGER.info("Saving {} product changes after applying product label changes.", productsToUpdate.size());
 

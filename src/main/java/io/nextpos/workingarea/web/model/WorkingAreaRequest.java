@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Positive;
 import java.util.List;
 
 @Data
@@ -17,8 +16,7 @@ public class WorkingAreaRequest {
     @NotEmpty
     private String name;
 
-    @Positive
-    private int noOfPrintCopies;
+    private int noOfPrintCopies = 1;
 
     private WorkingArea.Visibility visibility = WorkingArea.Visibility.ALL;
 

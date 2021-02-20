@@ -68,7 +68,15 @@ public class OrderLineItem implements OfferApplicableObject {
 
     public String getProductOptions() {
         return this.getProductSnapshot().getProductOptions().stream()
-                .map(po -> String.format("%s: %s ($%s)", po.getOptionName(), po.getOptionValue(), po.getOptionPrice()))
+                .map(po -> {
+                    final StringBuilder option = new StringBuilder(po.getOptionValue());
+
+                    if (po.getOptionPrice().compareTo(BigDecimal.ZERO) != 0) {
+                        option.append("$").append(po.getOptionPrice());
+                    }
+
+                    return option.toString();
+                })
                 .collect(Collectors.joining(", "));
     }
 
