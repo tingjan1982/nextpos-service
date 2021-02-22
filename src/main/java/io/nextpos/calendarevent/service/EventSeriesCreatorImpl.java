@@ -5,7 +5,6 @@ import io.nextpos.calendarevent.data.CalendarEventRepository;
 import io.nextpos.calendarevent.data.CalendarEventSeries;
 import io.nextpos.calendarevent.data.CalendarEventSeriesRepository;
 import io.nextpos.calendarevent.service.bean.EventRepeatObject;
-import io.nextpos.client.data.Client;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.util.DateTimeUtil;
 import org.springframework.stereotype.Component;
@@ -29,13 +28,13 @@ public class EventSeriesCreatorImpl implements EventSeriesCreator {
     }
 
     @Override
-    public List<CalendarEvent> createEventSeriesEvent(Client client, CalendarEvent baseCalendarEvent, EventRepeatObject eventRepeatObj) {
+    public List<CalendarEvent> createEventSeriesEvent(CalendarEvent baseCalendarEvent, EventRepeatObject eventRepeatObj) {
 
-        final ZoneId zoneId = client.getZoneId();
+        final ZoneId zoneId = baseCalendarEvent.getZoneId();
         CalendarEventSeries.EventRepeat eventRepeat = eventRepeatObj.getEventRepeat();
         LocalDateTime repeatEndDate = resolveRepeatEndDate(baseCalendarEvent, eventRepeatObj.getRepeatEndDate());
 
-        final CalendarEventSeries calendarEventSeries = new CalendarEventSeries(client.getId(), client.getZoneId(), eventRepeat, repeatEndDate);
+        final CalendarEventSeries calendarEventSeries = new CalendarEventSeries(baseCalendarEvent, eventRepeat, repeatEndDate);
         calendarEventSeriesRepository.save(calendarEventSeries);
 
         List<CalendarEvent> calendarEvents = new ArrayList<>();
@@ -53,7 +52,7 @@ public class EventSeriesCreatorImpl implements EventSeriesCreator {
             final CalendarEvent copiedCalendarEvent = baseCalendarEvent.copy(
                     DateTimeUtil.toDate(zoneId, nextStartTime),
                     DateTimeUtil.toDate(zoneId, nextEndTime));
-            copiedCalendarEvent.setEventSeries(calendarEventSeries);
+
             calendarEvents.add(this.saveCalendarEvent(copiedCalendarEvent));
         }
 

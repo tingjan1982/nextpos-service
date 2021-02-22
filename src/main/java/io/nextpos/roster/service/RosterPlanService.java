@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface RosterPlanService {
 
-    List<CalendarEvent> createRosterEvent(Client client, CalendarEvent baseCalendarEvent, EventRepeatObject eventRepeatObject);
+    List<CalendarEvent> createRosterEvent(CalendarEvent baseCalendarEvent, EventRepeatObject eventRepeatObject);
 
     List<CalendarEvent> getRosterEvents(Client client, YearMonth yearMonth);
 
@@ -19,11 +19,11 @@ public interface RosterPlanService {
 
     CalendarEvent getRosterEvent(String id);
 
-    List<CalendarEvent> updateRosterEvent(Client client, CalendarEvent calendarEvent, UpdateCalendarEventObject updateRosterEvent);
+    List<CalendarEvent> updateRosterEvent(CalendarEvent calendarEvent, UpdateCalendarEventObject updateRosterEvent);
 
     CalendarEvent updateSelfRosterEventResources(CalendarEvent calendarEvent, String username, List<CalendarEvent.EventResource> eventResources);
 
-    CalendarEvent updateRosterEventResources(CalendarEvent calendarEvent, List<CalendarEvent.EventResource> eventResources, boolean applyToSeries);
+    List<CalendarEvent> updateRosterEventResources(CalendarEvent calendarEvent, List<CalendarEvent.EventResource> eventResources, boolean applyToSeries);
 
     void deleteRosterEvent(String id, boolean applyToSeries);
 }

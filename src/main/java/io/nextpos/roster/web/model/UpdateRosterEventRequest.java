@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -18,6 +17,7 @@ public class UpdateRosterEventRequest {
     @NotBlank
     private String eventName;
 
+    @NotNull
     private CalendarEventSeries.EventRepeat eventRepeat;
 
     private LocalDateTime repeatEndDate;
@@ -30,7 +30,10 @@ public class UpdateRosterEventRequest {
 
     private String eventColor;
 
-    private Map<String, List<String>> workingAreaToUsernames = new HashMap<>();
+    /**
+     * null indicates do not change event resource.
+     */
+    private Map<String, List<String>> workingAreaToUsernames;
 
     private boolean applyToSeries;
 }

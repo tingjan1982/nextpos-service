@@ -28,8 +28,8 @@ public class RosterPlanServiceImpl implements RosterPlanService {
     }
 
     @Override
-    public List<CalendarEvent> createRosterEvent(Client client, CalendarEvent baseCalendarEvent, EventRepeatObject eventRepeatObject) {
-        return calendarEventService.createCalendarEvent(client, baseCalendarEvent, eventRepeatObject);
+    public List<CalendarEvent> createRosterEvent(CalendarEvent baseCalendarEvent, EventRepeatObject eventRepeatObject) {
+        return calendarEventService.createCalendarEvent(baseCalendarEvent, eventRepeatObject);
     }
 
     @Override
@@ -57,8 +57,8 @@ public class RosterPlanServiceImpl implements RosterPlanService {
     }
 
     @Override
-    public List<CalendarEvent> updateRosterEvent(Client client, CalendarEvent calendarEvent, UpdateCalendarEventObject updateRosterEvent) {
-        return calendarEventService.updateCalendarEvent(client, calendarEvent, updateRosterEvent);
+    public List<CalendarEvent> updateRosterEvent(CalendarEvent calendarEvent, UpdateCalendarEventObject updateRosterEvent) {
+        return calendarEventService.updateCalendarEvent(calendarEvent, updateRosterEvent);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class RosterPlanServiceImpl implements RosterPlanService {
     }
 
     @Override
-    public CalendarEvent updateRosterEventResources(CalendarEvent calendarEvent, List<CalendarEvent.EventResource> eventResources, boolean applyToSeries) {
+    public List<CalendarEvent> updateRosterEventResources(CalendarEvent calendarEvent, List<CalendarEvent.EventResource> eventResources, boolean applyToSeries) {
         return calendarEventService.updateEventResources(calendarEvent, eventResources, applyToSeries);
     }
 

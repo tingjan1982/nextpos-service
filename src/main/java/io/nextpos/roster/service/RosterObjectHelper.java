@@ -40,6 +40,10 @@ public class RosterObjectHelper {
 
     public List<CalendarEvent.EventResource> createRosterEventResources(Client client, Map<String, List<String>> workingAreaToUsernames) {
 
+        if (workingAreaToUsernames == null) {
+            return null;
+        }
+
         return workingAreaToUsernames.entrySet().stream()
                 .map(e -> e.getValue().stream()
                         .map(u -> {

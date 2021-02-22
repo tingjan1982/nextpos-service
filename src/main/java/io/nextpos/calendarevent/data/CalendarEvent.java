@@ -77,6 +77,10 @@ public class CalendarEvent extends MongoBaseObject {
         this.eventResources.clear();
     }
 
+    public CalendarEvent copy(LocalDateTime startTime, LocalDateTime endTime) {
+        return copy(DateTimeUtil.toDate(zoneId, startTime), DateTimeUtil.toDate(zoneId, endTime));
+    }
+
     public CalendarEvent copy(Date startTime, Date endTime) {
 
         final CalendarEvent copy = new CalendarEvent(this.clientId,
@@ -89,6 +93,7 @@ public class CalendarEvent extends MongoBaseObject {
 
         copy.setEventColor(this.eventColor);
         copy.setEventResources(this.eventResources);
+        copy.setEventSeries(this.eventSeries);
 
         return copy;
     }
@@ -109,6 +114,10 @@ public class CalendarEvent extends MongoBaseObject {
 
         setStartTime(DateTimeUtil.toDate(zoneId, startDt));
         setEndTime(DateTimeUtil.toDate(zoneId, endDt));
+    }
+
+    public LocalDate getLocalStartDate() {
+        return DateTimeUtil.toLocalDate(zoneId, startTime);
     }
 
     public enum EventType {
@@ -157,7 +166,7 @@ public class CalendarEvent extends MongoBaseObject {
     public static class EventResource {
 
         /**
-         * Can point to table id, product id or staff id
+         * Can point to table id, product id or user id
          */
         @EqualsAndHashCode.Include
         private String resourceId;

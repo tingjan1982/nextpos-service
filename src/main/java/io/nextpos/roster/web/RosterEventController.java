@@ -52,7 +52,7 @@ public class RosterEventController {
                                                     @Valid @RequestBody RosterEventRequest request) {
 
         final CalendarEvent calendarEvent = fromRosterEntryRequest(client, request);
-        final List<CalendarEvent> rosterEventSeries = rosterPlanService.createRosterEvent(client, calendarEvent, new EventRepeatObject(request.getEventRepeat(), request.getRepeatEndDate()));
+        final List<CalendarEvent> rosterEventSeries = rosterPlanService.createRosterEvent(calendarEvent, new EventRepeatObject(request.getEventRepeat(), request.getRepeatEndDate()));
 
         return toResponse(client, rosterEventSeries);
     }
@@ -98,7 +98,7 @@ public class RosterEventController {
         final CalendarEvent rosterEvent = rosterPlanService.getRosterEvent(id);
         final UpdateCalendarEventObject updateRosterEvent = updateFromRequest(client, rosterEvent, request);
 
-        final List<CalendarEvent> updatedCalendarEvents = rosterPlanService.updateRosterEvent(client, rosterEvent, updateRosterEvent);
+        final List<CalendarEvent> updatedCalendarEvents = rosterPlanService.updateRosterEvent(rosterEvent, updateRosterEvent);
 
         return toResponse(client, updatedCalendarEvents);
     }
@@ -111,8 +111,11 @@ public class RosterEventController {
         rosterEvent.setEventColor(request.getEventColor());
 
         final List<CalendarEvent.EventResource> rosterEventResources = rosterObjectHelper.createRosterEventResources(client, request.getWorkingAreaToUsernames());
-        rosterEvent.removeAllEventResources();
-        rosterEventResources.forEach(rosterEvent::addEventSource);
+
+        if (rosterEventResources != null) {
+            rosterEvent.removeAllEventResources();
+            rosterEventResources.forEach(rosterEvent::addEventSource);
+        }
 
         final long daysDiff = ChronoUnit.DAYS.between(rosterEvent.getStartTime().toInstant(), request.getStartTime().atZone(client.getZoneId()).toInstant());
         final EventRepeatObject eventRepeat = new EventRepeatObject(request.getEventRepeat(), request.getRepeatEndDate());
