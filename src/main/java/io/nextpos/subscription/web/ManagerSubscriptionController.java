@@ -5,14 +5,12 @@ import io.nextpos.client.service.ClientService;
 import io.nextpos.subscription.data.ClientSubscription;
 import io.nextpos.subscription.data.ClientSubscriptionInvoice;
 import io.nextpos.subscription.service.ClientSubscriptionService;
-import io.nextpos.subscription.web.model.ClientSubscriptionInvoiceResponse;
-import io.nextpos.subscription.web.model.ClientSubscriptionInvoicesResponse;
-import io.nextpos.subscription.web.model.ClientSubscriptionResponse;
-import io.nextpos.subscription.web.model.ClientSubscriptionsResponse;
+import io.nextpos.subscription.web.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,6 +41,15 @@ public class ManagerSubscriptionController {
                 .collect(Collectors.toList());
 
         return new ClientSubscriptionsResponse(results);
+    }
+
+    @PostMapping("/clientSubscriptions")
+    public ClientSubscriptionInvoiceResponse submitClientSubscription(@Valid @RequestBody ClientSubscriptionRequest request) {
+
+        final Client client = clientService.getClientOrThrows(request.getClientId());
+        final ClientSubscriptionInvoice invoice = clientSubscriptionService.createClientSubscription(client, request.toCreateClientSubscription());
+
+        return new ClientSubscriptionInvoiceResponse(invoice);
     }
 
     @GetMapping("/clientSubscriptions/{id}")
@@ -98,6 +105,18 @@ public class ManagerSubscriptionController {
                 .collect(Collectors.toList());
 
         return new ClientSubscriptionInvoicesResponse(results);
+    }
+
+    @GetMapping("/invoices/outstanding")
+    public ClientSubscriptionInvoicesResponse sendClientSubscriptionInvoice() {
+
+        final List<ClientSubscriptionInvoiceResponse> invoices = clientSubscriptionService.getClientSubscriptionInvoicesByStatuses(
+                List.of(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PENDING, ClientSubscriptionInvoice.SubscriptionInvoiceStatus.OVERDUE)).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+
+        return new ClientSubscriptionInvoicesResponse(invoices);
+
     }
 
     @PostMapping("/invoices/{invoiceIdentifier}/sendInvoice")

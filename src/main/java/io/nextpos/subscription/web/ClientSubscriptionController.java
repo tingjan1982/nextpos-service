@@ -10,6 +10,8 @@ import io.nextpos.subscription.web.model.ClientSubscriptionResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/clientSubscriptions")
 public class ClientSubscriptionController {
@@ -23,9 +25,9 @@ public class ClientSubscriptionController {
 
     @PostMapping
     public ClientSubscriptionResponse submitClientSubscription(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                               @RequestBody ClientSubscriptionRequest request) {
+                                                               @Valid @RequestBody ClientSubscriptionRequest request) {
 
-        final ClientSubscriptionInvoice invoice = clientSubscriptionService.createClientSubscription(client, request.getSubscriptionPlanId(), request.getPlanPeriod());
+        final ClientSubscriptionInvoice invoice = clientSubscriptionService.createClientSubscription(client, request.toCreateClientSubscription());
         final ClientSubscriptionResponse response = toResponse(invoice.getClientSubscription());
         response.setInvoiceIdentifier(invoice.getInvoiceIdentifier());
 

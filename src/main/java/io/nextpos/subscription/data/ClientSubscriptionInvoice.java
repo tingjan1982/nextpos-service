@@ -58,6 +58,10 @@ public class ClientSubscriptionInvoice extends MongoBaseObject {
 
 
     public ClientSubscriptionInvoice(ZoneId zoneId, ClientSubscription clientSubscription, Date validFrom) {
+        this(zoneId, clientSubscription, validFrom, false);
+    }
+
+    public ClientSubscriptionInvoice(ZoneId zoneId, ClientSubscription clientSubscription, Date validFrom, boolean renewal) {
 
         this.clientSubscription = clientSubscription;
         this.invoiceIdentifier = RandomStringUtils.randomNumeric(6);
@@ -69,7 +73,9 @@ public class ClientSubscriptionInvoice extends MongoBaseObject {
         this.validTo = Date.from(zonedValidTo.toInstant());
 
         this.dueAmount = clientSubscription.getSubscriptionPlanSnapshot().getTaxableAmount().newInstance();
-        this.dueAmount.calculate(clientSubscription.getPlanPrice().multiply(new BigDecimal(numberOfMonths)));
+        final BigDecimal discountAmount = renewal ? BigDecimal.ZERO : clientSubscription.getDiscountAmount();
+        final BigDecimal calculatedAmount = clientSubscription.getPlanPrice().multiply(new BigDecimal(numberOfMonths)).subtract(discountAmount);
+        this.dueAmount.calculate(calculatedAmount);
         this.dueDate = validFrom;
 
         this.status = SubscriptionInvoiceStatus.PENDING;

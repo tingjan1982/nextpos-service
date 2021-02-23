@@ -23,6 +23,8 @@ public class ClientSubscriptionResponse {
 
     private BigDecimal planPrice;
 
+    private BigDecimal discountAmount;
+
     private SubscriptionPlan.PlanPeriod planPeriod;
 
     private Date submittedDate;
@@ -43,6 +45,7 @@ public class ClientSubscriptionResponse {
         planName = clientSubscription.getSubscriptionPlanSnapshot().getPlanName();
         status = clientSubscription.getStatus();
         planPrice = clientSubscription.getPlanPrice();
+        discountAmount = clientSubscription.getDiscountAmount();
         planPeriod = clientSubscription.getPlanPeriod();
         submittedDate = clientSubscription.getSubmittedDate();
         planStartDate = clientSubscription.getPlanStartDate();
@@ -55,6 +58,7 @@ public class ClientSubscriptionResponse {
                 client.getId(),
                 "planName.free",
                 ClientSubscription.SubscriptionStatus.ACTIVE,
+                BigDecimal.ZERO,
                 BigDecimal.ZERO,
                 SubscriptionPlan.PlanPeriod.MONTHLY,
                 null,

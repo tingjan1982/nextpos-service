@@ -6,6 +6,7 @@ import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.subscription.data.*;
+import io.nextpos.subscription.service.bean.CreateClientSubscription;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,8 +69,9 @@ class ClientSubscriptionServiceImplTest {
     @Test
     void createAndActivateAndLapseClientSubscription() {
 
-        clientSubscriptionService.createClientSubscription(client, subscriptionPlan.getId(), SubscriptionPlan.PlanPeriod.MONTHLY);
-        final ClientSubscriptionInvoice clientSubscriptionInvoice = clientSubscriptionService.createClientSubscription(client, subscriptionPlan.getId(), SubscriptionPlan.PlanPeriod.MONTHLY);
+        final CreateClientSubscription createClientSubscription = new CreateClientSubscription(subscriptionPlan.getId(), SubscriptionPlan.PlanPeriod.MONTHLY, BigDecimal.ZERO);
+        clientSubscriptionService.createClientSubscription(client, createClientSubscription);
+        final ClientSubscriptionInvoice clientSubscriptionInvoice = clientSubscriptionService.createClientSubscription(client, createClientSubscription);
 
         final ClientSubscription clientSubscription = clientSubscriptionInvoice.getClientSubscription();
         assertThat(clientSubscription.getId()).isNotNull();

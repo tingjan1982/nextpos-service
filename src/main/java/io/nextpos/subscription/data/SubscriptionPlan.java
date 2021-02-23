@@ -57,7 +57,13 @@ public class SubscriptionPlan extends MongoBaseObject {
     }
 
     public PlanPrice getPlanPrice(PlanPeriod planPeriod) {
-        return planPrices.get(planPeriod);
+        PlanPrice planPrice = planPrices.get(planPeriod);
+
+        if (planPrice == null) {
+            planPrice = planPrices.get(PlanPeriod.MONTHLY);
+        }
+
+        return planPrice;
     }
 
     public void updateSubscriptionLimit(int userLimit, int deviceLimit, List<String> restrictedFeatures) {

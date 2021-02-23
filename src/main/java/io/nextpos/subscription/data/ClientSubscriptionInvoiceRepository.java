@@ -13,7 +13,7 @@ public interface ClientSubscriptionInvoiceRepository extends MongoRepository<Cli
 
     List<ClientSubscriptionInvoice> findAllByClientSubscription(ClientSubscription clientSubscription);
 
-    List<ClientSubscriptionInvoice> findAllByStatus(ClientSubscriptionInvoice.SubscriptionInvoiceStatus status);
+    List<ClientSubscriptionInvoice> findAllByStatusIn(List<ClientSubscriptionInvoice.SubscriptionInvoiceStatus> status);
 
     ClientSubscriptionInvoice findByInvoiceIdentifier(String invoiceIdentifier);
 }

@@ -3,6 +3,7 @@ package io.nextpos.subscription.data;
 import io.nextpos.shared.model.MongoBaseObject;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -12,6 +13,7 @@ import java.util.Date;
 @Document
 @Data
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class ClientSubscription extends MongoBaseObject {
 
     @Id
@@ -29,6 +31,11 @@ public class ClientSubscription extends MongoBaseObject {
 
     private SubscriptionPlan.PlanPeriod planPeriod;
 
+    /**
+     * Non-recurring discount amount.
+     */
+    private BigDecimal discountAmount;
+
     private Date submittedDate;
 
     /**
@@ -45,10 +52,15 @@ public class ClientSubscription extends MongoBaseObject {
     
 
     public ClientSubscription(String clientId, SubscriptionPlan subscriptionPlanSnapshot, SubscriptionPlan.PlanPeriod planPeriod) {
+        this(clientId, subscriptionPlanSnapshot, planPeriod, BigDecimal.ZERO);
+    }
+
+    public ClientSubscription(String clientId, SubscriptionPlan subscriptionPlanSnapshot, SubscriptionPlan.PlanPeriod planPeriod, BigDecimal discountAmount) {
         this.clientId = clientId;
         this.subscriptionPlanSnapshot = subscriptionPlanSnapshot;
         this.planPeriod = planPeriod;
         this.planPrice = subscriptionPlanSnapshot.getPlanPrice(planPeriod).getPlanMonthlyPrice();
+        this.discountAmount = discountAmount;
 
         this.status = SubscriptionStatus.SUBMITTED;
         this.submittedDate = new Date();
