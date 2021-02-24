@@ -4,6 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.client.web.model.ClientResponse;
 import io.nextpos.client.web.model.ClientsResponse;
+import io.nextpos.client.web.model.UpdateClientNameRequest;
 import io.nextpos.client.web.model.UpdateClientUsernameRequest;
 import io.nextpos.ordermanagement.data.OrderIdCounter;
 import io.nextpos.ordermanagement.service.OrderCounterService;
@@ -70,6 +71,17 @@ public class ClientAdminController {
                 c.setClientName(request.getNewClientName());
                 clientService.saveClient(c);
             }
+        });
+    }
+
+    @PatchMapping("/{id}/clientName")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateClientName(@PathVariable String id,
+                                 @Valid @RequestBody UpdateClientNameRequest request) {
+
+        clientService.getClient(id).ifPresent(c -> {
+            c.setClientName(request.getClientName());
+            clientService.saveClient(c);
         });
     }
 }
