@@ -13,6 +13,8 @@ public class UpdateClientUsernameRequest {
     @Email
     private String newUsername;
 
+    private String newClientName;
+
     @NotBlank
     private String password;
 }

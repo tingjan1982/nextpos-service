@@ -32,12 +32,16 @@ public class ExceptionResolver {
     @ResponseStatus(code = HttpStatus.NOT_FOUND)
     public ErrorResponse handleObjectNotFound(ObjectNotFoundException exception) {
 
+        LOGGER.error("{}", exception.getMessage(), exception);
+
         return ErrorResponse.simpleErrorResponse(exception.getMessage());
     }
 
     @ExceptionHandler(ObjectAlreadyExistsException.class)
     @ResponseStatus(code = HttpStatus.CONFLICT)
     public ErrorResponse handleObjectAlreadyExist(ObjectAlreadyExistsException exception) {
+
+        LOGGER.error("{}", exception.getMessage(), exception);
 
         return ErrorResponse.simpleErrorResponse("message.alreadyExists", exception.getMessage());
     }
@@ -46,12 +50,16 @@ public class ExceptionResolver {
     @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleConfigurationException(ConfigurationException exception) {
 
+        LOGGER.error("{}", exception.getMessage(), exception);
+
         return ErrorResponse.simpleErrorResponse(exception.getMessage());
     }
 
     @ExceptionHandler({GeneralApplicationException.class, ClientAccountException.class, ClientOwnershipViolationException.class})
     @ResponseStatus(code = HttpStatus.BAD_REQUEST)
     public ErrorResponse handleGeneralApplicationException(Exception exception) {
+
+        LOGGER.error("{}", exception.getMessage(), exception);
 
         return ErrorResponse.simpleErrorResponse(exception.getMessage());
     }
@@ -60,6 +68,8 @@ public class ExceptionResolver {
     @ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
     public ErrorResponse handleBusinessLogicException(BusinessLogicException exception) {
 
+        LOGGER.error("{}", exception.getMessage(), exception);
+        
         return ErrorResponse.simpleErrorResponse(exception.getLocalizedMessageKey(), exception.getMessage());
     }
 

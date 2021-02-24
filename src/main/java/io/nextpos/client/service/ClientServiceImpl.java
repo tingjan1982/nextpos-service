@@ -70,7 +70,7 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public Client createClient(final Client client) {
 
-        checkClientExists(client);
+        checkClientExists(client.getUsername());
 
         final ClientDetails clientDetails = toClientDetails(client);
         clientDetailsService.addClientDetails(clientDetails);
@@ -94,9 +94,9 @@ public class ClientServiceImpl implements ClientService {
         return savedClient;
     }
 
-    private void checkClientExists(final Client client) {
+    private void checkClientExists(String username) {
 
-        clientRepository.findByUsername(client.getUsername()).ifPresent(c -> {
+        clientRepository.findByUsername(username).ifPresent(c -> {
             throw new ObjectAlreadyExistsException(c.getId(), Client.class);
         });
     }
@@ -147,7 +147,8 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public void updateUsernameForClient(Client client, String username, String password) {
 
-        this.authenticateClient(client.getUsername(), password);
+        authenticateClient(client.getUsername(), password);
+        checkClientExists(username);
 
         final BaseClientDetails existingClientDetails = (BaseClientDetails) clientDetailsService.loadClientByClientId(client.getUsername());
         existingClientDetails.setClientId(username);
@@ -157,6 +158,7 @@ public class ClientServiceImpl implements ClientService {
 
         final ClientUser clientUser = this.getClientUser(client, client.getUsername());
         clientUser.setUsername(username);
+        clientUser.setPassword(password);
         this.saveClientUser(clientUser);
 
         client.setUsername(username);

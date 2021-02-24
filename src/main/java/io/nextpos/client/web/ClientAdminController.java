@@ -7,10 +7,12 @@ import io.nextpos.client.web.model.ClientsResponse;
 import io.nextpos.client.web.model.UpdateClientUsernameRequest;
 import io.nextpos.ordermanagement.data.OrderIdCounter;
 import io.nextpos.ordermanagement.service.OrderCounterService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -52,14 +54,22 @@ public class ClientAdminController {
         if (client.getClientInfo() != null) {
             clientResponse.setClientInfo(new ClientResponse.ClientInfoResponse(client.getClientInfo()));
         }
-        
+
         return clientResponse;
     }
 
     @PatchMapping("/{id}/username")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateClientUsername(@PathVariable String id, @RequestBody UpdateClientUsernameRequest request) {
+    public void updateClientUsername(@PathVariable String id,
+                                     @Valid @RequestBody UpdateClientUsernameRequest request) {
 
-        clientService.getClient(id).ifPresent(c -> clientService.updateUsernameForClient(c, request.getNewUsername(), request.getPassword()));
+        clientService.getClient(id).ifPresent(c -> {
+            clientService.updateUsernameForClient(c, request.getNewUsername(), request.getPassword());
+
+            if (StringUtils.isNotBlank(request.getNewClientName())) {
+                c.setClientName(request.getNewClientName());
+                clientService.saveClient(c);
+            }
+        });
     }
 }
