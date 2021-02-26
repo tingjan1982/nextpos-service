@@ -1,3 +1,4 @@
+<#-- @ftlvariable name="electronicInvoice" type="io.nextpos.einvoice.common.invoice.ElectronicInvoice" -->
 <#-- @ftlvariable name="client" type="io.nextpos.client.data.Client" -->
 <#-- @ftlvariable name="order" type="io.nextpos.ordermanagement.data.Order" -->
 <#-- @ftlvariable name="orderTransaction" type="io.nextpos.ordertransaction.data.OrderTransaction" -->
@@ -10,20 +11,20 @@
             <text lang="zh-tw"/>
             <text font="font_b"/>
             <text width="2" height="2"/>
-            <text>交易明細&#10;</text>
+            <text>營業人銷貨退回，進貨退出或折讓證明單&#10;</text>
             <feed line="1"/>
             <text align="left"/>
             <text width="1" height="1"/>
             <text linespc="30"/>
 
-            <text>營業人統編: ${client.attributes["UBN"]!"NA"}&#10;</text>
-            <text>公司名稱: ${client.attributes["COMPANY_NAME"]!"NA"}&#10;</text>
-            <text>營業人地址: ${client.attributes["ADDRESS"]!"NA"}&#10;</text>
-            <text>訂單號碼: ${order.serialId!"NA"}&#10;</text>
-            <#if orderTransaction??>
-                <text>交易序號: ${orderTransaction.id[orderTransaction.id?length - 6..]!"NA"}&#10;</text>
-                <text>交易日期: ${orderTransaction.createdDate?string('MM/dd/yyyy HH:mm:ss')!"NA"}&#10;</text>
+            <#assign currentDate = .now>
+            <text>作廢日期: ${currentDate?string('MM/dd/yyyy HH:mm:ss')}&#10;</text>
+            <text>賣方統編: ${client.attributes["UBN"]!"NA"}&#10;</text>
+            <text>賣方名稱: ${client.attributes["COMPANY_NAME"]!"NA"}&#10;</text>
+            <#if electronicInvoice.buyerUbn?has_content>
+                <text>買方統編:${electronicInvoice.buyerUbn}</text>
             </#if>
+            <text>訂單號碼: ${order.serialId!"NA"}&#10;</text>
             <feed line="1"/>
             <text linespc="40"/>
             <#list order.orderLineItems as li>
@@ -38,7 +39,7 @@
             <text width="1" height="1"/>
             <text>合計:</text><text x="310">$${order.orderTotal!"NA"}&#10;</text>
             <#if orderTransaction??>
-                <text>發票金額:</text><text x="310">$${orderTransaction.settleAmount!"NA"}&#10;</text>
+                <text>總金額:</text><text x="310">$${orderTransaction.settleAmount!"NA"}&#10;</text>
             </#if>
             <cut type="feed"/>
         </epos-print>

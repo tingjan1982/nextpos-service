@@ -17,6 +17,8 @@ public interface PrinterInstructionService {
 
     String createOrderDetailsPrintInstruction(Client client, Order order, OrderTransaction orderTransaction);
 
+    String createCancelOrderPrintInstruction(Client client, Order order, OrderTransaction orderTransaction);
+
     String createElectronicInvoiceXML(Client client, Order order, OrderTransaction orderTransaction);
 
     ResponseEntity<String> outputToPrinter(String printerIp, String contentXML);

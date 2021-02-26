@@ -153,6 +153,34 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
         }
     }
 
+    @Override
+    public String createCancelOrderPrintInstruction(Client client, Order order, OrderTransaction orderTransaction) {
+
+        final Optional<ElectronicInvoice> electronicInvoice = orderTransaction.getElectronicInvoice();
+
+        if (electronicInvoice.isEmpty()) {
+            return null;
+        }
+
+        final Template orderDetails;
+        try {
+            orderDetails = freeMarkerCfg.getTemplate("cancelOrder.ftl");
+            final StringWriter writer = new StringWriter();
+            final Map<String, Object> dataModel = new HashMap<>();
+            dataModel.put("client", client);
+            dataModel.put("electronicInvoice", electronicInvoice.get());
+            dataModel.put("order", order);
+            dataModel.put("orderTransaction", orderTransaction);
+
+            orderDetails.process(dataModel, writer);
+
+            return writer.toString();
+
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            throw new GeneralApplicationException("Error while generating order details XML template: " + e.getMessage());
+        }
+    }
 
     @Override
     public String createElectronicInvoiceXML(Client client, Order order, OrderTransaction orderTransaction) {
