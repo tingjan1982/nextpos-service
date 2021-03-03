@@ -32,7 +32,7 @@ public interface OrderService {
      */
     List<Order> getInflightOrders(String clientId);
 
-    List<Order> getOrdersByState(String clientId, Order.OrderState orderState);
+    List<Order> getOrdersByStates(String clientId, List<Order.OrderState> orderStates);
 
     InProcessOrderLineItems getInProcessOrderLineItems(String clientId);
 

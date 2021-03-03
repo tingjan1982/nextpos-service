@@ -1,6 +1,7 @@
 package io.nextpos.shared.web;
 
 import com.mongodb.MongoWriteException;
+import io.nextpos.einvoice.common.shared.InvoiceObjectNotFoundException;
 import io.nextpos.shared.exception.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,9 +29,9 @@ public class ExceptionResolver {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionResolver.class);
 
 
-    @ExceptionHandler(ObjectNotFoundException.class)
+    @ExceptionHandler({ObjectNotFoundException.class, InvoiceObjectNotFoundException.class})
     @ResponseStatus(code = HttpStatus.NOT_FOUND)
-    public ErrorResponse handleObjectNotFound(ObjectNotFoundException exception) {
+    public ErrorResponse handleObjectNotFound(Exception exception) {
 
         LOGGER.error("{}", exception.getMessage(), exception);
 
@@ -69,7 +70,7 @@ public class ExceptionResolver {
     public ErrorResponse handleBusinessLogicException(BusinessLogicException exception) {
 
         LOGGER.error("{}", exception.getMessage(), exception);
-        
+
         return ErrorResponse.simpleErrorResponse(exception.getLocalizedMessageKey(), exception.getMessage());
     }
 
@@ -101,7 +102,7 @@ public class ExceptionResolver {
 
     /**
      * https://www.baeldung.com/spring-boot-bean-validation
-     *
+     * <p>
      * Object level error is detected and set on the details section of error response.
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -160,7 +161,7 @@ public class ExceptionResolver {
         private static class FieldLevelError {
 
             private String localizedMessageKey;
-            
+
             private String message;
         }
     }

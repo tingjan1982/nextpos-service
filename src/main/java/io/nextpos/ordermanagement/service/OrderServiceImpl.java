@@ -130,18 +130,19 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> getOrdersByState(final String clientId, final Order.OrderState orderState) {
+    public List<Order> getOrdersByStates(final String clientId, final List<Order.OrderState> orderStates) {
 
         LOGGER.info("Getting in process orders for client: {}", clientId);
 
         final Sort sort = Sort.by(Sort.Order.desc("createdDate"));
-        return orderRepository.findAllByClientIdAndState(clientId, orderState, sort);
+        return orderRepository.findAllByClientIdAndStateIsIn(clientId, orderStates, sort);
     }
 
     @Override
     public InProcessOrderLineItems getInProcessOrderLineItems(String clientId) {
 
-        final Map<String, List<InProcessOrderLineItem>> groupedOrders = this.getOrdersByState(clientId, Order.OrderState.IN_PROCESS).stream()
+        final Map<String, List<InProcessOrderLineItem>> groupedOrders = this.getOrdersByStates(clientId,
+                List.of(Order.OrderState.IN_PROCESS, Order.OrderState.IN_PROCESS_SETTLED)).stream()
                 .flatMap(o -> {
                     final Map<String, List<OrderLineItem>> lineItemsGroupedByWorkingArea =
                             OrderVisitors.get(o, OrderVisitors.OrderLineItemGrouper.instance(workingAreaService));

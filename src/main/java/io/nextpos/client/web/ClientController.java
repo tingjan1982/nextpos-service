@@ -180,6 +180,15 @@ public class ClientController {
         return toClientResponse(clientService.saveClient(client));
     }
 
+    @PatchMapping("/me/clientType")
+    public ClientResponse updateClientType(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                           @Valid @RequestBody UpdateClientTypeRequest request) {
+
+        client.setClientType(request.getClientType());
+
+        return toClientResponse(clientService.saveClient(client));
+    }
+
     @PostMapping("/me/aeskey")
     public ClientResponse generateAESKey(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                          @RequestBody String password) {
