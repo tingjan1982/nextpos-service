@@ -84,6 +84,11 @@ public class ClientSubscription extends MongoBaseObject {
         ACTIVE(true),
 
         /**
+         * Active and issued renewal invoice
+         */
+        ACTIVE_RENEWING(true),
+
+        /**
          * This plan is active but client decides to not renew in the next cycle.
          */
         ACTIVE_LAPSING(true),
@@ -109,7 +114,7 @@ public class ClientSubscription extends MongoBaseObject {
             this.active = active;
         }
 
-        public boolean isActive() {
+        boolean isActive() {
             return active;
         }
     }

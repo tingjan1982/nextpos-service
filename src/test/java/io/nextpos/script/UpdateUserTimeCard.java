@@ -45,23 +45,19 @@ public class UpdateUserTimeCard {
 
             clientService.getClient(tc.getClientId()).ifPresentOrElse(c -> {
                 clientUserRepository.findByClientAndUsername(c, tc.getUsername()).ifPresentOrElse(cu -> {
-                    if (tc.getUserId() == null) {
-                        System.out.print("[noid] ");
-
-                        tc.setUserId(cu.getId());
-                        tc.setNickname(cu.getNickname());
-                        userTimeCardRepository.save(tc);
+                    if (tc.getUsername() == null) {
+                        System.out.print("[no username] ");
                     }
 
-                    System.out.printf("id: %s, username: %s, nickname: %s\n", tc.getUserId(), tc.getUsername(), tc.getNickname());
+                    System.out.printf("username: %s, nickname: %s\n", tc.getUsername(), tc.getNickname());
                 }, () -> {
                     userTimeCardRepository.delete(tc);
-                    System.out.println("Removed user time card as user is not found: " + tc.getUsername());
+                    System.out.println("Removed user time card as user is not found: " + tc.getNickname());
                 });
                 
             }, () -> {
                 userTimeCardRepository.delete(tc);
-                System.out.println("Removed user time card whose client does not exist: " + tc.getUsername());
+                System.out.println("Removed user time card whose client does not exist: " + tc.getNickname());
             });
         });
 

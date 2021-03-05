@@ -88,6 +88,7 @@ class UserTimeCardServiceImplTest {
         final UserTimeCard userTimeCard = userTimeCardService.clockIn(client);
 
         assertThat(userTimeCard.getId()).isNotNull();
+        assertThat(userTimeCard.getUsername()).isEqualTo("test-user");
         assertThat(userTimeCard.getClockIn()).isNotNull().isBefore(new Date());
         assertThat(userTimeCard.getTimeCardStatus()).isEqualTo(UserTimeCard.TimeCardStatus.ACTIVE);
         assertThat(userTimeCard.getMatchedRoster()).isNotNull();

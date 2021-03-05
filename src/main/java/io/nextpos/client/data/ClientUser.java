@@ -44,7 +44,7 @@ public class ClientUser extends BaseObject {
     @Column(nullable = false)
     private String username;
 
-    //@Column(nullable = false)
+    @Column(nullable = false)
     private String nickname;
 
     private String password;

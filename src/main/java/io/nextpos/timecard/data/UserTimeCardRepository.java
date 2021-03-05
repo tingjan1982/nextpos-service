@@ -14,10 +14,6 @@ public interface UserTimeCardRepository extends PagingAndSortingRepository<UserT
 
     Optional<UserTimeCard> findFirstByClientIdAndUsernameOrderByCreatedDateDesc(String clientId, String username);
 
-    @Deprecated
     @Query(value = "{$and: [{ 'clientId': ?0 }, { 'username': ?1 }, { 'clockIn': { $gte: ?2, $lt: ?3 } }]}")
     List<UserTimeCard> findAllByClientIdAndUsernameAndClockInDateRange(String clientId, String username, LocalDate from, LocalDate to, Sort sort);
-
-    @Query(value = "{$and: [{ 'clientId': ?0 }, { 'userId': ?1 }, { 'clockIn': { $gte: ?2, $lt: ?3 } }]}")
-    List<UserTimeCard> findAllByClientIdAndUserIdAndClockInDateRange(String clientId, String username, LocalDate from, LocalDate to, Sort sort);
 }

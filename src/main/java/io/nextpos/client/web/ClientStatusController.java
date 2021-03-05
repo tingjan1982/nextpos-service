@@ -5,7 +5,6 @@ import io.nextpos.client.data.ClientStatus;
 import io.nextpos.client.service.ClientStatusService;
 import io.nextpos.client.web.model.ClientStatusResponse;
 import io.nextpos.shared.web.ClientResolver;
-import io.nextpos.subscription.data.ClientSubscription;
 import io.nextpos.subscription.service.ClientSubscriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,23 +29,12 @@ public class ClientStatusController {
     @GetMapping("/me")
     public ClientStatusResponse checkClientStatus(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
-        final ClientSubscription clientSubscription = clientSubscriptionService.getCurrentClientSubscription(client.getId());
-
-        return toClientStatusResponse(clientStatusService.checkClientStatus(client), clientSubscription);
+        return toClientStatusResponse(clientStatusService.checkClientStatus(client));
     }
 
-    private ClientStatusResponse toClientStatusResponse(ClientStatus clientStatus, ClientSubscription clientSubscription) {
+    private ClientStatusResponse toClientStatusResponse(ClientStatus clientStatus) {
 
-        final ClientStatusResponse.SubscriptionResponse subscriptionResponse;
-
-        if (clientSubscription != null) {
-            subscriptionResponse = new ClientStatusResponse.SubscriptionResponse(clientSubscription.getSubscriptionPlanSnapshot().getPlanName(),
-                    clientSubscription.getStatus());
-        } else {
-            subscriptionResponse = new ClientStatusResponse.SubscriptionResponse("FREE",
-                    ClientSubscription.SubscriptionStatus.ACTIVE);
-        }
-        return new ClientStatusResponse(subscriptionResponse,
+        return new ClientStatusResponse(
                 clientStatus.getClient().getStatus() == Client.Status.PENDING_ACTIVE,
                 clientStatus.isNoTableLayout(),
                 clientStatus.isNoTable(),

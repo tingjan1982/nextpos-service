@@ -91,12 +91,16 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
                     saveClientSubscription(currentClientSubscription);
                     break;
 
+                case ACTIVE_RENEWING:
+                    final ClientSubscriptionInvoice renewalInvoice = getClientSubscriptionInvoice(currentClientSubscription.getCurrentInvoiceId());
+                    renewalInvoice.setStatus(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.CANCELLED);
+                    clientSubscriptionInvoiceRepository.save(renewalInvoice);
+
                 case ACTIVE:
                 case ACTIVE_LAPSING:
                     final ClientSubscriptionInvoice clientSubscriptionInvoice = getClientSubscriptionInvoice(currentClientSubscription.getCurrentInvoiceId());
                     validFrom = clientSubscriptionInvoice.getValidTo();
                     current = false;
-                    saveClientSubscription(currentClientSubscription);
                     break;
             }
         }
@@ -117,7 +121,13 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
 
         final ClientSubscriptionInvoice subscriptionInvoice = new ClientSubscriptionInvoice(client.getZoneId(), clientSubscription, subscriptionValidFrom, renewal);
         final ClientSubscriptionInvoice saved = clientSubscriptionInvoiceRepository.save(subscriptionInvoice);
+
         clientSubscription.setCurrentInvoiceId(saved.getId());
+
+        if (renewal) {
+            clientSubscription.setStatus(ClientSubscription.SubscriptionStatus.ACTIVE_RENEWING);
+        }
+
         saveClientSubscription(clientSubscription);
 
         this.sendClientSubscriptionInvoice(client, subscriptionInvoice);
@@ -165,8 +175,11 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
         clientSubscription.setStatus(ClientSubscription.SubscriptionStatus.CANCELLED);
 
         ClientSubscriptionInvoice clientSubscriptionInvoice = getClientSubscriptionInvoice(clientSubscription.getCurrentInvoiceId());
-        clientSubscriptionInvoice.setStatus(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.CANCELLED);
-        clientSubscriptionInvoiceRepository.save(clientSubscriptionInvoice);
+
+        if (clientSubscriptionInvoice.getStatus() != ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID) {
+            clientSubscriptionInvoice.setStatus(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.CANCELLED);
+            clientSubscriptionInvoiceRepository.save(clientSubscriptionInvoice);
+        }
 
         return saveClientSubscription(clientSubscription);
     }
@@ -176,14 +189,18 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
 
         LOGGER.info("Lapsing the client subscription: {}", clientSubscription.getId());
 
-        if (clientSubscription.getStatus() != ClientSubscription.SubscriptionStatus.ACTIVE) {
+        if (!clientSubscription.isActiveSubscription()) {
             throw new BusinessLogicException("message.notActive", "Client subscription is not active to perform lapse action");
         }
 
         clientSubscription.setStatus(ClientSubscription.SubscriptionStatus.ACTIVE_LAPSING);
 
-        final ClientSubscriptionInvoice subscriptionInvoice = getClientSubscriptionInvoice(clientSubscription.getCurrentInvoiceId());
-        clientSubscription.setPlanEndDate(subscriptionInvoice.getValidTo());
+        ClientSubscriptionInvoice clientSubscriptionInvoice = getClientSubscriptionInvoice(clientSubscription.getCurrentInvoiceId());
+
+        if (clientSubscriptionInvoice.getStatus() != ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID) {
+            clientSubscriptionInvoice.setStatus(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.CANCELLED);
+            clientSubscriptionInvoiceRepository.save(clientSubscriptionInvoice);
+        }
 
         return this.saveClientSubscription(clientSubscription);
     }
@@ -227,6 +244,11 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
 
         if (clientSubscription.getPlanStartDate() == null) {
             clientSubscription.setPlanStartDate(now);
+        }
+
+        if (clientSubscription.getPlanEndDate() == null) {
+            ClientSubscriptionInvoice invoice = this.getClientSubscriptionInvoice(clientSubscription.getCurrentInvoiceId());
+            clientSubscription.setPlanEndDate(invoice.getValidTo());
         }
 
         // this handles two active subscription scenarios where new one takes over previous one.
@@ -274,29 +296,27 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
     }
 
     /**
-     * followings are renewal scenarios.
-     *
-     * @return
+     * following methods are renewal scenarios.
      */
     @Override
     public List<ClientSubscriptionInvoice> findSubscriptionInvoicesForRenewal() {
 
         final Date tenDaysFromNow = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).plusDays(10).toInstant());
-        final List<ClientSubscriptionInvoice> lapsingInvoices = clientSubscriptionInvoiceRepository.findAllByValidToBetweenAndStatus(
+        final List<ClientSubscription> activeSubscriptions = clientSubscriptionRepository.findAllByStatusAndPlanEndDateBetween(
+                ClientSubscription.SubscriptionStatus.ACTIVE,
                 new Date(),
-                tenDaysFromNow,
-                ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID);
+                tenDaysFromNow);
 
-        return lapsingInvoices.stream()
-                .filter(inv -> inv.getClientSubscription().getStatus() == ClientSubscription.SubscriptionStatus.ACTIVE)
-                .map(inv -> {
-                    final Client client = clientService.getClientOrThrows(inv.getClientSubscription().getClientId());
-                    final ClientSubscriptionInvoice newSubscriptionInvoice = createAndSendClientSubscriptionInvoice(client, inv.getClientSubscription(), inv.getValidTo(), true);
+        return activeSubscriptions.stream()
+                .map(sub -> {
+                    final Client client = clientService.getClientOrThrows(sub.getClientId());
+                    final ClientSubscriptionInvoice newSubscriptionInvoice = createAndSendClientSubscriptionInvoice(client, sub, sub.getPlanEndDate(), true);
 
                     LOGGER.info("Created new subscription invoice: {}", newSubscriptionInvoice.getId());
 
                     return newSubscriptionInvoice;
-                }).collect(Collectors.toList());
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -306,12 +326,11 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
 
         return unpaidInvoices.stream()
                 .peek(inv -> {
-                    LOGGER.info("Marking subscription invoice {} as OVERDUE and deactivate client subscription {}", inv.getId(), inv.getClientSubscription().getId());
+                    LOGGER.info("Marking subscription invoice {} as OVERDUE", inv.getId());
 
                     inv.setStatus(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.OVERDUE);
                     clientSubscriptionInvoiceRepository.save(inv);
 
-                    deactivateClientSubscription(inv.getClientSubscription());
                 }).collect(Collectors.toList());
     }
 }

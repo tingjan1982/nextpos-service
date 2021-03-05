@@ -43,6 +43,8 @@ class ClientSubscriptionServiceImplTest {
 
     private SubscriptionPlan subscriptionPlan;
 
+    private SubscriptionPlan subscriptionPlan2;
+
     @Autowired
     ClientSubscriptionServiceImplTest(ClientSubscriptionService clientSubscriptionService, SubscriptionPlanService subscriptionPlanService, ClientSubscriptionRepository clientSubscriptionRepository, ClientSubscriptionInvoiceRepository clientSubscriptionInvoiceRepository, ClientService clientService, CountrySettings countrySettings) {
         this.clientSubscriptionService = clientSubscriptionService;
@@ -62,6 +64,10 @@ class ClientSubscriptionServiceImplTest {
         subscriptionPlan.addPlanPrice(SubscriptionPlan.PlanPeriod.MONTHLY, new SubscriptionPlan.PlanPrice(new BigDecimal("490")));
         subscriptionPlanService.saveSubscriptionPlan(subscriptionPlan);
 
+        subscriptionPlan2 = new SubscriptionPlan(Locale.TAIWAN.getCountry(), SubscriptionPlan.PlanGroup.DEFAULT, "premium", countrySettings);
+        subscriptionPlan2.addPlanPrice(SubscriptionPlan.PlanPeriod.MONTHLY, new SubscriptionPlan.PlanPrice(new BigDecimal("990")));
+        subscriptionPlanService.saveSubscriptionPlan(subscriptionPlan2);
+
         final SubscriptionPaymentInstruction instruction = new SubscriptionPaymentInstruction(Locale.TAIWAN.getCountry(), "d-dd8bd80c86c74ea9a9ff2a96dcfb462d");
         subscriptionPlanService.saveSubscriptionPaymentInstruction(instruction);
     }
@@ -75,6 +81,7 @@ class ClientSubscriptionServiceImplTest {
 
         final ClientSubscription clientSubscription = clientSubscriptionInvoice.getClientSubscription();
         assertThat(clientSubscription.getId()).isNotNull();
+        assertThat(clientSubscription.getCurrentInvoiceId()).isEqualTo(clientSubscriptionInvoice.getId());
         assertThat(clientSubscription.getSubscriptionPlanSnapshot()).isNotNull();
         assertThat(clientSubscription.getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.SUBMITTED);
         assertThat(clientSubscription.isCurrent()).isTrue();
@@ -94,19 +101,44 @@ class ClientSubscriptionServiceImplTest {
         });
 
         final ClientSubscriptionInvoice activatedInvoice = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(clientSubscriptionInvoice.getInvoiceIdentifier());
+        assertThat(activatedInvoice.getPaymentDate()).isNotNull();
+        assertThat(activatedInvoice.getStatus()).isEqualByComparingTo(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID);
 
         assertThat(activatedInvoice.getClientSubscription()).satisfies(cs -> {
             assertThat(cs.getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.ACTIVE);
             assertThat(cs.getPlanStartDate()).isNotNull();
+            assertThat(cs.getPlanEndDate()).isNotNull();
         });
-        assertThat(activatedInvoice.getPaymentDate()).isNotNull();
-        assertThat(activatedInvoice.getStatus()).isEqualByComparingTo(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID);
+
+        // upgrade plan scenario.
+        final ClientSubscriptionInvoice newPlanInvoice = clientSubscriptionService.createClientSubscription(client, new CreateClientSubscription(subscriptionPlan2.getId(), SubscriptionPlan.PlanPeriod.MONTHLY, BigDecimal.ZERO));
+
+        assertThat(newPlanInvoice.getClientSubscription().isCurrent()).isFalse();
+        assertThat(clientSubscriptionService.getCurrentClientSubscription(client.getId())).satisfies(sub -> {
+            assertThat(sub.getId()).isEqualTo(clientSubscription.getId());
+        });
+
+        final ClientSubscriptionInvoice paidInvoice = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(newPlanInvoice.getInvoiceIdentifier());
+        assertThat(paidInvoice.getStatus()).isEqualByComparingTo(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID);
+        assertThat(clientSubscriptionService.getClientSubscription(clientSubscription.getId())).satisfies(sub -> {
+            assertThat(sub.getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.LAPSED);
+            assertThat(sub.isCurrent()).isFalse();
+        });
 
         final ClientSubscription currentClientSubscription = clientSubscriptionService.getCurrentClientSubscription(client.getId());
+        assertThat(currentClientSubscription.getId()).isEqualTo(paidInvoice.getClientSubscription().getId());
+
         clientSubscriptionService.lapseClientSubscription(currentClientSubscription);
 
         assertThat(currentClientSubscription.getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.ACTIVE_LAPSING);
-        assertThat(currentClientSubscription.getPlanEndDate()).isNotNull();
+
+        clientSubscriptionService.deactivateClientSubscription(currentClientSubscription);
+
+        assertThat(currentClientSubscription.getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.INACTIVE);
+
+        clientSubscriptionService.cancelClientSubscription(currentClientSubscription);
+
+        assertThat(currentClientSubscription.getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.CANCELLED);
 
         // check immutability of SubscriptionPlanSnapshot
         clientSubscription.getSubscriptionPlanSnapshot().updateSubscriptionLimit(1, 1, List.of("dummyFeature"));
@@ -121,11 +153,24 @@ class ClientSubscriptionServiceImplTest {
         final ClientSubscription clientSubscription = createClientSubscription();
 
         createSubscriptionInvoice(clientSubscription, ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID);
-        createSubscriptionInvoice(clientSubscription, ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PENDING);
 
-        final List<ClientSubscriptionInvoice> newSubscriptionInvoices = clientSubscriptionService.findSubscriptionInvoicesForRenewal();
+        final List<ClientSubscriptionInvoice> renewalInvoices = clientSubscriptionService.findSubscriptionInvoicesForRenewal();
 
-        assertThat(newSubscriptionInvoices).hasSize(1);
+        assertThat(renewalInvoices).hasSize(1);
+        assertThat(clientSubscriptionService.findSubscriptionInvoicesForRenewal()).isEmpty();
+
+        final ClientSubscriptionInvoice renewalInvoice = renewalInvoices.get(0);
+
+        assertThat(clientSubscriptionService.getClientSubscriptionInvoices(clientSubscription)).hasSize(2);
+
+        assertThat(clientSubscriptionService.getClientSubscription(clientSubscription.getId())).satisfies(sub -> {
+            assertThat(sub.getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.ACTIVE_RENEWING);
+            assertThat(sub.getCurrentInvoiceId()).isEqualTo(renewalInvoice.getId());
+        });
+
+        final ClientSubscriptionInvoice renewedInvoice = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(renewalInvoice.getInvoiceIdentifier());
+
+        assertThat(renewedInvoice.getStatus()).isEqualByComparingTo(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID);
     }
 
     @Test
@@ -139,17 +184,24 @@ class ClientSubscriptionServiceImplTest {
 
         assertThat(unpaidSubscriptionInvoices).hasSize(1);
         assertThat(unpaidSubscriptionInvoices).allSatisfy(inv -> {
-            assertThat(inv.getClientSubscription().getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.INACTIVE);
+            assertThat(inv.getClientSubscription().getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.ACTIVE); // unchanged
             assertThat(inv.getStatus()).isEqualByComparingTo(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.OVERDUE);
         });
+
+        final List<ClientSubscriptionInvoice> outstandingInvoices = clientSubscriptionService.getClientSubscriptionInvoicesByStatuses(
+                List.of(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PENDING, ClientSubscriptionInvoice.SubscriptionInvoiceStatus.OVERDUE));
+
+        assertThat(outstandingInvoices).hasSize(1);
     }
 
     private ClientSubscription createClientSubscription() {
 
         final ClientSubscription clientSubscription = new ClientSubscription(client.getId(), subscriptionPlan, SubscriptionPlan.PlanPeriod.MONTHLY);
         clientSubscription.setStatus(ClientSubscription.SubscriptionStatus.ACTIVE);
-        clientSubscriptionRepository.save(clientSubscription);
-        return clientSubscription;
+        clientSubscription.setPlanStartDate(new Date());
+        clientSubscription.setPlanEndDate(Date.from(Instant.now().plus(10, ChronoUnit.DAYS)));
+
+        return clientSubscriptionRepository.save(clientSubscription);
     }
 
     private void createSubscriptionInvoice(ClientSubscription clientSubscription,

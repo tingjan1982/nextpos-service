@@ -15,15 +15,8 @@ import java.util.List;
 @AllArgsConstructor
 public class ClientUserRequest {
 
-    //@NotBlank
-    private String nickname;
-
-    /**
-     * will be removed in the future as frontend will only carry nickname to backend. Username will be system generated.
-     */
     @NotBlank
-    @Deprecated
-    private String username;
+    private String nickname;
 
     @Size(min = 4, max = 8)
     @Pattern(regexp="^([0-9]*)$")

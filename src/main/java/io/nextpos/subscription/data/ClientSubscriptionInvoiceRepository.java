@@ -7,8 +7,6 @@ import java.util.List;
 
 public interface ClientSubscriptionInvoiceRepository extends MongoRepository<ClientSubscriptionInvoice, String> {
 
-    List<ClientSubscriptionInvoice> findAllByValidToBetweenAndStatus(Date from, Date to, ClientSubscriptionInvoice.SubscriptionInvoiceStatus invoiceStatus);
-
     List<ClientSubscriptionInvoice> findAllByDueDateBeforeAndStatus(Date date, ClientSubscriptionInvoice.SubscriptionInvoiceStatus status);
 
     List<ClientSubscriptionInvoice> findAllByClientSubscription(ClientSubscription clientSubscription);

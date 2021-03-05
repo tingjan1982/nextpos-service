@@ -59,7 +59,6 @@ public class UserTimeCardController {
 
     @GetMapping
     public UserTimeCardsResponse getUserTimeCardByUsername(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                           @RequestParam(name = "userId", required = false) String userId,
                                                            @RequestParam(name = "username") String username,
                                                            @RequestParam(name = "year", required = false) Integer year,
                                                            @RequestParam(name = "month", required = false) Integer month) {

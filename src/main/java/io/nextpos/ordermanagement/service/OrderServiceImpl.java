@@ -142,7 +142,7 @@ public class OrderServiceImpl implements OrderService {
     public InProcessOrderLineItems getInProcessOrderLineItems(String clientId) {
 
         final Map<String, List<InProcessOrderLineItem>> groupedOrders = this.getOrdersByStates(clientId,
-                List.of(Order.OrderState.IN_PROCESS, Order.OrderState.IN_PROCESS_SETTLED)).stream()
+                List.of(Order.OrderState.IN_PROCESS, Order.OrderState.SETTLED)).stream()
                 .flatMap(o -> {
                     final Map<String, List<OrderLineItem>> lineItemsGroupedByWorkingArea =
                             OrderVisitors.get(o, OrderVisitors.OrderLineItemGrouper.instance(workingAreaService));

@@ -21,7 +21,9 @@ public class TimeCardReport {
 
         private String id;
 
-        private String nickname;
+        private String username;
+
+        private String displayName;
 
         private int totalShifts;
 

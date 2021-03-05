@@ -521,11 +521,6 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         IN_PROCESS,
 
         /**
-         * Same as in process but settled.
-         */
-        IN_PROCESS_SETTLED,
-
-        /**
          * When order is fulfilled.
          */
         DELIVERED,
@@ -565,7 +560,6 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
             return Arrays.asList(
                     OPEN,
                     IN_PROCESS,
-                    IN_PROCESS_SETTLED,
                     DELIVERED,
                     PAYMENT_IN_PROCESS,
                     SETTLED);
@@ -586,13 +580,12 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
          * This includes scenarios of submitting the initial order, customer adding more orders during and after delivery.
          */
         SUBMIT(EnumSet.of(OPEN, IN_PROCESS, DELIVERED), IN_PROCESS),
-        IN_PROCESS_SETTLE(EnumSet.of(IN_PROCESS), IN_PROCESS_SETTLED),
         DELETE(EnumSet.of(OPEN, IN_PROCESS, DELIVERED, PAYMENT_IN_PROCESS, SETTLED, REFUNDED, COMPLETED), DELETED),
 
         /**
          * Used in realtime order to indicate the order is prepared and ready to be served.
          */
-        PREPARE(EnumSet.of(IN_PROCESS, IN_PROCESS_SETTLED), IN_PROCESS),
+        PREPARE(EnumSet.of(IN_PROCESS), IN_PROCESS),
         /**
          * Used to mark line item as delivered.
          */
@@ -608,7 +601,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         /**
          * This state exists to filter out completed orders.
          */
-        COMPLETE(EnumSet.of(SETTLED, IN_PROCESS_SETTLED), COMPLETED);
+        COMPLETE(EnumSet.of(SETTLED), COMPLETED);
 
         private final EnumSet<OrderState> validFromState;
 

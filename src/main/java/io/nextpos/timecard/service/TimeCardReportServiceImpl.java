@@ -38,7 +38,7 @@ public class TimeCardReportServiceImpl implements TimeCardReportService {
     public TimeCardReport getTimeCardReport(final Client client, final YearMonth yearMonth) {
 
         ProjectionOperation projection = Aggregation.project("clientId")
-                .and("userId").as("userId")
+                .and("username").as("username")
                 .and("nickname").as("nickname")
                 .and("clockIn").as("clockIn")
                 .and("clockOut").as("clockOut")
@@ -52,8 +52,9 @@ public class TimeCardReportServiceImpl implements TimeCardReportService {
                 .and("clockIn").gte(fromDate).lt(toDate));
 
         final SortOperation sortByClockIn = Aggregation.sort(Sort.Direction.DESC, "clockIn");
-        final AggregationOperation userTimeCards = Aggregation.group("userId")
-                .first("nickname").as("nickname")
+        final AggregationOperation userTimeCards = Aggregation.group("username")
+                .first("username").as("username")
+                .first("nickname").as("displayName")
                 .count().as("totalShifts")
                 .sum("hour").as("totalHours");
 
@@ -79,10 +80,11 @@ public class TimeCardReportServiceImpl implements TimeCardReportService {
 
         final List<ClientUser> clientUsers = clientService.getClientUsers(client);
         final Map<String, TimeCardReport.UserShift> userShifts = timeCardReport.getUserTimeCards().stream()
-                .collect(Collectors.toMap(TimeCardReport.UserShift::getId, t -> t));
+                .collect(Collectors.toMap(TimeCardReport.UserShift::getUsername, t -> t));
 
         clientUsers.forEach(u -> {
             final TimeCardReport.UserShift emptyUserShift = new TimeCardReport.UserShift(u.getId(),
+                    u.getUsername(),
                     u.getNickname(),
                     0,
                     BigDecimal.ZERO);
@@ -90,7 +92,7 @@ public class TimeCardReportServiceImpl implements TimeCardReportService {
         });
 
         final List<TimeCardReport.UserShift> sortedUserTimeCards = new ArrayList<>(userShifts.values());
-        sortedUserTimeCards.sort(Comparator.comparing(TimeCardReport.UserShift::getId));
+        sortedUserTimeCards.sort(Comparator.comparing(TimeCardReport.UserShift::getDisplayName));
 
         timeCardReport.setUserTimeCards(sortedUserTimeCards);
     }

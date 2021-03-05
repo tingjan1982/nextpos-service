@@ -215,7 +215,7 @@ class MerchandisingServiceImplTest {
         final Order order = new Order(client.getId(), orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
 
-        merchandisingService.applyGlobalOrderDiscount(order, OrderLevelOffer.GlobalOrderDiscount.ENTER_DISCOUNT, BigDecimal.valueOf(0.2));
+        merchandisingService.applyOrderOffer(order, OrderLevelOffer.GlobalOrderDiscount.ENTER_DISCOUNT.name(), BigDecimal.valueOf(0.2));
         merchandisingService.updateServiceCharge(order, true);
 
         final Order updatedOrder = merchandisingService.resetOrderOffers(order);

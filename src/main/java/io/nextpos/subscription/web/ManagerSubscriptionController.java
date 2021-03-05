@@ -108,7 +108,7 @@ public class ManagerSubscriptionController {
     }
 
     @GetMapping("/invoices/outstanding")
-    public ClientSubscriptionInvoicesResponse sendClientSubscriptionInvoice() {
+    public ClientSubscriptionInvoicesResponse getOutstandingClientInvoices() {
 
         final List<ClientSubscriptionInvoiceResponse> invoices = clientSubscriptionService.getClientSubscriptionInvoicesByStatuses(
                 List.of(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PENDING, ClientSubscriptionInvoice.SubscriptionInvoiceStatus.OVERDUE)).stream()

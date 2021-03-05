@@ -22,6 +22,7 @@ import io.nextpos.subscription.service.ClientSubscriptionAccessService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.common.util.RandomValueStringGenerator;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -249,17 +250,18 @@ public class ClientController {
         return toClientUserResponse(createdClientUser);
     }
 
-    private ClientUser fromClientUserRequest(Client client, ClientUserRequest clientUserRequest) {
+    private ClientUser fromClientUserRequest(Client client, ClientUserRequest request) {
 
-        final String roles = String.join(",", clientUserRequest.getRoles());
-        final ClientUser clientUser = new ClientUser(client, clientUserRequest.getUsername().trim().toLowerCase(), clientUserRequest.getPassword(), roles);
+        final String roles = String.join(",", request.getRoles());
+        String username = new RandomValueStringGenerator(16).generate();
+        final ClientUser clientUser = new ClientUser(client, username, request.getNickname(), request.getPassword(), roles);
 
-        if (StringUtils.isNotBlank(clientUserRequest.getNickname())) {
-            clientUser.setNickname(clientUserRequest.getNickname().trim());
+        if (StringUtils.isNotBlank(request.getNickname())) {
+            clientUser.setNickname(request.getNickname().trim());
         }
 
-        if (StringUtils.isNotBlank(clientUserRequest.getUserRoleId())) {
-            final UserRole userRole = userRoleService.loadUserRole(clientUserRequest.getUserRoleId());
+        if (StringUtils.isNotBlank(request.getUserRoleId())) {
+            final UserRole userRole = userRoleService.loadUserRole(request.getUserRoleId());
             clientUser.setUserRole(userRole);
         }
 
