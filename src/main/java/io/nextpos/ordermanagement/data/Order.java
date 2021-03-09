@@ -128,6 +128,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     private String lookupMembershipId;
 
+    /**
+     * The position which to display this order on screen.
+     */
+    private int order;
 
     public Order(String clientId, OrderSettings orderSettings) {
         this.id = new ObjectId().toString();
@@ -554,6 +558,14 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
          */
         COMPLETED,
 
+        /**
+         *
+         */
+        RETAIN_STATE,
+
+        /**
+         * Go back to the previous state.
+         */
         PREV_FROM_STATE;
 
         public static List<OrderState> inflightStates() {
@@ -585,7 +597,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         /**
          * Used in realtime order to indicate the order is prepared and ready to be served.
          */
-        PREPARE(EnumSet.of(IN_PROCESS), IN_PROCESS),
+        PREPARE(EnumSet.of(IN_PROCESS, SETTLED), RETAIN_STATE),
         /**
          * Used to mark line item as delivered.
          */

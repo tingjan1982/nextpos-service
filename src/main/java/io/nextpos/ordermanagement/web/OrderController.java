@@ -199,6 +199,16 @@ public class OrderController {
         return OrderResponse.toOrderResponse(order);
     }
 
+    @PostMapping("/orderOrdering")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void orderOrdering(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                 @Valid @RequestBody OrderingRequest request) {
+
+        orderService.reorder(request.getOrderIds());
+
+        orderMessagingService.sendOrders(client.getId(), false);
+    }
+
     @PostMapping("/lineItemOrdering")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void lineItemOrdering(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,

@@ -50,6 +50,9 @@ public class OrderLineItem implements OfferApplicableObject {
 
     private Date modifiedDate;
 
+    /**
+     * The position which to display this line item on screen.
+     */
     private int order;
 
     public OrderLineItem(final ProductSnapshot productSnapshot, final int quantity, OrderSettings orderSettings) {

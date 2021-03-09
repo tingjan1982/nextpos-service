@@ -7,6 +7,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static io.nextpos.ordermanagement.data.OrderVisitors.OrderLineItemGrouper.NO_WORKING_AREA;
+
 @Data
 public class InProcessOrderLineItem {
 
@@ -30,6 +32,10 @@ public class InProcessOrderLineItem {
 
     private int order;
 
+    public InProcessOrderLineItem(Order order, OrderLineItem orderLineItem) {
+
+        this(order, NO_WORKING_AREA, orderLineItem);
+    }
 
     public InProcessOrderLineItem(Order order, String workingArea, OrderLineItem orderLineItem) {
 

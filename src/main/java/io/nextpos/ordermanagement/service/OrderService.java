@@ -36,6 +36,8 @@ public interface OrderService {
 
     InProcessOrderLineItems getInProcessOrderLineItems(String clientId);
 
+    InProcessOrders getInProcessOrders(String clientId);
+
     void deleteOrder(String orderId);
 
     OrderStateChange transitionOrderState(Order order, Order.OrderAction orderAction, final Optional<LineItemStateChangeEvent> lineItemStateChangeEvent);
@@ -63,4 +65,6 @@ public interface OrderService {
     String generateSerialId(String clientId);
 
     void orderLineItems(List<LineItemOrdering> lineItemOrderings);
+
+    void reorder(List<String> orderIds);
 }

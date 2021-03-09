@@ -158,6 +158,18 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public InProcessOrders getInProcessOrders(String clientId) {
+
+        final List<InProcessOrder> orders = this.getOrdersByStates(clientId, List.of(Order.OrderState.IN_PROCESS, Order.OrderState.SETTLED)).stream()
+                .filter(o -> o.getOrderLineItems().stream().anyMatch(li -> li.getState().isPreparing()))
+                .map(InProcessOrder::new)
+                .sorted(InProcessOrder.getComparator())
+                .collect(Collectors.toList());
+
+        return new InProcessOrders(orders);
+    }
+
+    @Override
     @WebSocketClientOrders
     public void deleteOrder(final String orderId) {
         orderRepository.deleteById(orderId);
@@ -279,18 +291,26 @@ public class OrderServiceImpl implements OrderService {
     @WebSocketClientOrders
     public OrderStateChange transitionOrderState(final Order order, final Order.OrderAction orderAction, Optional<LineItemStateChangeEvent> lineItemStateChangeEvent) {
 
-        Order.OrderState orderState = orderAction.getValidNextState();
+        Order.OrderState nextOrderState = orderAction.getValidNextState();
         final OrderStateChange orderStateChange = orderStateChangeRepository.findById(order.getId())
                 .orElse(new OrderStateChange(order.getId(), order.getClientId()));
 
-        if (orderState == Order.OrderState.PREV_FROM_STATE) {
-            orderState = orderStateChange.getPreviousEntry().getFromState();
+        switch (nextOrderState) {
+            case PREV_FROM_STATE:
+                nextOrderState = orderStateChange.getPreviousEntry().getFromState();
+                orderStateChange.addStateChange(order.getState(), nextOrderState);
+                break;
+            case RETAIN_STATE:
+                nextOrderState = order.getState();
+                break;
+            default:
+                orderStateChange.addStateChange(order.getState(), nextOrderState);
+                break;
         }
 
-        orderStateChange.addStateChange(order.getState(), orderState);
         orderStateChangeRepository.save(orderStateChange);
 
-        order.setState(orderState);
+        order.setState(nextOrderState);
 
         lineItemStateChangeEvent.ifPresent(applicationEventPublisher::publishEvent);
 
@@ -371,5 +391,16 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orders.values().forEach(this::saveOrder);
+    }
+
+    @Override
+    public void reorder(List<String> orderIds) {
+
+        AtomicInteger index = new AtomicInteger(1);
+        orderIds.forEach( oid -> {
+            final Order order = this.getOrder(oid);
+            order.setOrder(index.getAndIncrement());
+            this.saveOrder(order);
+        });
     }
 }

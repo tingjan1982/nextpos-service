@@ -223,6 +223,8 @@ public class Client extends BaseObject {
 
         TABLE_AVAILABILITY_DISPLAY,
 
+        ORDER_DISPLAY_MODE,
+
         PASSCODE,
 
         PASSCODE_VERIFIED,

@@ -1,6 +1,7 @@
 package io.nextpos.ordermanagement.web;
 
 import io.nextpos.ordermanagement.data.InProcessOrderLineItems;
+import io.nextpos.ordermanagement.data.InProcessOrders;
 import io.nextpos.ordermanagement.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -25,10 +26,18 @@ public class OrderWebSocketController {
         this.orderService = orderService;
     }
 
+    @MessageMapping("/realtimeOrderLineItems/{clientId}")
+    @SendTo("/dest/realtimeOrderLineItems/{clientId}")
+    public InProcessOrderLineItems realtimeOrderLineItems(@DestinationVariable String clientId) {
+
+        return orderService.getInProcessOrderLineItems(clientId);
+    }
+
     @MessageMapping("/realtimeOrders/{clientId}")
     @SendTo("/dest/realtimeOrders/{clientId}")
-    public InProcessOrderLineItems realtimeOrders(@DestinationVariable String clientId) {
-        return orderService.getInProcessOrderLineItems(clientId);
+    public InProcessOrders realtimeOrders(@DestinationVariable String clientId) {
+
+        return orderService.getInProcessOrders(clientId);
     }
 
     @MessageMapping("/inflightOrders/{clientId}")

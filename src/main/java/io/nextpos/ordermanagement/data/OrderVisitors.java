@@ -74,7 +74,7 @@ public class OrderVisitors {
 
     public static class OrderLineItemGrouper implements Function<Order, Map<String, List<OrderLineItem>>> {
 
-        private static final String NO_WORKING_AREA = "noWorkingArea";
+        public static final String NO_WORKING_AREA = "noWorkingArea";
 
         private final WorkingAreaService workingAreaService;
 
