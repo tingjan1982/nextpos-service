@@ -19,7 +19,6 @@ import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,11 +96,6 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
 
         if (orderRequest.getOrderType() == Order.OrderType.IN_STORE) {
             Set<String> tableIds = new HashSet<>(orderRequest.getTableIds());
-
-            // todo: to remove in the future.
-            if (StringUtils.isNotBlank(orderRequest.getTableId())) {
-                tableIds.add(orderRequest.getTableId());
-            }
 
             final List<TableLayout.TableDetails> tables = tableIds.stream()
                     .map(tableLayoutService::getTableDetailsOrThrows)

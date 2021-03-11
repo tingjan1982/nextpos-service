@@ -134,15 +134,16 @@ public class OrderServiceImpl implements OrderService {
 
         LOGGER.info("Getting in process orders for client: {}", clientId);
 
+        final Shift activeShift = shiftService.getActiveShiftOrThrows(clientId);
         final Sort sort = Sort.by(Sort.Order.desc("createdDate"));
-        return orderRepository.findAllByClientIdAndStateIsIn(clientId, orderStates, sort);
+        return orderRepository.findAllByClientIdAndStateIsInAndCreatedDateGreaterThanEqual(clientId, orderStates, activeShift.getStart().getTimestamp(), sort);
     }
 
     @Override
     public InProcessOrderLineItems getInProcessOrderLineItems(String clientId) {
 
         final Map<String, List<InProcessOrderLineItem>> groupedOrders = this.getOrdersByStates(clientId,
-                List.of(Order.OrderState.IN_PROCESS, Order.OrderState.SETTLED)).stream()
+                List.of(Order.OrderState.IN_PROCESS, Order.OrderState.SETTLED, Order.OrderState.COMPLETED)).stream()
                 .flatMap(o -> {
                     final Map<String, List<OrderLineItem>> lineItemsGroupedByWorkingArea =
                             OrderVisitors.get(o, OrderVisitors.OrderLineItemGrouper.instance(workingAreaService));
@@ -160,7 +161,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public InProcessOrders getInProcessOrders(String clientId) {
 
-        final List<InProcessOrder> orders = this.getOrdersByStates(clientId, List.of(Order.OrderState.IN_PROCESS, Order.OrderState.SETTLED)).stream()
+        final List<InProcessOrder> orders = this.getOrdersByStates(clientId, List.of(Order.OrderState.IN_PROCESS, Order.OrderState.SETTLED, Order.OrderState.COMPLETED)).stream()
                 .filter(o -> o.getOrderLineItems().stream().anyMatch(li -> li.getState().isPreparing()))
                 .map(InProcessOrder::new)
                 .sorted(InProcessOrder.getComparator())

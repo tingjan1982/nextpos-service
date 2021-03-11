@@ -69,7 +69,7 @@ public class InvoiceNumberController {
 
     @GetMapping("/{ubn}/ranges/{rangeIdentifier}")
     public InvoiceNumberRangeResponse getInvoiceNumberRangeByRangeIdentifier(@PathVariable String ubn,
-                                                                     @PathVariable String rangeIdentifier) {
+                                                                             @PathVariable String rangeIdentifier) {
 
         final InvoiceNumberRange invoiceNumberRange = invoiceNumberRangeService.getInvoiceNumberRangeByRangeIdentifier(ubn, rangeIdentifier);
 
@@ -109,6 +109,15 @@ public class InvoiceNumberController {
                                     @PathVariable String rangeIdentifier) {
 
         invoiceNumberRangeService.deleteInvoiceNumberRange(ubn, rangeIdentifier);
+    }
+
+    @PostMapping("/{ubn}/ranges/{rangeIdentifier}/numberRanges/{rangeFrom}/disable")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void disableInvoiceNumberRange(@PathVariable String ubn,
+                                          @PathVariable String rangeIdentifier,
+                                          @PathVariable String rangeFrom) {
+
+        invoiceNumberRangeService.disableOneInvoiceNumberRange(ubn, rangeIdentifier, rangeFrom);
     }
 
     @DeleteMapping("/{ubn}/ranges/{rangeIdentifier}/numberRanges/{rangeFrom}")

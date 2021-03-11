@@ -84,28 +84,6 @@ public class MerchandisingServiceImpl implements MerchandisingService {
     }
 
     @Override
-    public Order applyGlobalOrderDiscount(final Order order, OrderLevelOffer.GlobalOrderDiscount globalOrderDiscount, BigDecimal overrideDiscount) {
-
-        if (globalOrderDiscount == OrderLevelOffer.GlobalOrderDiscount.NO_DISCOUNT) {
-            order.removeOffer();
-
-        } else {
-            final OrderLevelOffer globalOffer = offerService.getGlobalOrderOffer(globalOrderDiscount);
-            BigDecimal computedDiscount;
-
-            if (globalOffer.isZeroDiscount()) {
-                computedDiscount = globalOffer.calculateDiscount(order, overrideDiscount);
-            } else {
-                computedDiscount = globalOffer.calculateDiscount(order);
-            }
-
-            order.applyAndRecordOffer(globalOffer, computedDiscount, overrideDiscount);
-        }
-
-        return orderRepository.save(order);
-    }
-
-    @Override
     public OrderLineItem applyGlobalProductDiscount(OrderLineItem lineItem, ProductLevelOffer.GlobalProductDiscount globalProductDiscount, BigDecimal overrideDiscount) {
 
         if (globalProductDiscount == ProductLevelOffer.GlobalProductDiscount.NO_DISCOUNT) {

@@ -11,7 +11,7 @@ public interface OrderRepository extends PagingAndSortingRepository<Order, Strin
 
     List<Order> findAllByClientIdAndCreatedDateGreaterThanEqualAndStateIsIn(String clientId, Date date, List<Order.OrderState> orderStates, Sort sort);
 
-    List<Order> findAllByClientIdAndStateIsIn(String clientId, List<Order.OrderState> orderState, Sort sort);
+    List<Order> findAllByClientIdAndStateIsInAndCreatedDateGreaterThanEqual(String clientId, List<Order.OrderState> orderState, Date date, Sort sort);
 
     long countByClientIdAndStateIn(String clientId, List<Order.OrderState> orderStates);
 

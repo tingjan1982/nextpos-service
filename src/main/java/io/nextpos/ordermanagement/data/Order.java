@@ -597,7 +597,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         /**
          * Used in realtime order to indicate the order is prepared and ready to be served.
          */
-        PREPARE(EnumSet.of(IN_PROCESS, SETTLED), RETAIN_STATE),
+        PREPARE(EnumSet.of(IN_PROCESS, SETTLED, COMPLETED), RETAIN_STATE),
         /**
          * Used to mark line item as delivered.
          */

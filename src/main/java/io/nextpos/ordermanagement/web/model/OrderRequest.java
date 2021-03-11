@@ -20,12 +20,6 @@ public class OrderRequest implements OrderLogChangeObject {
     @NotNull
     private Order.OrderType orderType = Order.OrderType.IN_STORE;
 
-    @Deprecated
-    private String tableId;
-
-    @Deprecated
-    private String tableNote;
-
     private List<String> tableIds = new ArrayList<>();
 
     private Order.DemographicData demographicData;
