@@ -73,7 +73,7 @@ class PrinterInstructionsServiceImplTest {
     @BeforeEach
     void prepare() {
         client = DummyObjects.dummyClient();
-        client.setClientName("雨圖數位行銷科技股份有限公司");
+        client.setClientName("Rain");
         final String ubn = "83515813";
         client.addAttribute(Client.ClientAttributes.UBN, ubn);
         client.addAttribute(Client.ClientAttributes.COMPANY_NAME, "雨圖數位行銷科技股份有限公司");
@@ -156,13 +156,13 @@ class PrinterInstructionsServiceImplTest {
     }
 
     @Test
-    void createCanOrderPrintInstruction() {
+    void createCancelOrderPrintInstruction() {
 
         final OrderSettings orderSettings = new OrderSettings(countrySettings, true, BigDecimal.ZERO);
         final Order order = new Order(client.getId(), orderSettings);
         final String serialId = orderService.generateSerialId(client.getId());
         order.setSerialId(serialId);
-        order.addOrderLineItem(DummyObjects.productSnapshot("RainApp標準版", new BigDecimal("1450")), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("美式", new BigDecimal("100")), 1);
         orderService.saveOrder(order);
 
         final OrderTransaction orderTransaction = new OrderTransaction(order,
