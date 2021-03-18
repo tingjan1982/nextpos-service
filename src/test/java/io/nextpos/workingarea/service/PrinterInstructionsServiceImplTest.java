@@ -185,9 +185,10 @@ class PrinterInstructionsServiceImplTest {
     @Test
     void createElectronicInvoiceXML() {
 
+        final OrderSettings orderSettings = new OrderSettings(countrySettings, true, BigDecimal.ZERO);
         final Order order = new Order(client.getId(), orderSettings);
         order.setSerialId("20201010-150");
-        order.addOrderLineItem(DummyObjects.productSnapshot("coffee", BigDecimal.valueOf(55)), 1);
+        order.addOrderLineItem(DummyObjects.productSnapshot("coffee", BigDecimal.valueOf(55)), 3);
         order.addOrderLineItem(DummyObjects.productSnapshot("bagel", BigDecimal.valueOf(70)), 2);
         order.addOrderLineItem(DummyObjects.productSnapshot("黑美式1", BigDecimal.valueOf(45)), 1);
         order.addOrderLineItem(DummyObjects.productSnapshot("黑美式2", BigDecimal.valueOf(45)), 1);

@@ -371,6 +371,18 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         return deduceRoundingAmount(() -> orderTotal.subtract(serviceCharge));
     }
 
+    public BigDecimal getOrderTotalWithoutTax() {
+        final TaxableAmount taxableAmount = discountedTotal != null && !discountedTotal.isZero() ? discountedTotal : total;
+
+        return this.deduceRoundingAmount(taxableAmount::getAmountWithoutTax);
+    }
+
+    public BigDecimal getOrderTotalTax() {
+        final TaxableAmount taxableAmount = discountedTotal != null && !discountedTotal.isZero() ? discountedTotal : total;
+
+        return this.deduceRoundingAmount(taxableAmount::getTax);
+    }
+
     public void updateServiceCharge(BigDecimal serviceCharge) {
 
         orderSettings.setServiceCharge(serviceCharge);

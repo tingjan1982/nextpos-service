@@ -18,29 +18,36 @@
                 <text>${electronicInvoice.invoiceNumber}&#10;</text>
                 <text align="left"/>
                 <text width="1" height="1" linespc="30"/>
-                <text>${electronicInvoice.invoiceCreatedDate?string('MM/dd/yyyy HH:mm:ss')}&#10;</text>
-                <text>隨機碼:${electronicInvoice.randomNumber}</text>
-                <text x="210"/>
-                <text>總計:${electronicInvoice.salesAmount}&#10;</text>
-                <text>賣方:${client.attributes["UBN"]!"NA"}</text>
+                <text>${electronicInvoice.invoiceCreatedDate?string('MM/dd/yyyy HH:mm:ss')}</text>
                 <#if electronicInvoice.buyerUbn?has_content>
-                    <text>  買方:${electronicInvoice.buyerUbn}</text>
+                    <text x="300">格式25</text>
                 </#if>
                 <text>&#10;</text>
-                <barcode type="code39" align="center" width="1" height="45">${electronicInvoice.barcodeContent}</barcode>
+                <text>隨機碼:</text>
+                <#if !electronicInvoice.buyerUbn?has_content>
+                    <text>${electronicInvoice.randomNumber}</text>
+                </#if>
+                <text x="200"/>
+                <text>總計: ${electronicInvoice.salesAmount}&#10;</text>
+                <text>賣方: ${client.attributes["UBN"]!"NA"}</text>
+                <#if electronicInvoice.buyerUbn?has_content>
+                    <text x="200">買方: ${electronicInvoice.buyerUbn}</text>
+                </#if>
+                <text>&#10;</text>
+                <barcode type="code39" align="center" width="1" height="40">${electronicInvoice.barcodeContent}</barcode>
                 <page>
                     <area x="0" y="0" width="420" height="180"/>
                     <direction dir="left_to_right"/>
-                    <text x="15" y="160"/>
-                    <image width="160" height="160" color="color_1" mode="mono">${electronicInvoice.qrCode1ImageBinary}</image>
+                    <text x="15" y="176"/>
+                    <image width="176" height="176" color="color_1" mode="mono">${electronicInvoice.qrCode1ImageBinary}</image>
                     <#--                    <command>1D286B040031413200</command>-->
                     <#--                    <command>1D286B0300314303</command>-->
                     <#--                    <command>1D286B0300314531</command>-->
                     <#--                    <command>${electronicInvoice.qrCode1ContentAsHex}</command>-->
                     <#--                    <command>1D286B0300315130</command>-->
                     <#--                    <symbol type="qrcode_model_2" level="level_l" width="3">${electronicInvoice.qrCode1Content}</symbol>-->
-                    <text x="170" y="160"/>
-                    <image width="160" height="160" color="color_1" mode="mono">${electronicInvoice.qrCode2ImageBinary}</image>
+                    <text x="176" y="176"/>
+                    <image width="176" height="176" color="color_1" mode="mono">${electronicInvoice.qrCode2ImageBinary}</image>
                     <#--                    <command>1D286B040031413200</command>-->
                     <#--                    <command>1D286B0300314303</command>-->
                     <#--                    <command>1D286B0300314531</command>-->
@@ -79,16 +86,25 @@
                         <text width="2" height="2"/>
                         <text>${li.productSnapshot.name}&#10;</text>
                         <text width="1" height="1"/>
-                        <text x="250">x ${li.quantity}</text>
+                        <text x="100">x ${li.quantity} (${li.productSnapshot.productPriceWithOptions})</text>
                         <text x="310">$${li.lineItemSubTotal}&#10;</text>
                     </#list>
                     <text linespc="30"/>
                     <feed line="1"/>
                     <text width="1" height="1"/>
-                    <text>合計:</text>
-                    <text x="310">$${order.orderTotal!"NA"}&#10;</text>
+                    <text>銷售金額:</text>
+                    <text x="310">${order.orderTotalWithoutTax}&#10;</text>
+                    <text>課稅別:</text>
+                    <text x="310">TX&#10;</text>
+                    <text>營業稅額:</text>
+                    <text x="310">${order.orderTotalTax}&#10;</text>
+                    <text>服務費:</text>
+                    <text x="310">${order.serviceCharge}&#10;</text>
+                    <text>總計:</text>
+                    <text x="310">$${order.orderTotal}&#10;</text>
+
                     <#if orderTransaction??>
-                        <text>發票金額:</text>
+                        <text>結帳金額:</text>
                         <text x="310">$${orderTransaction.settleAmount!"NA"}&#10;</text>
                     </#if>
                 </#if>

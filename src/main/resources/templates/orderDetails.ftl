@@ -30,15 +30,24 @@
                 <text width="2" height="2"/>
                 <text>${li.productSnapshot.name}&#10;</text>
                 <text width="1" height="1"/>
-                <text x="250">x ${li.quantity}</text>
+                <text x="100">x ${li.quantity} (${li.productSnapshot.productPriceWithOptions})</text>
                 <text x="310">$${li.lineItemSubTotal}&#10;</text>
             </#list>
             <text linespc="30"/>
             <feed line="1"/>
             <text width="1" height="1"/>
-            <text>合計:</text><text x="310">$${order.orderTotal!"NA"}&#10;</text>
+            <text>銷售金額:</text>
+            <text x="310">${order.orderTotal}&#10;</text>
+            <text>課稅別:</text>
+            <text x="310">TX&#10;</text>
+            <text>營業稅額:</text>
+            <text x="310">0&#10;</text>
+            <text>服務費:</text>
+            <text x="310">${order.serviceCharge}&#10;</text>
+            <text>總計:</text>
+            <text x="310">$${order.orderTotal}&#10;</text>
             <#if orderTransaction??>
-                <text>發票金額:</text><text x="310">$${orderTransaction.settleAmount!"NA"}&#10;</text>
+                <text>結帳金額:</text><text x="310">$${orderTransaction.settleAmount!"NA"}&#10;</text>
             </#if>
             <cut type="feed"/>
         </epos-print>

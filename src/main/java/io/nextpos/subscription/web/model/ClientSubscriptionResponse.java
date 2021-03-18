@@ -17,6 +17,8 @@ public class ClientSubscriptionResponse {
 
     private String clientId;
 
+    private String subscriptionPlanId;
+
     private String planName;
 
     private ClientSubscription.SubscriptionStatus status;
@@ -42,6 +44,7 @@ public class ClientSubscriptionResponse {
     public ClientSubscriptionResponse(ClientSubscription clientSubscription) {
         id = clientSubscription.getId();
         clientId = clientSubscription.getClientId();
+        subscriptionPlanId = clientSubscription.getSubscriptionPlanSnapshot().getId();
         planName = clientSubscription.getSubscriptionPlanSnapshot().getPlanName();
         status = clientSubscription.getStatus();
         planPrice = clientSubscription.getPlanPrice();
@@ -56,6 +59,7 @@ public class ClientSubscriptionResponse {
 
         return new ClientSubscriptionResponse(null,
                 client.getId(),
+                "free",
                 "planName.free",
                 ClientSubscription.SubscriptionStatus.ACTIVE,
                 BigDecimal.ZERO,

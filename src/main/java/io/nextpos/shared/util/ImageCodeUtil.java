@@ -44,8 +44,9 @@ public class ImageCodeUtil {
             final HashMap<EncodeHintType, Object> hints = new HashMap<>();
             hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
             hints.put(EncodeHintType.ERROR_CORRECTION, "L");
+            hints.put(EncodeHintType.QR_VERSION, "10");
 
-            final BitMatrix bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, 160, 160, hints);
+            final BitMatrix bitMatrix = qrCodeWriter.encode(content, BarcodeFormat.QR_CODE, 176, 176, hints);
             return MatrixToImageWriter.toBufferedImage(bitMatrix);
 
         } catch (Exception e) {
