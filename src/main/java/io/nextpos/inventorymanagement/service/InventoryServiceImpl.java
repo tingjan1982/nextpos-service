@@ -1,6 +1,7 @@
 package io.nextpos.inventorymanagement.service;
 
 import io.nextpos.inventorymanagement.data.*;
+import io.nextpos.inventorymanagement.service.bean.CreateInventory;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
@@ -34,10 +35,9 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
-    public Inventory createStock(String clientId, String sku, Inventory.InventoryQuantity inventoryQuantity) {
+    public Inventory createStock(CreateInventory createInventory) {
 
-        final Inventory stock = Inventory.createStock(clientId, sku);
-        stock.updateInventoryQuantity(inventoryQuantity);
+        final Inventory stock = Inventory.createStock(createInventory);
 
         return saveInventory(stock);
     }
@@ -51,6 +51,13 @@ public class InventoryServiceImpl implements InventoryService {
     public Inventory getInventory(String id) {
         return inventoryRepository.findById(id).orElseThrow(() -> {
             throw new ObjectNotFoundException(id, Inventory.class);
+        });
+    }
+
+    @Override
+    public Inventory getInventoryByProductId(String clientId, String productId) {
+        return inventoryRepository.findByClientIdAndProductId(clientId, productId).orElseThrow(() -> {
+            throw new ObjectNotFoundException(productId, Inventory.class);
         });
     }
 

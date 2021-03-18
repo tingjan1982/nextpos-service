@@ -7,4 +7,6 @@ import java.util.Optional;
 public interface InventoryRepository extends MongoRepository<Inventory, String> {
 
     Optional<Inventory> findByClientIdAndSku(String clientId, String sku);
+
+    Optional<Inventory> findByClientIdAndProductId(String clientId, String productId);
 }

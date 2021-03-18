@@ -5,11 +5,14 @@ import io.nextpos.inventorymanagement.data.Inventory;
 import io.nextpos.inventorymanagement.service.InventoryService;
 import io.nextpos.inventorymanagement.web.model.CreateInventoryRequest;
 import io.nextpos.inventorymanagement.web.model.InventoryResponse;
+import io.nextpos.inventorymanagement.web.model.UpdateInventoryRequest;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/inventories")
@@ -24,9 +27,9 @@ public class InventoryController {
 
     @PostMapping
     public InventoryResponse createInventory(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                             @RequestBody CreateInventoryRequest request) {
+                                             @Valid @RequestBody CreateInventoryRequest request) {
 
-        final Inventory inventory = inventoryService.createStock(client.getId(), request.getSku(), Inventory.InventoryQuantity.each(0));
+        final Inventory inventory = inventoryService.createStock(request.toCreateInventory(client.getId()));
 
         return toResponse(inventory);
     }
@@ -42,22 +45,42 @@ public class InventoryController {
         return toResponse(inventory);
     }
 
-    @GetMapping("/{id}")
-    public InventoryResponse getInventory(@PathVariable String id) {
+    @GetMapping("/{productId}")
+    public InventoryResponse getInventoryByProductId(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                     @PathVariable String productId) {
 
-        final Inventory inventory = inventoryService.getInventory(id);
+        final Inventory inventory = inventoryService.getInventoryByProductId(client.getId(), productId);
         return toResponse(inventory);
+    }
+
+    @PostMapping("/{productId}")
+    public InventoryResponse updateInventory(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                             @PathVariable String productId,
+                                             @Valid @RequestBody UpdateInventoryRequest request) {
+
+        final Inventory inventory = inventoryService.getInventoryByProductId(client.getId(), productId);
+        updateInventoryFromRequest(inventory, request);
+
+        return toResponse(inventoryService.saveInventory(inventory));
+    }
+
+    private void updateInventoryFromRequest(Inventory inventory, UpdateInventoryRequest request) {
+
+        inventory.setSku(request.getSku());
+        inventory.setMinimumStockLevel(request.getMinimumStockLevel());
+        request.getQuantities().forEach(inventory::replaceInventoryQuantity);
     }
 
     private InventoryResponse toResponse(Inventory inventory) {
         return new InventoryResponse(inventory);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{productId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteInventory(@PathVariable String id) {
+    public void deleteInventory(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                @PathVariable String productId) {
 
-        final Inventory inventory = inventoryService.getInventory(id);
+        final Inventory inventory = inventoryService.getInventoryByProductId(client.getId(), productId);
         inventoryService.deleteInventory(inventory);
     }
 }

@@ -1,5 +1,6 @@
 package io.nextpos.inventorymanagement.data;
 
+import io.nextpos.inventorymanagement.service.bean.CreateInventory;
 import io.nextpos.shared.model.MongoBaseObject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,9 +29,8 @@ public class Inventory extends MongoBaseObject {
 
     private String clientId;
 
-    /**
-     * Can reference to the product.
-     */
+    private String productId;
+
     private String sku;
 
     private InventoryType inventoryType;
@@ -47,18 +47,29 @@ public class Inventory extends MongoBaseObject {
     @Version
     private Long version;
 
-    public Inventory(String clientId, String sku, InventoryType inventoryType) {
+    public Inventory(String clientId, String productId, String sku, InventoryType inventoryType) {
         this.clientId = clientId;
+        this.productId = productId;
         this.sku = sku;
         this.inventoryType = inventoryType;
     }
 
-    public static Inventory createStock(String clientId, String sku) {
-        return new Inventory(clientId, sku, InventoryType.STOCK);
+    public static Inventory createStock(CreateInventory createInventory) {
+
+        final Inventory inventory = new Inventory(createInventory.getClientId(), createInventory.getProductId(), createInventory.getSku(), InventoryType.STOCK);
+        inventory.setMinimumStockLevel(createInventory.getMinimumStockLevel());
+        createInventory.getQuantities().forEach(inventory::updateInventoryQuantity);
+
+        return inventory;
     }
 
-    public static Inventory createInventory(String clientId, String sku) {
-        return new Inventory(clientId, sku, InventoryType.INVENTORY);
+    public void replaceInventoryQuantity(InventoryQuantity inventoryQuantity) {
+
+        final InventoryQuantity valueInMap = inventoryQuantities.putIfAbsent(inventoryQuantity.getUnitOfMeasure(), inventoryQuantity);
+
+        if (valueInMap != null) {
+            valueInMap.setQuantity(inventoryQuantity.getQuantity());
+        }
     }
 
     public void updateInventoryQuantity(InventoryQuantity inventoryQuantity) {

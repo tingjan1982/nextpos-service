@@ -5,6 +5,7 @@ import io.nextpos.inventorymanagement.data.Inventory;
 import io.nextpos.inventorymanagement.data.InventoryOrder;
 import io.nextpos.inventorymanagement.data.InventoryTransaction;
 import io.nextpos.inventorymanagement.data.Supplier;
+import io.nextpos.inventorymanagement.service.bean.CreateInventory;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,7 +54,7 @@ class InventoryServiceImplTest {
     @BeforeEach
     void prepare() {
         Inventory.InventoryQuantity inventoryQuantity = Inventory.InventoryQuantity.each(10);
-        stock = inventoryService.createStock(client.getId(), "2020blue", inventoryQuantity);
+        stock = inventoryService.createStock(new CreateInventory(client.getId(), "pid", "2020blue", BigDecimal.ZERO, List.of(inventoryQuantity)));
     }
 
     @AfterEach

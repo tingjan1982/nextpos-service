@@ -4,6 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.inventorymanagement.data.Inventory;
 import io.nextpos.inventorymanagement.data.InventoryTransaction;
 import io.nextpos.inventorymanagement.service.InventoryService;
+import io.nextpos.inventorymanagement.service.bean.CreateInventory;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.ordermanagement.service.OrderService;
@@ -47,7 +48,8 @@ class InventoryTransactionContextualServiceImplTest {
     void createInventoryTransaction() {
 
         String sku = "hat001";
-        final Inventory stock = inventoryService.createStock(client.getId(), sku, Inventory.InventoryQuantity.each(100));
+        Inventory.InventoryQuantity inventoryQuantity = Inventory.InventoryQuantity.each(100);
+        final Inventory stock = inventoryService.createStock(new CreateInventory(client.getId(), "hat", sku, BigDecimal.ZERO, List.of(inventoryQuantity)));
 
         Order order = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, DummyObjects.orderSettings(countrySettings));
         ProductSnapshot productSnapshot = new ProductSnapshot("hat", "hat", sku, new BigDecimal("100"), List.of());

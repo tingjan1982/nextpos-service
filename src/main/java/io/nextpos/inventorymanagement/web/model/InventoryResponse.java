@@ -4,6 +4,7 @@ import io.nextpos.inventorymanagement.data.Inventory;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 @Data
@@ -14,7 +15,7 @@ public class InventoryResponse {
 
     private String sku;
 
-    private String name;
+    private BigDecimal minimumStockLevel;
 
     private Map<Inventory.UnitOfMeasure, Inventory.InventoryQuantity> inventoryQuantities;
 
@@ -22,7 +23,7 @@ public class InventoryResponse {
     public InventoryResponse(Inventory inventory) {
         id = inventory.getId();
         sku = inventory.getSku();
-        name = inventory.getName();
+        minimumStockLevel = inventory.getMinimumStockLevel();
         inventoryQuantities = inventory.getInventoryQuantities();
     }
 }

@@ -33,7 +33,7 @@ public class VariationDefinition extends BaseObject {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Column(name = "attribute_value")
-    @CollectionTable(name = "variation_definition_attributes", joinColumns = @JoinColumn(name = "variation_definition_id"))
+    @CollectionTable(joinColumns = @JoinColumn(name = "variation_definition_id"))
     private Set<String> attributes = new HashSet<>();
 
     public VariationDefinition(Client client, String variationName) {
