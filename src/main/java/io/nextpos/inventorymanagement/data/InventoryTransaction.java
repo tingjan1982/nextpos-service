@@ -44,10 +44,10 @@ public class InventoryTransaction extends MongoBaseObject {
         this.orderId = orderId;
     }
 
-    public void addInventoryTransactionItem(String inventoryId, int quantity) {
+    public void addInventoryTransactionItem(String inventoryId, String sku, int quantity) {
 
         String itemId = this.id + "-" + counter.getAndIncrement();
-        final InventoryTransactionItem item = new InventoryTransactionItem(itemId, inventoryId, Inventory.InventoryQuantity.each(quantity, true));
+        final InventoryTransactionItem item = new InventoryTransactionItem(itemId, inventoryId, Inventory.InventoryQuantity.each(sku, quantity, true));
 
         inventoryTransactionItems.add(item);
     }

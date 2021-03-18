@@ -16,9 +16,9 @@ public interface InventoryService {
 
     Inventory getInventory(String id);
 
-    Inventory getInventoryByProductId(String clientId, String productId);
+    Inventory getInventoryByProductIdOrThrows(String clientId, String productId);
 
-    Optional<Inventory> getInventoryBySku(String clientId, String sku);
+    Optional<Inventory> getInventoryByProductId(String clientId, String productId);
 
     void deleteInventory(Inventory inventory);
 
@@ -27,6 +27,8 @@ public interface InventoryService {
     Supplier getSupplier(String id);
 
     InventoryOrder saveInventoryOrder(InventoryOrder inventoryOrder);
+
+    InventoryOrder getInventoryOrder(String id);
 
     void processInventoryOrder(InventoryOrder inventoryOrder);
 

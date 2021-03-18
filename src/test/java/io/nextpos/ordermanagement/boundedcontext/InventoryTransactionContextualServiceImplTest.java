@@ -48,8 +48,8 @@ class InventoryTransactionContextualServiceImplTest {
     void createInventoryTransaction() {
 
         String sku = "hat001";
-        Inventory.InventoryQuantity inventoryQuantity = Inventory.InventoryQuantity.each(100);
-        final Inventory stock = inventoryService.createStock(new CreateInventory(client.getId(), "hat", sku, BigDecimal.ZERO, List.of(inventoryQuantity)));
+        Inventory.InventoryQuantity inventoryQuantity = Inventory.InventoryQuantity.each(sku, 100);
+        final Inventory stock = inventoryService.createStock(new CreateInventory(client.getId(), "hat", List.of(inventoryQuantity)));
 
         Order order = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, DummyObjects.orderSettings(countrySettings));
         ProductSnapshot productSnapshot = new ProductSnapshot("hat", "hat", sku, new BigDecimal("100"), List.of());
@@ -65,7 +65,7 @@ class InventoryTransactionContextualServiceImplTest {
         });
 
         assertThat(inventoryService.getInventory(stock.getId())).satisfies(i -> {
-            assertThat(i.getInventoryQuantity(Inventory.UnitOfMeasure.EACH).getQuantity()).isEqualByComparingTo("99");
+            assertThat(i.getInventoryQuantity(sku).getQuantity()).isEqualByComparingTo("99");
         });
     }
 

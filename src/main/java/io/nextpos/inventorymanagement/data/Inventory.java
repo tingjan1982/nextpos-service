@@ -31,15 +31,9 @@ public class Inventory extends MongoBaseObject {
 
     private String productId;
 
-    private String sku;
-
     private InventoryType inventoryType;
 
-    private String name;
-
-    private Map<UnitOfMeasure, InventoryQuantity> inventoryQuantities = new HashMap<>();
-
-    private BigDecimal minimumStockLevel;
+    private Map<String, InventoryQuantity> inventoryQuantities = new HashMap<>();
 
     @DBRef
     private BillOfMaterial billOfMaterial;
@@ -47,25 +41,23 @@ public class Inventory extends MongoBaseObject {
     @Version
     private Long version;
 
-    public Inventory(String clientId, String productId, String sku, InventoryType inventoryType) {
+    public Inventory(String clientId, String productId, InventoryType inventoryType) {
         this.clientId = clientId;
         this.productId = productId;
-        this.sku = sku;
         this.inventoryType = inventoryType;
     }
 
     public static Inventory createStock(CreateInventory createInventory) {
 
-        final Inventory inventory = new Inventory(createInventory.getClientId(), createInventory.getProductId(), createInventory.getSku(), InventoryType.STOCK);
-        inventory.setMinimumStockLevel(createInventory.getMinimumStockLevel());
-        createInventory.getQuantities().forEach(inventory::updateInventoryQuantity);
+        final Inventory inventory = new Inventory(createInventory.getClientId(), createInventory.getProductId(), InventoryType.STOCK);
+        createInventory.getInventoryQuantities().forEach(inventory::updateInventoryQuantity);
 
         return inventory;
     }
 
     public void replaceInventoryQuantity(InventoryQuantity inventoryQuantity) {
 
-        final InventoryQuantity valueInMap = inventoryQuantities.putIfAbsent(inventoryQuantity.getUnitOfMeasure(), inventoryQuantity);
+        final InventoryQuantity valueInMap = inventoryQuantities.putIfAbsent(inventoryQuantity.getSku(), inventoryQuantity);
 
         if (valueInMap != null) {
             valueInMap.setQuantity(inventoryQuantity.getQuantity());
@@ -74,15 +66,19 @@ public class Inventory extends MongoBaseObject {
 
     public void updateInventoryQuantity(InventoryQuantity inventoryQuantity) {
 
-        final InventoryQuantity valueInMap = inventoryQuantities.putIfAbsent(inventoryQuantity.getUnitOfMeasure(), inventoryQuantity);
+        final InventoryQuantity valueInMap = inventoryQuantities.putIfAbsent(inventoryQuantity.getSku(), inventoryQuantity);
 
         if (valueInMap != null) {
             valueInMap.incrementQuantity(inventoryQuantity);
         }
     }
 
-    public InventoryQuantity getInventoryQuantity(UnitOfMeasure unitOfMeasure) {
-        return inventoryQuantities.get(unitOfMeasure);
+    public void removeInventoryQuantity(String sku) {
+        inventoryQuantities.remove(sku);
+    }
+
+    public InventoryQuantity getInventoryQuantity(String sku) {
+        return inventoryQuantities.get(sku);
     }
 
     public double deduceTotalBaseQuantity() {
@@ -96,7 +92,11 @@ public class Inventory extends MongoBaseObject {
     @AllArgsConstructor
     public static class InventoryQuantity {
 
-        private UnitOfMeasure unitOfMeasure;
+        private String sku;
+
+        private String name;
+
+        private String unitOfMeasure;
 
         /**
          * 1 if UOM is EACH, else depends on the collective quantity in the defined UOM.
@@ -108,15 +108,13 @@ public class Inventory extends MongoBaseObject {
          */
         private BigDecimal quantity;
 
-        public static InventoryQuantity of(UnitOfMeasure unitOfMeasure, BigDecimal quantity) {
-            return new InventoryQuantity(unitOfMeasure, 1, quantity);
+        private BigDecimal minimumStockLevel;
+
+        public static InventoryQuantity each(String sku, int quantity) {
+            return each(sku, quantity, false);
         }
 
-        public static InventoryQuantity each(int quantity) {
-            return each(quantity, false);
-        }
-
-        public static InventoryQuantity each(int quantity, boolean negative) {
+        public static InventoryQuantity each(String sku, int quantity, boolean negative) {
 
             BigDecimal inventoryQty = BigDecimal.valueOf(quantity);
 
@@ -124,7 +122,7 @@ public class Inventory extends MongoBaseObject {
                 inventoryQty = inventoryQty.negate();
             }
 
-            return new InventoryQuantity(UnitOfMeasure.EACH, 1, inventoryQty);
+            return new InventoryQuantity(sku, sku, UnitOfMeasure.EACH.name(), 1, inventoryQty, BigDecimal.ZERO);
         }
 
         public void incrementQuantity(InventoryQuantity quantityToIncrement) {
@@ -149,7 +147,7 @@ public class Inventory extends MongoBaseObject {
 
         EACH,
 
-        PACKAGE, CASE, CARTON,
+        PACK
     }
 
 

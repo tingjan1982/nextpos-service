@@ -52,7 +52,7 @@ public class InventoryOrder extends MongoBaseObject {
         this.supplierOrderId = supplierOrderId;
     }
 
-    public void addInventoryLineItem(String inventoryId, Inventory.InventoryQuantity inventoryQuantity, BigDecimal unitPrice) {
+    public void addInventoryOrderItem(String inventoryId, Inventory.InventoryQuantity inventoryQuantity, BigDecimal unitPrice) {
 
         String itemId = id + "-" + counter.getAndIncrement();
         final InventoryOrderItem inventoryOrderItem = new InventoryOrderItem(itemId, inventoryId, inventoryQuantity, unitPrice);

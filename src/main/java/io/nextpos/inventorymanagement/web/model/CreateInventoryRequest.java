@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
-import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -16,14 +15,9 @@ public class CreateInventoryRequest {
     @NotBlank
     private String productId;
 
-    @NotBlank
-    private String sku;
-
-    private BigDecimal minimumStockLevel;
-
-    private List<Inventory.InventoryQuantity> quantities;
+    private Inventory.InventoryQuantity quantity;
 
     public CreateInventory toCreateInventory(String clientId) {
-        return new CreateInventory(clientId, productId, sku, minimumStockLevel, quantities);
+        return new CreateInventory(clientId, productId, List.of(quantity));
     }
 }

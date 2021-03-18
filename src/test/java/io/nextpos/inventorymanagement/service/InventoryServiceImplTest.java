@@ -53,8 +53,8 @@ class InventoryServiceImplTest {
 
     @BeforeEach
     void prepare() {
-        Inventory.InventoryQuantity inventoryQuantity = Inventory.InventoryQuantity.each(10);
-        stock = inventoryService.createStock(new CreateInventory(client.getId(), "pid", "2020blue", BigDecimal.ZERO, List.of(inventoryQuantity)));
+        Inventory.InventoryQuantity inventoryQuantity = Inventory.InventoryQuantity.each("2020blue", 10);
+        stock = inventoryService.createStock(new CreateInventory(client.getId(), "pid", List.of(inventoryQuantity)));
     }
 
     @AfterEach
@@ -90,7 +90,7 @@ class InventoryServiceImplTest {
         assertThat(inventoryService.getSupplier(supplier.getId())).isNotNull();
 
         final InventoryOrder inventoryOrder = new InventoryOrder(client.getId(), supplier, "oid-12345");
-        inventoryOrder.addInventoryLineItem(stock.getId(), Inventory.InventoryQuantity.each(5), new BigDecimal("100"));
+        inventoryOrder.addInventoryOrderItem(stock.getId(), Inventory.InventoryQuantity.each("2020blue", 5), new BigDecimal("100"));
         inventoryService.saveInventoryOrder(inventoryOrder);
 
         assertThat(inventoryOrder.getId()).isNotNull();
@@ -100,12 +100,12 @@ class InventoryServiceImplTest {
         inventoryService.processInventoryOrder(inventoryOrder);
 
         assertThat(inventoryService.getInventory(stock.getId())).satisfies(i -> {
-            assertThat(i.getInventoryQuantity(Inventory.UnitOfMeasure.EACH).getQuantity()).isEqualByComparingTo("15");
+            assertThat(i.getInventoryQuantity("2020blue").getQuantity()).isEqualByComparingTo("15");
             assertThat(i.deduceTotalBaseQuantity()).isEqualTo(15);
         });
 
         final InventoryTransaction inventoryTransaction = new InventoryTransaction(client.getId(), "orderId");
-        inventoryTransaction.addInventoryTransactionItem(stock.getId(), 2);
+        inventoryTransaction.addInventoryTransactionItem(stock.getId(), "2020blue", 2);
         inventoryService.saveInventoryTransaction(inventoryTransaction);
 
         assertThat(inventoryTransaction).satisfies(it -> {
@@ -116,7 +116,7 @@ class InventoryServiceImplTest {
         inventoryService.processInventoryTransaction(inventoryTransaction);
 
         assertThat(inventoryService.getInventory(stock.getId())).satisfies(i -> {
-            assertThat(i.getInventoryQuantity(Inventory.UnitOfMeasure.EACH).getQuantity()).isEqualByComparingTo("13");
+            assertThat(i.getInventoryQuantity("2020blue").getQuantity()).isEqualByComparingTo("13");
             assertThat(i.deduceTotalBaseQuantity()).isEqualTo(13);
         });
     }
@@ -129,7 +129,7 @@ class InventoryServiceImplTest {
         Callable<String> task = () -> {
             retryTemplate.execute(r -> {
                 final Inventory inventory = inventoryService.getInventory(stock.getId());
-                inventory.updateInventoryQuantity(Inventory.InventoryQuantity.each(1, true));
+                inventory.updateInventoryQuantity(Inventory.InventoryQuantity.each("sku", 1, true));
                 return inventoryService.saveInventory(inventory);
             });
 
@@ -140,7 +140,7 @@ class InventoryServiceImplTest {
 
         assertThat(inventoryService.getInventory(stock.getId())).satisfies(i -> {
             LOGGER.info("{}", i);
-            assertThat(i.getInventoryQuantity(Inventory.UnitOfMeasure.EACH).getQuantity()).isEqualByComparingTo("7");
+            assertThat(i.getInventoryQuantity("sku").getQuantity()).isEqualByComparingTo("7");
         });
     }
 }

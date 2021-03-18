@@ -6,6 +6,7 @@ import io.nextpos.inventorymanagement.service.InventoryService;
 import io.nextpos.inventorymanagement.web.model.CreateInventoryRequest;
 import io.nextpos.inventorymanagement.web.model.InventoryResponse;
 import io.nextpos.inventorymanagement.web.model.UpdateInventoryRequest;
+import io.nextpos.shared.exception.ObjectAlreadyExistsException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,31 +35,43 @@ public class InventoryController {
         return toResponse(inventory);
     }
 
-    @GetMapping
-    public InventoryResponse getInventoryBySku(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                               @RequestParam("sku") String sku) {
-
-        final Inventory inventory = inventoryService.getInventoryBySku(client.getId(), sku).orElseThrow(() -> {
-            throw new ObjectNotFoundException(sku, Inventory.class);
-        });
-
-        return toResponse(inventory);
-    }
-
     @GetMapping("/{productId}")
     public InventoryResponse getInventoryByProductId(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                      @PathVariable String productId) {
 
-        final Inventory inventory = inventoryService.getInventoryByProductId(client.getId(), productId);
+        final Inventory inventory = inventoryService.getInventoryByProductIdOrThrows(client.getId(), productId);
         return toResponse(inventory);
     }
 
-    @PostMapping("/{productId}")
+    @PostMapping("/{productId}/quantities")
+    public InventoryResponse addInventoryQuantity(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                  @PathVariable String productId,
+                                                  @Valid @RequestBody UpdateInventoryRequest request) {
+
+        final Inventory inventory = inventoryService.getInventoryByProductIdOrThrows(client.getId(), productId);
+        final String sku = request.getQuantity().getSku();
+
+        if (inventory.getInventoryQuantity(sku) != null) {
+            throw new ObjectAlreadyExistsException(sku, Inventory.InventoryQuantity.class);
+        }
+
+        updateInventoryFromRequest(inventory, request);
+
+        return toResponse(inventoryService.saveInventory(inventory));
+    }
+
+    @PostMapping("/{productId}/quantities/{sku}")
     public InventoryResponse updateInventory(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                              @PathVariable String productId,
+                                             @PathVariable String sku,
                                              @Valid @RequestBody UpdateInventoryRequest request) {
 
-        final Inventory inventory = inventoryService.getInventoryByProductId(client.getId(), productId);
+        final Inventory inventory = inventoryService.getInventoryByProductIdOrThrows(client.getId(), productId);
+
+        if (inventory.getInventoryQuantity(sku) == null) {
+            throw new ObjectNotFoundException(sku, Inventory.InventoryQuantity.class);
+        }
+
         updateInventoryFromRequest(inventory, request);
 
         return toResponse(inventoryService.saveInventory(inventory));
@@ -66,13 +79,23 @@ public class InventoryController {
 
     private void updateInventoryFromRequest(Inventory inventory, UpdateInventoryRequest request) {
 
-        inventory.setSku(request.getSku());
-        inventory.setMinimumStockLevel(request.getMinimumStockLevel());
-        request.getQuantities().forEach(inventory::replaceInventoryQuantity);
+        inventory.replaceInventoryQuantity(request.getQuantity());
     }
 
     private InventoryResponse toResponse(Inventory inventory) {
         return new InventoryResponse(inventory);
+    }
+
+    @DeleteMapping("/{productId}/quantities/{sku}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteInventoryQuantity(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                        @PathVariable String productId,
+                                        @PathVariable String sku) {
+
+        final Inventory inventory = inventoryService.getInventoryByProductIdOrThrows(client.getId(), productId);
+        inventory.removeInventoryQuantity(sku);
+
+        inventoryService.saveInventory(inventory);
     }
 
     @DeleteMapping("/{productId}")
@@ -80,7 +103,7 @@ public class InventoryController {
     public void deleteInventory(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                 @PathVariable String productId) {
 
-        final Inventory inventory = inventoryService.getInventoryByProductId(client.getId(), productId);
+        final Inventory inventory = inventoryService.getInventoryByProductIdOrThrows(client.getId(), productId);
         inventoryService.deleteInventory(inventory);
     }
 }

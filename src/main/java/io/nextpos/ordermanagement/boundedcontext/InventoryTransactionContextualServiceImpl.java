@@ -39,8 +39,11 @@ public class InventoryTransactionContextualServiceImpl implements InventoryTrans
             final InventoryTransaction inventoryTransaction = new InventoryTransaction(order.getClientId(), order.getId());
 
             for (OrderLineItem lineItem : lineItems) {
-                inventoryService.getInventoryBySku(order.getClientId(), lineItem.getProductSnapshot().getSku()).ifPresent(i -> {
-                    inventoryTransaction.addInventoryTransactionItem(i.getId(), lineItem.getQuantity());
+                final String productId = lineItem.getProductSnapshot().getId();
+                final String sku = lineItem.getProductSnapshot().getSku();
+
+                inventoryService.getInventoryByProductId(order.getClientId(), productId).ifPresent(i -> {
+                    inventoryTransaction.addInventoryTransactionItem(i.getId(), sku, lineItem.getQuantity());
                 });
             }
 

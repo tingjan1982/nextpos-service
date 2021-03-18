@@ -55,15 +55,15 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
-    public Inventory getInventoryByProductId(String clientId, String productId) {
+    public Inventory getInventoryByProductIdOrThrows(String clientId, String productId) {
         return inventoryRepository.findByClientIdAndProductId(clientId, productId).orElseThrow(() -> {
             throw new ObjectNotFoundException(productId, Inventory.class);
         });
     }
 
     @Override
-    public Optional<Inventory> getInventoryBySku(String clientId, String sku) {
-        return inventoryRepository.findByClientIdAndSku(clientId, sku);
+    public Optional<Inventory> getInventoryByProductId(String clientId, String productId) {
+        return inventoryRepository.findByClientIdAndProductId(clientId, productId);
     }
 
     @Override
@@ -91,6 +91,13 @@ public class InventoryServiceImpl implements InventoryService {
         }
 
         return inventoryOrderRepository.save(inventoryOrder);
+    }
+
+    @Override
+    public InventoryOrder getInventoryOrder(String id) {
+        return inventoryOrderRepository.findById(id).orElseThrow(() -> {
+            throw new ObjectNotFoundException(id, InventoryOrder.class);
+        });
     }
 
     @Override
