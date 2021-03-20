@@ -53,6 +53,7 @@ class ClientSubscriptionOrderServiceImplTest {
         atlasClient.addAttribute(Client.ClientAttributes.AES_KEY, "41BFE9D500D25491650E8B84C3EA3B3C");
         atlasClient.addAttribute(Client.ClientAttributes.UBN, "83515813");
         atlasClient.addAttribute(Client.ClientAttributes.COMPANY_NAME, "雨圖數位行銷科技股份有限公司");
+        atlasClient.addAttribute(Client.ClientAttributes.ADDRESS, "台北市信義區基隆路二段12號");
         clientService.saveClient(atlasClient);
 
         client = new Client("Asian House", "tingjan1982@gmail.com", "123456", "TW", "Asia/Taipei");

@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * Object to track incoming inventory orders provided by supplier.
@@ -52,16 +53,26 @@ public class InventoryOrder extends MongoBaseObject {
         this.supplierOrderId = supplierOrderId;
     }
 
-    public void addInventoryOrderItem(String inventoryId, Inventory.InventoryQuantity inventoryQuantity, BigDecimal unitPrice) {
+    public void addInventoryOrderItem(String inventoryId, String sku, BigDecimal quantity, BigDecimal unitPrice) {
 
         String itemId = id + "-" + counter.getAndIncrement();
-        final InventoryOrderItem inventoryOrderItem = new InventoryOrderItem(itemId, inventoryId, inventoryQuantity, unitPrice);
+        final InventoryOrderItem inventoryOrderItem = new InventoryOrderItem(itemId, inventoryId, sku, quantity, unitPrice);
         inventoryOrderItems.add(inventoryOrderItem);
 
     }
 
-    public void removeInventoryLineItem(String itemId) {
-        inventoryOrderItems.removeIf(i -> i.id.equals(itemId));
+    public InventoryOrder copy() {
+
+        final InventoryOrder copy = new InventoryOrder(clientId, supplier, supplierOrderId);
+        copy.id = new ObjectId().toString();
+        copy.orderDate = orderDate;
+        copy.orderAmount = orderAmount;
+        copy.inventoryOrderItems = inventoryOrderItems.stream()
+                .map(InventoryOrderItem::copy)
+                .peek(i -> i.setId(copy.id + "-" + copy.counter.getAndIncrement()))
+                .collect(Collectors.toList());
+
+        return copy;
     }
 
     @Data
@@ -73,11 +84,21 @@ public class InventoryOrder extends MongoBaseObject {
 
         private String inventoryId;
 
-        private Inventory.InventoryQuantity inventoryQuantity;
+        private String sku;
+
+        private BigDecimal quantity;
 
         private BigDecimal unitPrice;
 
+        public InventoryOrderItem copy() {
+            final InventoryOrderItem copy = new InventoryOrderItem();
+            copy.inventoryId = inventoryId;
+            copy.sku = sku;
+            copy.quantity = quantity;
+            copy.unitPrice = unitPrice;
 
+            return copy;
+        }
     }
 
     public enum InventoryOrderStatus {

@@ -20,16 +20,13 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
 
-    private final SupplierRepository supplierRepository;
-
     private final InventoryOrderRepository inventoryOrderRepository;
 
     private final InventoryTransactionRepository inventoryTransactionRepository;
 
     @Autowired
-    public InventoryServiceImpl(InventoryRepository inventoryRepository, SupplierRepository supplierRepository, InventoryOrderRepository inventoryOrderRepository, InventoryTransactionRepository inventoryTransactionRepository) {
+    public InventoryServiceImpl(InventoryRepository inventoryRepository, InventoryOrderRepository inventoryOrderRepository, InventoryTransactionRepository inventoryTransactionRepository) {
         this.inventoryRepository = inventoryRepository;
-        this.supplierRepository = supplierRepository;
         this.inventoryOrderRepository = inventoryOrderRepository;
         this.inventoryTransactionRepository = inventoryTransactionRepository;
     }
@@ -72,18 +69,6 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
-    public Supplier saveSupplier(Supplier supplier) {
-        return supplierRepository.save(supplier);
-    }
-
-    @Override
-    public Supplier getSupplier(String id) {
-        return supplierRepository.findById(id).orElseThrow(() -> {
-            throw new ObjectNotFoundException(id, Supplier.class);
-        });
-    }
-
-    @Override
     public InventoryOrder saveInventoryOrder(InventoryOrder inventoryOrder) {
 
         if (inventoryOrder.getStatus() == InventoryOrder.InventoryOrderStatus.PROCESSED) {
@@ -101,11 +86,18 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    public InventoryOrder copyInventoryOrder(InventoryOrder inventoryOrder) {
+        final InventoryOrder newInventoryOrder = inventoryOrder.copy();
+
+        return this.saveInventoryOrder(newInventoryOrder);
+    }
+
+    @Override
     public void processInventoryOrder(InventoryOrder inventoryOrder) {
 
         inventoryOrder.getInventoryOrderItems().forEach(i -> {
             final Inventory inventory = getInventory(i.getInventoryId());
-            inventory.updateInventoryQuantity(i.getInventoryQuantity());
+            inventory.updateInventoryQuantity(i.getSku(), i.getQuantity());
 
             saveInventory(inventory);
         });
@@ -115,7 +107,13 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    public void deleteInventoryOrder(InventoryOrder inventoryOrder) {
+        inventoryOrderRepository.delete(inventoryOrder);
+    }
+
+    @Override
     public InventoryTransaction saveInventoryTransaction(InventoryTransaction inventoryTransaction) {
+
         return inventoryTransactionRepository.save(inventoryTransaction);
     }
 
@@ -126,7 +124,7 @@ public class InventoryServiceImpl implements InventoryService {
 
         inventoryTransaction.getInventoryTransactionItems().forEach(i -> {
             final Inventory inventory = getInventory(i.getInventoryId());
-            inventory.updateInventoryQuantity(i.getInventoryQuantity());
+            inventory.updateInventoryQuantity(i.getSku(), i.getQuantity().negate());
 
             saveInventory(inventory);
         });

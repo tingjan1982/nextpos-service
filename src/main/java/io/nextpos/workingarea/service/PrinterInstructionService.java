@@ -19,7 +19,7 @@ public interface PrinterInstructionService {
 
     String createCancelOrderPrintInstruction(Client client, Order order, OrderTransaction orderTransaction);
 
-    String createElectronicInvoiceXML(Client client, Order order, OrderTransaction orderTransaction);
+    String createElectronicInvoiceXML(Client client, Order order, OrderTransaction orderTransaction, boolean reprint);
 
     ResponseEntity<String> outputToPrinter(String printerIp, String contentXML);
 }

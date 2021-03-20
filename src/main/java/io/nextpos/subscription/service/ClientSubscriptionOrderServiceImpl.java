@@ -30,6 +30,7 @@ import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.ordermanagement.service.OrderService;
+import io.nextpos.ordermanagement.service.ShiftService;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.service.OrderTransactionService;
 import io.nextpos.settings.data.CountrySettings;
@@ -64,6 +65,8 @@ public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrd
 
     private final OrderTransactionService orderTransactionService;
 
+    private final ShiftService shiftService;
+
     private final NotificationService notificationService;
 
     private final ImageCodeUtil imageCodeUtil;
@@ -73,11 +76,12 @@ public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrd
     private final byte[] fontBytes;
 
     @Autowired
-    public ClientSubscriptionOrderServiceImpl(ClientService clientService, OrderService orderService, OrderTransactionService orderTransactionService, NotificationService notificationService, ImageCodeUtil imageCodeUtil, CountrySettings defaultCountrySettings,
+    public ClientSubscriptionOrderServiceImpl(ClientService clientService, OrderService orderService, OrderTransactionService orderTransactionService, ShiftService shiftService, NotificationService notificationService, ImageCodeUtil imageCodeUtil, CountrySettings defaultCountrySettings,
                                               @Value("classpath:fonts/bkai00mp.ttf") Resource fontResource) throws Exception {
         this.clientService = clientService;
         this.orderService = orderService;
         this.orderTransactionService = orderTransactionService;
+        this.shiftService = shiftService;
         this.notificationService = notificationService;
         this.imageCodeUtil = imageCodeUtil;
         this.defaultCountrySettings = defaultCountrySettings;
@@ -92,7 +96,10 @@ public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrd
             final Order order = Order.newOrder(c.getId(), Order.OrderType.ONLINE, orderSettings);
             order.addOrderLineItem(new OrderLineItem(createProductSnapshot(clientSubscriptionInvoice), 1, orderSettings));
             order.setState(Order.OrderState.DELIVERED);
-            orderService.saveOrder(order);
+
+            shiftService.openShift(c.getId(), BigDecimal.ZERO);
+
+            orderService.createOrder(order);
 
             final OrderTransaction orderTransaction = orderTransactionService.createOrderTransaction(c, createOrderTransaction(order));
             sendNotification(clientSubscriptionInvoice, orderTransaction);

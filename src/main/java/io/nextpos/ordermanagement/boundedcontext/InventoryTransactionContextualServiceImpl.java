@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -43,7 +44,7 @@ public class InventoryTransactionContextualServiceImpl implements InventoryTrans
                 final String sku = lineItem.getProductSnapshot().getSku();
 
                 inventoryService.getInventoryByProductId(order.getClientId(), productId).ifPresent(i -> {
-                    inventoryTransaction.addInventoryTransactionItem(i.getId(), sku, lineItem.getQuantity());
+                    inventoryTransaction.addInventoryTransactionItem(i.getId(), sku, new BigDecimal(lineItem.getQuantity()));
                 });
             }
 

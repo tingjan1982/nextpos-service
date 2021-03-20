@@ -9,6 +9,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -44,10 +45,10 @@ public class InventoryTransaction extends MongoBaseObject {
         this.orderId = orderId;
     }
 
-    public void addInventoryTransactionItem(String inventoryId, String sku, int quantity) {
+    public void addInventoryTransactionItem(String inventoryId, String sku, BigDecimal quantity) {
 
         String itemId = this.id + "-" + counter.getAndIncrement();
-        final InventoryTransactionItem item = new InventoryTransactionItem(itemId, inventoryId, Inventory.InventoryQuantity.each(sku, quantity, true));
+        final InventoryTransactionItem item = new InventoryTransactionItem(itemId, inventoryId, sku, quantity);
 
         inventoryTransactionItems.add(item);
     }
@@ -64,7 +65,9 @@ public class InventoryTransaction extends MongoBaseObject {
 
         private String inventoryId;
 
-        private Inventory.InventoryQuantity inventoryQuantity;
+        private String sku;
+
+        private BigDecimal quantity;
     }
 
 

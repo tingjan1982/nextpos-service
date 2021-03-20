@@ -55,7 +55,7 @@ public class InventoryController {
             throw new ObjectAlreadyExistsException(sku, Inventory.InventoryQuantity.class);
         }
 
-        updateInventoryFromRequest(inventory, request);
+        updateInventoryFromRequest(inventory, sku, request);
 
         return toResponse(inventoryService.saveInventory(inventory));
     }
@@ -72,13 +72,14 @@ public class InventoryController {
             throw new ObjectNotFoundException(sku, Inventory.InventoryQuantity.class);
         }
 
-        updateInventoryFromRequest(inventory, request);
+        updateInventoryFromRequest(inventory, sku, request);
 
         return toResponse(inventoryService.saveInventory(inventory));
     }
 
-    private void updateInventoryFromRequest(Inventory inventory, UpdateInventoryRequest request) {
+    private void updateInventoryFromRequest(Inventory inventory, String prevSku, UpdateInventoryRequest request) {
 
+        inventory.removeInventoryQuantity(prevSku);
         inventory.replaceInventoryQuantity(request.getQuantity());
     }
 

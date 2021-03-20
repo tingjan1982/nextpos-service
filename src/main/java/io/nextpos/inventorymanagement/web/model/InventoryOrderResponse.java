@@ -17,12 +17,15 @@ public class InventoryOrderResponse {
 
     private Date orderDate;
 
+    private InventoryOrder.InventoryOrderStatus status;
+
     private List<InventoryOrder.InventoryOrderItem> items;
 
     public InventoryOrderResponse(InventoryOrder inventoryOrder) {
         id = inventoryOrder.getId();
         supplierOrderId = inventoryOrder.getSupplierOrderId();
         orderDate = inventoryOrder.getOrderDate();
+        status = inventoryOrder.getStatus();
         items = inventoryOrder.getInventoryOrderItems();
     }
 }

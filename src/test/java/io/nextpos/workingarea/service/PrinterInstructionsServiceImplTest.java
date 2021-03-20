@@ -189,26 +189,26 @@ class PrinterInstructionsServiceImplTest {
         final Order order = new Order(client.getId(), orderSettings);
         order.setSerialId("20201010-150");
         order.addOrderLineItem(DummyObjects.productSnapshot("coffee", BigDecimal.valueOf(55)), 3);
-        order.addOrderLineItem(DummyObjects.productSnapshot("bagel", BigDecimal.valueOf(70)), 2);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式1", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式2", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式3", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式4", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式5", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式6", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式7", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式8", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式9", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式10", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式11", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式12", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式13", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式14", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式15", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
-        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("bagel", BigDecimal.valueOf(70)), 2);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式1", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式2", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式3", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式4", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式5", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式6", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式7", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式8", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式9", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式10", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式11", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式12", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式13", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式14", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式15", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
+//        order.addOrderLineItem(DummyObjects.productSnapshot("黑美式", BigDecimal.valueOf(45)), 1);
 
         orderService.saveOrder(order);
 
@@ -225,7 +225,7 @@ class PrinterInstructionsServiceImplTest {
 
         orderTransaction.getInvoiceDetails().setElectronicInvoice(electronicInvoice);
 
-        final String instruction = printerInstructionService.createElectronicInvoiceXML(client, order, orderTransaction);
+        final String instruction = printerInstructionService.createElectronicInvoiceXML(client, order, orderTransaction, false);
 
         logAndPrint(instruction);
     }

@@ -1,6 +1,5 @@
 package io.nextpos.inventorymanagement.web.model;
 
-import io.nextpos.inventorymanagement.data.Inventory;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -28,7 +27,9 @@ public class InventoryOrderRequest {
 
         private String inventoryId;
 
-        private Inventory.InventoryQuantity inventoryQuantity;
+        private String sku;
+
+        private BigDecimal quantity;
 
         private BigDecimal unitPrice;
     }

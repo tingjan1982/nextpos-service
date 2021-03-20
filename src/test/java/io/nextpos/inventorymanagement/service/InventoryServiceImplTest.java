@@ -33,6 +33,8 @@ class InventoryServiceImplTest {
 
     private final InventoryService inventoryService;
 
+    private final SupplierService supplierService;
+
     private final Client client;
 
     private final RetryTemplate retryTemplate;
@@ -40,8 +42,9 @@ class InventoryServiceImplTest {
     private Inventory stock;
 
     @Autowired
-    InventoryServiceImplTest(InventoryService inventoryService, Client client) {
+    InventoryServiceImplTest(InventoryService inventoryService, SupplierService supplierService, Client client) {
         this.inventoryService = inventoryService;
+        this.supplierService = supplierService;
         this.client = client;
 
         this.retryTemplate = new RetryTemplate();
@@ -53,7 +56,7 @@ class InventoryServiceImplTest {
 
     @BeforeEach
     void prepare() {
-        Inventory.InventoryQuantity inventoryQuantity = Inventory.InventoryQuantity.each("2020blue", 10);
+        Inventory.InventoryQuantity inventoryQuantity = Inventory.InventoryQuantity.each("2020blue", new BigDecimal(10));
         stock = inventoryService.createStock(new CreateInventory(client.getId(), "pid", List.of(inventoryQuantity)));
     }
 
@@ -81,16 +84,16 @@ class InventoryServiceImplTest {
 
         supplier.setContactInfo(contactInfo);
 
-        assertThat(inventoryService.saveSupplier(supplier)).satisfies(s -> {
+        assertThat(supplierService.saveSupplier(supplier)).satisfies(s -> {
             assertThat(s.getId()).isNotNull();
             assertThat(s.getName()).isNotNull();
             assertThat(s.getContactInfo()).isNotNull();
         });
 
-        assertThat(inventoryService.getSupplier(supplier.getId())).isNotNull();
+        assertThat(supplierService.getSupplier(supplier.getId())).isNotNull();
 
         final InventoryOrder inventoryOrder = new InventoryOrder(client.getId(), supplier, "oid-12345");
-        inventoryOrder.addInventoryOrderItem(stock.getId(), Inventory.InventoryQuantity.each("2020blue", 5), new BigDecimal("100"));
+        inventoryOrder.addInventoryOrderItem(stock.getId(), "2020blue", new BigDecimal("5"), new BigDecimal("100"));
         inventoryService.saveInventoryOrder(inventoryOrder);
 
         assertThat(inventoryOrder.getId()).isNotNull();
@@ -105,7 +108,7 @@ class InventoryServiceImplTest {
         });
 
         final InventoryTransaction inventoryTransaction = new InventoryTransaction(client.getId(), "orderId");
-        inventoryTransaction.addInventoryTransactionItem(stock.getId(), "2020blue", 2);
+        inventoryTransaction.addInventoryTransactionItem(stock.getId(), "2020blue", new BigDecimal("2"));
         inventoryService.saveInventoryTransaction(inventoryTransaction);
 
         assertThat(inventoryTransaction).satisfies(it -> {
@@ -129,7 +132,7 @@ class InventoryServiceImplTest {
         Callable<String> task = () -> {
             retryTemplate.execute(r -> {
                 final Inventory inventory = inventoryService.getInventory(stock.getId());
-                inventory.updateInventoryQuantity(Inventory.InventoryQuantity.each("sku", 1, true));
+                inventory.updateInventoryQuantity("2020blue", new BigDecimal("1"));
                 return inventoryService.saveInventory(inventory);
             });
 
@@ -140,7 +143,7 @@ class InventoryServiceImplTest {
 
         assertThat(inventoryService.getInventory(stock.getId())).satisfies(i -> {
             LOGGER.info("{}", i);
-            assertThat(i.getInventoryQuantity("sku").getQuantity()).isEqualByComparingTo("7");
+            assertThat(i.getInventoryQuantity("2020blue").getQuantity()).isEqualByComparingTo("13");
         });
     }
 }

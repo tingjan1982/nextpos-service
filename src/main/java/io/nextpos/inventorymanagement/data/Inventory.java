@@ -8,8 +8,6 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
-import org.springframework.data.mongodb.core.index.CompoundIndex;
-import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -18,7 +16,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Document
-@CompoundIndexes({@CompoundIndex(name = "unique_per_client_index", def = "{'clientId': 1, 'sku': 1}", unique = true)})
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
@@ -50,26 +47,22 @@ public class Inventory extends MongoBaseObject {
     public static Inventory createStock(CreateInventory createInventory) {
 
         final Inventory inventory = new Inventory(createInventory.getClientId(), createInventory.getProductId(), InventoryType.STOCK);
-        createInventory.getInventoryQuantities().forEach(inventory::updateInventoryQuantity);
+        createInventory.getInventoryQuantities().forEach(inventory::replaceInventoryQuantity);
 
         return inventory;
     }
 
     public void replaceInventoryQuantity(InventoryQuantity inventoryQuantity) {
 
-        final InventoryQuantity valueInMap = inventoryQuantities.putIfAbsent(inventoryQuantity.getSku(), inventoryQuantity);
-
-        if (valueInMap != null) {
-            valueInMap.setQuantity(inventoryQuantity.getQuantity());
-        }
+        inventoryQuantities.put(inventoryQuantity.getSku(), inventoryQuantity);
     }
 
-    public void updateInventoryQuantity(InventoryQuantity inventoryQuantity) {
+    public void updateInventoryQuantity(String sku, BigDecimal quantity) {
 
-        final InventoryQuantity valueInMap = inventoryQuantities.putIfAbsent(inventoryQuantity.getSku(), inventoryQuantity);
+        final InventoryQuantity valueInMap = inventoryQuantities.putIfAbsent(sku, InventoryQuantity.each(sku, quantity));
 
         if (valueInMap != null) {
-            valueInMap.incrementQuantity(inventoryQuantity);
+            valueInMap.incrementQuantity(quantity);
         }
     }
 
@@ -110,23 +103,12 @@ public class Inventory extends MongoBaseObject {
 
         private BigDecimal minimumStockLevel;
 
-        public static InventoryQuantity each(String sku, int quantity) {
-            return each(sku, quantity, false);
+        public static InventoryQuantity each(String sku, BigDecimal quantity) {
+            return new InventoryQuantity(sku, sku, UnitOfMeasure.EACH.name(), 1, quantity, BigDecimal.ZERO);
         }
 
-        public static InventoryQuantity each(String sku, int quantity, boolean negative) {
-
-            BigDecimal inventoryQty = BigDecimal.valueOf(quantity);
-
-            if (negative) {
-                inventoryQty = inventoryQty.negate();
-            }
-
-            return new InventoryQuantity(sku, sku, UnitOfMeasure.EACH.name(), 1, inventoryQty, BigDecimal.ZERO);
-        }
-
-        public void incrementQuantity(InventoryQuantity quantityToIncrement) {
-            this.quantity = this.quantity.add(quantityToIncrement.getQuantity());
+        public void incrementQuantity(BigDecimal quantityToIncrement) {
+            this.quantity = this.quantity.add(quantityToIncrement);
         }
     }
 

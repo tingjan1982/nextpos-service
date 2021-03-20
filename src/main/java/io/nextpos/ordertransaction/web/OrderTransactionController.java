@@ -55,7 +55,8 @@ public class OrderTransactionController {
 
     @GetMapping("/{transactionId}")
     public OrderTransactionResponse getOrderTransaction(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                        @PathVariable String transactionId) {
+                                                        @PathVariable String transactionId,
+                                                        @RequestParam(value = "reprint", required = false) boolean reprint) {
 
         final OrderTransaction orderTransaction = orderTransactionService.getOrderTransaction(transactionId);
         final Order order = orderService.getOrder(orderTransaction.getOrderId());
@@ -65,7 +66,7 @@ public class OrderTransactionController {
         response.setReceiptXML(receiptXML);
 
         if (orderTransaction.hasPrintableElectronicInvoice()) {
-            final String electronicInvoiceXML = printerInstructionService.createElectronicInvoiceXML(client, order, orderTransaction);
+            final String electronicInvoiceXML = printerInstructionService.createElectronicInvoiceXML(client, order, orderTransaction, reprint);
             response.setInvoiceXML(electronicInvoiceXML);
         }
 

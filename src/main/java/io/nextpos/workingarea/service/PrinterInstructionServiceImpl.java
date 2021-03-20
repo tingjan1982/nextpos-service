@@ -183,7 +183,7 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
     }
 
     @Override
-    public String createElectronicInvoiceXML(Client client, Order order, OrderTransaction orderTransaction) {
+    public String createElectronicInvoiceXML(Client client, Order order, OrderTransaction orderTransaction, boolean reprint) {
 
         final Optional<ElectronicInvoice> electronicInvoice = orderTransaction.getElectronicInvoice();
 
@@ -203,7 +203,11 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
             final String qrcode2ImageBinary = imageCodeUtil.generateBase64ImageBinary(() -> imageCodeUtil.generateQRCode(eInvoice.getQrCode2Content()));
             eInvoice.setQrCode2ImageBinary(qrcode2ImageBinary);
 
-            electronicInvoiceTemplate.process(Map.of("client", client, "order", order, "orderTransaction", orderTransaction, "electronicInvoice", eInvoice), writer);
+            electronicInvoiceTemplate.process(Map.of("client", client,
+                    "order", order,
+                    "orderTransaction", orderTransaction,
+                    "electronicInvoice", eInvoice,
+                    "reprint", reprint), writer);
 
             return writer.toString();
 

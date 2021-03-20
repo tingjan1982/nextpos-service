@@ -48,7 +48,7 @@ class InventoryTransactionContextualServiceImplTest {
     void createInventoryTransaction() {
 
         String sku = "hat001";
-        Inventory.InventoryQuantity inventoryQuantity = Inventory.InventoryQuantity.each(sku, 100);
+        Inventory.InventoryQuantity inventoryQuantity = Inventory.InventoryQuantity.each(sku, new BigDecimal(100));
         final Inventory stock = inventoryService.createStock(new CreateInventory(client.getId(), "hat", List.of(inventoryQuantity)));
 
         Order order = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, DummyObjects.orderSettings(countrySettings));

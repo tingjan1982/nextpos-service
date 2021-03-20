@@ -1,3 +1,4 @@
+<#-- @ftlvariable name="reprint" type="java.lang.Boolean" -->
 <#-- @ftlvariable name="client" type="io.nextpos.client.data.Client" -->
 <#-- @ftlvariable name="order" type="io.nextpos.ordermanagement.data.Order" -->
 <#-- @ftlvariable name="orderTransaction" type="io.nextpos.ordertransaction.data.OrderTransaction" -->
@@ -12,8 +13,15 @@
                 <text font="font_a"/>
                 <text width="2" height="2"/>
                 <text>${client.clientName!"NA"}&#10;</text>
+                <feed line="2"/>
+                <#if reprint>
+                    <text dw="false" dh="true" linespc="60"/>
+                    <text>電子發票證明聯補印&#10;</text>
+                <#else>
+                    <text dw="true" dh="true" linespc="60"/>
+                    <text>電子發票證明聯&#10;</text>
+                </#if>
                 <text dw="true" dh="true" linespc="60"/>
-                <text>電子發票證明聯&#10;</text>
                 <text>${electronicInvoice.formattedInvoiceDate}&#10;</text>
                 <text>${electronicInvoice.invoiceNumber}&#10;</text>
                 <text align="left"/>
@@ -57,7 +65,6 @@
                 </page>
                 <text align="left"/>
                 <text>訂單號碼：${order.serialId!"NA"}&#10;</text>
-                <text>卡號：${orderTransaction.paymentDetails.values['LAST_FOUR_DIGITS']!""}&#10;</text>
 
                 <#if electronicInvoice.buyerUbn?has_content>
                     <text align="center"/>
