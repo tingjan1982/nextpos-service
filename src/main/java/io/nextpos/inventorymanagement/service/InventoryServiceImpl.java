@@ -2,14 +2,20 @@ package io.nextpos.inventorymanagement.service;
 
 import io.nextpos.inventorymanagement.data.*;
 import io.nextpos.inventorymanagement.service.bean.CreateInventory;
+import io.nextpos.inventorymanagement.service.bean.InventorySku;
+import io.nextpos.product.service.ProductService;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.*;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -18,6 +24,10 @@ public class InventoryServiceImpl implements InventoryService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(InventoryServiceImpl.class);
 
+    private final ProductService productService;
+
+    private final MongoTemplate mongoTemplate;
+
     private final InventoryRepository inventoryRepository;
 
     private final InventoryOrderRepository inventoryOrderRepository;
@@ -25,7 +35,9 @@ public class InventoryServiceImpl implements InventoryService {
     private final InventoryTransactionRepository inventoryTransactionRepository;
 
     @Autowired
-    public InventoryServiceImpl(InventoryRepository inventoryRepository, InventoryOrderRepository inventoryOrderRepository, InventoryTransactionRepository inventoryTransactionRepository) {
+    public InventoryServiceImpl(ProductService productService, MongoTemplate mongoTemplate, InventoryRepository inventoryRepository, InventoryOrderRepository inventoryOrderRepository, InventoryTransactionRepository inventoryTransactionRepository) {
+        this.productService = productService;
+        this.mongoTemplate = mongoTemplate;
         this.inventoryRepository = inventoryRepository;
         this.inventoryOrderRepository = inventoryOrderRepository;
         this.inventoryTransactionRepository = inventoryTransactionRepository;
@@ -34,7 +46,9 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public Inventory createStock(CreateInventory createInventory) {
 
+        final String productName = productService.getProduct(createInventory.getProductId()).getDesignVersion().getProductName();
         final Inventory stock = Inventory.createStock(createInventory);
+        stock.setProductName(productName);
 
         return saveInventory(stock);
     }
@@ -49,6 +63,38 @@ public class InventoryServiceImpl implements InventoryService {
         return inventoryRepository.findById(id).orElseThrow(() -> {
             throw new ObjectNotFoundException(id, Inventory.class);
         });
+    }
+
+    @Override
+    public List<InventorySku> searchInventorySkusByKeyword(String clientId, String keyword) {
+
+        ProjectionOperation projections = Aggregation.project("id", "productName")
+                .and(ObjectOperators.ObjectToArray.valueOfToArray("inventoryQuantities")).as("quantities");
+
+        MatchOperation matchClient = Aggregation.match(Criteria.where("clientId").is(clientId));
+        UnwindOperation flattenQuantities = Aggregation.unwind("quantities");
+
+        ProjectionOperation proj = Aggregation.project("productName")
+                .and("id").as("inventoryId")
+                .and("quantities.k").as("sku")
+                .and("quantities.v.name").as("skuName");
+
+        MatchOperation search = Aggregation.match(
+                new Criteria().orOperator(
+                        Criteria.where("productName").regex(keyword),
+                        Criteria.where("quantities.k").regex(keyword))
+        );
+
+        TypedAggregation<Inventory> aggregations = Aggregation.newAggregation(Inventory.class,
+                matchClient,
+                projections,
+                flattenQuantities,
+                search,
+                proj
+        );
+        final AggregationResults<InventorySku> results = mongoTemplate.aggregate(aggregations, InventorySku.class);
+
+        return results.getMappedResults();
     }
 
     @Override
@@ -76,6 +122,11 @@ public class InventoryServiceImpl implements InventoryService {
         }
 
         return inventoryOrderRepository.save(inventoryOrder);
+    }
+
+    @Override
+    public List<InventoryOrder> getInventoryOrders(String clientId) {
+        return inventoryOrderRepository.findAllByClientIdOrderByModifiedDateDesc(clientId);
     }
 
     @Override

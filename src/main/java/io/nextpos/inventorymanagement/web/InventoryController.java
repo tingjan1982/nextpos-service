@@ -3,8 +3,10 @@ package io.nextpos.inventorymanagement.web;
 import io.nextpos.client.data.Client;
 import io.nextpos.inventorymanagement.data.Inventory;
 import io.nextpos.inventorymanagement.service.InventoryService;
+import io.nextpos.inventorymanagement.service.bean.InventorySku;
 import io.nextpos.inventorymanagement.web.model.CreateInventoryRequest;
 import io.nextpos.inventorymanagement.web.model.InventoryResponse;
+import io.nextpos.inventorymanagement.web.model.InventorySkusResponse;
 import io.nextpos.inventorymanagement.web.model.UpdateInventoryRequest;
 import io.nextpos.shared.exception.ObjectAlreadyExistsException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
@@ -14,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/inventories")
@@ -33,6 +36,15 @@ public class InventoryController {
         final Inventory inventory = inventoryService.createStock(request.toCreateInventory(client.getId()));
 
         return toResponse(inventory);
+    }
+
+    @GetMapping
+    public InventorySkusResponse searchInventories(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                   @RequestParam("keyword") String keyword) {
+
+        final List<InventorySku> inventorySkus = inventoryService.searchInventorySkusByKeyword(client.getId(), keyword);
+
+        return new InventorySkusResponse(inventorySkus);
     }
 
     @GetMapping("/{productId}")

@@ -6,6 +6,8 @@ import io.nextpos.inventorymanagement.data.InventoryOrder;
 import io.nextpos.inventorymanagement.data.InventoryTransaction;
 import io.nextpos.inventorymanagement.data.Supplier;
 import io.nextpos.inventorymanagement.service.bean.CreateInventory;
+import io.nextpos.product.data.Product;
+import io.nextpos.product.service.ProductService;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +35,8 @@ class InventoryServiceImplTest {
 
     private final InventoryService inventoryService;
 
+    private final ProductService productService;
+
     private final SupplierService supplierService;
 
     private final Client client;
@@ -42,8 +46,9 @@ class InventoryServiceImplTest {
     private Inventory stock;
 
     @Autowired
-    InventoryServiceImplTest(InventoryService inventoryService, SupplierService supplierService, Client client) {
+    InventoryServiceImplTest(InventoryService inventoryService, ProductService productService, SupplierService supplierService, Client client) {
         this.inventoryService = inventoryService;
+        this.productService = productService;
         this.supplierService = supplierService;
         this.client = client;
 
@@ -56,8 +61,13 @@ class InventoryServiceImplTest {
 
     @BeforeEach
     void prepare() {
-        Inventory.InventoryQuantity inventoryQuantity = Inventory.InventoryQuantity.each("2020blue", new BigDecimal(10));
-        stock = inventoryService.createStock(new CreateInventory(client.getId(), "pid", List.of(inventoryQuantity)));
+
+        Product product = Product.builder(client).productNameAndPrice("T-Shirt", BigDecimal.TEN).build();
+        productService.saveProduct(product);
+
+        Inventory.InventoryQuantity blue = Inventory.InventoryQuantity.each("2021blue", new BigDecimal(10));
+        Inventory.InventoryQuantity red = Inventory.InventoryQuantity.each("2021red", new BigDecimal(10));
+        stock = inventoryService.createStock(new CreateInventory(client.getId(), product.getId(), List.of(blue, red)));
     }
 
     @AfterEach
@@ -70,9 +80,13 @@ class InventoryServiceImplTest {
     void inventoryLifecycle() {
 
         assertThat(inventoryService.getInventory(stock.getId())).satisfies(i -> {
-            assertThat(i.getId()).isNotNull();
-            assertThat(i.getInventoryQuantities()).hasSize(1);
+            assertThat(i.getProductId()).isNotNull();
+            assertThat(i.getProductName()).isNotNull();
+            assertThat(i.getInventoryQuantities()).hasSize(2);
         });
+
+        assertThat(inventoryService.searchInventorySkusByKeyword(client.getId(), "Shirt")).hasSize(2);
+        assertThat(inventoryService.searchInventorySkusByKeyword(client.getId(), "blue")).hasSize(1);
 
         final Supplier supplier = new Supplier(client.getId(), "Alcohol supplier");
 
@@ -93,8 +107,10 @@ class InventoryServiceImplTest {
         assertThat(supplierService.getSupplier(supplier.getId())).isNotNull();
 
         final InventoryOrder inventoryOrder = new InventoryOrder(client.getId(), supplier, "oid-12345");
-        inventoryOrder.addInventoryOrderItem(stock.getId(), "2020blue", new BigDecimal("5"), new BigDecimal("100"));
+        inventoryOrder.addInventoryOrderItem(stock.getId(), "2021blue", new BigDecimal("5"), new BigDecimal("100"));
         inventoryService.saveInventoryOrder(inventoryOrder);
+
+        assertThat(inventoryService.getInventoryOrders(client.getId())).hasSize(1);
 
         assertThat(inventoryOrder.getId()).isNotNull();
         assertThat(inventoryOrder.getStatus()).isEqualByComparingTo(InventoryOrder.InventoryOrderStatus.PENDING);
@@ -103,12 +119,11 @@ class InventoryServiceImplTest {
         inventoryService.processInventoryOrder(inventoryOrder);
 
         assertThat(inventoryService.getInventory(stock.getId())).satisfies(i -> {
-            assertThat(i.getInventoryQuantity("2020blue").getQuantity()).isEqualByComparingTo("15");
-            assertThat(i.deduceTotalBaseQuantity()).isEqualTo(15);
+            assertThat(i.getInventoryQuantity("2021blue").getQuantity()).isEqualByComparingTo("15");
         });
 
         final InventoryTransaction inventoryTransaction = new InventoryTransaction(client.getId(), "orderId");
-        inventoryTransaction.addInventoryTransactionItem(stock.getId(), "2020blue", new BigDecimal("2"));
+        inventoryTransaction.addInventoryTransactionItem(stock.getId(), "2021blue", new BigDecimal("2"));
         inventoryService.saveInventoryTransaction(inventoryTransaction);
 
         assertThat(inventoryTransaction).satisfies(it -> {
@@ -119,8 +134,7 @@ class InventoryServiceImplTest {
         inventoryService.processInventoryTransaction(inventoryTransaction);
 
         assertThat(inventoryService.getInventory(stock.getId())).satisfies(i -> {
-            assertThat(i.getInventoryQuantity("2020blue").getQuantity()).isEqualByComparingTo("13");
-            assertThat(i.deduceTotalBaseQuantity()).isEqualTo(13);
+            assertThat(i.getInventoryQuantity("2021blue").getQuantity()).isEqualByComparingTo("13");
         });
     }
 

@@ -28,6 +28,8 @@ public class Inventory extends MongoBaseObject {
 
     private String productId;
 
+    private String productName;
+
     private InventoryType inventoryType;
 
     private Map<String, InventoryQuantity> inventoryQuantities = new HashMap<>();
@@ -72,13 +74,6 @@ public class Inventory extends MongoBaseObject {
 
     public InventoryQuantity getInventoryQuantity(String sku) {
         return inventoryQuantities.get(sku);
-    }
-
-    public double deduceTotalBaseQuantity() {
-
-        return inventoryQuantities.values().stream()
-                .mapToDouble(q -> q.getQuantity().multiply(BigDecimal.valueOf(q.baseUnitQuantity)).doubleValue())
-                .sum();
     }
 
     @Data

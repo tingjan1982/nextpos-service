@@ -5,6 +5,7 @@ import io.nextpos.inventorymanagement.data.InventoryOrder;
 import io.nextpos.inventorymanagement.data.Supplier;
 import io.nextpos.inventorymanagement.service.InventoryService;
 import io.nextpos.inventorymanagement.service.SupplierService;
+import io.nextpos.inventorymanagement.web.model.InventorOrdersResponse;
 import io.nextpos.inventorymanagement.web.model.InventoryOrderRequest;
 import io.nextpos.inventorymanagement.web.model.InventoryOrderResponse;
 import io.nextpos.shared.exception.BusinessLogicException;
@@ -15,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/inventoryOrders")
@@ -56,6 +59,16 @@ public class InventoryOrderController {
         request.getItems().forEach(li -> inventoryOrder.addInventoryOrderItem(li.getInventoryId(), li.getSku(), li.getQuantity(), li.getUnitPrice()));
 
         return inventoryOrder;
+    }
+
+    @GetMapping
+    public InventorOrdersResponse getInventoryOrders(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        final List<InventoryOrderResponse> results = inventoryService.getInventoryOrders(client.getId()).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+
+        return new InventorOrdersResponse(results);
     }
 
     @GetMapping("/{id}")
