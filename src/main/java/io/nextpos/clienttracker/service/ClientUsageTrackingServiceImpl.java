@@ -4,8 +4,8 @@ import io.nextpos.client.data.Client;
 import io.nextpos.clienttracker.data.ClientUsageTrack;
 import io.nextpos.clienttracker.data.ClientUsageTrackRepository;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
-import io.nextpos.subscription.data.ClientSubscription;
-import io.nextpos.subscription.service.ClientSubscriptionService;
+import io.nextpos.subscription.data.ClientSubscriptionAccess;
+import io.nextpos.subscription.service.ClientSubscriptionAccessService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,12 +21,12 @@ public class ClientUsageTrackingServiceImpl implements ClientUserTrackingService
 
     private final ClientUsageTrackRepository clientUsageTrackRepository;
 
-    private final ClientSubscriptionService clientSubscriptionService;
+    private final ClientSubscriptionAccessService clientSubscriptionAccessService;
 
     @Autowired
-    public ClientUsageTrackingServiceImpl(ClientUsageTrackRepository clientUsageTrackRepository, ClientSubscriptionService clientSubscriptionService) {
+    public ClientUsageTrackingServiceImpl(ClientUsageTrackRepository clientUsageTrackRepository, ClientSubscriptionAccessService clientSubscriptionAccessService) {
         this.clientUsageTrackRepository = clientUsageTrackRepository;
-        this.clientSubscriptionService = clientSubscriptionService;
+        this.clientSubscriptionAccessService = clientSubscriptionAccessService;
     }
 
     @Override
@@ -56,9 +56,8 @@ public class ClientUsageTrackingServiceImpl implements ClientUserTrackingService
     }
 
     private int getUserLimit(Client client) {
-        final ClientSubscription clientSubscription = clientSubscriptionService.getCurrentClientSubscription(client.getId());
-
-        return clientSubscription != null ? clientSubscription.getSubscriptionPlanSnapshot().getUserLimit() : 2;
+        final ClientSubscriptionAccess clientSubscriptionAccess = clientSubscriptionAccessService.getClientSubscriptionAccess(client.getId());
+        return clientSubscriptionAccess.getCurrentUserLimit();
     }
 
     @Override
@@ -72,9 +71,8 @@ public class ClientUsageTrackingServiceImpl implements ClientUserTrackingService
     }
 
     private int getDeviceLimit(Client client) {
-        final ClientSubscription clientSubscription = clientSubscriptionService.getCurrentClientSubscription(client.getId());
-
-        return clientSubscription != null ? clientSubscription.getSubscriptionPlanSnapshot().getDeviceLimit() : 1;
+        final ClientSubscriptionAccess clientSubscriptionAccess = clientSubscriptionAccessService.getClientSubscriptionAccess(client.getId());
+        return clientSubscriptionAccess.getDeviceLimit();
     }
 
     private void handleLimitReached(long usageCount, int limit, String messageKey) {

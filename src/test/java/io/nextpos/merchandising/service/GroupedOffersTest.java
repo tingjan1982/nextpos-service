@@ -34,13 +34,13 @@ class GroupedOffersTest {
         final BigDecimal taxRate = BigDecimal.valueOf(0.05);
         order = new Order(client.getId(), new OrderSettings(taxRate, false, Currency.getInstance("TWD"), BigDecimal.ZERO, 2, RoundingMode.HALF_UP));
 
-        final ProductSnapshot item1Product = new ProductSnapshot("item1product", "coffee", BigDecimal.valueOf(100), null);
+        final ProductSnapshot item1Product = new ProductSnapshot("item1product", "coffee", BigDecimal.valueOf(100));
         order.addOrderLineItem(item1Product, 2);
 
-        final ProductSnapshot item2Product = new ProductSnapshot("item2product", "tea", BigDecimal.valueOf(75), null);
+        final ProductSnapshot item2Product = new ProductSnapshot("item2product", "tea", BigDecimal.valueOf(75));
         order.addOrderLineItem(item2Product, 1);
 
-        final ProductSnapshot item3Product = new ProductSnapshot("item3product", "coke", BigDecimal.valueOf(30), null);
+        final ProductSnapshot item3Product = new ProductSnapshot("item3product", "coke", BigDecimal.valueOf(30));
         item3Product.setLabelInformation("label-id", "soft drink");
         order.addOrderLineItem(item3Product, 1);
     }

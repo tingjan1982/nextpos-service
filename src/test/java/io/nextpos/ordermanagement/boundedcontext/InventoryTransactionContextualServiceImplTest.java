@@ -73,7 +73,7 @@ class InventoryTransactionContextualServiceImplTest {
     void createInventoryTransaction_InventoryNotConfigured() {
 
         Order order = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, DummyObjects.orderSettings(countrySettings));
-        ProductSnapshot productSnapshot = new ProductSnapshot("hat", "hat", null, new BigDecimal("100"), List.of());
+        ProductSnapshot productSnapshot = new ProductSnapshot("hat", "hat", new BigDecimal("100"));
         order.addOrderLineItem(productSnapshot, 1);
         orderService.saveOrder(order);
 

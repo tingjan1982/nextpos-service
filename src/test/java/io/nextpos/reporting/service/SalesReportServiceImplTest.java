@@ -228,7 +228,7 @@ class SalesReportServiceImplTest {
 
     private Order createOrder(final LocalDate orderDate, String productName, BigDecimal price, int quantity) {
 
-        final ProductSnapshot productSnapshot = new ProductSnapshot(null, productName, null, price, null);
+        final ProductSnapshot productSnapshot = new ProductSnapshot(null, productName, price);
         productSnapshot.setLabelInformation("default-id", "default");
 
         return this.createOrder(orderDate, productSnapshot, quantity, false);

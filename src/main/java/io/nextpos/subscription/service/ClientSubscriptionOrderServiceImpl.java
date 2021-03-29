@@ -52,7 +52,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -110,8 +109,7 @@ public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrd
 
         return new ProductSnapshot(clientSubscriptionInvoice.getId(),
                 clientSubscriptionInvoice.getClientSubscription().getSubscriptionPlanSnapshot().getPlanName(),
-                clientSubscriptionInvoice.getDueAmount().getAmount(),
-                List.of());
+                clientSubscriptionInvoice.getDueAmount().getAmount());
     }
 
     private OrderTransaction createOrderTransaction(Order order) {

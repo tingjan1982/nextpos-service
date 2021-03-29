@@ -50,6 +50,19 @@ public class ClientSettingsServiceImpl implements ClientSettingsService {
     }
 
     @Override
+    public boolean getClientSettingBooleanValue(Client client, ClientSetting.SettingName settingName) {
+
+        final Optional<ClientSetting> setting = this.getClientSettingByName(client, settingName);
+        boolean enabled = false;
+
+        if (setting.isPresent()) {
+            enabled = this.getActualStoredValue(setting.get(), Boolean.class);
+        }
+
+        return enabled;
+    }
+
+    @Override
     public <T> T getActualStoredValue(ClientSetting clientSetting, Class<T> targetType) {
 
         final Class<?> intendedClassType = clientSetting.getValueType().getClassType();

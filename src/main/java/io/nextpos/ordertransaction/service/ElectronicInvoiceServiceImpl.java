@@ -1,6 +1,7 @@
 package io.nextpos.ordertransaction.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.service.ClientSettingsService;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoiceRepository;
 import io.nextpos.einvoice.common.invoice.PendingEInvoiceQueue;
@@ -30,12 +31,15 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
 
     private final PendingEInvoiceQueueService pendingEInvoiceQueueService;
 
+    private final ClientSettingsService clientSettingsService;
+
     private final ElectronicInvoiceRepository electronicInvoiceRepository;
 
     @Autowired
-    public ElectronicInvoiceServiceImpl(InvoiceNumberRangeService invoiceNumberRangeService, PendingEInvoiceQueueService pendingEInvoiceQueueService, final ElectronicInvoiceRepository electronicInvoiceRepository) {
+    public ElectronicInvoiceServiceImpl(InvoiceNumberRangeService invoiceNumberRangeService, PendingEInvoiceQueueService pendingEInvoiceQueueService, ClientSettingsService clientSettingsService, final ElectronicInvoiceRepository electronicInvoiceRepository) {
         this.invoiceNumberRangeService = invoiceNumberRangeService;
         this.pendingEInvoiceQueueService = pendingEInvoiceQueueService;
+        this.clientSettingsService = clientSettingsService;
         this.electronicInvoiceRepository = electronicInvoiceRepository;
     }
 
@@ -46,12 +50,14 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
         final String ubn = client.getAttribute(Client.ClientAttributes.UBN);
         final String companyName = client.getAttribute(Client.ClientAttributes.COMPANY_NAME);
         final String companyAddress = client.getAttribute(Client.ClientAttributes.ADDRESS);
+        boolean electronicInvoiceEnabled = true; //clientSettingsService.getClientSettingBooleanValue(client, ClientSetting.SettingName.ELECTRONIC_INVOICE);
 
         return StringUtils.isNotBlank(aesKey) &&
                 StringUtils.isNotBlank(ubn) &&
                 StringUtils.isNotBlank(companyName) &&
                 StringUtils.isNotBlank(companyAddress) &&
-                invoiceNumberRangeService.hasCurrentInvoiceNumberRange(ubn);
+                invoiceNumberRangeService.hasCurrentInvoiceNumberRange(ubn) &&
+                electronicInvoiceEnabled;
     }
 
     @Override

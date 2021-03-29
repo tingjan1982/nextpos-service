@@ -8,4 +8,6 @@ import lombok.Data;
 public class ElectronicInvoiceEligibility {
 
     private boolean eligible;
+
+    private boolean enabled;
 }

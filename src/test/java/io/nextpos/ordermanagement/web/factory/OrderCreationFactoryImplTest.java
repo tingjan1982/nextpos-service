@@ -63,7 +63,7 @@ class OrderCreationFactoryImplTest {
         productService.deployProduct(product.getId());
 
         final OrderProductOptionRequest poRequest = new OrderProductOptionRequest("ice", "normal", new BigDecimal("10"));
-        final OrderLineItemRequest line1 = new OrderLineItemRequest(product.getId(), 1, new BigDecimal("20"), List.of(poRequest), ProductLevelOffer.GlobalProductDiscount.NO_DISCOUNT, BigDecimal.ZERO);
+        final OrderLineItemRequest line1 = new OrderLineItemRequest(product.getId(), 1, "sku", new BigDecimal("20"), List.of(poRequest), ProductLevelOffer.GlobalProductDiscount.NO_DISCOUNT, BigDecimal.ZERO);
         final OrderRequest request = new OrderRequest(Order.OrderType.IN_STORE, List.of(tableDetails.getId()), null, null, List.of(line1));
 
         final Order order = orderCreationFactory.newOrder(client, request);

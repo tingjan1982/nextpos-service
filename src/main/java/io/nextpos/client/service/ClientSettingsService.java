@@ -16,5 +16,7 @@ public interface ClientSettingsService {
 
     ClientSetting getClientSettingByNameOrThrows(Client client, ClientSetting.SettingName settingName);
 
+    boolean getClientSettingBooleanValue(Client client, ClientSetting.SettingName settingName);
+
     <T> T getActualStoredValue(ClientSetting clientSetting, Class<T> targetType);
 }

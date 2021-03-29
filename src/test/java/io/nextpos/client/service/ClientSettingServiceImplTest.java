@@ -37,5 +37,11 @@ class ClientSettingServiceImplTest {
         assertThat(savedSettings.getClient()).isEqualTo(client);
         assertThat(clientSettingsService.getActualStoredValue(savedSettings, BigDecimal.class)).isInstanceOf(BigDecimal.class);
         assertThatThrownBy(() -> clientSettingsService.getActualStoredValue(savedSettings, String.class)).isInstanceOf(GeneralApplicationException.class);
+
+        final ClientSetting einvoiceEnabled = new ClientSetting(client, ClientSetting.SettingName.ELECTRONIC_INVOICE, "false", ClientSetting.ValueType.BOOLEAN, true);
+        einvoiceEnabled.setStoredValue("true");
+        clientSettingsService.saveClientSettings(einvoiceEnabled);
+
+        assertThat(clientSettingsService.getClientSettingBooleanValue(client, ClientSetting.SettingName.ELECTRONIC_INVOICE)).isTrue();
     }
 }

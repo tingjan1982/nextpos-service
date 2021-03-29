@@ -1,6 +1,8 @@
 package io.nextpos.invoicenumber.web;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.data.ClientSetting;
+import io.nextpos.client.service.ClientSettingsService;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.invoicenumber.web.model.ElectronicInvoiceEligibility;
 import io.nextpos.invoicenumber.web.model.ElectronicInvoiceResponse;
@@ -10,6 +12,7 @@ import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.util.ImageCodeUtil;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,18 +27,23 @@ public class ElectronicInvoiceController {
 
     private final ElectronicInvoiceService electronicInvoiceService;
 
+    private final ClientSettingsService clientSettingsService;
+
     private final ImageCodeUtil imageCodeUtil;
 
     @Autowired
-    public ElectronicInvoiceController(ElectronicInvoiceService electronicInvoiceService, ImageCodeUtil imageCodeUtil) {
+    public ElectronicInvoiceController(ElectronicInvoiceService electronicInvoiceService, ClientSettingsService clientSettingsService, ImageCodeUtil imageCodeUtil) {
         this.electronicInvoiceService = electronicInvoiceService;
+        this.clientSettingsService = clientSettingsService;
         this.imageCodeUtil = imageCodeUtil;
     }
 
     @GetMapping("/checkEligibility")
     public ElectronicInvoiceEligibility checkEligibility(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
-        return new ElectronicInvoiceEligibility(electronicInvoiceService.checkElectronicInvoiceEligibility(client));
+        boolean electronicInvoiceEnabled = clientSettingsService.getClientSettingBooleanValue(client, ClientSetting.SettingName.ELECTRONIC_INVOICE);
+
+        return new ElectronicInvoiceEligibility(electronicInvoiceService.checkElectronicInvoiceEligibility(client), electronicInvoiceEnabled);
     }
 
     @GetMapping
@@ -47,6 +55,19 @@ public class ElectronicInvoiceController {
                 .collect(Collectors.toList());
 
         return new ElectronicInvoicesResponse(results);
+    }
+
+    @PostMapping("/toggle")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void toggleElectronicInvoice(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                        @RequestParam("enabled") Boolean enabled) {
+
+        final ClientSetting clientSetting = clientSettingsService.getClientSettingByName(client, ClientSetting.SettingName.ELECTRONIC_INVOICE).orElseGet(() -> {
+            return new ClientSetting(client, ClientSetting.SettingName.ELECTRONIC_INVOICE, "false", ClientSetting.ValueType.BOOLEAN, true);
+        });
+
+        clientSetting.setStoredValue(enabled.toString());
+        clientSettingsService.saveClientSettings(clientSetting);
     }
 
     @PostMapping("/{id}/issueInvoiceNumber")
