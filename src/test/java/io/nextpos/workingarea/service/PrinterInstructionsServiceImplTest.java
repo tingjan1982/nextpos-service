@@ -173,8 +173,10 @@ class PrinterInstructionsServiceImplTest {
         orderTransaction.setId(ObjectId.get().toString());
         orderTransaction.setOrderId(order.getId());
         orderTransaction.setCreatedDate(new Date());
+        orderTransaction.updateInvoiceDetails("83515813", null, null, null, false);
 
         final ElectronicInvoice electronicInvoice = electronicInvoiceService.createElectronicInvoice(client, order, orderTransaction);
+        electronicInvoice.setBuyerName("雨圖數位行銷科技股份有限公司");
         orderTransaction.getInvoiceDetails().setElectronicInvoice(electronicInvoice);
 
         final String cancelInstruction = printerInstructionService.createCancelOrderPrintInstruction(client, order, orderTransaction);

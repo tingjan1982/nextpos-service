@@ -127,6 +127,7 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
         }
 
         final ProductSnapshot productSnapshot = new ProductSnapshot(product);
+        productSnapshot.setSku(li.getSku());
         productSnapshot.setProductOptions(productOptionSnapshots);
 
         if (li.getOverridePrice().compareTo(BigDecimal.ZERO) > 0) {

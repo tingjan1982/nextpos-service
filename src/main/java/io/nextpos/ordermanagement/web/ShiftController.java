@@ -87,7 +87,7 @@ public class ShiftController {
         return shiftService.getClosingShiftReport(client.getId(), shiftId);
     }
 
-    @PostMapping("/{shiftId}")
+    @PostMapping("/{shiftId}/balance")
     public ShiftResponse balanceShift(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                       @PathVariable final String shiftId) {
 

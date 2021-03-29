@@ -36,6 +36,7 @@ public class ProductVersion extends BaseObject implements ObjectVersioning<Produ
      */
     private String internalProductName;
 
+    @Deprecated
     private String sku;
 
     private String description;

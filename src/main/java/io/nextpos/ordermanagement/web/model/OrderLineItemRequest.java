@@ -5,10 +5,12 @@ import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderLog;
+import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.shared.aspect.OrderLogChangeObject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
@@ -26,6 +28,8 @@ public class OrderLineItemRequest implements OrderLogChangeObject {
     @Positive
     private int quantity;
 
+    private String sku;
+
     private BigDecimal overridePrice = BigDecimal.ZERO;
 
     private List<OrderProductOptionRequest> productOptions;
@@ -38,10 +42,16 @@ public class OrderLineItemRequest implements OrderLogChangeObject {
     public void populateOrderLogEntries(final Order orderBeforeChange, final Order orderAfterChange, final OrderLog orderLog) {
 
         final OrderLineItem last = Iterables.getLast(orderAfterChange.getOrderLineItems());
-        orderLog.addOrderLogEntry("product", last.getProductSnapshot().getName());
+        final ProductSnapshot productSnapshot = last.getProductSnapshot();
+        orderLog.addOrderLogEntry("product", productSnapshot.getName());
+
+        if (StringUtils.isNotBlank(productSnapshot.getSku())) {
+            orderLog.addOrderLogEntry("sku", productSnapshot.getSku());
+        }
+
         orderLog.addOrderLogEntry("quantity", String.valueOf(last.getQuantity()));
 
-        final BigDecimal overridePrice = last.getProductSnapshot().getOverridePrice();
+        final BigDecimal overridePrice = productSnapshot.getOverridePrice();
 
         if (overridePrice != null) {
             orderLog.addOrderLogEntry("overridePrice", String.valueOf(overridePrice));

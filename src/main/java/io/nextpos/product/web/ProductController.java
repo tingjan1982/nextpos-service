@@ -2,6 +2,7 @@ package io.nextpos.product.web;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
+import io.nextpos.inventorymanagement.service.InventoryService;
 import io.nextpos.product.data.*;
 import io.nextpos.product.service.ProductLabelService;
 import io.nextpos.product.service.ProductSearchService;
@@ -31,6 +32,8 @@ public class ProductController {
 
     private final ProductService productService;
 
+    private final InventoryService inventoryService;
+
     private final ProductSearchService productSearchService;
 
     private final ProductLabelService productLabelService;
@@ -42,8 +45,9 @@ public class ProductController {
     private final ObjectWithProductOptionVisitorWrapper productOptionVisitorWrapper;
 
     @Autowired
-    public ProductController(final ProductService productService, final ProductSearchService productSearchService, final ProductLabelService productLabelService, final WorkingAreaService workingAreaService, final ClientObjectOwnershipService clientObjectOwnershipService, final ObjectWithProductOptionVisitorWrapper productOptionVisitorWrapper) {
+    public ProductController(final ProductService productService, InventoryService inventoryService, final ProductSearchService productSearchService, final ProductLabelService productLabelService, final WorkingAreaService workingAreaService, final ClientObjectOwnershipService clientObjectOwnershipService, final ObjectWithProductOptionVisitorWrapper productOptionVisitorWrapper) {
         this.productService = productService;
+        this.inventoryService = inventoryService;
         this.productSearchService = productSearchService;
         this.productLabelService = productLabelService;
         this.workingAreaService = workingAreaService;
@@ -288,7 +292,6 @@ public class ProductController {
                 productVersion.getProductName(),
                 productVersion.getInternalProductName(),
                 version,
-                productVersion.getSku(),
                 productVersion.getDescription(),
                 productVersion.getPrice(),
                 productVersion.getCostPrice(),
@@ -303,6 +306,10 @@ public class ProductController {
         if (product instanceof ProductSet) {
             productResponse.setChildProducts(ChildProduct.toChildProducts(((ProductSet) product)));
         }
+
+        inventoryService.getInventoryByProductId(product.getClient().getId(), product.getId()).ifPresent(inv -> {
+            productResponse.setInventories(inv.getInventoryQuantities().values());
+        });
 
         return productResponse;
     }

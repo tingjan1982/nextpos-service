@@ -74,7 +74,7 @@ public class InventoryServiceImpl implements InventoryService {
         MatchOperation matchClient = Aggregation.match(Criteria.where("clientId").is(clientId));
         UnwindOperation flattenQuantities = Aggregation.unwind("quantities");
 
-        ProjectionOperation proj = Aggregation.project("productName")
+        ProjectionOperation output = Aggregation.project("productName")
                 .and("id").as("inventoryId")
                 .and("quantities.k").as("sku")
                 .and("quantities.v.name").as("skuName");
@@ -90,7 +90,7 @@ public class InventoryServiceImpl implements InventoryService {
                 projections,
                 flattenQuantities,
                 search,
-                proj
+                output
         );
         final AggregationResults<InventorySku> results = mongoTemplate.aggregate(aggregations, InventorySku.class);
 

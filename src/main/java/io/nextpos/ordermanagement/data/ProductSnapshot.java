@@ -54,14 +54,12 @@ public class ProductSnapshot {
         this.id = product.getId();
         this.name = productVersion.getProductName();
         this.internalName = productVersion.getInternalProductName();
-        this.sku = productVersion.getSku();
         this.price = productVersion.getPrice();
     }
 
-    public ProductSnapshot(final String id, final String name, final String sku, final BigDecimal price, final List<ProductOptionSnapshot> productOptions) {
+    public ProductSnapshot(final String id, final String name, final BigDecimal price, final List<ProductOptionSnapshot> productOptions) {
         this.id = id;
         this.name = name;
-        this.sku = sku;
         this.price = price != null ? price : BigDecimal.ZERO;
 
         if (!CollectionUtils.isEmpty(productOptions)) {

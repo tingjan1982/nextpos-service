@@ -110,7 +110,6 @@ public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrd
 
         return new ProductSnapshot(clientSubscriptionInvoice.getId(),
                 clientSubscriptionInvoice.getClientSubscription().getSubscriptionPlanSnapshot().getPlanName(),
-                "",
                 clientSubscriptionInvoice.getDueAmount().getAmount(),
                 List.of());
     }

@@ -11,36 +11,50 @@
             <text lang="zh-tw"/>
             <text font="font_b"/>
             <text width="2" height="2"/>
+            <text>${client.clientName!"NA"}&#10;</text>
+            <feed line="1"/>
             <text>營業人銷貨退回，進貨退出或折讓證明單&#10;</text>
+            <feed line="1"/>
+            <#assign currentDate = .now>
+            <text width="3" height="2"/>
+            <text>${currentDate?string('yyyy-MM-dd')}&#10;</text>
             <feed line="1"/>
             <text align="left"/>
             <text width="1" height="1"/>
             <text linespc="30"/>
 
-            <#assign currentDate = .now>
-            <text>作廢日期: ${currentDate?string('MM/dd/yyyy HH:mm:ss')}&#10;</text>
             <text>賣方統編: ${client.attributes["UBN"]!"NA"}&#10;</text>
             <text>賣方名稱: ${client.attributes["COMPANY_NAME"]!"NA"}&#10;</text>
-            <#if electronicInvoice.buyerUbn?has_content>
-                <text>買方統編:${electronicInvoice.buyerUbn}</text>
-            </#if>
-            <text>訂單號碼: ${order.serialId!"NA"}&#10;</text>
+            <text>發票開立日期: ${currentDate?string('yyyy-MM-dd')}&#10;</text>
+            <text align="center"/>
+            <text width="2" height="2"/>
             <feed line="1"/>
+            <text>${electronicInvoice.internalInvoiceNumber}&#10;</text>
+            <feed line="1"/>
+            <text align="left"/>
+            <text width="1" height="1"/>
+            <#if electronicInvoice.buyerUbn?has_content>
+                <text>買方統編: ${electronicInvoice.buyerUbn}&#10;</text>
+                <text>買方名稱: ${electronicInvoice.buyerName}&#10;</text>
+            </#if>
+            <feed line="2"/>
             <text linespc="40"/>
             <#list order.orderLineItems as li>
                 <text width="2" height="2"/>
                 <text>${li.productSnapshot.name}&#10;</text>
                 <text width="1" height="1"/>
-                <text x="250">x ${li.quantity}</text>
-                <text x="310">$${li.lineItemSubTotal}&#10;</text>
+                <text x="100">x ${li.quantity} (${li.productSnapshot.productPriceWithOptions})</text>
+                <text x="310">$${li.lineItemSubTotal} TX&#10;</text>
             </#list>
             <text linespc="30"/>
             <feed line="1"/>
             <text width="1" height="1"/>
-            <text>合計:</text><text x="310">$${order.orderTotal!"NA"}&#10;</text>
-            <#if orderTransaction??>
-                <text>總金額:</text><text x="310">$${orderTransaction.settleAmount!"NA"}&#10;</text>
-            </#if>
+            <text>營業稅額合計:</text>
+            <text x="310">${order.orderTotalTax}&#10;</text>
+            <text>金額(不含稅之進貨額)合計:</text>
+            <text x="310">${order.orderTotalWithoutTax}&#10;</text>
+            <text>簽收人&#10;</text>
+            <feed line="4"/>
             <cut type="feed"/>
         </epos-print>
     </s:Body>

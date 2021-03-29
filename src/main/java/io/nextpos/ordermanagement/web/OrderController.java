@@ -244,7 +244,7 @@ public class OrderController {
     @OrderLogAction
     public OrderResponse updateOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                      @PathVariable final String id,
-                                     @RequestBody OrderRequest orderRequest) {
+                                     @Valid @RequestBody OrderRequest orderRequest) {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
