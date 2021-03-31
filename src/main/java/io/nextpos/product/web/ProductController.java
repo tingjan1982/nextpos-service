@@ -2,7 +2,10 @@ package io.nextpos.product.web;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientObjectOwnershipService;
+import io.nextpos.inventorymanagement.data.Inventory;
 import io.nextpos.inventorymanagement.service.InventoryService;
+import io.nextpos.inventorymanagement.service.bean.CreateInventory;
+import io.nextpos.inventorymanagement.web.model.InventoryResponse;
 import io.nextpos.product.data.*;
 import io.nextpos.product.service.ProductLabelService;
 import io.nextpos.product.service.ProductSearchService;
@@ -13,6 +16,7 @@ import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
@@ -23,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,6 +66,13 @@ public class ProductController {
 
         final Product product = fromRequest(productRequest, client);
         final Product createdProduct = productService.saveProduct(product);
+
+        String sku = productRequest.getSku();
+
+        if (StringUtils.isNotBlank(sku)) {
+            final CreateInventory createInventory = new CreateInventory(client.getId(), createdProduct.getId(), List.of(Inventory.InventoryQuantity.each(sku, BigDecimal.ZERO)));
+            inventoryService.createStock(createInventory);
+        }
 
         return toResponse(createdProduct, Version.DESIGN);
     }
@@ -308,7 +320,7 @@ public class ProductController {
         }
 
         inventoryService.getInventoryByProductId(product.getClient().getId(), product.getId()).ifPresent(inv -> {
-            productResponse.setInventories(inv.getInventoryQuantities().values());
+            productResponse.setInventory(new InventoryResponse(inv));
         });
 
         return productResponse;

@@ -1,13 +1,12 @@
 package io.nextpos.product.web.model;
 
-import io.nextpos.inventorymanagement.data.Inventory;
+import io.nextpos.inventorymanagement.web.model.InventoryResponse;
 import io.nextpos.product.data.ProductType;
 import io.nextpos.product.data.Version;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import java.math.BigDecimal;
-import java.util.Collection;
 import java.util.List;
 
 @Data
@@ -49,5 +48,5 @@ public class ProductResponse {
 
     private List<ChildProduct> childProducts;
 
-    private Collection<Inventory.InventoryQuantity> inventories;
+    private InventoryResponse inventory;
 }

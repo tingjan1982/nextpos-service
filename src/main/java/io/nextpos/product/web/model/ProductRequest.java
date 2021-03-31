@@ -19,6 +19,9 @@ public class ProductRequest {
 
     private String internalName;
 
+    /**
+     * this sku is used to also create inventory.
+     */
     private String sku;
 
     private String description;
