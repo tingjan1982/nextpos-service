@@ -172,6 +172,23 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @WebSocketClientOrders
+    public Order moveOrder(String sourceOrderId, String targetOrderId) {
+
+        final Order sourceOrder = this.getOrder(sourceOrderId);
+        final Order targetOrder = this.getOrder(targetOrderId);
+
+        if (sourceOrder.isClosed() || targetOrder.isClosed()) {
+            throw new BusinessLogicException("message.cannotMove", "Either source or target order is closed.");
+        }
+
+        sourceOrder.getOrderLineItems().forEach(targetOrder::addOrderLineItem);
+
+        this.markOrderAsDeleted(sourceOrderId);
+        return this.saveOrder(targetOrder);
+    }
+
+    @Override
+    @WebSocketClientOrders
     public void deleteOrder(final String orderId) {
         orderRepository.deleteById(orderId);
     }
@@ -398,7 +415,7 @@ public class OrderServiceImpl implements OrderService {
     public void reorder(List<String> orderIds) {
 
         AtomicInteger index = new AtomicInteger(1);
-        orderIds.forEach( oid -> {
+        orderIds.forEach(oid -> {
             final Order order = this.getOrder(oid);
             order.setOrder(index.getAndIncrement());
             this.saveOrder(order);

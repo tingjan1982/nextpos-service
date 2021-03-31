@@ -166,7 +166,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     }
 
     public boolean isClosed() {
-        return EnumSet.of(SETTLED, REFUNDED, COMPLETED).contains(state);
+        return OrderState.finalStates().contains(this.state);
     }
 
     public boolean isTablesEmpty() {
@@ -248,31 +248,35 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     private boolean isLineItemMergeable(final OrderLineItem existingLineItem, final OrderLineItem orderLineItem) {
 
-        if (!CollectionUtils.isEmpty(orderLineItem.getProductSnapshot().getProductOptions())) {
-            return false;
-        }
+        final boolean existingLiEligible = checkLineItemState(existingLineItem);
+        final boolean newLiEligible = checkLineItemState(orderLineItem);
 
-        if (!CollectionUtils.isEmpty(existingLineItem.getProductSnapshot().getProductOptions())) {
-            return false;
-        }
-
-        if (existingLineItem.getState() != OrderLineItem.LineItemState.OPEN) {
-            return false;
-        }
-
-        if (existingLineItem.getAppliedOfferInfo() != null) {
-            return false;
-        }
-
-        if (existingLineItem.getProductSnapshot().getOverridePrice() != null) {
-            return false;
-        }
-
-        if (orderLineItem.getProductSnapshot().getOverridePrice() != null && StringUtils.isBlank(orderLineItem.getAssociatedLineItemId())) {
+        if (!existingLiEligible || !newLiEligible) {
             return false;
         }
 
         if (!StringUtils.equals(orderLineItem.getAssociatedLineItemId(), existingLineItem.getAssociatedLineItemId())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean checkLineItemState(OrderLineItem lineItem) {
+
+        if (!CollectionUtils.isEmpty(lineItem.getProductSnapshot().getProductOptions())) {
+            return false;
+        }
+
+        if (lineItem.getState() != OrderLineItem.LineItemState.OPEN) {
+            return false;
+        }
+
+        if (lineItem.getAppliedOfferInfo() != null) {
+            return false;
+        }
+
+        if (lineItem.getProductSnapshot().getOverridePrice() != null && StringUtils.isBlank(lineItem.getAssociatedLineItemId())) {
             return false;
         }
 

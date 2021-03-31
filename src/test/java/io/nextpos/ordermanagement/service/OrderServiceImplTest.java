@@ -61,7 +61,9 @@ class OrderServiceImplTest {
     @Autowired
     private Client client;
 
-    private TableLayout.TableDetails tableDetails;
+    private TableLayout.TableDetails table1;
+
+    private TableLayout.TableDetails table2;
 
 
     @BeforeEach
@@ -69,7 +71,8 @@ class OrderServiceImplTest {
         final TableLayout tableLayout = DummyObjects.dummyTableLayout(client);
         tableLayoutService.saveTableLayout(tableLayout);
 
-        tableDetails = tableLayout.getTables().get(0);
+        table1 = tableLayout.getTables().get(0);
+        table2 = tableLayout.getTables().get(1);
     }
 
     @Test
@@ -77,7 +80,7 @@ class OrderServiceImplTest {
     void createAndGetOrder() {
 
         final Order order = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
-        order.updateTables(List.of(tableDetails));
+        order.updateTables(List.of(table1));
 
         final List<ProductSnapshot.ProductOptionSnapshot> options = List.of(
                 new ProductSnapshot.ProductOptionSnapshot("ice", "1/3"),
@@ -221,6 +224,36 @@ class OrderServiceImplTest {
     }
 
     @Test
+    void moveOrder() {
+
+        Order sourceOrder = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
+        sourceOrder.updateTables(List.of(table1));
+        sourceOrder.addOrderLineItem(DummyObjects.productSnapshot("coffee", new BigDecimal("45")), 1);
+        orderService.createOrder(sourceOrder);
+        orderService.performOrderAction(sourceOrder.getId(), Order.OrderAction.SUBMIT);
+
+        Order sourceOrder2 = orderService.getOrder(sourceOrder.getId());
+        sourceOrder2.addOrderLineItem(DummyObjects.productSnapshot("coffee", new BigDecimal("45")), 1);
+        orderService.saveOrder(sourceOrder2);
+
+        assertThat(sourceOrder2.getOrderLineItems()).hasSize(2);
+        assertThat(sourceOrder2.getState()).isEqualByComparingTo(Order.OrderState.IN_PROCESS);
+
+        final Order targetOrder = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
+        targetOrder.updateTables(List.of(table2));
+        targetOrder.addOrderLineItem(DummyObjects.productSnapshot("coffee", new BigDecimal("45")), 1);
+        targetOrder.addOrderLineItem(DummyObjects.productSnapshot("tea", new BigDecimal("30")), 1);
+        orderService.saveOrder(targetOrder);
+
+        assertThat(targetOrder.getOrderLineItems()).hasSize(2);
+
+        final Order updatedOrder = orderService.moveOrder(sourceOrder.getId(), targetOrder.getId());
+        assertThat(updatedOrder.getOrderLineItems()).hasSize(3);
+        assertThat(updatedOrder.getId()).isEqualTo(targetOrder.getId());
+        assertThat(orderService.getOrder(sourceOrder.getId()).getState()).isEqualByComparingTo(Order.OrderState.DELETED);
+    }
+
+    @Test
     void getOrders() {
 
         final LocalDateTime fromDate = LocalDateTime.now();
@@ -228,7 +261,7 @@ class OrderServiceImplTest {
         LOGGER.info("Date range: {}, {}", fromDate, toDate);
 
         final Order order = new Order(client.getId(), orderSettings);
-        order.updateTables(List.of(tableDetails));
+        order.updateTables(List.of(table1));
         orderService.createOrder(order);
 
         final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.RANGE).dateRange(fromDate, toDate).build();
@@ -238,7 +271,7 @@ class OrderServiceImplTest {
         LOGGER.info("Orders: {}", orders);
         assertThat(orders).isNotEmpty();
 
-        assertThat(orderService.getOrders(client, zonedDateRange, OrderCriteria.instance().tableName("dummy-table"))).isNotEmpty();
+        assertThat(orderService.getOrders(client, zonedDateRange, OrderCriteria.instance().tableName("dummy-table1"))).isNotEmpty();
 
         final ZonedDateRange zonedDateRange2 = ZonedDateRangeBuilder.builder(client, DateParameterType.RANGE).dateRange(toDate, toDate.plusDays(1)).build();
 
@@ -249,6 +282,7 @@ class OrderServiceImplTest {
     @Test
     void inProcessOrderLineItems() {
 
+        shiftService.openShift(client.getId(), BigDecimal.ZERO);
         final InProcessOrderLineItems emptyOrderLineItems = orderService.getInProcessOrderLineItems(client.getId());
 
         assertThat(emptyOrderLineItems.getResults()).isEmpty();

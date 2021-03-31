@@ -257,6 +257,20 @@ public class OrderController {
         return OrderResponse.toOrderResponse(orderService.saveOrder(order));
     }
 
+
+    /**
+     * Move order {id} and all its line items from current table to specified table id(s).
+     */
+    @PostMapping("/{id}/move")
+    @OrderLogAction
+    public OrderResponse moveOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                     @PathVariable final String id,
+                                     @Valid @RequestBody MoveOrderRequest request) {
+
+        final Order updatedOrder = orderService.moveOrder(id, request.getTargetOrderId());
+        return OrderResponse.toOrderResponse(updatedOrder);
+    }
+
     @PostMapping("/{id}/membership")
     @OrderLogAction
     public OrderResponse updateMembership(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,

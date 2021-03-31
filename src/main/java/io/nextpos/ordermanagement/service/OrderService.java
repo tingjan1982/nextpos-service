@@ -38,6 +38,8 @@ public interface OrderService {
 
     InProcessOrders getInProcessOrders(String clientId);
 
+    Order moveOrder(String sourceOrderId, String targetOrderId);
+
     void deleteOrder(String orderId);
 
     OrderStateChange transitionOrderState(Order order, Order.OrderAction orderAction, final Optional<LineItemStateChangeEvent> lineItemStateChangeEvent);
