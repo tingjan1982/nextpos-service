@@ -66,6 +66,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     private List<OrderLineItem> orderLineItems = new ArrayList<>();
 
+    private List<OrderLineItem> deletedOrderLineItems = new ArrayList<>();
+
     /**
      * total or discounted total + service charge (tax inclusive)
      */
@@ -316,6 +318,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     @Override
     public void deleteOrderLineItem(OrderLineItem orderLineItem) {
 
+        orderLineItem.setState(OrderLineItem.LineItemState.DELETED);
+        deletedOrderLineItems.add(orderLineItem);
         orderLineItems.remove(orderLineItem);
 
         computeTotal();

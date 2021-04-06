@@ -83,6 +83,7 @@
                     <text>公司名稱: ${client.attributes["COMPANY_NAME"]!"NA"}&#10;</text>
                     <text>營業人地址: ${client.attributes["ADDRESS"]!"NA"}&#10;</text>
                     <text>訂單號碼: ${order.serialId!"NA"}&#10;</text>
+                    <text>桌號: ${order.oneTableInfo.displayName!"外帶"}&#10;</text>
                     <#if orderTransaction??>
                         <text>交易序號: ${orderTransaction.id[orderTransaction.id?length - 6..]!"NA"}&#10;</text>
                         <text>交易日期: ${orderTransaction.createdDate?string('MM/dd/yyyy HH:mm:ss')!"NA"}&#10;</text>

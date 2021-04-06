@@ -166,7 +166,8 @@ class OrderServiceImplTest {
         orderService.deleteOrderLineItem(orderWithLineItem, productSetLineItem.getId());
 
         assertThat(orderWithLineItem.getOrderLineItems()).hasSize(2);
-
+        assertThat(orderWithLineItem.getDeletedOrderLineItems()).hasSize(3);
+        
         Shift activeShift = shiftService.getActiveShiftOrThrows(client.getId());
         assertThat(activeShift.getDeletedLineItems()).hasSize(1);
 

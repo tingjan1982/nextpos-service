@@ -87,7 +87,8 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
     private PrinterInstructions.PrinterInstruction createPrinterInstruction(Client client, Order order, List<OrderLineItem> lineItems, String workingAreaId) {
 
         try {
-            Template orderToWorkingArea = freeMarkerCfg.getTemplate("orderToWorkingArea.ftl");
+            String templateToUse = determineWorkingOrderTemplate(client);
+            Template orderToWorkingArea = freeMarkerCfg.getTemplate(templateToUse);
 
             final StringWriter writer = new StringWriter();
             orderToWorkingArea.process(Map.of("order", order, "lineItems", lineItems), writer);
@@ -126,6 +127,13 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
             LOGGER.error(e.getMessage(), e);
             throw new GeneralApplicationException("Error while generating order details XML template: " + e.getMessage());
         }
+    }
+
+    private String determineWorkingOrderTemplate(Client client) {
+
+        final String orderDisplayMode = client.getAttribute(Client.ClientAttributes.ORDER_DISPLAY_MODE);
+
+        return StringUtils.isBlank(orderDisplayMode) || orderDisplayMode.equals("LINE_ITEM") ? "lineItemsToWorkingArea.ftl" : "orderToWorkingArea.ftl";
     }
 
     @Override
@@ -222,7 +230,7 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
 
         final RestTemplate restTemplate = new RestTemplate();
 
-        String url = "http://" + printerIp + "/cgi-bin/epos/service.cgi?devid=local_printer&timeout=5000";
+        String url = "http://" + printerIp + "/cgi-bin/epos/service.cgi?devid=local_printer&timeout=30000";
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType("text/xml; charset=utf-8"));
         headers.add("SOAPAction", "");

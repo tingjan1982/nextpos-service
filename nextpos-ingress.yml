@@ -4,7 +4,7 @@ metadata:
   name: nextpos-ingress
 spec:
   tls:
-    - secretName: nextpos-secret-tls1
+    - secretName: nextpos-secret-tls2
   backend:
     serviceName: nextpos-service-nodeport
     servicePort: 80     

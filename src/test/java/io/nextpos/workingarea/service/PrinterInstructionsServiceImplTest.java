@@ -109,7 +109,7 @@ class PrinterInstructionsServiceImplTest {
                 new ProductSnapshot.ChildProductSnapshot("id", "sugar", null),
                 new ProductSnapshot.ChildProductSnapshot("id", "ice", "ICE")
         ));
-        final OrderLineItem coffee = order.addOrderLineItem(coffeeP, 2);
+        final OrderLineItem coffee = order.addOrderLineItem(coffeeP, 5);
         coffee.setState(OrderLineItem.LineItemState.IN_PROCESS);
         coffee.setWorkingAreaId(workingArea.getId());
 
@@ -239,6 +239,6 @@ class PrinterInstructionsServiceImplTest {
     }
 
     private void printInstruction(String printInstruction) {
-        printerInstructionService.outputToPrinter("192.168.2.231", printInstruction);
+        printerInstructionService.outputToPrinter("192.168.2.246", printInstruction);
     }
 }

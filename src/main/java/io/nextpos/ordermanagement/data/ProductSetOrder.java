@@ -3,6 +3,7 @@ package io.nextpos.ordermanagement.data;
 import io.nextpos.shared.exception.BusinessLogicException;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -77,7 +78,18 @@ public class ProductSetOrder implements OrderLineItemOperation {
 
         checkLineItemInSet(orderLineItem);
 
-        order.getOrderLineItems().removeIf(li -> orderLineItem.getId().equals(li.getAssociatedLineItemId()));
+        List<OrderLineItem> removedLineItems = new ArrayList<>();
+
+        order.getOrderLineItems().removeIf(li -> {
+            if (orderLineItem.getId().equals(li.getAssociatedLineItemId())) {
+                removedLineItems.add(li);
+                return true;
+            }
+
+            return false;
+        });
+
+        order.getDeletedOrderLineItems().addAll(removedLineItems);
 
         order.deleteOrderLineItem(orderLineItem);
     }

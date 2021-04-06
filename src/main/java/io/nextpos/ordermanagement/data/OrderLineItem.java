@@ -214,7 +214,9 @@ public class OrderLineItem implements OfferApplicableObject {
 
         PREPARED(false),
 
-        DELIVERED(false);
+        DELIVERED(false),
+
+        DELETED(false);
 
         private final boolean preparing;
 

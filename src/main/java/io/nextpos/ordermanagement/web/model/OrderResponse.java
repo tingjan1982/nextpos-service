@@ -54,6 +54,8 @@ public class OrderResponse {
 
     private final List<OrderLineItemResponse> lineItems;
 
+    private final List<OrderLineItemResponse> deletedLineItems;
+
     private final Map<String, Object> metadata;
 
     private final List<OrderLog> orderLogs;
@@ -74,27 +76,10 @@ public class OrderResponse {
     public static OrderResponse toOrderResponse(final Order order) {
 
         final List<OrderLineItemResponse> orderLineItems = order.getOrderLineItems().stream()
-                .map(li -> {
-                    final ProductSnapshot productSnapshot = li.getProductSnapshot();
+                .map(OrderLineItemResponse::new).collect(Collectors.toList());
 
-                    return new OrderLineItemResponse(li.getId(),
-                            productSnapshot.getId(),
-                            li.getState(),
-                            productSnapshot.getName(),
-                            productSnapshot.getInternalName(),
-                            li.getProductOptions(),
-                            li.getProductPriceWithOptions().getAmount(),
-                            li.getQuantity(),
-                            li.getLineItemSubTotal(),
-                            li.getSubTotal(),
-                            li.getDiscountedSubTotal(),
-                            li.getAppliedOfferInfo(),
-                            li.getAssociatedLineItemId(),
-                            li.getCreatedDate(),
-                            li.getModifiedDate(),
-                            productSnapshot.getChildProducts());
-
-                }).collect(Collectors.toList());
+        final List<OrderLineItemResponse> deletedOrderLineItems = order.getDeletedOrderLineItems().stream()
+                .map(OrderLineItemResponse::new).collect(Collectors.toList());
 
         final OrderSettings originalOrderSettings = (OrderSettings) order.getMetadata(Order.ORIGINAL_ORDER_SETTINGS);
         boolean serviceChargeEnabled = originalOrderSettings.getServiceCharge().compareTo(BigDecimal.ZERO) != 0;
@@ -116,6 +101,7 @@ public class OrderResponse {
                 order.getOrderTotalWithoutServiceCharge(),
                 order.getCurrency(),
                 orderLineItems,
+                deletedOrderLineItems,
                 order.getMetadata(),
                 order.getOrderLogs(),
                 order.getDemographicData(),
@@ -173,5 +159,27 @@ public class OrderResponse {
         private Date modifiedDate;
 
         private List<ProductSnapshot.ChildProductSnapshot> childProducts;
+
+        public OrderLineItemResponse(OrderLineItem li) {
+
+            final ProductSnapshot productSnapshot = li.getProductSnapshot();
+
+            lineItemId = li.getId();
+            productId = productSnapshot.getId();
+            state = li.getState();
+            productName = productSnapshot.getName();
+            internalProductName = productSnapshot.getInternalName();
+            options = li.getProductOptions();
+            price = li.getProductPriceWithOptions().getAmount();
+            quantity = li.getQuantity();
+            lineItemSubTotal = li.getLineItemSubTotal();
+            subTotal = li.getSubTotal();
+            discountedSubTotal = li.getDiscountedSubTotal();
+            appliedOfferInfo = li.getAppliedOfferInfo();
+            associatedLineItemId = li.getAssociatedLineItemId();
+            createdDate = li.getCreatedDate();
+            modifiedDate = li.getModifiedDate();
+            childProducts = productSnapshot.getChildProducts();
+        }
     }
 }
