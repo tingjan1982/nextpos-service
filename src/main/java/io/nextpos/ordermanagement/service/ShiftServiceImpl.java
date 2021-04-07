@@ -18,6 +18,8 @@ import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.exception.ShiftException;
 import io.nextpos.shared.service.annotation.MongoTransaction;
 import io.nextpos.shared.util.DateTimeUtil;
+import io.nextpos.workingarea.data.SinglePrintInstruction;
+import io.nextpos.workingarea.service.PrinterInstructionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +40,8 @@ public class ShiftServiceImpl implements ShiftService {
 
     private final OrderTransactionReportService orderTransactionReportService;
 
+    private final PrinterInstructionService printerInstructionService;
+
     private final NotificationService notificationService;
 
     private final ShiftRepository shiftRepository;
@@ -47,8 +51,9 @@ public class ShiftServiceImpl implements ShiftService {
     private final AuthenticationHelper authenticationHelper;
 
     @Autowired
-    public ShiftServiceImpl(final OrderTransactionReportService orderTransactionReportService, NotificationService notificationService, final ShiftRepository shiftRepository, final OrderRepository orderRepository, AuthenticationHelper authenticationHelper) {
+    public ShiftServiceImpl(final OrderTransactionReportService orderTransactionReportService, PrinterInstructionService printerInstructionService, NotificationService notificationService, final ShiftRepository shiftRepository, final OrderRepository orderRepository, AuthenticationHelper authenticationHelper) {
         this.orderTransactionReportService = orderTransactionReportService;
+        this.printerInstructionService = printerInstructionService;
         this.notificationService = notificationService;
         this.shiftRepository = shiftRepository;
         this.orderRepository = orderRepository;
@@ -215,6 +220,13 @@ public class ShiftServiceImpl implements ShiftService {
         notificationDetails.addTemplateData("deletedLineItems", shift.getDeletedLineItems());
 
         return notificationService.sendNotification(notificationDetails);
+    }
+
+    @Override
+    public SinglePrintInstruction printShiftReport(Client client, String shiftId) {
+
+        final Shift shift = this.getShift(shiftId);
+        return printerInstructionService.createShiftReportPrintInstruction(client, shift);
     }
 
     private Shift getCurrentShiftOrThrows(String clientId) {

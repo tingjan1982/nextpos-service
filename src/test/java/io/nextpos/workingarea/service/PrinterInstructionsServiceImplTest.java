@@ -6,17 +6,17 @@ import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRange;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRangeRepository;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRangeService;
-import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.OrderLineItem;
-import io.nextpos.ordermanagement.data.OrderSettings;
-import io.nextpos.ordermanagement.data.ProductSnapshot;
+import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.service.OrderService;
+import io.nextpos.ordermanagement.service.ShiftService;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.service.ElectronicInvoiceService;
+import io.nextpos.ordertransaction.service.OrderTransactionService;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.PrinterInstructions;
+import io.nextpos.workingarea.data.SinglePrintInstruction;
 import io.nextpos.workingarea.data.WorkingArea;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.AfterEach;
@@ -43,7 +43,13 @@ class PrinterInstructionsServiceImplTest {
     private PrinterInstructionService printerInstructionService;
 
     @Autowired
+    private ShiftService shiftService;
+
+    @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private OrderTransactionService orderTransactionService;
 
     @Autowired
     private ElectronicInvoiceService electronicInvoiceService;
@@ -82,7 +88,7 @@ class PrinterInstructionsServiceImplTest {
 
         clientService.saveClient(client);
 
-        final Printer printer = new Printer(client, "main printer", "192.168.2.231", Set.of(Printer.ServiceType.WORKING_AREA));
+        final Printer printer = new Printer(client, "main printer", "192.168.2.231", Set.of(Printer.ServiceType.WORKING_AREA, Printer.ServiceType.CHECKOUT));
         workingAreaService.savePrinter(printer);
 
         workingArea = new WorkingArea(client, "main");
@@ -230,6 +236,33 @@ class PrinterInstructionsServiceImplTest {
         final String instruction = printerInstructionService.createElectronicInvoiceXML(client, order, orderTransaction, false);
 
         logAndPrint(instruction);
+    }
+
+    @Test
+    void printShiftReport() {
+
+        shiftService.openShift(client.getId(), new BigDecimal("100"));
+        final OrderSettings orderSettings = new OrderSettings(countrySettings, true, BigDecimal.ZERO);
+        final Order order = Order.newOrder(client.getId(), Order.OrderType.TAKE_OUT, orderSettings);
+        order.addOrderLineItem(DummyObjects.productSnapshot("coffee", BigDecimal.valueOf(100)), 3);
+        orderService.createOrder(order);
+        orderService.performOrderAction(order.getId(), Order.OrderAction.SUBMIT);
+        OrderTransaction orderTransaction = new OrderTransaction(order, OrderTransaction.PaymentMethod.CASH, OrderTransaction.BillType.SINGLE, order.getOrderTotal());
+        orderTransactionService.createOrderTransaction(client, orderTransaction);
+        orderService.performOrderAction(order.getId(), Order.OrderAction.COMPLETE);
+
+        final Order orderToDelete = Order.newOrder(client.getId(), Order.OrderType.TAKE_OUT, orderSettings);
+        orderToDelete.addOrderLineItem(DummyObjects.productSnapshot("咖啡", BigDecimal.valueOf(100)), 3);
+        orderService.createOrder(orderToDelete);
+        orderService.markOrderAsDeleted(orderToDelete.getId());
+
+        shiftService.initiateCloseShift(client.getId());
+        shiftService.closeShift(client.getId(), Shift.ClosingBalanceDetails.of(new BigDecimal("100")), Shift.ClosingBalanceDetails.of(BigDecimal.ZERO));
+        final Shift closedShift = shiftService.confirmCloseShift(client.getId(), "closing remark");
+
+        final SinglePrintInstruction instruction = printerInstructionService.createShiftReportPrintInstruction(client, closedShift);
+
+        logAndPrint(instruction.getInstruction());
     }
 
     private void logAndPrint(String instruction) {

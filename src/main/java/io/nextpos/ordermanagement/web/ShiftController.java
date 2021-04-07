@@ -12,6 +12,8 @@ import io.nextpos.ordermanagement.web.model.ShiftsResponse;
 import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
 import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.shared.web.ClientResolver;
+import io.nextpos.workingarea.data.SinglePrintInstruction;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -101,7 +103,20 @@ public class ShiftController {
     public void emailShiftReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                  @PathVariable String shiftId) {
 
-        shiftService.sendShiftReport(client, shiftId, client.getUsername());
+        String notificationEmail = client.getUsername();
+
+        if (StringUtils.isNotBlank(client.getAttribute(Client.ClientAttributes.NOTIFICATION_EMAIL))) {
+            notificationEmail = client.getAttribute(Client.ClientAttributes.NOTIFICATION_EMAIL);
+        }
+
+        shiftService.sendShiftReport(client, shiftId, notificationEmail);
+    }
+
+    @PostMapping("/{shiftId}/print")
+    public SinglePrintInstruction printShiftReport(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                   @PathVariable String shiftId) {
+
+        return shiftService.printShiftReport(client, shiftId);
     }
 
     @PostMapping("/open")

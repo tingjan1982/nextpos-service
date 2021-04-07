@@ -217,6 +217,11 @@ public class Client extends BaseObject {
         COMPANY_NAME,
 
         /**
+         * Alternative notification email
+         */
+        NOTIFICATION_EMAIL,
+
+        /**
          * Business address
          */
         ADDRESS,

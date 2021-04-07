@@ -60,6 +60,8 @@ public class LineItemStateChangeListener {
 
                 break;
             case DELIVER:
+
+            case POST_DELIVER:
                 lineItems.forEach(li -> li.setState(OrderLineItem.LineItemState.DELIVERED));
                 break;
 

@@ -191,7 +191,7 @@ public class Shift extends MongoBaseObject {
         private String unbalanceReason;
 
         public static ClosingBalanceDetails of(BigDecimal closingBalance) {
-            return new ClosingBalanceDetails(closingBalance, BigDecimal.ZERO, null);
+            return new ClosingBalanceDetails(closingBalance, BigDecimal.ZERO, "test");
         }
 
         @JsonIgnore

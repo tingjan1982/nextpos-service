@@ -5,6 +5,7 @@ import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.notification.data.NotificationDetails;
 import io.nextpos.ordermanagement.data.Shift;
 import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
+import io.nextpos.workingarea.data.SinglePrintInstruction;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -40,4 +41,6 @@ public interface ShiftService {
     List<Shift> getShifts(String clientId, ZonedDateRange date);
 
     CompletableFuture<NotificationDetails> sendShiftReport(Client client, String shiftId, String emailAddress);
+
+    SinglePrintInstruction printShiftReport(Client client, String shiftId);
 }

@@ -2,8 +2,10 @@ package io.nextpos.workingarea.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.Shift;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.workingarea.data.PrinterInstructions;
+import io.nextpos.workingarea.data.SinglePrintInstruction;
 import org.springframework.http.ResponseEntity;
 
 /**
@@ -20,6 +22,8 @@ public interface PrinterInstructionService {
     String createCancelOrderPrintInstruction(Client client, Order order, OrderTransaction orderTransaction);
 
     String createElectronicInvoiceXML(Client client, Order order, OrderTransaction orderTransaction, boolean reprint);
+
+    SinglePrintInstruction createShiftReportPrintInstruction(Client client, Shift shift);
 
     ResponseEntity<String> outputToPrinter(String printerIp, String contentXML);
 }

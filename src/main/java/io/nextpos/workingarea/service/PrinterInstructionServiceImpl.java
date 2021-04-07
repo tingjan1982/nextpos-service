@@ -7,12 +7,16 @@ import io.nextpos.client.service.ClientService;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
+import io.nextpos.ordermanagement.data.Shift;
+import io.nextpos.ordermanagement.data.ShiftReport;
 import io.nextpos.ordertransaction.data.OrderTransaction;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.service.annotation.JpaTransaction;
 import io.nextpos.shared.util.ImageCodeUtil;
 import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.PrinterInstructions;
+import io.nextpos.workingarea.data.SinglePrintInstruction;
 import io.nextpos.workingarea.data.WorkingArea;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -222,6 +226,35 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
         } catch (Exception e) {
             LOGGER.error(e.getMessage(), e);
             throw new GeneralApplicationException("Error while generating electronic invoice XML template: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public SinglePrintInstruction createShiftReportPrintInstruction(Client client, Shift shift) {
+
+        final ShiftReport shiftReport = new ShiftReport(shift);
+        final String printInstruction = renderFreeMarkerContent("shiftReport.ftl", Map.of("shift", shiftReport));
+        final List<Printer> printers = workingAreaService.getPrintersByServiceType(client, Printer.ServiceType.CHECKOUT);
+
+        if (CollectionUtils.isEmpty(printers)) {
+            throw new BusinessLogicException("message.noPrinter", "No checkout printer is setup");
+        }
+
+        return new SinglePrintInstruction(printers.get(0).getIpAddress(), printInstruction);
+    }
+
+    private String renderFreeMarkerContent(String templateFile, Map<String, Object> data) {
+
+        try {
+            Template template = freeMarkerCfg.getTemplate(templateFile);
+            final StringWriter writer = new StringWriter();
+            template.process(data, writer);
+
+            return writer.toString();
+
+        } catch (Exception e) {
+            LOGGER.error(e.getMessage(), e);
+            throw new GeneralApplicationException("Error while rendering FreeMarker template: " + e.getMessage(), e);
         }
     }
 
