@@ -254,12 +254,15 @@ public class OrderServiceImpl implements OrderService {
     public Order deleteOrderLineItem(final Order order, final String lineItemId) {
 
         final OrderLineItem orderLineItem = order.getOrderLineItem(lineItemId);
-        order.productSetOrder().deleteOrderLineItem(orderLineItem);
 
-        final String username = authenticationHelper.resolveCurrentUsername();
-        final Shift activeShift = shiftService.getActiveShiftOrThrows(order.getClientId());
-        activeShift.addDeletedLineItem(order, orderLineItem, username);
-        shiftService.saveShift(activeShift);
+        if (orderLineItem.getState() != OrderLineItem.LineItemState.OPEN) {
+            final String username = authenticationHelper.resolveCurrentUsername();
+            final Shift activeShift = shiftService.getActiveShiftOrThrows(order.getClientId());
+            activeShift.addDeletedLineItem(order, orderLineItem, username);
+            shiftService.saveShift(activeShift);
+        }
+        
+        order.productSetOrder().deleteOrderLineItem(orderLineItem);
 
         return orderRepository.save(order);
     }
