@@ -19,6 +19,7 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.NoSuchClientException;
@@ -78,6 +79,9 @@ public class ClientServiceImpl implements ClientService {
         final String plainPassword = client.getMasterPassword();
         final String encryptedPassword = passwordEncoder.encode(plainPassword);
         client.setMasterPassword(encryptedPassword);
+
+        final String salt = KeyGenerators.string().generateKey();
+        client.setSalt(salt);
 
         final Client savedClient = clientRepository.save(client);
 
@@ -217,6 +221,13 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public Optional<Client> getClientByUsername(final String username) {
         return clientRepository.findByUsername(username);
+    }
+
+    @Override
+    public Client getClientByUsernameOrThrows(String username) {
+        return clientRepository.findByUsername(username).orElseThrow(() -> {
+            throw new ObjectNotFoundException(username, Client.class);
+        });
     }
 
     @Override

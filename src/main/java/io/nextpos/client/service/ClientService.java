@@ -29,6 +29,8 @@ public interface ClientService extends UserDetailsService {
 
     Optional<Client> getClientByUsername(String username);
 
+    Client getClientByUsernameOrThrows(String username);
+
     Client getDefaultClient();
 
     List<Client> getClients();

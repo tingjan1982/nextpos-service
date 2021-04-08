@@ -51,6 +51,8 @@ public class Client extends BaseObject {
     @Enumerated(EnumType.STRING)
     private Status status = Status.PENDING_ACTIVE;
 
+    private String salt;
+
     @OneToOne(mappedBy = "client", cascade = CascadeType.ALL)
     @PrimaryKeyJoinColumn
     @ToString.Exclude
