@@ -39,6 +39,7 @@ gcloud config set compute/zone asia-east1-b
 #        path: application-gcp.properties
 
 gcloud container clusters get-credentials rainapp-cluster --zone asia-east1-b --project helpful-range-236813
-kubectl scale deployment nextpos-service --replicas=0
-kubectl scale deployment nextpos-service --replicas=1
+#kubectl scale deployment nextpos-service --replicas=0
+#kubectl scale deployment nextpos-service --replicas=1
+kubectl set image deployment/nextpos-service nextpos-service=docker.io/joelin/nextpos-service
 kubectl get services nextpos-service-nodeport

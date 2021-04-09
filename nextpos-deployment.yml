@@ -3,18 +3,26 @@ kind: Deployment
 metadata:
   name: nextpos-service
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: nextpos-service
+  minReadySeconds: 90
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   template:
     metadata:
       labels:
         app: nextpos-service
     spec:
+      terminationGracePeriodSeconds: 10
       containers:
       - name: nextpos-service
         image: docker.io/joelin/nextpos-service:latest
+        imagePullPolicy: Always
         ports:
           - containerPort: 8080
         env:

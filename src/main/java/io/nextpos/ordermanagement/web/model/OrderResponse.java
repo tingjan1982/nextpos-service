@@ -132,6 +132,8 @@ public class OrderResponse {
 
         private String internalProductName;
 
+        private String sku;
+
         private String options;
 
         private BigDecimal price;
@@ -166,9 +168,10 @@ public class OrderResponse {
 
             lineItemId = li.getId();
             productId = productSnapshot.getId();
-            state = li.getState();
             productName = productSnapshot.getName();
             internalProductName = productSnapshot.getInternalName();
+            sku = productSnapshot.getSku();
+            state = li.getState();
             options = li.getProductOptions();
             price = li.getProductPriceWithOptions().getAmount();
             quantity = li.getQuantity();

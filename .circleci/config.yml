@@ -96,6 +96,5 @@ jobs:
             gcloud auth activate-service-account travis-ci-user@helpful-range-236813.iam.gserviceaccount.com --key-file=service_account.json
             gcloud config set compute/zone asia-east1-b
             gcloud container clusters get-credentials rainapp-cluster --zone asia-east1-b --project helpful-range-236813
-            kubectl scale deployment nextpos-service --replicas=0
-            kubectl scale deployment nextpos-service --replicas=1
+            kubectl set image deployment/nextpos-service nextpos-service=docker.io/joelin/nextpos-service
             kubectl get services nextpos-service-nodeport
