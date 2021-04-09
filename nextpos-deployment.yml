@@ -1,3 +1,6 @@
+# https://tachingchen.com/blog/kubernetes-rolling-update-with-deployment/#rolling-update
+# https://stackoverflow.com/questions/40366192/kubernetes-how-to-make-deployment-to-update-image
+# https://kubernetes.io/docs/concepts/containers/images/
 apiVersion: apps/v1
 kind: Deployment
 metadata:

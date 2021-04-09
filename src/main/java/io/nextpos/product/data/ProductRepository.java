@@ -8,6 +8,8 @@ import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, String> {
 
+    List<Product> findAllByClient(Client client);
+
     List<Product> findAllByClientAndProductLabel(Client client, ProductLabel productLabel);
 
     boolean existsAllByWorkingArea(WorkingArea workingArea);

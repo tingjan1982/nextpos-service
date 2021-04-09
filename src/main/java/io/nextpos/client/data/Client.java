@@ -11,6 +11,8 @@ import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.WorkingArea;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -60,12 +62,14 @@ public class Client extends BaseObject {
     private ClientInfo clientInfo;
 
     @ElementCollection(fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SUBSELECT)
     @MapKeyColumn(name = "attribute_key")
     @Column(name = "attribute_value")
     @CollectionTable(name = "client_attributes", joinColumns = @JoinColumn(name = "client_id"))
     private Map<String, String> attributes = new HashMap<>();
 
     @OneToMany(mappedBy = "client", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Fetch(FetchMode.SUBSELECT)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<ClientSetting> clientSettings = new ArrayList<>();

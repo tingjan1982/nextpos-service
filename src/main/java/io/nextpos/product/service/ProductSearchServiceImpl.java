@@ -1,10 +1,7 @@
 package io.nextpos.product.service;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.product.data.ProductLabel;
-import io.nextpos.product.data.ProductVersion;
-import io.nextpos.product.data.ProductVersionRepository;
-import io.nextpos.product.data.Version;
+import io.nextpos.product.data.*;
 import io.nextpos.shared.service.annotation.JpaTransaction;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +19,15 @@ import java.util.stream.Collectors;
 @JpaTransaction
 public class ProductSearchServiceImpl implements ProductSearchService {
 
+    private final ProductRepository productRepository;
+
     private final ProductVersionRepository productVersionRepository;
 
     private final ProductLabelService productLabelService;
 
     @Autowired
-    public ProductSearchServiceImpl(final ProductVersionRepository productVersionRepository, final ProductLabelService productLabelService) {
+    public ProductSearchServiceImpl(ProductRepository productRepository, final ProductVersionRepository productVersionRepository, final ProductLabelService productLabelService) {
+        this.productRepository = productRepository;
         this.productVersionRepository = productVersionRepository;
         this.productLabelService = productLabelService;
     }
@@ -48,6 +48,8 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         final List<ProductLabel> productLabels = productLabelService.getProductLabels(client);
         final ProductLabel ungroupedLabel = ProductLabel.dynamicLabel(client, "ungrouped");
 
+        // very important line to enhance performance as line 54 does not need to do a lookup query for each product
+        productRepository.findAllByClient(client);
 
         final List<ProductVersion> products = productVersionRepository.findAllProductsByClient(client, version);
 

@@ -4,6 +4,8 @@ import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.ParentObject;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -31,6 +33,7 @@ public class ProductOption extends BaseObject implements ParentObject<String, Pr
     private Client client;
 
     @OneToMany(mappedBy = "productOption", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Fetch(FetchMode.SUBSELECT)
     @MapKeyEnumerated(EnumType.STRING)
     private Map<Version, ProductOptionVersion> versions = new HashMap<>();
 

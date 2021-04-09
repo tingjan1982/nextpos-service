@@ -52,6 +52,7 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
     private boolean pinned;
 
     @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @Fetch(value = FetchMode.SUBSELECT)
     @MapKeyEnumerated(EnumType.STRING)
     private Map<Version, ProductVersion> versions = new HashMap<>();
 

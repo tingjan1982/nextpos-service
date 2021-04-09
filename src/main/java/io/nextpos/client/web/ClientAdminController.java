@@ -1,11 +1,9 @@
 package io.nextpos.client.web;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientService;
-import io.nextpos.client.web.model.ClientResponse;
-import io.nextpos.client.web.model.ClientsResponse;
-import io.nextpos.client.web.model.UpdateClientNameRequest;
-import io.nextpos.client.web.model.UpdateClientUsernameRequest;
+import io.nextpos.client.web.model.*;
 import io.nextpos.ordermanagement.data.OrderIdCounter;
 import io.nextpos.ordermanagement.service.OrderCounterService;
 import org.apache.commons.lang3.StringUtils;
@@ -71,6 +69,17 @@ public class ClientAdminController {
                 c.setClientName(request.getNewClientName());
                 clientService.saveClient(c);
             }
+        });
+    }
+
+    @PatchMapping("/{id}/password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateClientPassword(@PathVariable String id,
+                                     @Valid @RequestBody UpdateClientUserPasswordRequest request) {
+
+        clientService.getClient(id).ifPresent(c -> {
+            final ClientUser defaultClientUser = clientService.getClientUser(c, c.getUsername());
+            clientService.updateClientUserPassword(c, defaultClientUser, request.getPassword());
         });
     }
 
