@@ -172,7 +172,7 @@ class OrderServiceImplTest {
         assertThat(activeShift.getDeletedLineItems()).hasSize(1);
 
         final List<ProductSnapshot.ProductOptionSnapshot> productOptions = List.of(DummyObjects.productOptionSnapshot());
-        UpdateLineItem updateLineItem = new UpdateLineItem(orderLineItem.getId(), 5, null, productOptions, ProductLevelOffer.GlobalProductDiscount.DISCOUNT_AMOUNT_OFF, new BigDecimal(20));
+        UpdateLineItem updateLineItem = new UpdateLineItem(orderLineItem.getId(), 5, null,null, productOptions, ProductLevelOffer.GlobalProductDiscount.DISCOUNT_AMOUNT_OFF, new BigDecimal(20));
 
         Order updatedOrder = orderService.updateOrderLineItem(orderWithLineItem, updateLineItem);
 
@@ -199,7 +199,7 @@ class OrderServiceImplTest {
             assertThat(o.getOrderTotal()).isEqualByComparingTo(BigDecimal.valueOf(((110 - 20) * 5 + 100) * 1.05 * 1.1));
         });
 
-        updateLineItem = new UpdateLineItem(orderLineItem.getId(), 5, new BigDecimal("50"), productOptions, ProductLevelOffer.GlobalProductDiscount.NO_DISCOUNT, BigDecimal.ZERO);
+        updateLineItem = new UpdateLineItem(orderLineItem.getId(), 5, null, new BigDecimal("50"), productOptions, ProductLevelOffer.GlobalProductDiscount.NO_DISCOUNT, BigDecimal.ZERO);
         updatedOrder = orderService.updateOrderLineItem(updatedOrder, updateLineItem);
 
         assertThat(updatedOrder.getOrderLineItems()).satisfies(li -> {

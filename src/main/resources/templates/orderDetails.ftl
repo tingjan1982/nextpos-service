@@ -5,6 +5,8 @@
 <@compress single_line=true>
 <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
     <s:Body>
+        <#setting time_zone="Asia/Taipei">
+        <#assign indent="285"/>
         <epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">
             <text align="center"/>
             <text lang="zh-tw"/>
@@ -26,29 +28,29 @@
                 <text>交易日期: ${orderTransaction.createdDate?string('MM/dd/yyyy HH:mm:ss')!"NA"}&#10;</text>
             </#if>
             <feed line="1"/>
-            <text linespc="40"/>
+            <text linespc="35"/>
             <#list order.orderLineItems as li>
-                <text width="2" height="2"/>
+                <text em="true"/>
                 <text>${li.productSnapshot.name}&#10;</text>
-                <text width="1" height="1"/>
+                <text em="false" width="1" height="1"/>
                 <text x="100">x ${li.quantity} (${li.productSnapshot.productPriceWithOptions})</text>
-                <text x="310">$${li.lineItemSubTotal}&#10;</text>
+                <text x="${indent}">$${li.lineItemSubTotal}&#10;</text>
             </#list>
             <text linespc="30"/>
             <feed line="1"/>
             <text width="1" height="1"/>
             <text>銷售金額:</text>
-            <text x="310">${order.orderTotal}&#10;</text>
+            <text x="${indent}">${order.orderTotal}&#10;</text>
             <text>課稅別:</text>
-            <text x="310">TX&#10;</text>
+            <text x="${indent}">TX&#10;</text>
             <text>營業稅額:</text>
-            <text x="310">0&#10;</text>
+            <text x="${indent}">0&#10;</text>
             <text>服務費:</text>
-            <text x="310">${order.serviceCharge}&#10;</text>
+            <text x="${indent}">${order.serviceCharge}&#10;</text>
             <text>總計:</text>
-            <text x="310">$${order.orderTotal}&#10;</text>
+            <text x="${indent}">$${order.orderTotal}&#10;</text>
             <#if orderTransaction??>
-                <text>結帳金額:</text><text x="310">$${orderTransaction.settleAmount!"NA"}&#10;</text>
+                <text>結帳金額:</text><text x="${indent}">$${orderTransaction.settleAmount!"NA"}&#10;</text>
             </#if>
             <cut type="feed"/>
         </epos-print>
