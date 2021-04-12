@@ -29,6 +29,8 @@ public class UpdateOrderLineItemRequest implements OrderLogChangeObject {
     @PositiveOrZero
     private int quantity;
 
+    private String sku;
+
     private List<OrderProductOptionRequest> productOptions;
 
     private BigDecimal overridePrice;

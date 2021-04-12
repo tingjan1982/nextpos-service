@@ -218,6 +218,7 @@ public class OrderServiceImpl implements OrderService {
                 merchandisingService.applyGlobalProductDiscount(lineItem, globalProductDiscount, updateLineItem.getDiscountValue());
             }
 
+            lineItem.getProductSnapshot().setSku(updateLineItem.getSku());
             lineItem.updateQuantityAndProductOptions(updateLineItem.getQuantity(),
                     updateLineItem.getOverridePrice(),
                     updateLineItem.getProductOptionSnapshots());

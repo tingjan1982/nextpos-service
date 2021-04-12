@@ -439,7 +439,13 @@ public class OrderController {
             discountValue = resolveProductDiscountValue(productDiscount, discountValue);
         }
 
-        final UpdateLineItem updateLineItem = new UpdateLineItem(lineItemId, request.getQuantity(), request.getOverridePrice(), request.toProductOptionSnapshots(), productDiscount, discountValue);
+        final UpdateLineItem updateLineItem = new UpdateLineItem(lineItemId,
+                request.getQuantity(),
+                request.getSku(),
+                request.getOverridePrice(),
+                request.toProductOptionSnapshots(),
+                productDiscount, 
+                discountValue);
 
         final Order updatedOrder = orderService.updateOrderLineItem(order, updateLineItem);
 
