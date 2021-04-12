@@ -70,7 +70,9 @@ public class LineItemStateChangeListener {
 
                 final boolean allDelivered = order.getOrderLineItems().stream().allMatch(li -> li.getState() == OrderLineItem.LineItemState.DELIVERED);
 
-                if (allDelivered) {
+                final boolean canChangeOrderState = !order.isClosed();
+
+                if (allDelivered && canChangeOrderState) {
                     LOGGER.info("All order line items are delivered, auto transition order to {}", orderAction);
                     orderService.transitionOrderState(order, orderAction, Optional.empty());
                 }

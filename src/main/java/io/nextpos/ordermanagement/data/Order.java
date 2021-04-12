@@ -579,7 +579,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         COMPLETED,
 
         /**
-         *
+         * State remains unchanged.
          */
         RETAIN_STATE,
 

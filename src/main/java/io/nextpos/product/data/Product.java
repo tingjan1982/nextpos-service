@@ -18,7 +18,11 @@ import java.util.*;
 
 /**
  * Information on mapping a a one-to-many relationship with a Map.
+ *
  * https://stackoverflow.com/questions/25439813/difference-between-mapkey-mapkeycolumn-and-mapkeyjoincolumn-in-jpa-and-hiber
+ *
+ * Fetch Mode:
+ * https://www.baeldung.com/hibernate-fetchmode
  */
 @Entity(name = "client_product")
 @Inheritance(strategy = InheritanceType.JOINED)
