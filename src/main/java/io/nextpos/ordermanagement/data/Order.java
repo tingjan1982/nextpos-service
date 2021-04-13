@@ -261,6 +261,13 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
             return false;
         }
 
+        final String newSku = orderLineItem.getProductSnapshot().getSku();
+        final String existingSku = existingLineItem.getProductSnapshot().getSku();
+
+        if (!StringUtils.equals(newSku, existingSku)) {
+            return false;
+        }
+
         return true;
     }
 
