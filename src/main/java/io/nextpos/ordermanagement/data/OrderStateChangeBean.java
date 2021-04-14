@@ -16,8 +16,12 @@ public class OrderStateChangeBean {
     @Setter
     private PrinterInstructions printerInstructions;
 
-    public OrderStateChangeBean(final OrderStateChange orderStateChange) {
+    @Getter
+    private Order order;
+
+    public OrderStateChangeBean(final OrderStateChange orderStateChange, Order order) {
         this.orderStateChange = orderStateChange;
+        this.order = order;
     }
 
     public Optional<PrinterInstructions> getPrinterInstructions() {

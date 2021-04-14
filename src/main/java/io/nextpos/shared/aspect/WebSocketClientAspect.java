@@ -24,8 +24,8 @@ public class WebSocketClientAspect {
 
     @Around(value = "onWebSocketClientOrders(webSocketClientOrders, order)", argNames = "proceedingJoinPoint,webSocketClientOrders,order")
     public Object notifyWebSocketClientOrders(ProceedingJoinPoint proceedingJoinPoint,
-                                        WebSocketClientOrders webSocketClientOrders,
-                                        Order order) throws Throwable {
+                                              WebSocketClientOrders webSocketClientOrders,
+                                              Order order) throws Throwable {
 
         final Object result = proceedingJoinPoint.proceed();
 

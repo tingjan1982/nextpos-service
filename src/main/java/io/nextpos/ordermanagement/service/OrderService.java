@@ -44,7 +44,7 @@ public interface OrderService {
 
     OrderStateChange transitionOrderState(Order order, Order.OrderAction orderAction, final Optional<LineItemStateChangeEvent> lineItemStateChangeEvent);
 
-    void markOrderAsDeleted(String orderId);
+    void markOrderAsDeleted(String orderId, boolean shiftAudit);
 
     Order updateOrderLineItem(Order order, UpdateLineItem updateLineItem);
 

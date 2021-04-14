@@ -377,7 +377,7 @@ public class OrderController {
     public void deleteOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                             @PathVariable final String id) {
 
-        orderService.markOrderAsDeleted(id);
+        orderService.markOrderAsDeleted(id, true);
     }
 
 

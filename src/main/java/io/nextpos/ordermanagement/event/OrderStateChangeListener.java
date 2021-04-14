@@ -53,12 +53,12 @@ public class OrderStateChangeListener {
                 );
 
                 final OrderStateChange orderStateChange = orderService.transitionOrderState(order, orderAction, lineItemStateChangeEvent);
-                final OrderStateChangeBean orderStateChangeBean = new OrderStateChangeBean(orderStateChange);
+                final OrderStateChangeBean orderStateChangeBean = new OrderStateChangeBean(orderStateChange, order);
 
                 // dispatch a post state change event.
                 eventPublisher.publishEvent(new PostStateChangeEvent(this, order, orderStateChangeBean, event.getFuture()));
             } else {
-                orderService.getOrderStateChangeByOrderId(order.getId()).ifPresent(sc -> event.getFuture().complete(new OrderStateChangeBean(sc)));
+                orderService.getOrderStateChangeByOrderId(order.getId()).ifPresent(sc -> event.getFuture().complete(new OrderStateChangeBean(sc, order)));
             }
         } else {
             final String errorMsg = String.format("Unable to process order action [%s] from the order state [%s], [orderId=%s]", orderAction, orderState, order.getId());

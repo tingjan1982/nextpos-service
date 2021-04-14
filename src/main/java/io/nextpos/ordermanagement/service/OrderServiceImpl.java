@@ -183,7 +183,7 @@ public class OrderServiceImpl implements OrderService {
 
         sourceOrder.getOrderLineItems().forEach(targetOrder::addOrderLineItem);
 
-        this.markOrderAsDeleted(sourceOrderId);
+        this.markOrderAsDeleted(sourceOrderId, false);
         return this.saveOrder(targetOrder);
     }
 
@@ -195,16 +195,20 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @WebSocketClientOrders
-    public void markOrderAsDeleted(String orderId) {
+    public void markOrderAsDeleted(String orderId, boolean shiftAudit) {
 
         this.performOrderAction(orderId, Order.OrderAction.DELETE);
-
         final Order order = this.getOrder(orderId);
-        final Shift activeShift = shiftService.getActiveShiftOrThrows(order.getClientId());
-        final String username = authenticationHelper.resolveCurrentUsername();
-        order.getOrderLineItems().forEach(li -> activeShift.addDeletedLineItem(order, li, username));
 
-        shiftService.saveShift(activeShift);
+        if (shiftAudit) {
+            final Shift activeShift = shiftService.getActiveShiftOrThrows(order.getClientId());
+            final String username = authenticationHelper.resolveCurrentUsername();
+            order.getOrderLineItems().forEach(li -> activeShift.addDeletedLineItem(order, li, username));
+            shiftService.saveShift(activeShift);
+        }
+
+        order.deleteAllOrderLineItems();
+        this.saveOrder(order);
     }
 
     @Override
@@ -255,15 +259,12 @@ public class OrderServiceImpl implements OrderService {
     public Order deleteOrderLineItem(final Order order, final String lineItemId) {
 
         final OrderLineItem orderLineItem = order.getOrderLineItem(lineItemId);
-
-        if (orderLineItem.getState() != OrderLineItem.LineItemState.OPEN) {
-            final String username = authenticationHelper.resolveCurrentUsername();
-            final Shift activeShift = shiftService.getActiveShiftOrThrows(order.getClientId());
-            activeShift.addDeletedLineItem(order, orderLineItem, username);
-            shiftService.saveShift(activeShift);
-        }
-        
         order.productSetOrder().deleteOrderLineItem(orderLineItem);
+
+        final String username = authenticationHelper.resolveCurrentUsername();
+        final Shift activeShift = shiftService.getActiveShiftOrThrows(order.getClientId());
+        activeShift.addDeletedLineItem(order, orderLineItem, username);
+        shiftService.saveShift(activeShift);
 
         return orderRepository.save(order);
     }

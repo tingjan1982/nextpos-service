@@ -333,6 +333,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     }
 
     public void deleteAllOrderLineItems() {
+
+        deletedOrderLineItems.addAll(orderLineItems);
         orderLineItems.clear();
 
         computeTotal();

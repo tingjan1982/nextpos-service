@@ -65,7 +65,7 @@ class PostOrderStateChangeListenerTest {
 
         order.setState(Order.OrderState.IN_PROCESS);
         final OrderStateChange orderStateChange = new OrderStateChange(order.getId(), client.getId());
-        final OrderStateChangeBean orderStateChangeBean = new OrderStateChangeBean(orderStateChange);
+        final OrderStateChangeBean orderStateChangeBean = new OrderStateChangeBean(orderStateChange, order);
         final CompletableFuture<OrderStateChangeBean> future = new CompletableFuture<>();
 
         eventPublisher.publishEvent(new PostStateChangeEvent(this, order, orderStateChangeBean, future));
@@ -80,7 +80,7 @@ class PostOrderStateChangeListenerTest {
 
         order.setState(Order.OrderState.DELIVERED);
         final OrderStateChange orderStateChange = new OrderStateChange(order.getId(), client.getId());
-        final OrderStateChangeBean orderStateChangeBean = new OrderStateChangeBean(orderStateChange);
+        final OrderStateChangeBean orderStateChangeBean = new OrderStateChangeBean(orderStateChange, order);
         final CompletableFuture<OrderStateChangeBean> future = new CompletableFuture<>();
 
         eventPublisher.publishEvent(new PostStateChangeEvent(this, order, orderStateChangeBean, future));

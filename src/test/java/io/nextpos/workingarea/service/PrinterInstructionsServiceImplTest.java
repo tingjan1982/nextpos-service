@@ -254,7 +254,7 @@ class PrinterInstructionsServiceImplTest {
         final Order orderToDelete = Order.newOrder(client.getId(), Order.OrderType.TAKE_OUT, orderSettings);
         orderToDelete.addOrderLineItem(DummyObjects.productSnapshot("咖啡", BigDecimal.valueOf(100)), 3);
         orderService.createOrder(orderToDelete);
-        orderService.markOrderAsDeleted(orderToDelete.getId());
+        orderService.markOrderAsDeleted(orderToDelete.getId(), true);
 
         shiftService.initiateCloseShift(client.getId());
         shiftService.closeShift(client.getId(), Shift.ClosingBalanceDetails.of(new BigDecimal("100")), Shift.ClosingBalanceDetails.of(BigDecimal.ZERO));

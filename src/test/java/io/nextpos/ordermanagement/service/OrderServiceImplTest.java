@@ -77,7 +77,7 @@ class OrderServiceImplTest {
 
     @Test
     @WithMockUser("dummyUser")
-    void createAndGetOrder() {
+    void crudOrder() {
 
         final Order order = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
         order.updateTables(List.of(table1));
@@ -127,6 +127,15 @@ class OrderServiceImplTest {
         final List<Order> inflightOrders = orderService.getInflightOrders(client.getId());
 
         assertThat(inflightOrders).hasSize(1);
+
+        orderService.markOrderAsDeleted(existingOrder.getId(), true);
+
+        final Order deletedOrder = orderService.getOrder(existingOrder.getId());
+
+        assertThat(deletedOrder.getOrderLineItems()).isEmpty();
+        assertThat(deletedOrder.getDeletedOrderLineItems()).isNotEmpty();
+
+        assertThat(orderService.getInflightOrders(client.getId())).isEmpty();
     }
 
     @Test
@@ -134,11 +143,10 @@ class OrderServiceImplTest {
     void addAndUpdateOrderLineItem() {
 
         final Order order = new Order(client.getId(), orderSettings);
-        final Order createdOrder = orderService.createOrder(order);
+        orderService.createOrder(order);
         final OrderLineItem orderLineItem = new OrderLineItem(DummyObjects.productSnapshot(), 1, orderSettings);
-
-        final Order orderWithLineItem = orderService.addOrderLineItem(client, createdOrder, orderLineItem);
-
+        final Order orderWithLineItem = orderService.addOrderLineItem(client, order, orderLineItem);
+        
         assertThat(orderWithLineItem.getOrderLineItems()).hasSize(1);
 
         final OrderLineItem productSetLineItem = new OrderLineItem(DummyObjects.productSnapshot("combo", new BigDecimal("100")), 2, orderSettings);
@@ -161,20 +169,24 @@ class OrderServiceImplTest {
 
         assertThat(orderWithLineItem.getOrderLineItems()).hasSize(5);
 
-        assertThatThrownBy(() -> orderService.deleteOrderLineItem(orderWithLineItem, productSetLineItem.getChildLineItems().get(0).getId())).isInstanceOf(BusinessLogicException.class);
+        final OrderStateChangeBean stateChange = orderService.performOrderAction(order.getId(), Order.OrderAction.SUBMIT);
+        final Order submittedOrder = stateChange.getOrder();
 
-        orderService.deleteOrderLineItem(orderWithLineItem, productSetLineItem.getId());
+        assertThatThrownBy(() -> orderService.deleteOrderLineItem(submittedOrder, productSetLineItem.getChildLineItems().get(0).getId()),
+                "cannot perform on product set line item").isInstanceOf(BusinessLogicException.class);
 
-        assertThat(orderWithLineItem.getOrderLineItems()).hasSize(2);
-        assertThat(orderWithLineItem.getDeletedOrderLineItems()).hasSize(3);
-        
+        orderService.deleteOrderLineItem(submittedOrder, productSetLineItem.getId());
+
+        assertThat(submittedOrder.getOrderLineItems()).hasSize(2);
+        assertThat(submittedOrder.getDeletedOrderLineItems()).hasSize(3);
+
         Shift activeShift = shiftService.getActiveShiftOrThrows(client.getId());
         assertThat(activeShift.getDeletedLineItems()).hasSize(1);
 
         final List<ProductSnapshot.ProductOptionSnapshot> productOptions = List.of(DummyObjects.productOptionSnapshot());
-        UpdateLineItem updateLineItem = new UpdateLineItem(orderLineItem.getId(), 5, null,null, productOptions, ProductLevelOffer.GlobalProductDiscount.DISCOUNT_AMOUNT_OFF, new BigDecimal(20));
+        UpdateLineItem updateLineItem = new UpdateLineItem(orderLineItem.getId(), 5, null, null, productOptions, ProductLevelOffer.GlobalProductDiscount.DISCOUNT_AMOUNT_OFF, new BigDecimal(20));
 
-        Order updatedOrder = orderService.updateOrderLineItem(orderWithLineItem, updateLineItem);
+        Order updatedOrder = orderService.updateOrderLineItem(submittedOrder, updateLineItem);
 
         assertThat(updatedOrder.getOrderLineItems()).satisfies(li -> {
             assertThat(li.getQuantity()).isEqualTo(5);
@@ -252,6 +264,9 @@ class OrderServiceImplTest {
         assertThat(updatedOrder.getOrderLineItems()).hasSize(3);
         assertThat(updatedOrder.getId()).isEqualTo(targetOrder.getId());
         assertThat(orderService.getOrder(sourceOrder.getId()).getState()).isEqualByComparingTo(Order.OrderState.DELETED);
+
+        final Shift activeShift = shiftService.getActiveShiftOrThrows(client.getId());
+        assertThat(activeShift.getDeletedLineItems()).isEmpty();
     }
 
     @Test
