@@ -1,6 +1,7 @@
 package io.nextpos.ordertransaction.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 
@@ -15,6 +16,8 @@ public interface OrderTransactionService {
     Order getOrderByInvoiceNumber(String invoiceNumber);
 
     List<OrderTransaction> getOrderTransactionByOrderId(String orderId);
+
+    List<Order> getCancellableOrders(Client client, ZonedDateRange zonedDateRange);
 
     void cancelOrderTransaction(String id);
 

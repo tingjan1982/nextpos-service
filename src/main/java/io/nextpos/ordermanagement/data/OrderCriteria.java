@@ -9,6 +9,8 @@ public class OrderCriteria {
 
     private String membershipId;
 
+    private Order.OrderState orderState;
+
     public static OrderCriteria instance() {
         return new OrderCriteria();
     }
@@ -23,6 +25,11 @@ public class OrderCriteria {
         return this;
     }
 
+    public OrderCriteria orderState(Order.OrderState orderState) {
+        this.orderState = orderState;
+        return this;
+    }
+
     public void decorateCriteria(Criteria criteria) {
 
         if (StringUtils.isNotBlank(tableName)) {
@@ -31,6 +38,10 @@ public class OrderCriteria {
 
         if (StringUtils.isNotBlank(membershipId)) {
             criteria.and("lookupMembershipId").is(membershipId);
+        }
+
+        if (orderState != null) {
+            criteria.and("state").is(orderState);
         }
     }
 }

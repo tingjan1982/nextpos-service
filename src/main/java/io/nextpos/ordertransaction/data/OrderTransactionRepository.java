@@ -9,4 +9,6 @@ public interface OrderTransactionRepository extends PagingAndSortingRepository<O
     List<OrderTransaction> findAllByOrderId(String id);
 
     boolean existsAllByOrderIdAndStatusNot(String orderId, OrderTransaction.OrderTransactionStatus status);
+
+    boolean existsAllByOrderIdAndInvoiceDetails_ElectronicInvoiceNotNullAndStatusNot(String orderId, OrderTransaction.OrderTransactionStatus status);
 }

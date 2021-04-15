@@ -9,6 +9,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
@@ -19,6 +20,18 @@ public class OrdersByRangeResponse {
     private BigDecimal ordersTotal;
 
     private List<LightOrderResponse> orders;
+
+    public OrdersByRangeResponse(ZonedDateRange dateRange, List<Order> orders) {
+
+        this.dateRange = dateRange;
+        this.ordersTotal = orders.stream()
+                .map(Order::getOrderTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        this.orders = orders.stream()
+                .map(LightOrderResponse::new)
+                .collect(Collectors.toList());
+    }
 
     @Data
     @AllArgsConstructor
@@ -37,5 +50,16 @@ public class OrdersByRangeResponse {
         private TaxableAmount total;
 
         private BigDecimal orderTotal;
+
+        public LightOrderResponse(Order order) {
+
+            orderId = order.getId();
+            serialId = order.getSerialId();
+            orderType = order.getOrderType();
+            createdTime = order.getCreatedDate();
+            state = order.getState();
+            total = order.getTotal();
+            orderTotal = order.getOrderTotal();
+        }
     }
 }

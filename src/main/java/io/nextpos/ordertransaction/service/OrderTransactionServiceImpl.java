@@ -1,8 +1,10 @@
 package io.nextpos.ordertransaction.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderCriteria;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.data.OrderTransactionRepository;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @ChainedTransaction
@@ -98,6 +101,14 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
     @Override
     public List<OrderTransaction> getOrderTransactionByOrderId(String orderId) {
         return orderTransactionRepository.findAllByOrderId(orderId);
+    }
+
+    @Override
+    public List<Order> getCancellableOrders(Client client, ZonedDateRange zonedDateRange) {
+
+        return orderService.getOrders(client, zonedDateRange, OrderCriteria.instance().orderState(Order.OrderState.DELETED)).stream()
+                .filter(o -> orderTransactionRepository.existsAllByOrderIdAndInvoiceDetails_ElectronicInvoiceNotNullAndStatusNot(o.getId(), OrderTransaction.OrderTransactionStatus.CANCELLED))
+                .collect(Collectors.toList());
     }
 
     @Override

@@ -50,6 +50,8 @@ public class SalesReportServiceImpl implements SalesReportService {
         ProjectionOperation projection = createProjection(zonedDateRange);
         final MatchOperation filter = createMatchFilter(clientId, zonedDateRange);
 
+        final MatchOperation completedOrderFilter = Aggregation.match(Criteria.where("state").in(Order.OrderState.SETTLED, Order.OrderState.COMPLETED));
+
         final GroupOperation salesTotal = Aggregation.group("clientId")
                 .sum("orderTotal").as("salesTotal")
                 .sum("serviceCharge").as("serviceChargeTotal")
@@ -78,11 +80,11 @@ public class SalesReportServiceImpl implements SalesReportService {
                 .first("lineItems.productSnapshot.label").as("productLabel");
 
         final FacetOperation facets = Aggregation
-                .facet(salesTotal).as("totalSales")
+                .facet(completedOrderFilter, salesTotal).as("totalSales")
                 .and(flattenTransactions, salesByPaymentMethod).as("salesByPaymentMethod")
-                .and(createSalesByRangeFacet()).as("salesByRange")
-                .and(flattenLineItems, salesByProduct, sortSalesByProduct).as("salesByProduct")
-                .and(flattenLineItems, salesByLabel, sortSalesByProduct).as("salesByLabel");
+                .and(completedOrderFilter, createSalesByRangeFacet()).as("salesByRange")
+                .and(completedOrderFilter, flattenLineItems, salesByProduct, sortSalesByProduct).as("salesByProduct")
+                .and(completedOrderFilter, flattenLineItems, salesByLabel, sortSalesByProduct).as("salesByLabel");
 
         final TypedAggregation<Order> aggregations = Aggregation.newAggregation(Order.class,
                 lookupTransactions,

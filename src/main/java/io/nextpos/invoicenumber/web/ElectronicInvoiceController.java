@@ -3,14 +3,23 @@ package io.nextpos.invoicenumber.web;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientSetting;
 import io.nextpos.client.service.ClientSettingsService;
+import io.nextpos.datetime.data.ZonedDateRange;
+import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
+import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRange;
+import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRangeService;
 import io.nextpos.invoicenumber.web.model.ElectronicInvoiceEligibility;
 import io.nextpos.invoicenumber.web.model.ElectronicInvoiceResponse;
 import io.nextpos.invoicenumber.web.model.ElectronicInvoicesResponse;
+import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.web.model.OrdersByRangeResponse;
 import io.nextpos.ordertransaction.service.ElectronicInvoiceService;
+import io.nextpos.ordertransaction.service.OrderTransactionService;
+import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.util.ImageCodeUtil;
 import io.nextpos.shared.web.ClientResolver;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.awt.image.BufferedImage;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,13 +37,19 @@ public class ElectronicInvoiceController {
 
     private final ElectronicInvoiceService electronicInvoiceService;
 
+    private final InvoiceNumberRangeService invoiceNumberRangeService;
+
+    private final OrderTransactionService orderTransactionService;
+
     private final ClientSettingsService clientSettingsService;
 
     private final ImageCodeUtil imageCodeUtil;
 
     @Autowired
-    public ElectronicInvoiceController(ElectronicInvoiceService electronicInvoiceService, ClientSettingsService clientSettingsService, ImageCodeUtil imageCodeUtil) {
+    public ElectronicInvoiceController(ElectronicInvoiceService electronicInvoiceService, InvoiceNumberRangeService invoiceNumberRangeService, OrderTransactionService orderTransactionService, ClientSettingsService clientSettingsService, ImageCodeUtil imageCodeUtil) {
         this.electronicInvoiceService = electronicInvoiceService;
+        this.invoiceNumberRangeService = invoiceNumberRangeService;
+        this.orderTransactionService = orderTransactionService;
         this.clientSettingsService = clientSettingsService;
         this.imageCodeUtil = imageCodeUtil;
     }
@@ -55,6 +71,21 @@ public class ElectronicInvoiceController {
                 .collect(Collectors.toList());
 
         return new ElectronicInvoicesResponse(results);
+    }
+
+    @GetMapping("/cancellable")
+    public OrdersByRangeResponse getCancellableInvoices(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        final String ubn = client.getAttribute(Client.ClientAttributes.UBN);
+        final InvoiceNumberRange currentRange = invoiceNumberRangeService.getCurrentInvoiceNumberRange(ubn);
+        final Pair<LocalDateTime, LocalDateTime> dateRange = currentRange.getLocalDateTimeRange();
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.RANGE)
+                .dateRange(dateRange.getLeft(), dateRange.getRight())
+                .build();
+
+        final List<Order> cancellableOrders = orderTransactionService.getCancellableOrders(client, zonedDateRange);
+
+        return new OrdersByRangeResponse(zonedDateRange, cancellableOrders);
     }
 
     @PostMapping("/toggle")

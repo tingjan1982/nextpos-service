@@ -108,30 +108,10 @@ public class OrderController {
                                                       @RequestParam(name = "table", required = false) String table) {
 
         final ZonedDateRange zonedDateRange = resolveDateRange(client, dateParameterType, shiftId, fromDate, toDate);
-        List<Order> orders;
-
         final OrderCriteria orderCriteria = OrderCriteria.instance().tableName(table);
-        orders = orderService.getOrders(client, zonedDateRange, orderCriteria);
+        List<Order> orders = orderService.getOrders(client, zonedDateRange, orderCriteria);
 
-        return toOrdersByRangeResponse(orders, zonedDateRange);
-    }
-
-    private OrdersByRangeResponse toOrdersByRangeResponse(final List<Order> orders, final ZonedDateRange zonedDateRange) {
-
-        final BigDecimal ordersTotal = orders.stream()
-                .map(Order::getOrderTotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        final List<OrdersByRangeResponse.LightOrderResponse> orderResponses = orders.stream()
-                .map(o -> new OrdersByRangeResponse.LightOrderResponse(o.getId(),
-                        o.getSerialId(),
-                        o.getOrderType(),
-                        o.getCreatedDate(),
-                        o.getState(),
-                        o.getTotal(),
-                        o.getOrderTotal())).collect(Collectors.toList());
-
-        return new OrdersByRangeResponse(zonedDateRange, ordersTotal, orderResponses);
+        return new OrdersByRangeResponse(zonedDateRange, orders);
     }
 
     private ZonedDateRange resolveDateRange(Client client, DateParameterType dateParameterType, final String shiftId, final LocalDateTime fromDateParam, final LocalDateTime toDateParam) {

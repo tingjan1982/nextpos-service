@@ -1,6 +1,7 @@
 package io.nextpos.ordertransaction.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoiceRepository;
 import io.nextpos.ordermanagement.data.Order;
@@ -8,6 +9,7 @@ import io.nextpos.ordermanagement.data.OrderRepository;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordertransaction.data.OrderTransaction;
+import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
@@ -134,14 +136,30 @@ class OrderTransactionServiceImplTest {
     void getOrderByInvoiceNumber() {
 
         final Order order = createMockOrder();
-
         final OrderTransaction orderTransaction = new OrderTransaction(order, OrderTransaction.PaymentMethod.CASH, OrderTransaction.BillType.SINGLE, order.getOrderTotal());
-
         final ElectronicInvoice electronicInvoice = createMockElectronicInvoice(order);
         orderTransaction.getInvoiceDetails().setElectronicInvoice(electronicInvoice);
         orderTransactionService.createOrderTransaction(client, orderTransaction);
 
         assertThatCode(() -> orderTransactionService.getOrderByInvoiceNumber(electronicInvoice.getInternalInvoiceNumber())).doesNotThrowAnyException();
+    }
+
+    @Test
+    @ChainedTransaction
+    void getCancellableOrders() {
+
+        assertThat(orderTransactionService.getCancellableOrders(client, ZonedDateRangeBuilder.builder(client, DateParameterType.MONTH).build())).isEmpty();
+
+        final Order order = createMockOrder();
+        final OrderTransaction orderTransaction = new OrderTransaction(order, OrderTransaction.PaymentMethod.CASH, OrderTransaction.BillType.SINGLE, order.getOrderTotal());
+        final ElectronicInvoice electronicInvoice = createMockElectronicInvoice(order);
+        orderTransaction.getInvoiceDetails().setElectronicInvoice(electronicInvoice);
+        orderTransactionService.createOrderTransaction(client, orderTransaction);
+        orderService.performOrderAction(order.getId(), Order.OrderAction.DELETE);
+
+        final List<Order> cancellableOrders = orderTransactionService.getCancellableOrders(client, ZonedDateRangeBuilder.builder(client, DateParameterType.MONTH).build());
+
+        assertThat(cancellableOrders).isNotEmpty();
     }
 
     private ElectronicInvoice createMockElectronicInvoice(Order order) {
@@ -161,11 +179,11 @@ class OrderTransactionServiceImplTest {
     }
 
     private Order createMockOrder() {
-
         final Order order = new Order(client.getId(), orderSettings);
         order.setOrderTotal(BigDecimal.valueOf(150));
         order.setState(Order.OrderState.DELIVERED);
-        orderService.saveOrder(order);
+        orderService.createOrder(order);
+
         return order;
     }
 }
