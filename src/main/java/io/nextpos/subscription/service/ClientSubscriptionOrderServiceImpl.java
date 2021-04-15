@@ -97,10 +97,11 @@ public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrd
             order.setState(Order.OrderState.DELIVERED);
 
             shiftService.openShift(c.getId(), BigDecimal.ZERO);
-
             orderService.createOrder(order);
 
             final OrderTransaction orderTransaction = orderTransactionService.createOrderTransaction(c, createOrderTransaction(order));
+            orderService.performOrderAction(order.getId(), Order.OrderAction.COMPLETE);
+
             sendNotification(clientSubscriptionInvoice, orderTransaction);
         });
     }

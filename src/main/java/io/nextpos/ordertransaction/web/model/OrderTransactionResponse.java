@@ -30,11 +30,11 @@ public class OrderTransactionResponse {
 
     private final List<BillLineItemResponse> billLineItems;
 
-    private String receiptXML;
-
     private String invoiceNumber;
 
     private ElectronicInvoice.InvoiceStatus invoiceStatus;
+
+    private String receiptXML;
 
     private String invoiceXML;
 

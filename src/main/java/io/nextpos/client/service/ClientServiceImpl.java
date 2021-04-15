@@ -338,7 +338,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public List<ClientUser> getClientUsers(final Client client) {
-        return linkedClientAccountService.getLinkedClientAccountResources(client, clientUserRepository::findAllByClientIn);
+        return linkedClientAccountService.getLinkedClientAccountResources(client, clientUserRepository::findAllByClientInOrderByNicknameAsc);
     }
 
     /**

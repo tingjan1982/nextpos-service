@@ -143,8 +143,14 @@ class OrderServiceImplTest {
     void addAndUpdateOrderLineItem() {
 
         final Order order = new Order(client.getId(), orderSettings);
-        orderService.createOrder(order);
         final OrderLineItem orderLineItem = new OrderLineItem(DummyObjects.productSnapshot(), 1, orderSettings);
+        order.addOrderLineItem(orderLineItem);
+        orderService.createOrder(order);
+        orderService.deleteOrderLineItem(order, orderLineItem.getId());
+
+        Shift shift = shiftService.getActiveShiftOrThrows(client.getId());
+        assertThat(shift.getDeletedLineItems()).isEmpty();
+
         final Order orderWithLineItem = orderService.addOrderLineItem(client, order, orderLineItem);
         
         assertThat(orderWithLineItem.getOrderLineItems()).hasSize(1);
@@ -178,7 +184,7 @@ class OrderServiceImplTest {
         orderService.deleteOrderLineItem(submittedOrder, productSetLineItem.getId());
 
         assertThat(submittedOrder.getOrderLineItems()).hasSize(2);
-        assertThat(submittedOrder.getDeletedOrderLineItems()).hasSize(3);
+        assertThat(submittedOrder.getDeletedOrderLineItems()).hasSize(4);
 
         Shift activeShift = shiftService.getActiveShiftOrThrows(client.getId());
         assertThat(activeShift.getDeletedLineItems()).hasSize(1);

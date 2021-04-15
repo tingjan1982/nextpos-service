@@ -325,7 +325,6 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     @Override
     public void deleteOrderLineItem(OrderLineItem orderLineItem) {
 
-        orderLineItem.setState(OrderLineItem.LineItemState.DELETED);
         deletedOrderLineItems.add(orderLineItem);
         orderLineItems.remove(orderLineItem);
 
