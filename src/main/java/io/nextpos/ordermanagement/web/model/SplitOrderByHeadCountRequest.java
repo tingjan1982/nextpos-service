@@ -10,7 +10,7 @@ import javax.validation.constraints.NotNull;
 @NoArgsConstructor
 public class SplitOrderByHeadCountRequest {
 
-    @Min(2)
+    @Min(1)
     @NotNull
     private Integer headCount;
 }
