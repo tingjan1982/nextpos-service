@@ -15,6 +15,8 @@ public class BillOfMaterial extends MongoBaseObject {
 
     private String id;
 
+    private String clientId;
+
     private List<BillOfMaterialItem> materials;
 
 

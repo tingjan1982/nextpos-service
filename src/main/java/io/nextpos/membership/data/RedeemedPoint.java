@@ -15,6 +15,8 @@ public class RedeemedPoint extends MongoBaseObject {
     @Id
     private String id;
 
+    private String clientId;
+
     @DBRef
     private Membership membership;
 

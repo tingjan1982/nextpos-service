@@ -73,6 +73,8 @@ public class ClientSetting extends BaseObject implements ClientObject {
 
         LOCATION_BASED_SERVICE(ValueType.BOOLEAN),
 
+        TABLE_TIME_LIMIT(ValueType.BOOLEAN),
+
         ELECTRONIC_INVOICE(ValueType.BOOLEAN),
 
         /**
