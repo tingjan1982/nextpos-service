@@ -30,9 +30,9 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 @SpringBootTest
 @ActiveProfiles("gcp")
 @TestPropertySource(properties = {"script=true", "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration"})
-public class DeleteOrphanedTransactionalDocument {
+public class ManageClientAccount {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DeleteOrphanedTransactionalDocument.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ManageClientAccount.class);
 
     private final ClientService clientService;
 
@@ -41,7 +41,7 @@ public class DeleteOrphanedTransactionalDocument {
     private final MongoTemplate mongoTemplate;
 
     @Autowired
-    public DeleteOrphanedTransactionalDocument(ClientService clientService, ClientRepository clientRepository, MongoTemplate mongoTemplate) {
+    public ManageClientAccount(ClientService clientService, ClientRepository clientRepository, MongoTemplate mongoTemplate) {
         this.clientService = clientService;
         this.clientRepository = clientRepository;
         this.mongoTemplate = mongoTemplate;
@@ -112,5 +112,27 @@ public class DeleteOrphanedTransactionalDocument {
         });
 
         clients.forEach((c, b) -> LOGGER.info("Client[{}] {} - has records: {}", c.getId(), c.getClientName(), b));
+    }
+
+    /**
+     * Find client id and update clientIdToDelete to delete all records of the specified client.
+     */
+    @Test
+    void deleteClient() {
+
+        MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext = mongoTemplate.getConverter().getMappingContext();
+        String clientIdToDelete = "cli-n4Ze76i0cTYFY3JOed99wq04z2U1";
+
+        mappingContext.getPersistentEntities()
+                .stream()
+                .filter(it -> it.isAnnotationPresent(Document.class))
+                .forEach(it -> {
+                    Query queryByClientId = Query.query(where("clientId").is(clientIdToDelete));
+                    final List<?> documents = mongoTemplate.findAllAndRemove(queryByClientId, it.getType());
+                    LOGGER.info("Deleted records in {}: size: {}", it.getName(), documents.size());
+                });
+
+        clientService.deleteClient(clientIdToDelete);
+        LOGGER.info("Deleted client account: {}", clientIdToDelete);
     }
 }

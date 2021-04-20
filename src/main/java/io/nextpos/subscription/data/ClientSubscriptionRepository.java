@@ -15,4 +15,6 @@ public interface ClientSubscriptionRepository extends MongoRepository<ClientSubs
     List<ClientSubscription> findAllByCurrentIsTrueOrStatus(ClientSubscription.SubscriptionStatus subscriptionStatus);
 
     List<ClientSubscription> findAllByStatusAndPlanEndDateBetween(ClientSubscription.SubscriptionStatus subscriptionStatus, Date from, Date to);
+
+    List<ClientSubscription> findAllByStatus(ClientSubscription.SubscriptionStatus subscriptionStatus);
 }

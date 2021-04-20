@@ -2,12 +2,15 @@ package io.nextpos.subscription.service;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
+import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRange;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRangeService;
+import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.service.OrderService;
+import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
-import io.nextpos.shared.util.ImageCodeUtil;
 import io.nextpos.subscription.data.ClientSubscription;
 import io.nextpos.subscription.data.ClientSubscriptionInvoice;
 import io.nextpos.subscription.data.SubscriptionPlan;
@@ -19,6 +22,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.math.BigDecimal;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @ChainedTransaction
@@ -30,7 +36,7 @@ class ClientSubscriptionOrderServiceImplTest {
 
     private final InvoiceNumberRangeService invoiceNumberRangeService;
 
-    private final ImageCodeUtil imageCodeUtil;
+    private final OrderService orderService;
 
     private final CountrySettings countrySettings;
 
@@ -39,11 +45,11 @@ class ClientSubscriptionOrderServiceImplTest {
     private Client atlasClient;
 
     @Autowired
-    ClientSubscriptionOrderServiceImplTest(ClientSubscriptionOrderService clientSubscriptionOrderService, ClientService clientService, InvoiceNumberRangeService invoiceNumberRangeService, ImageCodeUtil imageCodeUtil, CountrySettings countrySettings) {
+    ClientSubscriptionOrderServiceImplTest(ClientSubscriptionOrderService clientSubscriptionOrderService, ClientService clientService, InvoiceNumberRangeService invoiceNumberRangeService, OrderService orderService, CountrySettings countrySettings) {
         this.clientSubscriptionOrderService = clientSubscriptionOrderService;
         this.clientService = clientService;
         this.invoiceNumberRangeService = invoiceNumberRangeService;
-        this.imageCodeUtil = imageCodeUtil;
+        this.orderService = orderService;
         this.countrySettings = countrySettings;
     }
 
@@ -57,6 +63,7 @@ class ClientSubscriptionOrderServiceImplTest {
         clientService.saveClient(atlasClient);
 
         client = new Client("Asian House", "tingjan1982@gmail.com", "123456", "TW", "Asia/Taipei");
+        client.addAttribute(Client.ClientAttributes.UBN, "22640971");
         clientService.saveClient(client);
 
         InvoiceNumberRange invoiceNumberRange = new InvoiceNumberRange("83515813", invoiceNumberRangeService.getCurrentRangeIdentifier(), "AG", "10011001", "10011002");
@@ -72,5 +79,13 @@ class ClientSubscriptionOrderServiceImplTest {
         final ClientSubscriptionInvoice clientSubscriptionInvoice = new ClientSubscriptionInvoice(ZoneId.of("Asia/Taipei"), clientSubscription, new Date());
 
         clientSubscriptionOrderService.sendClientSubscriptionOrder(clientSubscriptionInvoice);
+
+        final List<Order> orders = orderService.getOrders(atlasClient, ZonedDateRangeBuilder.builder(atlasClient, DateParameterType.TODAY).build());
+
+        assertThat(orders).hasSize(1);
+        assertThat(orders.get(0)).satisfies(o -> {
+            assertThat(o.getState()).isEqualByComparingTo(Order.OrderState.COMPLETED);
+            assertThat(o.getOrderTotal()).isEqualByComparingTo("990");
+        });
     }
 }

@@ -99,7 +99,7 @@ public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrd
             shiftService.openShift(c.getId(), BigDecimal.ZERO);
             orderService.createOrder(order);
 
-            final OrderTransaction orderTransaction = orderTransactionService.createOrderTransaction(c, createOrderTransaction(order));
+            final OrderTransaction orderTransaction = orderTransactionService.createOrderTransaction(c, createOrderTransaction(clientSubscriptionInvoice, order));
             orderService.performOrderAction(order.getId(), Order.OrderAction.COMPLETE);
 
             sendNotification(clientSubscriptionInvoice, orderTransaction);
@@ -113,11 +113,18 @@ public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrd
                 clientSubscriptionInvoice.getDueAmount().getAmount());
     }
 
-    private OrderTransaction createOrderTransaction(Order order) {
-        return new OrderTransaction(order,
+    private OrderTransaction createOrderTransaction(ClientSubscriptionInvoice invoice, Order order) {
+
+        final OrderTransaction orderTransaction = new OrderTransaction(order,
                 OrderTransaction.PaymentMethod.CARD,
                 OrderTransaction.BillType.SINGLE,
                 null);
+
+        final Client client = clientService.getClientOrThrows(invoice.getClientSubscription().getClientId());
+        final String ubn = client.getAttribute(Client.ClientAttributes.UBN);
+        orderTransaction.updateInvoiceDetails(ubn, null, null, null, false);
+
+        return orderTransaction;
     }
 
     private CompletableFuture<NotificationDetails> sendNotification(ClientSubscriptionInvoice subscriptionInvoice, OrderTransaction orderTransaction) {
