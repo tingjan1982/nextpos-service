@@ -8,6 +8,7 @@
         <#setting time_zone="Asia/Taipei">
         <#assign indent="285"/>
         <epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">
+            <#setting time_zone="Asia/Taipei">
             <text align="center"/>
             <text lang="zh-tw"/>
             <text font="font_b"/>

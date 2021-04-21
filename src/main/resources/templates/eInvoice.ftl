@@ -8,6 +8,7 @@
     <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
         <s:Body>
             <epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">
+                <#setting time_zone="Asia/Taipei">
                 <text lang="zh-tw"/>
                 <text align="center"/>
                 <text font="font_a"/>
