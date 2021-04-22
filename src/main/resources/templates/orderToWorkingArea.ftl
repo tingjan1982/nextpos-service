@@ -21,7 +21,7 @@
                 <text width="2" height="2"/>
                 <text linespc="60"/>
                 <text>${li.productSnapshot.displayName}&#10;</text>
-                <text x="350">x ${li.quantity}&#10;</text>
+                <text x="285">x ${li.quantity}&#10;</text>
                 <text width="2" height="2"/>
                 <#list li.productSnapshot.productOptions as option>
                     <text> &gt; ${option.optionName}: ${option.optionValue}&#10;</text>

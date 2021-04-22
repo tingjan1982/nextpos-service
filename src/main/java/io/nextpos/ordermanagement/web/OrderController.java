@@ -326,13 +326,28 @@ public class OrderController {
         return OrderResponse.toOrderResponse(copiedOrder);
     }
 
-    @GetMapping("/{id}/orderToWorkingArea")
+    /**
+     * todo: remove GET after frontend is refactored to use POST method.
+     */
+    @GetMapping(value = "/{id}/orderToWorkingArea")
     public List<PrinterInstructionResponse> printOrderToWorkingArea(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                                     @PathVariable final String id) {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
-        final PrinterInstructions orderToWorkingArea = printerInstructionService.createOrderToWorkingArea(order, true);
+        final PrinterInstructions orderToWorkingArea = printerInstructionService.createOrderToWorkingArea(order, List.of(), true);
+
+        return toPrinterInstructionResponses(orderToWorkingArea);
+    }
+
+    @PostMapping(value = "/{id}/orderToWorkingArea")
+    public List<PrinterInstructionResponse> printOrderToWorkingArea(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                                    @PathVariable final String id,
+                                                                    @RequestBody UpdateLineItemsRequest request) {
+
+        final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
+
+        final PrinterInstructions orderToWorkingArea = printerInstructionService.createOrderToWorkingArea(order, request.getLineItemIds(), true);
 
         return toPrinterInstructionResponses(orderToWorkingArea);
     }

@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 
 @SpringBootTest
@@ -85,6 +86,7 @@ class PrinterInstructionsServiceImplTest {
         client.addAttribute(Client.ClientAttributes.COMPANY_NAME, "雨圖數位行銷科技股份有限公司");
         client.addAttribute(Client.ClientAttributes.ADDRESS, "台北市大安區建國南路二段");
         client.addAttribute(Client.ClientAttributes.AES_KEY, "41BFE9D500D25491650E8B84C3EA3B3C");
+        //client.addAttribute(Client.ClientAttributes.ORDER_DISPLAY_MODE, "ORDER");
 
         clientService.saveClient(client);
 
@@ -125,7 +127,7 @@ class PrinterInstructionsServiceImplTest {
 
         orderService.createOrder(order);
 
-        final PrinterInstructions orderToWorkingArea = printerInstructionService.createOrderToWorkingArea(order);
+        final PrinterInstructions orderToWorkingArea = printerInstructionService.createOrderToWorkingArea(order, List.of(friedRice.getId()), false);
 
         LOGGER.info("{}", orderToWorkingArea);
 

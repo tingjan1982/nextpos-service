@@ -58,14 +58,14 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
     @Override
     public PrinterInstructions createOrderToWorkingArea(final Order order) {
 
-        return this.createOrderToWorkingArea(order, false);
+        return this.createOrderToWorkingArea(order, List.of(), false);
     }
 
     /**
      * bypassStateCheck is used for reprinting working orders.
      */
     @Override
-    public PrinterInstructions createOrderToWorkingArea(final Order order, boolean bypassStateCheck) {
+    public PrinterInstructions createOrderToWorkingArea(final Order order, List<String> lineItemIdsToFilter, boolean bypassStateCheck) {
 
         final Client client = clientService.getClientOrThrows(order.getClientId());
         final List<Printer> printers = workingAreaService.getPrinters(client);
@@ -76,6 +76,7 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
         }
 
         final Map<String, List<OrderLineItem>> lineItemsGroupedByWorkingArea = order.getOrderLineItems().stream()
+                .filter(oli -> CollectionUtils.isEmpty(lineItemIdsToFilter) || lineItemIdsToFilter.contains(oli.getId()))
                 .filter(oli -> bypassStateCheck || oli.getState() == OrderLineItem.LineItemState.IN_PROCESS)
                 .collect(Collectors.groupingBy(oli -> StringUtils.isNotBlank(oli.getWorkingAreaId()) ? oli.getWorkingAreaId() : NO_WORKING_AREA,
                         Collectors.toList()

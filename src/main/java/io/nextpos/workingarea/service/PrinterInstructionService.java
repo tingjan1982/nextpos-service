@@ -8,6 +8,8 @@ import io.nextpos.workingarea.data.PrinterInstructions;
 import io.nextpos.workingarea.data.SinglePrintInstruction;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
+
 /**
  * Responsible for generating print instructions for various order related print documents.
  */
@@ -15,7 +17,7 @@ public interface PrinterInstructionService {
 
     PrinterInstructions createOrderToWorkingArea(Order order);
 
-    PrinterInstructions createOrderToWorkingArea(Order order, boolean bypassStateCheck);
+    PrinterInstructions createOrderToWorkingArea(Order order, List<String> lineItemIdsToFilter, boolean bypassStateCheck);
 
     String createOrderDetailsPrintInstruction(Client client, Order order, OrderTransaction orderTransaction);
 
