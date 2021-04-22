@@ -4,6 +4,7 @@ import io.nextpos.ordermanagement.boundedcontext.InventoryTransactionContextualS
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderSet;
 import io.nextpos.ordermanagement.data.OrderStateChangeBean;
+import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordermanagement.service.OrderSetService;
 import io.nextpos.workingarea.data.PrinterInstructions;
 import io.nextpos.workingarea.service.PrinterInstructionService;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 @Component
 public class PostOrderStateChangeListener {
@@ -22,12 +24,15 @@ public class PostOrderStateChangeListener {
 
     private final InventoryTransactionContextualService inventoryTransactionContextualService;
 
+    private final OrderService orderService;
+    
     private final OrderSetService orderSetService;
 
     @Autowired
-    public PostOrderStateChangeListener(final PrinterInstructionService printerInstructionService, InventoryTransactionContextualService inventoryTransactionContextualService, OrderSetService orderSetService) {
+    public PostOrderStateChangeListener(final PrinterInstructionService printerInstructionService, InventoryTransactionContextualService inventoryTransactionContextualService, OrderService orderService, OrderSetService orderSetService) {
         this.printerInstructionService = printerInstructionService;
         this.inventoryTransactionContextualService = inventoryTransactionContextualService;
+        this.orderService = orderService;
         this.orderSetService = orderSetService;
     }
 
@@ -51,9 +56,22 @@ public class PostOrderStateChangeListener {
             inventoryTransactionContextualService.createAndProcessInventoryTransaction(order);
         }
 
+        handleSplitOrder(order);
         handleOrderSetStateChange(order);
 
         postStateChangeEvent.getFuture().complete(orderStateChangeBean);
+    }
+
+    private void handleSplitOrder(Order order) {
+
+        if (order.isSplitOrder() && order.getState() == Order.OrderState.COMPLETED) {
+            final String sourceOrderId = order.getSourceOrderId();
+            final Order sourceOrder = orderService.getOrder(sourceOrderId);
+
+            if (CollectionUtils.isEmpty(sourceOrder.getOrderLineItems())) {
+                orderService.deleteOrder(sourceOrderId);
+            }
+        }
     }
 
     private void handleOrderSetStateChange(Order order) {

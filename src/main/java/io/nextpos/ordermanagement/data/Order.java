@@ -46,6 +46,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     public static final String ORIGINAL_ORDER_SETTINGS = "originalOrderSettings";
 
+    public static final String SOURCE_ORDER_ID = "originalSplitOrder";
+
     public static final String ORDER_SET_ORDER = "orderSetOrder";
 
     public static final String HEAD_COUNT = "headCount";
@@ -485,6 +487,19 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     public void addOrderLog(OrderLog orderLog) {
         orderLogs.add(orderLog);
+    }
+
+    public void markSplitOrder(Order sourceOrder) {
+        this.addTableNote("SplitOrder");
+        this.addMetadata(SOURCE_ORDER_ID, sourceOrder.getId());
+    }
+
+    public boolean isSplitOrder() {
+        return getMetadata(SOURCE_ORDER_ID) != null;
+    }
+
+    public String getSourceOrderId() {
+        return (String) getMetadata(SOURCE_ORDER_ID);
     }
 
     public void markOrderSetOrder() {
