@@ -91,25 +91,25 @@ class OfferServiceImplTest {
         final Date tomorrow = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
         final Date yesterday = Date.from(Instant.now().minus(1, ChronoUnit.DAYS));
 
-        retrievedOffer.updateOfferEffectiveDetails(true, now, tomorrow);
+        retrievedOffer.updateOfferEffectiveDate(now, tomorrow);
         offerService.saveOffer(retrievedOffer);
 
         assertThat(retrievedOffer.isActive()).isTrue();
 
-        retrievedOffer.updateOfferEffectiveDetails(true, tomorrow, tomorrow);
+        retrievedOffer.updateOfferEffectiveDate(tomorrow, tomorrow);
         offerService.saveOffer(retrievedOffer);
 
         assertThat(retrievedOffer.isActive()).isFalse();
 
-        retrievedOffer.updateOfferEffectiveDetails(true, now, yesterday);
+        retrievedOffer.updateOfferEffectiveDate(now, yesterday);
         offerService.saveOffer(retrievedOffer);
 
         assertThat(retrievedOffer.isActive()).isFalse();
 
-        retrievedOffer.updateOfferEffectiveDetails(false, null, null);
+        retrievedOffer.updateOfferEffectiveDate(null, null);
         offerService.saveOffer(retrievedOffer);
 
-        assertThat(retrievedOffer.isActive()).isFalse();
+        assertThat(retrievedOffer.isActive()).isTrue();
     }
 
     @Test
@@ -147,7 +147,7 @@ class OfferServiceImplTest {
         final OrderLevelOffer inactiveOrderLevelOffer = new OrderLevelOffer(client, "order level promotion", Offer.TriggerType.ALWAYS, Offer.DiscountType.PERCENT_OFF, BigDecimal.valueOf(0.15));
         final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.RANGE)
                 .dateRange(LocalDateTime.now().minusHours(12), LocalDateTime.now().minusHours(6)).build();
-        inactiveOrderLevelOffer.updateOfferEffectiveDetails(true, zonedDateRange.getFromDate(), zonedDateRange.getToDate());
+        inactiveOrderLevelOffer.updateOfferEffectiveDate(zonedDateRange.getFromDate(), zonedDateRange.getToDate());
         offerService.saveOffer(inactiveOrderLevelOffer);
 
         final ProductLevelOffer productLevelOffer = new ProductLevelOffer(client, "product level promotion", Offer.TriggerType.ALWAYS, Offer.DiscountType.AMOUNT_OFF, BigDecimal.valueOf(50), false);

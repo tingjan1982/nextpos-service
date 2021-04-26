@@ -62,12 +62,11 @@ public abstract class Offer extends BaseObject implements ClientObject {
         this.discountDetails.setDiscountValue(discountValue);
     }
 
-    public void updateOfferEffectiveDetails(boolean active) {
-        this.updateOfferEffectiveDetails(active, null, null);
+    public void updateOfferActiveStatus(boolean active) {
+        effectiveDetails.setActive(active);
     }
 
-    public void updateOfferEffectiveDetails(boolean active, Date startDate, Date endDate) {
-        effectiveDetails.setActive(active);
+    public void updateOfferEffectiveDate(Date startDate, Date endDate) {
         effectiveDetails.setStartDate(startDate);
         effectiveDetails.setEndDate(endDate);
     }

@@ -94,7 +94,7 @@ public class OfferController {
                 throw new GeneralApplicationException("Won't reach here");
         }
 
-        newOffer.updateOfferEffectiveDetails(false, offerRequest.getStartDate(), offerRequest.getEndDate());
+        newOffer.updateOfferEffectiveDate(offerRequest.getStartDate(), offerRequest.getEndDate());
 
         return newOffer;
     }
@@ -147,9 +147,10 @@ public class OfferController {
 
     private void updateOfferFromRequest(final Offer offer, final OfferRequest offerRequest) {
 
+        offer.setTriggerType(offerRequest.getTriggerType());
         offer.setName(offerRequest.getOfferName());
         offer.updateDiscountDetails(offerRequest.getDiscountType(), offerRequest.getDiscountValue());
-        offer.updateOfferEffectiveDetails(false, offerRequest.getStartDate(), offerRequest.getEndDate());
+        offer.updateOfferEffectiveDate(offerRequest.getStartDate(), offerRequest.getEndDate());
 
         if (offer instanceof ProductLevelOffer) {
             final ProductLevelOffer productLevelOffer = (ProductLevelOffer) offer;

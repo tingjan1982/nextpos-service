@@ -64,13 +64,13 @@ public class OfferServiceImpl implements OfferService {
 
     @Override
     public Offer activateOffer(Offer offer) {
-        offer.updateOfferEffectiveDetails(true);
+        offer.updateOfferActiveStatus(true);
         return offerRepository.save(offer);
     }
 
     @Override
     public Offer deactivateOffer(Offer offer) {
-        offer.updateOfferEffectiveDetails(false);
+        offer.updateOfferActiveStatus(false);
         return offerRepository.save(offer);
     }
 
