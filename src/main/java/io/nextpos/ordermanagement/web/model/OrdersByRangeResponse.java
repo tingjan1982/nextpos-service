@@ -25,6 +25,7 @@ public class OrdersByRangeResponse {
 
         this.dateRange = dateRange;
         this.ordersTotal = orders.stream()
+                .filter(o -> o.getState() != Order.OrderState.DELETED)
                 .map(Order::getOrderTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
