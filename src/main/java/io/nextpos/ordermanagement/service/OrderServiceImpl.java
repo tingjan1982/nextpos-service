@@ -114,7 +114,8 @@ public class OrderServiceImpl implements OrderService {
                 .and("createdDate").gte(zonedDateRange.getFromDate()).lt(zonedDateRange.getToDate());
         orderCriteria.decorateCriteria(criteria);
 
-        final Query query = Query.query(criteria);
+        final Query query = Query.query(criteria)
+                .with(Sort.by(Sort.Order.asc("modifiedDate")));
 
         return mongoTemplate.find(query, Order.class);
     }

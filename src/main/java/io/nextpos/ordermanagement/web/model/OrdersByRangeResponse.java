@@ -46,6 +46,8 @@ public class OrdersByRangeResponse {
 
         private Date createdTime;
 
+        private Date modifiedDate;
+
         private Order.OrderState state;
 
         private TaxableAmount total;
@@ -58,6 +60,7 @@ public class OrdersByRangeResponse {
             serialId = order.getSerialId();
             orderType = order.getOrderType();
             createdTime = order.getCreatedDate();
+            modifiedDate = order.getModifiedDate();
             state = order.getState();
             total = order.getTotal();
             orderTotal = order.getOrderTotal();
