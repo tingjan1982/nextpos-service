@@ -249,8 +249,10 @@ class PrinterInstructionsServiceImplTest {
         order.addOrderLineItem(DummyObjects.productSnapshot("coffee", BigDecimal.valueOf(100)), 3);
         orderService.createOrder(order);
         orderService.performOrderAction(order.getId(), Order.OrderAction.SUBMIT);
-        OrderTransaction orderTransaction = new OrderTransaction(order, OrderTransaction.PaymentMethod.CASH, OrderTransaction.BillType.SINGLE, order.getOrderTotal());
-        orderTransactionService.createOrderTransaction(client, orderTransaction);
+        OrderTransaction tx1 = new OrderTransaction(order, OrderTransaction.PaymentMethod.CASH, OrderTransaction.BillType.SPLIT, new BigDecimal("150"));
+        orderTransactionService.createOrderTransaction(client, tx1);
+        OrderTransaction tx2 = new OrderTransaction(order, OrderTransaction.PaymentMethod.CARD, OrderTransaction.BillType.SPLIT, new BigDecimal("150"));
+        orderTransactionService.createOrderTransaction(client, tx2);
         orderService.performOrderAction(order.getId(), Order.OrderAction.COMPLETE);
 
         final Order orderToDelete = Order.newOrder(client.getId(), Order.OrderType.TAKE_OUT, orderSettings);

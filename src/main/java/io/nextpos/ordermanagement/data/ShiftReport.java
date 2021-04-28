@@ -61,7 +61,7 @@ public class ShiftReport {
 
         final ClosingShiftTransactionReport closingShiftReport = closeShift.getClosingShiftReport();
 
-        closingShiftReport.getShiftTotal(paymentMethod).ifPresent(t -> paymentMethodSummary.setTotal(t.getOrderTotal()));
+        closingShiftReport.getShiftTotal(paymentMethod).ifPresent(t -> paymentMethodSummary.setTotal(t.getSettleAmount()));
 
         final Shift.ClosingBalanceDetails closingBalance = closeShift.getClosingBalance(paymentMethod);
         paymentMethodSummary.setClosingBalance(closingBalance.getClosingBalance());
