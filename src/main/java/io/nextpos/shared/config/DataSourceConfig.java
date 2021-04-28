@@ -15,11 +15,10 @@ import io.nextpos.notification.data.NotificationDetails;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.product.data.Product;
+import io.nextpos.reservation.data.Reservation;
 import io.nextpos.roles.data.UserRole;
 import io.nextpos.settings.data.CountrySettings;
-import io.nextpos.shared.converter.Decimal128ToBigDecimal;
-import io.nextpos.shared.converter.DocumentToYearMonth;
-import io.nextpos.shared.converter.YearMonthToDocument;
+import io.nextpos.shared.converter.*;
 import io.nextpos.subscription.data.SubscriptionPlan;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.timecard.data.UserTimeCard;
@@ -80,7 +79,8 @@ import java.util.List;
         InvoiceNumberRange.class,
         SubscriptionPlan.class,
         CalendarEvent.class,
-        Inventory.class})
+        Inventory.class,
+        Reservation.class})
 @EnableMongoAuditing
 @EnableRetry
 public class DataSourceConfig {
@@ -107,7 +107,12 @@ public class DataSourceConfig {
 
     @Bean
     public MongoCustomConversions mongoCustomConversions() {
-        return new MongoCustomConversions(List.of(new Decimal128ToBigDecimal(), new DocumentToYearMonth(), new YearMonthToDocument()));
+        return new MongoCustomConversions(List.of(
+                new Decimal128ToBigDecimal(),
+                new DocumentToYearMonth(),
+                new YearMonthToDocument(),
+                new LocalTimeToString(),
+                new StringToLocalTime()));
     }
 
     @Bean

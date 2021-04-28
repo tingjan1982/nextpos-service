@@ -7,12 +7,10 @@ import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.einvoice.common.invoice.PendingEInvoiceQueue;
 import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.service.OrderService;
-import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.service.OrderTransactionReportService;
 import io.nextpos.ordertransaction.service.OrderTransactionService;
 import io.nextpos.reporting.data.DateParameterType;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +20,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
@@ -59,7 +55,7 @@ public class DeletedOrderSearch {
     @Test
     void deleteClientOrdersAndRelatedRecords() {
 
-        clientService.getClientByUsername("rain.io.app@gmail.com").ifPresent(c -> {
+        clientService.getClientByUsername("dianyuyi@gmail.com").ifPresent(c -> {
             Query query = Query.query(where("clientId").is(c.getId()));
             final List<Order> orders = mongoTemplate.findAllAndRemove(query, Order.class);
             System.out.println("Orders: " + orders.size());
@@ -90,25 +86,25 @@ public class DeletedOrderSearch {
     @Test
     void findShiftDiscrepancy() {
 
-        shiftRepository.findById("60796236d877ae30c6778209").ifPresent(s -> {
-            final ClosingShiftTransactionReport closingShiftTransactionReport = orderTransactionReportService.getClosingShiftTransactionReport(s);
-            System.out.println(closingShiftTransactionReport);
-
-            closingShiftTransactionReport.getEntries().stream()
-                    .map(o -> (Map) o)
-                    .filter(o -> StringUtils.equals((String) o.get("state"), "COMPLETED"))
-                    .map(o -> (String) o.get("orderId"))
-                    .forEach(oid -> {
-                        final Order order = orderService.getOrder(oid);
-                        final BigDecimal txTotal = orderTransactionService.getOrderTransactionByOrderId(oid).stream()
-                                .map(OrderTransaction::getSettleAmount)
-                                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-                        if (order.getOrderTotal().compareTo(txTotal) != 0) {
-                            System.out.println("diff order id: " + oid);
-                        }
-                    });
-        });
+//        shiftRepository.findById("60796236d877ae30c6778209").ifPresent(s -> {
+//            final ClosingShiftTransactionReport closingShiftTransactionReport = orderTransactionReportService.getClosingShiftTransactionReport(s);
+//            System.out.println(closingShiftTransactionReport);
+//
+//            closingShiftTransactionReport.getEntries().stream()
+//                    .map(o -> (Map) o)
+//                    .filter(o -> StringUtils.equals((String) o.get("state"), "COMPLETED"))
+//                    .map(o -> (String) o.get("orderId"))
+//                    .forEach(oid -> {
+//                        final Order order = orderService.getOrder(oid);
+//                        final BigDecimal txTotal = orderTransactionService.getOrderTransactionByOrderId(oid).stream()
+//                                .map(OrderTransaction::getSettleAmount)
+//                                .reduce(BigDecimal.ZERO, BigDecimal::add);
+//
+//                        if (order.getOrderTotal().compareTo(txTotal) != 0) {
+//                            System.out.println("diff order id: " + oid);
+//                        }
+//                    });
+//        });
     }
 
     @Test
