@@ -51,6 +51,8 @@
             <text>總計:</text>
             <text x="${indent}">$${order.orderTotal}&#10;</text>
             <#if orderTransaction??>
+                <#assign paymentMethod = { "CASH": "現金", "CARD": "刷卡" }>
+                <text>結帳方式:</text><text x="${indent}">${paymentMethod[orderTransaction.paymentDetails.paymentMethod]!"NA"}&#10;</text>
                 <text>結帳金額:</text><text x="${indent}">$${orderTransaction.settleAmount!"NA"}&#10;</text>
             </#if>
             <cut type="feed"/>

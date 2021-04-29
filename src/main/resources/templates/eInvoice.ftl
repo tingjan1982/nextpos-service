@@ -113,8 +113,9 @@
                     <text x="310">$${order.orderTotal}&#10;</text>
 
                     <#if orderTransaction??>
-                        <text>結帳金額:</text>
-                        <text x="310">$${orderTransaction.settleAmount!"NA"}&#10;</text>
+                        <#assign paymentMethod = { "CASH": "現金", "CARD": "刷卡" }>
+                        <text>結帳方式:</text><text x="310">${paymentMethod[orderTransaction.paymentDetails.paymentMethod]!"NA"}&#10;</text>
+                        <text>結帳金額:</text><text x="310">$${orderTransaction.settleAmount!"NA"}&#10;</text>
                     </#if>
                 </#if>
 
