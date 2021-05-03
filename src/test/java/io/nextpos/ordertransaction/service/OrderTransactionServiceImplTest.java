@@ -63,12 +63,9 @@ class OrderTransactionServiceImplTest {
         order.addOrderLineItem(DummyObjects.productSnapshot("coffee", new BigDecimal("50")), 1);
         order.addOrderLineItem(DummyObjects.productSnapshot("sandwich", new BigDecimal("100")), 1);
         order.setState(Order.OrderState.DELIVERED);
-        orderService.saveOrder(order);
+        orderService.createOrder(order);
 
-        final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), clientId, order.getOrderTotal(), order.getOrderTotal(),
-                OrderTransaction.PaymentMethod.CARD,
-                OrderTransaction.BillType.SINGLE,
-                List.of());
+        final OrderTransaction orderTransaction = new OrderTransaction(order, OrderTransaction.PaymentMethod.CARD, OrderTransaction.BillType.SINGLE, order.getOrderTotal());
 
         orderTransactionService.createOrderTransaction(client, orderTransaction);
 
@@ -79,6 +76,30 @@ class OrderTransactionServiceImplTest {
         assertThat(retrievedOrder.getState()).isEqualTo(Order.OrderState.SETTLED);
 
         assertThatThrownBy(() -> orderTransactionService.createOrderTransaction(client, orderTransaction)).isInstanceOf(BusinessLogicException.class);
+    }
+
+    @Test
+    @ChainedTransaction
+    void createZeroDollarOrderTransaction() {
+
+        client.addAttribute(Client.ClientAttributes.UBN, "83515813");
+        client.addAttribute(Client.ClientAttributes.COMPANY_NAME, "Ron");
+        client.addAttribute(Client.ClientAttributes.ADDRESS, "Taipei");
+        client.addAttribute(Client.ClientAttributes.AES_KEY, "12341234123412341234123412341234");
+
+
+        final Order order = Order.newOrder(client.getId(), Order.OrderType.TAKE_OUT, orderSettings);
+        order.addOrderLineItem(DummyObjects.productSnapshot("coffee", new BigDecimal("0")), 1);
+        order.setState(Order.OrderState.DELIVERED);
+        orderService.createOrder(order);
+
+        final OrderTransaction orderTransaction = new OrderTransaction(order, OrderTransaction.PaymentMethod.CARD, OrderTransaction.BillType.SINGLE, order.getOrderTotal());
+
+        orderTransactionService.createOrderTransaction(client, orderTransaction);
+
+        assertThat(orderTransaction.hasElectronicInvoice()).isFalse();
+
+
     }
 
     /**

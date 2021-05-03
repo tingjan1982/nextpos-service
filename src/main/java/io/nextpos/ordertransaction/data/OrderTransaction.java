@@ -65,7 +65,8 @@ public class OrderTransaction extends MongoBaseObject {
         this.settleAmount = deduceSettleAmount(order, billType, settleAmount);
         this.paymentDetails = new PaymentDetails(paymentMethod);
         this.invoiceDetails = new InvoiceDetails();
-        this.billDetails = new BillDetails(billType, createBillLineItems(order, billType, settleAmount));
+
+        this.updateBillingDetails(order, billType);
     }
 
     private BigDecimal deduceSettleAmount(Order order, BillType billType, BigDecimal settleAmount) {
@@ -75,6 +76,10 @@ public class OrderTransaction extends MongoBaseObject {
         } else {
             return settleAmount;
         }
+    }
+
+    public void updateBillingDetails(Order order, BillType billType) {
+        this.billDetails = new BillDetails(billType, createBillLineItems(order, billType, settleAmount));
     }
 
     private List<BillLineItem> createBillLineItems(Order order, BillType billType, BigDecimal settleAmount) {

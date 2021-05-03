@@ -11,6 +11,8 @@ public interface OrderTransactionService {
 
     OrderTransaction createOrderTransaction(final Client client, OrderTransaction orderTransaction);
 
+    void saveOrderTransaction(OrderTransaction orderTransaction);
+
     OrderTransaction getOrderTransaction(String id);
 
     Order getOrderByInvoiceNumber(String invoiceNumber);

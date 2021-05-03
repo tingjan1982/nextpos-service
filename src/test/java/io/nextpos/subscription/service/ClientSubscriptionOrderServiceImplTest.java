@@ -78,7 +78,7 @@ class ClientSubscriptionOrderServiceImplTest {
         ClientSubscription clientSubscription = new ClientSubscription(client.getId(), subscriptionPlan, SubscriptionPlan.PlanPeriod.MONTHLY);
         final ClientSubscriptionInvoice clientSubscriptionInvoice = new ClientSubscriptionInvoice(ZoneId.of("Asia/Taipei"), clientSubscription, new Date());
 
-        clientSubscriptionOrderService.sendClientSubscriptionOrder(clientSubscriptionInvoice);
+        clientSubscriptionOrderService.sendClientSubscriptionOrder(clientSubscriptionInvoice, "rain.io.app@gmail.com");
 
         final List<Order> orders = orderService.getOrders(atlasClient, ZonedDateRangeBuilder.builder(atlasClient, DateParameterType.TODAY).build());
 

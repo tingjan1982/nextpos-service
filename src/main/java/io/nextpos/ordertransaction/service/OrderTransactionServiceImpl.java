@@ -77,10 +77,17 @@ public class OrderTransactionServiceImpl implements OrderTransactionService {
             return;
         }
 
-        final ElectronicInvoice electronicInvoice = electronicInvoiceService.createElectronicInvoice(client, order, orderTransaction);
+        if (order.getOrderTotal().compareTo(BigDecimal.ZERO) > 0) {
+            final ElectronicInvoice electronicInvoice = electronicInvoiceService.createElectronicInvoice(client, order, orderTransaction);
 
-        final OrderTransaction.InvoiceDetails invoiceDetails = orderTransaction.getInvoiceDetails();
-        invoiceDetails.setElectronicInvoice(electronicInvoice);
+            final OrderTransaction.InvoiceDetails invoiceDetails = orderTransaction.getInvoiceDetails();
+            invoiceDetails.setElectronicInvoice(electronicInvoice);
+        }
+    }
+
+    @Override
+    public void saveOrderTransaction(OrderTransaction orderTransaction) {
+        orderTransactionRepository.save(orderTransaction);
     }
 
     @Override

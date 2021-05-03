@@ -87,7 +87,7 @@ class ClientSubscriptionLifecycleServiceImplTest {
             assertThat(sub.getCurrentInvoiceId()).isEqualTo(renewalInvoice.getId());
         });
 
-        final ClientSubscriptionInvoice renewedInvoice = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(renewalInvoice.getInvoiceIdentifier());
+        final ClientSubscriptionInvoice renewedInvoice = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(renewalInvoice.getInvoiceIdentifier(), true);
 
         assertThat(renewedInvoice.getStatus()).isEqualByComparingTo(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID);
     }

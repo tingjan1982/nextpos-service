@@ -37,8 +37,10 @@ import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
+import io.nextpos.shared.util.DateTimeUtil;
 import io.nextpos.shared.util.ImageCodeUtil;
 import io.nextpos.subscription.data.ClientSubscriptionInvoice;
+import io.nextpos.subscription.data.ClientSubscriptionInvoiceRepository;
 import io.nextpos.subscription.data.SubscriptionPlan;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +54,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
+import java.time.ZoneId;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -64,6 +67,8 @@ public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrd
 
     private final OrderTransactionService orderTransactionService;
 
+    private final ClientSubscriptionInvoiceRepository clientSubscriptionInvoiceRepository;
+
     private final ShiftService shiftService;
 
     private final NotificationService notificationService;
@@ -75,11 +80,12 @@ public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrd
     private final byte[] fontBytes;
 
     @Autowired
-    public ClientSubscriptionOrderServiceImpl(ClientService clientService, OrderService orderService, OrderTransactionService orderTransactionService, ShiftService shiftService, NotificationService notificationService, ImageCodeUtil imageCodeUtil, CountrySettings defaultCountrySettings,
+    public ClientSubscriptionOrderServiceImpl(ClientService clientService, OrderService orderService, OrderTransactionService orderTransactionService, ClientSubscriptionInvoiceRepository clientSubscriptionInvoiceRepository, ShiftService shiftService, NotificationService notificationService, ImageCodeUtil imageCodeUtil, CountrySettings defaultCountrySettings,
                                               @Value("classpath:fonts/bkai00mp.ttf") Resource fontResource) throws Exception {
         this.clientService = clientService;
         this.orderService = orderService;
         this.orderTransactionService = orderTransactionService;
+        this.clientSubscriptionInvoiceRepository = clientSubscriptionInvoiceRepository;
         this.shiftService = shiftService;
         this.notificationService = notificationService;
         this.imageCodeUtil = imageCodeUtil;
@@ -88,22 +94,35 @@ public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrd
     }
 
     @Override
-    public void sendClientSubscriptionOrder(ClientSubscriptionInvoice clientSubscriptionInvoice) {
+    public void sendClientSubscriptionOrder(ClientSubscriptionInvoice clientSubscriptionInvoice, String overrideEmail) {
 
-        clientService.getClientByUsername("rain.io.app@gmail.com").ifPresent(c -> {
-            final OrderSettings orderSettings = new OrderSettings(defaultCountrySettings, true, BigDecimal.ZERO);
-            final Order order = Order.newOrder(c.getId(), Order.OrderType.ONLINE, orderSettings);
-            order.addOrderLineItem(new OrderLineItem(createProductSnapshot(clientSubscriptionInvoice), 1, orderSettings));
-            order.setState(Order.OrderState.DELIVERED);
+        if (clientSubscriptionInvoice.getElectronicInvoice() == null) {
+            clientService.getClientByUsername("rain.io.app@gmail.com").ifPresent(c -> {
+                final OrderSettings orderSettings = new OrderSettings(defaultCountrySettings, true, BigDecimal.ZERO);
+                final Order order = Order.newOrder(c.getId(), Order.OrderType.ONLINE, orderSettings);
+                order.addOrderLineItem(new OrderLineItem(createProductSnapshot(clientSubscriptionInvoice), 1, orderSettings));
+                order.setState(Order.OrderState.DELIVERED);
 
-            shiftService.openShift(c.getId(), BigDecimal.ZERO);
-            orderService.createOrder(order);
+                shiftService.openShift(c.getId(), BigDecimal.ZERO);
+                orderService.createOrder(order);
 
-            final OrderTransaction orderTransaction = orderTransactionService.createOrderTransaction(c, createOrderTransaction(clientSubscriptionInvoice, order));
-            orderService.performOrderAction(order.getId(), Order.OrderAction.COMPLETE);
+                final OrderTransaction orderTransaction = orderTransactionService.createOrderTransaction(c, createOrderTransaction(clientSubscriptionInvoice, order));
+                orderService.performOrderAction(order.getId(), Order.OrderAction.COMPLETE);
 
-            sendNotification(clientSubscriptionInvoice, orderTransaction);
-        });
+                orderTransaction.getElectronicInvoice().ifPresent(inv -> {
+                        clientSubscriptionInvoice.setElectronicInvoice(inv);
+                        clientSubscriptionInvoiceRepository.save(clientSubscriptionInvoice);
+                });
+            });
+        }
+
+        try {
+            sendNotification(clientSubscriptionInvoice, overrideEmail).get();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     private ProductSnapshot createProductSnapshot(ClientSubscriptionInvoice clientSubscriptionInvoice) {
@@ -127,13 +146,19 @@ public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrd
         return orderTransaction;
     }
 
-    private CompletableFuture<NotificationDetails> sendNotification(ClientSubscriptionInvoice subscriptionInvoice, OrderTransaction orderTransaction) {
+    private CompletableFuture<NotificationDetails> sendNotification(ClientSubscriptionInvoice subscriptionInvoice, String overrideEmail) {
 
         final Client client = clientService.getClient(subscriptionInvoice.getClientSubscription().getClientId()).orElseThrow(() -> {
             throw new ObjectNotFoundException(subscriptionInvoice.getClientSubscription().getClientId(), Client.class);
         });
 
-        final DynamicEmailDetails dynamicEmailDetails = new DynamicEmailDetails(client.getId(), client.getUsername(), "d-e574bf79c5534e52a86c80f25a762ba5");
+        String emailToUse = client.getUsername();
+
+        if (StringUtils.isNotBlank(overrideEmail)) {
+            emailToUse = overrideEmail;
+        }
+
+        final DynamicEmailDetails dynamicEmailDetails = new DynamicEmailDetails(client.getId(), emailToUse, "d-e574bf79c5534e52a86c80f25a762ba5");
         dynamicEmailDetails.addTemplateData("client", client.getClientName());
         SubscriptionPlan subscriptionPlanSnapshot = subscriptionInvoice.getClientSubscription().getSubscriptionPlanSnapshot();
         final CountrySettings.RoundingAmountHelper helper = defaultCountrySettings.roundingAmountHelper();
@@ -145,10 +170,12 @@ public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrd
         dynamicEmailDetails.addTemplateData("subscriptionAmountWithTax", helper.roundAmountAsString(() -> subscriptionInvoice.getDueAmount().getAmountWithTax()));
         dynamicEmailDetails.addTemplateData("invoiceIdentifier", subscriptionInvoice.getInvoiceIdentifier());
 
-        orderTransaction.getElectronicInvoice().ifPresent(e -> {
-            final byte[] pdf = generateElectronicInvoicePdf(e);
+        final ElectronicInvoice electronicInvoice = subscriptionInvoice.getElectronicInvoice();
+
+        if (electronicInvoice != null) {
+            final byte[] pdf = generateElectronicInvoicePdf(electronicInvoice);
             dynamicEmailDetails.setAttachment(new Binary(pdf));
-        });
+        }
 
         return notificationService.sendNotification(dynamicEmailDetails);
     }
@@ -170,7 +197,10 @@ public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrd
             canvas.add(new Paragraph("電子發票證明聯").setFont(chineseFont).setFontSize(16).setTextAlignment(TextAlignment.CENTER).setFixedLeading(6));
             canvas.add(new Paragraph(electronicInvoice.getFormattedInvoiceDate()).setFont(chineseFont).setFontSize(16).setTextAlignment(TextAlignment.CENTER).setFixedLeading(6));
             canvas.add(new Paragraph(electronicInvoice.getInvoiceNumber()).setFont(chineseFont).setFontSize(16).setTextAlignment(TextAlignment.CENTER).setFixedLeading(6));
-            canvas.add(new Paragraph(electronicInvoice.getInvoiceCreatedDate().toString()).setFont(chineseFont).setFontSize(8).setMarginLeft(5).setFixedLeading(3));
+
+            final String invoiceDate = DateTimeUtil.formatDate(ZoneId.of("Asia/Taipei"), electronicInvoice.getInvoiceCreatedDate());
+
+            canvas.add(new Paragraph(invoiceDate).setFont(chineseFont).setFontSize(8).setMarginLeft(5).setFixedLeading(3));
             canvas.add(new Paragraph("隨機碼: ").add(electronicInvoice.getRandomNumber()).add("  ").add("總計: ").add(electronicInvoice.getSalesAmount().toString()).setFont(chineseFont).setFontSize(8).setMarginLeft(5).setFixedLeading(3));
             final Paragraph ubns = new Paragraph("賣方: ").add(electronicInvoice.getSellerUbn());
 

@@ -1,10 +1,12 @@
 package io.nextpos.calendarevent.data;
 
+import io.nextpos.calendarevent.service.bean.EventRepeatObject;
 import io.nextpos.shared.model.MongoBaseObject;
 import io.nextpos.shared.util.DateTimeUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -33,33 +35,41 @@ public class CalendarEventSeries extends MongoBaseObject {
 
     private YearMonth yearMonth;
 
+    private String mainCalendarId;
+
     private Date seriesStartDate;
 
     private EventRepeat eventRepeat;
 
     private Date repeatEndDate;
 
+
     public CalendarEventSeries(CalendarEvent calendarEvent, EventRepeat eventRepeat, LocalDateTime repeatEndDate) {
         this.clientId = calendarEvent.getClientId();
         this.zoneId = calendarEvent.getZoneId();
         this.yearMonth = YearMonth.from(repeatEndDate);
+        this.mainCalendarId = calendarEvent.getId();
         this.seriesStartDate = calendarEvent.getStartTime();
         this.eventRepeat = eventRepeat;
         this.repeatEndDate = DateTimeUtil.toDate(zoneId, repeatEndDate);
     }
 
-    public List<LocalDate> updateAndGetSeriesDates(LocalDateTime startDate) {
+    public List<LocalDate> updateAndGetSeriesDates(CalendarEvent calendarEvent, EventRepeatObject eventRepeat, LocalDateTime startDate) {
 
-        LocalDateTime startDateToUse = startDate;
+        if (StringUtils.equals(calendarEvent.getId(), this.mainCalendarId)) {
+            this.updateEventRepeat(eventRepeat);
 
-        if (startDate.getMonth() != yearMonth.getMonth()) {
-            startDateToUse = startDate.withMonth(yearMonth.getMonthValue());
+            LocalDateTime startDateToUse = startDate;
+
+            if (startDate.getMonth() != yearMonth.getMonth()) {
+                startDateToUse = startDate.withMonth(yearMonth.getMonthValue());
+            }
+
+            seriesStartDate = DateTimeUtil.toDate(zoneId, startDateToUse);
         }
 
-        seriesStartDate = DateTimeUtil.toDate(zoneId, startDateToUse);
-
-        if (eventRepeat == EventRepeat.DAILY) {
-            return startDate.toLocalDate().datesUntil(DateTimeUtil.toLocalDate(zoneId, repeatEndDate).plusDays(1))
+        if (this.eventRepeat == EventRepeat.DAILY) {
+            return DateTimeUtil.toLocalDate(zoneId, seriesStartDate).datesUntil(DateTimeUtil.toLocalDate(zoneId, repeatEndDate).plusDays(1))
                     .collect(Collectors.toList());
         } else {
             List<LocalDate> dates = new ArrayList<>();
@@ -74,6 +84,14 @@ public class CalendarEventSeries extends MongoBaseObject {
             }
 
             return dates;
+        }
+    }
+
+    private void updateEventRepeat(EventRepeatObject eventRepeatObject) {
+        this.eventRepeat = eventRepeatObject.getEventRepeat();
+
+        if (eventRepeatObject.getRepeatEndDate() != null) {
+            this.repeatEndDate = DateTimeUtil.toDate(zoneId, eventRepeatObject.getRepeatEndDate());
         }
     }
 

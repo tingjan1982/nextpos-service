@@ -95,7 +95,7 @@ class ClientSubscriptionServiceImplTest {
             assertThat(inv.getSubscriptionPeriod(client.getZoneId())).isNotBlank();
         });
 
-        final ClientSubscriptionInvoice activatedInvoice = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(clientSubscriptionInvoice.getInvoiceIdentifier());
+        final ClientSubscriptionInvoice activatedInvoice = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(clientSubscriptionInvoice.getInvoiceIdentifier(), true);
         assertThat(activatedInvoice.getPaymentDate()).isNotNull();
         assertThat(activatedInvoice.getStatus()).isEqualByComparingTo(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID);
 
@@ -113,7 +113,7 @@ class ClientSubscriptionServiceImplTest {
         assertThat(newInvoice.getValidFrom()).isEqualTo(newPlanStartDate);
         assertThat(newInvoice.getPaymentDate()).isNull();
 
-        assertThat(clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(newInvoice.getInvoiceIdentifier())).satisfies(inv -> {
+        assertThat(clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(newInvoice.getInvoiceIdentifier(), true)).satisfies(inv -> {
             assertThat(inv.getPaymentDate()).isEqualToIgnoringSeconds(new Date());
             assertThat(inv.getStatus()).isEqualByComparingTo(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID);
 
@@ -132,7 +132,7 @@ class ClientSubscriptionServiceImplTest {
             assertThat(sub.getId()).isEqualTo(clientSubscription.getId());
         });
 
-        final ClientSubscriptionInvoice paidInvoice = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(newPlanInvoice.getInvoiceIdentifier());
+        final ClientSubscriptionInvoice paidInvoice = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(newPlanInvoice.getInvoiceIdentifier(), true);
         assertThat(paidInvoice.getStatus()).isEqualByComparingTo(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID);
         assertThat(clientSubscriptionService.getClientSubscription(clientSubscription.getId())).satisfies(sub -> {
             assertThat(sub.getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.LAPSED);

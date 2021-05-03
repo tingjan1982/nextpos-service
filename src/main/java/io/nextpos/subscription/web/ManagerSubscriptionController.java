@@ -133,7 +133,7 @@ public class ManagerSubscriptionController {
     @PostMapping("/invoices/{invoiceIdentifier}/activate")
     public ClientSubscriptionInvoiceResponse activateClientSubscription(@PathVariable String invoiceIdentifier) {
 
-        final ClientSubscriptionInvoice paidSubscriptionInvoice = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(invoiceIdentifier);
+        final ClientSubscriptionInvoice paidSubscriptionInvoice = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(invoiceIdentifier, false);
 
         return toResponse(paidSubscriptionInvoice);
     }

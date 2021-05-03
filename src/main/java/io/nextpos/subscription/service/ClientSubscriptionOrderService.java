@@ -4,5 +4,5 @@ import io.nextpos.subscription.data.ClientSubscriptionInvoice;
 
 public interface ClientSubscriptionOrderService {
 
-    void sendClientSubscriptionOrder(ClientSubscriptionInvoice clientSubscriptionInvoice);
+    void sendClientSubscriptionOrder(ClientSubscriptionInvoice clientSubscriptionInvoice, String overrideEmail);
 }

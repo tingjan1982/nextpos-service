@@ -104,6 +104,23 @@ public class ElectronicInvoiceServiceImpl implements ElectronicInvoiceService {
     }
 
     @Override
+    public ElectronicInvoice updateElectronicInvoice(ElectronicInvoice electronicInvoice, Order order, OrderTransaction orderTransaction) {
+
+        final TaxableAmount salesAmount = new TaxableAmount(order.getOrderSettings().getTaxRate(), true);
+        salesAmount.calculate(orderTransaction.getSettleAmount());
+
+        electronicInvoice.updateSalesAndTaxAmount(salesAmount.getAmountWithTax(), salesAmount.getTax());
+
+        final List<ElectronicInvoice.InvoiceItem> items = orderTransaction.getBillDetails().getBillLineItems().stream()
+                .map(li -> new ElectronicInvoice.InvoiceItem(li.getName(), li.getQuantity(), li.getUnitPrice(), li.getSubTotal()))
+                .collect(Collectors.toList());
+
+        electronicInvoice.setInvoiceItems(items);
+
+        return electronicInvoiceRepository.save(electronicInvoice);
+    }
+
+    @Override
     public void issueNewInvoiceNumber(ElectronicInvoice electronicInvoice) {
 
         if (isValidInvoiceNumber(electronicInvoice.getInvoiceNumber())) {

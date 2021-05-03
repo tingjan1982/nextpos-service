@@ -217,7 +217,7 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
      * Main subscription activation method.
      */
     @Override
-    public ClientSubscriptionInvoice activateClientSubscriptionByInvoiceIdentifier(String invoiceIdentifier) {
+    public ClientSubscriptionInvoice activateClientSubscriptionByInvoiceIdentifier(String invoiceIdentifier, boolean sendInvoiceNotification) {
 
         final ClientSubscriptionInvoice clientSubscriptionInvoice = clientSubscriptionInvoiceRepository.findByInvoiceIdentifier(invoiceIdentifier);
 
@@ -227,8 +227,8 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
 
         clientSubscriptionInvoice.updatePaymentStatus(new Date());
 
-        if (!clientSubscriptionInvoice.isInvoiceSent()) {
-            clientSubscriptionOrderService.sendClientSubscriptionOrder(clientSubscriptionInvoice);
+        if (!clientSubscriptionInvoice.isInvoiceSent() && sendInvoiceNotification) {
+            clientSubscriptionOrderService.sendClientSubscriptionOrder(clientSubscriptionInvoice, null);
             clientSubscriptionInvoice.setInvoiceSent(true);
         }
 
@@ -271,7 +271,8 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
         return saveClientSubscription(clientSubscription);
     }
 
-    private ClientSubscription saveClientSubscription(ClientSubscription clientSubscription) {
+    @Override
+    public ClientSubscription saveClientSubscription(ClientSubscription clientSubscription) {
         return clientSubscriptionRepository.save(clientSubscription);
     }
 

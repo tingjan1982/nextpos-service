@@ -15,6 +15,8 @@ public interface ElectronicInvoiceService {
 
     ElectronicInvoice createElectronicInvoice(Client client, Order order, OrderTransaction orderTransaction);
 
+    ElectronicInvoice updateElectronicInvoice(ElectronicInvoice electronicInvoice, Order order, OrderTransaction orderTransaction);
+
     void issueNewInvoiceNumber(ElectronicInvoice electronicInvoice);
 
     ElectronicInvoice getElectronicInvoice(String id);

@@ -85,8 +85,8 @@ class RosterPlanServiceImplTest {
         EventRepeatObject eventRepeat = new EventRepeatObject(CalendarEventSeries.EventRepeat.WEEKLY, null);
         rosterPlanService.updateRosterEvent(calendarEvent, new UpdateCalendarEventObject(eventRepeat,
                 LocalDateTime.of(LocalDate.now(), LocalTime.of(10, 30)),
-                LocalDateTime.of(LocalDate.now(), LocalTime.of(3, 30)),
-                2,
+                LocalDateTime.of(LocalDate.now(), LocalTime.of(13, 30)),
+                1,
                 true,
                 List.of()));
 
@@ -96,7 +96,7 @@ class RosterPlanServiceImplTest {
             assertThat(e.getEventName()).isEqualTo("Noon shift");
             assertThat(e.getStartTime()).hasHourOfDay(10);
             assertThat(e.getStartTime()).hasMinute(30);
-            assertThat(e.getEndTime()).hasHourOfDay(3);
+            assertThat(e.getEndTime()).hasHourOfDay(13);
             assertThat(e.getEndTime()).hasMinute(30);
             assertThat(e.getEventSeries().getEventRepeat()).isEqualByComparingTo(CalendarEventSeries.EventRepeat.WEEKLY);
         });
@@ -141,7 +141,7 @@ class RosterPlanServiceImplTest {
         final CalendarEvent calendarEvent = rosterObjectHelper.createRosterEvent(client, "Morning shift", LocalDateTime.now(), LocalDateTime.now().plusHours(8));
         final List<CalendarEvent> createdRosterEvents = rosterPlanService.createRosterEvent(
                 calendarEvent,
-                new EventRepeatObject(CalendarEventSeries.EventRepeat.DAILY, null));
+                EventRepeatObject.eventRepeat(CalendarEventSeries.EventRepeat.DAILY));
 
         final int days = Period.between(LocalDate.now(), LocalDate.now().with(TemporalAdjusters.lastDayOfMonth()).plusDays(1)).getDays();
 

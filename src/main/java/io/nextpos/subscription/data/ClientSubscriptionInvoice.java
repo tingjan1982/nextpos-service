@@ -1,5 +1,6 @@
 package io.nextpos.subscription.data;
 
+import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.ordermanagement.data.TaxableAmount;
 import io.nextpos.shared.model.MongoBaseObject;
 import lombok.Data;
@@ -29,6 +30,8 @@ public class ClientSubscriptionInvoice extends MongoBaseObject {
     @Id
     private String id;
 
+    private String clientId;
+
     @DBRef
     private ClientSubscription clientSubscription;
 
@@ -56,6 +59,8 @@ public class ClientSubscriptionInvoice extends MongoBaseObject {
 
     private boolean invoiceSent;
 
+    @DBRef
+    private ElectronicInvoice electronicInvoice;
 
     public ClientSubscriptionInvoice(ZoneId zoneId, ClientSubscription clientSubscription, Date validFrom) {
         this(zoneId, clientSubscription, validFrom, false);
@@ -63,6 +68,7 @@ public class ClientSubscriptionInvoice extends MongoBaseObject {
 
     public ClientSubscriptionInvoice(ZoneId zoneId, ClientSubscription clientSubscription, Date validFrom, boolean renewal) {
 
+        this.clientId = clientSubscription.getClientId();
         this.clientSubscription = clientSubscription;
         this.invoiceIdentifier = RandomStringUtils.randomNumeric(6);
         this.zoneId = zoneId;

@@ -110,6 +110,7 @@ public class NotificationServiceImpl implements NotificationService {
 
             final Personalization personalization = new Personalization();
             personalization.addTo(to);
+            personalization.addBcc(new Email("rain.io.app+noreply@gmail.com"));
 
             notificationDetails.getTemplateData().forEach(personalization::addDynamicTemplateData);
             mail.addPersonalization(personalization);
@@ -133,7 +134,7 @@ public class NotificationServiceImpl implements NotificationService {
             request.setBody(mail.build());
             Response response = sg.api(request);
 
-            LOGGER.info("{}", response);
+            LOGGER.info("Notification response: {}", response.getBody());
 
         } catch (Exception e) {
             String errorMsg = String.format("Error while sending email: %s", e.getMessage());

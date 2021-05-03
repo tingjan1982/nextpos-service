@@ -8,6 +8,7 @@ import io.nextpos.calendarevent.service.bean.EventRepeatObject;
 import io.nextpos.calendarevent.service.bean.UpdateCalendarEventObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -87,15 +88,13 @@ public class EventSeriesUpdaterImpl implements EventSeriesUpdater {
                 Map<LocalDate, CalendarEvent> eventsByDate = calendarEventRepository.findAllByClientIdAndEventSeries_Id(calendarEvent.getClientId(), eventSeries.getId()).stream()
                         .collect(Collectors.toMap(CalendarEvent::getLocalStartDate, e -> e));
 
-                eventSeries.setEventRepeat(updateCalendarEvent.getEventRepeat().getEventRepeat());
-                
-                eventSeries.updateAndGetSeriesDates(startTime).forEach(date -> {
+                eventSeries.updateAndGetSeriesDates(calendarEvent, updateCalendarEvent.getEventRepeat(), startTime).forEach(date -> {
                     final CalendarEvent event = eventsByDate.get(date);
 
                     if (event != null) {
                         event.update(calendarEvent, startTime.toLocalTime(), endTime.toLocalTime(), updateCalendarEvent.getDaysDiff());
 
-                        if (updateCalendarEvent.getEventResources() != null) {
+                        if (!CollectionUtils.isEmpty(updateCalendarEvent.getEventResources())) {
                             event.removeAllEventResources();
                             updateCalendarEvent.getEventResources().forEach(event::addEventSource);
                         }

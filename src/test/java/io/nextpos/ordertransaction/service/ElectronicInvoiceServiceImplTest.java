@@ -8,6 +8,7 @@ import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRangeService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordertransaction.data.OrderTransaction;
+import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +41,8 @@ class ElectronicInvoiceServiceImplTest {
     private PendingEInvoiceQueueService pendingEInvoiceQueueService;
 
     @Autowired
+    private CountrySettings countrySettings;
+
     private OrderSettings orderSettings;
 
     private Client client;
@@ -49,8 +52,12 @@ class ElectronicInvoiceServiceImplTest {
     @BeforeEach
     void prepare() {
         client = DummyObjects.dummyClient();
-        client.addAttribute(Client.ClientAttributes.UBN.name(), ubn);
-        client.addAttribute(Client.ClientAttributes.AES_KEY.name(), "12341234123412341234123412341234");
+        client.addAttribute(Client.ClientAttributes.UBN, ubn);
+        client.addAttribute(Client.ClientAttributes.COMPANY_NAME, "Ron");
+        client.addAttribute(Client.ClientAttributes.ADDRESS, "Taipei");
+        client.addAttribute(Client.ClientAttributes.AES_KEY, "12341234123412341234123412341234");
+
+        orderSettings = new OrderSettings(countrySettings, true, BigDecimal.ZERO);
     }
     
     @Test
@@ -59,7 +66,7 @@ class ElectronicInvoiceServiceImplTest {
         final Order order = new Order(client.getId(), orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 2);
 
-        final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), client.getId(), order.getOrderTotal(), order.getOrderTotal(), OrderTransaction.PaymentMethod.CARD, OrderTransaction.BillType.SINGLE, List.of());
+        final OrderTransaction orderTransaction = new OrderTransaction(order, OrderTransaction.PaymentMethod.CARD, OrderTransaction.BillType.SINGLE, order.getOrderTotal());
         orderTransaction.putPaymentDetails(OrderTransaction.PaymentDetailsKey.LAST_FOUR_DIGITS, "1234");
 
         assertThat(electronicInvoiceService.checkElectronicInvoiceEligibility(client)).isFalse();
@@ -73,6 +80,8 @@ class ElectronicInvoiceServiceImplTest {
 
         LOGGER.info("{}", electronicInvoice);
 
+        assertThat(electronicInvoice.getSalesAmount()).isEqualByComparingTo("200");
+        assertThat(electronicInvoice.getTaxAmount()).isEqualByComparingTo("10");
         assertThat(electronicInvoice.getBarcodeContent()).hasSize(19);
         assertThat(StringUtils.substringBefore(electronicInvoice.getQrCode1Content(), ":")).hasSize(77);
         assertThat(electronicInvoice.getQrCode2Content()).startsWith("**");

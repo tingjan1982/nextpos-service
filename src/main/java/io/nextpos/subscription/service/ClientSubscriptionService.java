@@ -16,6 +16,8 @@ public interface ClientSubscriptionService {
 
     ClientSubscriptionInvoice createClientSubscriptionInvoice(Client client, ClientSubscription clientSubscription, Date planStartDate);
 
+    ClientSubscriptionInvoice activateClientSubscriptionByInvoiceIdentifier(String invoiceIdentifier, boolean sendInvoiceNotification);
+
     ClientSubscription activateClientSubscription(ClientSubscription clientSubscription);
 
     ClientSubscription deactivateClientSubscription(ClientSubscription clientSubscription);
@@ -24,6 +26,8 @@ public interface ClientSubscriptionService {
 
     ClientSubscription lapseClientSubscription(ClientSubscription clientSubscription);
 
+    ClientSubscription saveClientSubscription(ClientSubscription subscription);
+
     ClientSubscription getCurrentClientSubscription(String clientId);
 
     ClientSubscription getClientSubscription(String id);
@@ -31,8 +35,6 @@ public interface ClientSubscriptionService {
     List<ClientSubscription> getClientSubscriptions();
 
     List<ClientSubscription> getClientSubscriptionsByStatus(ClientSubscription.SubscriptionStatus status);
-
-    ClientSubscriptionInvoice activateClientSubscriptionByInvoiceIdentifier(String invoiceIdentifier);
 
     ClientSubscriptionInvoice getClientSubscriptionInvoice(String id);
 
