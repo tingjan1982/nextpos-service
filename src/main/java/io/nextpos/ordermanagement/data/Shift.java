@@ -159,7 +159,7 @@ public class Shift extends MongoBaseObject {
                 closingBalances.put(paymentMethod, closingBalanceDetails);
 
                 closingShiftReport.getShiftTotal(paymentMethod).ifPresent(p -> {
-                    final BigDecimal orderTotal = p.getOrderTotal();
+                    final BigDecimal orderTotal = p.getSettleAmount();
                     BigDecimal difference = closingBalanceDetails.getClosingBalance().subtract(orderTotal).subtract(startingBalance);
                     closingBalanceDetails.setDifference(difference);
                 });
