@@ -68,12 +68,15 @@ public class CalendarEventSeries extends MongoBaseObject {
             seriesStartDate = DateTimeUtil.toDate(zoneId, startDateToUse);
         }
 
+        final LocalDate localSeriesStartDate = DateTimeUtil.toLocalDate(zoneId, seriesStartDate);
+
         if (this.eventRepeat == EventRepeat.DAILY) {
-            return DateTimeUtil.toLocalDate(zoneId, seriesStartDate).datesUntil(DateTimeUtil.toLocalDate(zoneId, repeatEndDate).plusDays(1))
+            return localSeriesStartDate.datesUntil(DateTimeUtil.toLocalDate(zoneId, repeatEndDate).plusDays(1))
                     .collect(Collectors.toList());
         } else {
             List<LocalDate> dates = new ArrayList<>();
-            dates.add(startDate.toLocalDate());
+            dates.add(localSeriesStartDate);
+
             LocalDateTime nextStartTime = startDate;
             LocalDateTime localRepeatEndDate = DateTimeUtil.toLocalDateTime(zoneId, repeatEndDate);
             LocalDateTime lastDayOfTheSeries = nextStartTime.with(TemporalAdjusters.lastInMonth(nextStartTime.getDayOfWeek()));

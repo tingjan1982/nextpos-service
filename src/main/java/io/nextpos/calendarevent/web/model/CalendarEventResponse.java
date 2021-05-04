@@ -35,7 +35,12 @@ public class CalendarEventResponse {
 
     private final String eventColor;
 
+    private boolean isolated;
+
     private String eventSeriesId;
+
+    private boolean eventSeriesMainEvent;
+
 
     private CalendarEventSeries.EventRepeat eventRepeat;
 
@@ -54,6 +59,7 @@ public class CalendarEventResponse {
         startTime = calendarEvent.getStartTime();
         endTime = calendarEvent.getEndTime();
         eventColor = calendarEvent.getEventColor();
+        isolated = calendarEvent.isIsolated();
 
         final CalendarEventSeries eventSeries = calendarEvent.getEventSeries();
 
@@ -61,6 +67,7 @@ public class CalendarEventResponse {
 
         if (eventSeries != null) {
             eventSeriesId = eventSeries.getId();
+            eventSeriesMainEvent = StringUtils.equals(calendarEvent.getId(), eventSeries.getMainCalendarId());
             eventRepeat = eventSeries.getEventRepeat();
             repeatEndDate = eventSeries.getRepeatEndDate();
         }

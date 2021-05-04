@@ -1,5 +1,6 @@
 package io.nextpos.calendarevent.data;
 
+import io.nextpos.calendarevent.service.bean.UpdateCalendarEventObject;
 import io.nextpos.shared.model.MongoBaseObject;
 import io.nextpos.shared.util.DateTimeUtil;
 import lombok.AllArgsConstructor;
@@ -13,7 +14,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
@@ -48,6 +48,12 @@ public class CalendarEvent extends MongoBaseObject {
     private Date endTime;
 
     private String eventColor;
+
+    /**
+     * Flag to indicate that this event has date changed and therefore its date and resources
+     * will not be changed further as part of event series change.
+     */
+    private boolean isolated;
 
     @DBRef
     private CalendarEventSeries eventSeries;
@@ -98,15 +104,21 @@ public class CalendarEvent extends MongoBaseObject {
         return copy;
     }
 
-    public void update(CalendarEvent calendarEvent, LocalTime startTime, LocalTime endTime, long daysDiff) {
+    public void update(CalendarEvent calendarEvent, UpdateCalendarEventObject updateCalendarEvent) {
 
         setEventName(calendarEvent.getEventName());
         setEventColor(calendarEvent.getEventColor());
 
+        if (isolated) {
+            // when date is marked as updated, do not update start and end time and resources.
+            return;
+        }
+
+        long daysDiff = updateCalendarEvent.getDaysDiff();
         LocalDate startDate = this.getStartTime().toInstant().atZone(zoneId).toLocalDate().plusDays(daysDiff);
-        LocalDateTime startDt = LocalDateTime.of(startDate, startTime);
+        LocalDateTime startDt = LocalDateTime.of(startDate, updateCalendarEvent.getStartTime().toLocalTime());
         LocalDate endDate = this.getStartTime().toInstant().atZone(zoneId).toLocalDate().plusDays(daysDiff);
-        LocalDateTime endDt = LocalDateTime.of(endDate, endTime);
+        LocalDateTime endDt = LocalDateTime.of(endDate, updateCalendarEvent.getEndTime().toLocalTime());
 
         if (endDt.compareTo(startDt) <= 0) {
             endDt = endDt.plusDays(1);
@@ -114,6 +126,11 @@ public class CalendarEvent extends MongoBaseObject {
 
         setStartTime(DateTimeUtil.toDate(zoneId, startDt));
         setEndTime(DateTimeUtil.toDate(zoneId, endDt));
+
+        if (updateCalendarEvent.getEventResources() != null) {
+            this.removeAllEventResources();
+            updateCalendarEvent.getEventResources().forEach(this::addEventSource);
+        }
     }
 
     public LocalDate getLocalStartDate() {

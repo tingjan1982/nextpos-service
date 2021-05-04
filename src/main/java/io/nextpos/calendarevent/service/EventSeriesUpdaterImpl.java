@@ -8,7 +8,6 @@ import io.nextpos.calendarevent.service.bean.EventRepeatObject;
 import io.nextpos.calendarevent.service.bean.UpdateCalendarEventObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -64,7 +63,7 @@ public class EventSeriesUpdaterImpl implements EventSeriesUpdater {
                 };
             }
 
-            return new UpdateSeriesEventStrategy(calendarEventRepository);
+            return new UpdateSeriesEventStrategy(calendarEventRepository, calendarEventSeriesRepository);
         }
     }
 
@@ -72,8 +71,11 @@ public class EventSeriesUpdaterImpl implements EventSeriesUpdater {
 
         private final CalendarEventRepository calendarEventRepository;
 
-        private UpdateSeriesEventStrategy(CalendarEventRepository calendarEventRepository) {
+        private final CalendarEventSeriesRepository calendarEventSeriesRepository;
+
+        private UpdateSeriesEventStrategy(CalendarEventRepository calendarEventRepository, CalendarEventSeriesRepository calendarEventSeriesRepository) {
             this.calendarEventRepository = calendarEventRepository;
+            this.calendarEventSeriesRepository = calendarEventSeriesRepository;
         }
 
         @Override
@@ -84,20 +86,19 @@ public class EventSeriesUpdaterImpl implements EventSeriesUpdater {
             final LocalDateTime startTime = updateCalendarEvent.getStartTime();
             final LocalDateTime endTime = updateCalendarEvent.getEndTime();
 
-            if (updateCalendarEvent.isApplyToSeries()) {
+            final boolean applyChangeToSeries = updateCalendarEvent.isApplyToSeries() && !calendarEvent.isIsolated();
+
+            if (applyChangeToSeries) {
                 Map<LocalDate, CalendarEvent> eventsByDate = calendarEventRepository.findAllByClientIdAndEventSeries_Id(calendarEvent.getClientId(), eventSeries.getId()).stream()
                         .collect(Collectors.toMap(CalendarEvent::getLocalStartDate, e -> e));
 
-                eventSeries.updateAndGetSeriesDates(calendarEvent, updateCalendarEvent.getEventRepeat(), startTime).forEach(date -> {
+                final List<LocalDate> dateSeries = eventSeries.updateAndGetSeriesDates(calendarEvent, updateCalendarEvent.getEventRepeat(), startTime);
+
+                dateSeries.forEach(date -> {
                     final CalendarEvent event = eventsByDate.get(date);
 
                     if (event != null) {
-                        event.update(calendarEvent, startTime.toLocalTime(), endTime.toLocalTime(), updateCalendarEvent.getDaysDiff());
-
-                        if (!CollectionUtils.isEmpty(updateCalendarEvent.getEventResources())) {
-                            event.removeAllEventResources();
-                            updateCalendarEvent.getEventResources().forEach(event::addEventSource);
-                        }
+                        event.update(calendarEvent, updateCalendarEvent);
 
                         eventsByDate.remove(date);
                         updatedCalendarEvents.add(this.calendarEventRepository.save(event));
@@ -111,15 +112,15 @@ public class EventSeriesUpdaterImpl implements EventSeriesUpdater {
                     }
                 });
 
+                // make first event in the series the main event in CalendarEventSeries.
+                eventSeries.setMainCalendarId(updatedCalendarEvents.get(0).getId());
+                calendarEventSeriesRepository.save(eventSeries);
+
+                // remove events that no longer participate in the event series
                 eventsByDate.values().forEach(calendarEventRepository::delete);
 
             } else {
-                final boolean dateChanged = !calendarEvent.getStartTime().toInstant().equals(startTime.atZone(calendarEvent.getZoneId()).toInstant());
-
-                if (dateChanged) {
-                    calendarEvent.setEventSeries(null);
-                }
-
+                calendarEvent.setIsolated(true);
                 updatedCalendarEvents.add(this.calendarEventRepository.save(calendarEvent));
             }
 
