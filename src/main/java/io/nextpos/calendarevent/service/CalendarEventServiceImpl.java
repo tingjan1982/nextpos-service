@@ -124,7 +124,15 @@ public class CalendarEventServiceImpl implements CalendarEventService {
 
         if (eventSeries != null && applyToSeries) {
             final List<CalendarEvent> seriesEvents = calendarEventRepository.findAllByClientIdAndEventSeries_Id(calendarEvent.getClientId(), eventSeries.getId());
-            seriesEvents.forEach(calendarEventRepository::delete);
+
+            seriesEvents.forEach(e -> {
+                        if (e.isIsolated()) {
+                            e.setEventSeries(null);
+                            calendarEventRepository.save(e);
+                        } else {
+                            calendarEventRepository.delete(e);
+                        }
+                    });
 
             calendarEventSeriesRepository.delete(eventSeries);
 

@@ -65,9 +65,15 @@ public class EventSeriesCreatorImpl implements EventSeriesCreator {
 
         if (repeatEndDate == null || repeatEndDate.compareTo(endOfMonth) > 0) {
             return endOfMonth;
-        } else {
-            return repeatEndDate;
         }
+
+        final LocalDateTime startTime = DateTimeUtil.toLocalDateTime(calendarEvent.getZoneId(), calendarEvent.getStartTime());
+
+        if (repeatEndDate.compareTo(startTime) < 0) {
+            return startTime;
+        }
+
+        return repeatEndDate;
     }
 
     private LocalDateTime lastDayOfTheSeries(LocalDateTime nextStartTime, CalendarEventSeries.EventRepeat eventRepeat) {

@@ -51,7 +51,10 @@ public class EventSeriesUpdaterImpl implements EventSeriesUpdater {
             if (eventRepeat.getEventRepeat() == CalendarEventSeries.EventRepeat.NONE) {
                 return (event, updateObj) -> {
                     calendarEventRepository.findAllByClientIdAndEventSeries_Id(event.getClientId(), event.getEventSeries().getId()).forEach(e -> {
-                        if (!StringUtils.equals(e.getId(), event.getId())) {
+                        if (e.isIsolated()) {
+                            e.setEventSeries(null);
+                            calendarEventRepository.save(e);
+                        } else if (!StringUtils.equals(e.getId(), event.getId())) {
                             calendarEventRepository.delete(e);
                         }
                     });
@@ -116,8 +119,15 @@ public class EventSeriesUpdaterImpl implements EventSeriesUpdater {
                 eventSeries.setMainCalendarId(updatedCalendarEvents.get(0).getId());
                 calendarEventSeriesRepository.save(eventSeries);
 
-                // remove events that no longer participate in the event series
-                eventsByDate.values().forEach(calendarEventRepository::delete);
+                // remove non-isolated events that no longer participate in the event series
+                eventsByDate.values().forEach(e -> {
+                    if (e.isIsolated()) {
+                        e.setEventSeries(null);
+                        calendarEventRepository.save(e);
+                    } else {
+                        calendarEventRepository.delete(e);
+                    }
+                });
 
             } else {
                 calendarEvent.setIsolated(true);
