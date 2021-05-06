@@ -98,7 +98,6 @@ public class ProductSnapshot {
         }
 
         final BigDecimal optionPriceTotal = this.getProductOptions().stream()
-                .filter(po -> BigDecimal.ZERO.compareTo(po.getOptionPrice()) < 0)
                 .map(ProductSnapshot.ProductOptionSnapshot::getOptionPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
