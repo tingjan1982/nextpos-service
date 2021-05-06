@@ -95,6 +95,17 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
         return Optional.ofNullable(versions.get(version));
     }
 
+    public void updateSettingsFromProductLabel() {
+
+        if (productLabel != null) {
+            this.setWorkingArea(productLabel.getWorkingArea());
+            final ProductOption[] productOptions = productLabel.getProductOptionOfLabels().stream()
+                    .map(ProductOptionRelation.ProductOptionOfLabel::getProductOption).toArray(ProductOption[]::new);
+
+            this.replaceProductOptions(productOptions);
+        } 
+    }
+
     /**
      * Clears all existing product option relation and re-add those passed through as parameter.
      * <p>

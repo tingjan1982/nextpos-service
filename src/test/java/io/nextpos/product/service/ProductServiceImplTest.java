@@ -47,19 +47,22 @@ class ProductServiceImplTest {
     @Test
     void crudProduct() {
 
-        final ProductLabel label = new ProductLabel("label", createdClient);
-        productLabelService.saveProductLabel(label);
-
         final ProductOption ice = new ProductOption(createdClient, new ProductOptionVersion("ice", ProductOptionVersion.OptionType.ONE_CHOICE, true));
         productOptionService.saveProductOption(ice);
 
         final ProductOption sugar = new ProductOption(createdClient, new ProductOptionVersion("ice", ProductOptionVersion.OptionType.ONE_CHOICE, true));
         productOptionService.saveProductOption(sugar);
 
+        final ProductLabel label = new ProductLabel("label", createdClient);
+        label.replaceProductOptions(ice, sugar);
+
+        productLabelService.saveProductLabel(label);
+
+        assertThat(label.getProductOptionOfLabels()).hasSize(2);
+
         final ProductVersion productVersion = new ProductVersion("Gin & Tonic", "sku-001", "signature drink", BigDecimal.valueOf(350));
         final Product product = new Product(createdClient, productVersion);
         product.setProductLabel(label);
-        product.replaceProductOptions(ice);
 
         final Product createdProduct = productService.saveProduct(product);
 
@@ -67,11 +70,10 @@ class ProductServiceImplTest {
 
         final Product existingProduct = productService.getProduct(createdProduct.getId());
         assertProduct(existingProduct, product);
-        assertThat(existingProduct.getProductOptionOfProducts()).hasSize(1);
+        assertThat(existingProduct.getProductOptionOfProducts()).hasSize(2);
 
         existingProduct.setProductLabel(null);
         existingProduct.getDesignVersion().setProductName("updated");
-        existingProduct.replaceProductOptions(ice, sugar);
 
         productService.saveProduct(existingProduct);
 
