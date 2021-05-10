@@ -6,6 +6,9 @@ import io.nextpos.shared.service.annotation.JpaTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
 @Service
 @JpaTransaction
 public class ProductServiceImpl implements ProductService {
@@ -75,6 +78,18 @@ public class ProductServiceImpl implements ProductService {
         productVersionRepository.deleteRetiredProductVersions(product);
 
         productRepository.save(product);
+    }
+
+    @Override
+    public void reorderProducts(List<String> productIds) {
+
+        final AtomicInteger order = new AtomicInteger(1);
+
+        productIds.forEach(productId -> {
+            final Product product = this.getProduct(productId);
+            product.setOrdering(order.getAndIncrement());
+            this.saveProduct(product);
+        });
     }
 
     @Override

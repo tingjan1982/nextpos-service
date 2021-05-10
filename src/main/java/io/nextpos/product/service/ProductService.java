@@ -5,6 +5,8 @@ import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductSet;
 import io.nextpos.product.data.VariationDefinition;
 
+import java.util.List;
+
 public interface ProductService {
 
     Product saveProduct(Product product);
@@ -20,6 +22,8 @@ public interface ProductService {
     ParentProduct getParentProduct(String id);
 
     void deployProduct(String id);
+
+    void reorderProducts(List<String> productIds);
 
     void deleteProduct(Product product);
 

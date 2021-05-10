@@ -57,13 +57,17 @@ class ProductSearchServiceImplTest {
         final Product latte = createProduct("latte coffee", drinkLabel, true);
         final Product appleJuice = createProduct("apple juice", drinkLabel);
 
-        final Product foodProduct = createProduct("salad", foodLabel);
+        productService.reorderProducts(List.of(latte.getId(), appleJuice.getId(), coffee.getId()));
+
+        createProduct("salad", foodLabel);
+        createProduct("沙拉", foodLabel);
+        createProduct("fried rice", foodLabel);
         final Product pasta = createProduct("carbonara", pastaLabel);
 
         createProduct(ProductBuilder.builder(client).productName("frappe").sku("coffee"));
         createProduct(ProductBuilder.builder(client).productName("latte").description("a type of coffee"));
 
-        final Product productWithoutLabel = createProduct("productWithoutLabel", null);
+        createProduct("productWithoutLabel", null);
     }
 
     private Product createProduct(String productName, ProductLabel productLabel) {
@@ -150,9 +154,12 @@ class ProductSearchServiceImplTest {
 
         final Map<ProductLabel, List<ProductVersion>> products = productSearchService.getAllProductsGroupedByLabels(client, Version.DESIGN);
 
+        final Comparator<ProductVersion> comparator = Comparator.<ProductVersion, Integer>comparing(pv -> pv.getProduct().getOrdering()).thenComparing(ProductVersion::getProductName);
+
         assertThat(products).hasSize(6);
         assertThat(findProductsByLabel(products, "drink")).hasSize(3);
-        assertThat(findProductsByLabel(products, "drink")).isSortedAccordingTo(Comparator.comparing(ProductVersion::getProductName));
+        assertThat(findProductsByLabel(products, "drink")).isSortedAccordingTo(comparator);
+        assertThat(findProductsByLabel(products, "food")).isSortedAccordingTo(comparator);
         assertThat(findProductsByLabel(products, "ungrouped")).hasSize(3);
         assertThat(findProductsByLabel(products, "pinned")).hasSize(2);
     }

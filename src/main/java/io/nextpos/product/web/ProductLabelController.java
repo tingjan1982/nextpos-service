@@ -155,6 +155,15 @@ public class ProductLabelController {
         }
     }
 
+    @PostMapping("/ordering")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void reorderProductLabels(@RequestAttribute(REQ_ATTR_CLIENT) Client client,
+                                     @Valid @RequestBody OrderProductLabelRequest request) {
+
+        productLabelService.reorderProductLabels(request.getProductLabelIds());
+    }
+
+
     @PostMapping("/{id}/order")
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
     public void updateProductLabelOrder(@PathVariable final String id,

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -129,6 +130,18 @@ public class ProductLabelServiceImpl implements ProductLabelService {
         }
 
         return productLabelRepository.save(productLabel);
+    }
+
+    @Override
+    public void reorderProductLabels(List<String> productLabelIds) {
+
+        final AtomicInteger order = new AtomicInteger(1);
+
+        productLabelIds.forEach(labelId -> {
+            final ProductLabel productLabel = this.getProductLabelOrThrows(labelId);
+            productLabel.setOrderKey(String.valueOf(order.getAndIncrement()));
+            this.saveProductLabel(productLabel);
+        });
     }
 
     @Override

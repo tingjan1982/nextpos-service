@@ -2,6 +2,7 @@ package io.nextpos.product.data;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
+import io.nextpos.shared.model.ObjectOrdering;
 import io.nextpos.shared.model.ParentObject;
 import io.nextpos.workingarea.data.WorkingArea;
 import lombok.Data;
@@ -29,7 +30,7 @@ import java.util.*;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class Product extends BaseObject implements ParentObject<String, ProductVersion> {
+public class Product extends BaseObject implements ParentObject<String, ProductVersion>, ObjectOrdering<Integer> {
 
     @Id
     @GeneratedValue(generator = "uuid")
@@ -54,6 +55,8 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
     private boolean outOfStock;
 
     private boolean pinned;
+
+    private Integer ordering = 0;
 
     @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @Fetch(value = FetchMode.SUBSELECT)

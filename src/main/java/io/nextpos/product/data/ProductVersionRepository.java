@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface ProductVersionRepository extends JpaRepository<ProductVersion, String> {
 
-    @Query("select p from io.nextpos.product.data.ProductVersion p where p.product.client = ?1 and p.version = ?2 order by p.productName asc")
+    @Query("select p from io.nextpos.product.data.ProductVersion p where p.product.client = ?1 and p.version = ?2 order by p.product.ordering, p.productName asc")
     List<ProductVersion> findAllProductsByClient(Client client, Version version);
 
     @Query("select p from io.nextpos.product.data.ProductVersion p where p.product.client = :client and p.version = :version and (lower(p.productName) like %:keyword% or lower(sku) like %:keyword% or lower(description) like %:keyword%) order by p.productName asc")

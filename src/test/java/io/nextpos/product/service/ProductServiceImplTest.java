@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -101,6 +102,23 @@ class ProductServiceImplTest {
         assertThat(actual.getDesignVersion().getVersionNumber()).isEqualTo(1);
         assertThat(actual.getCreatedTime()).isNotNull();
         assertThat(actual.getUpdatedTime()).isNotNull();
+    }
+
+    @Test
+    void orderProducts() {
+
+        final ProductLabel label = new ProductLabel("label", createdClient);
+        productLabelService.saveProductLabel(label);
+
+        final Product tea = Product.builder(createdClient).productNameAndPrice("tea", new BigDecimal("50")).build();
+        productService.saveProduct(tea);
+        final Product coffee = Product.builder(createdClient).productNameAndPrice("coffee", new BigDecimal("50")).build();
+        productService.saveProduct(coffee);
+
+        productService.reorderProducts(List.of(coffee.getId(), tea.getId()));
+
+        assertThat(productService.getProduct(coffee.getId()).getOrdering()).isEqualTo(1);
+        assertThat(productService.getProduct(tea.getId()).getOrdering()).isEqualTo(2);
     }
 
     @Test

@@ -283,6 +283,13 @@ public class ProductController {
         return toResponse(productService.saveProduct(product), Version.DESIGN);
     }
 
+    @PostMapping("/ordering")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void reorderProducts(@RequestBody OrderProductsRequest request) {
+
+        productService.reorderProducts(request.getProductIds());
+    }
+
 
     private ProductResponse toResponse(Product product, final Version version) {
 
