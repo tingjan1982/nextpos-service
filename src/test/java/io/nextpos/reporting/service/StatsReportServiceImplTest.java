@@ -190,8 +190,8 @@ class StatsReportServiceImplTest {
         assertThat(results.getGroupedCustomerStats()).hasSize(1);
 
         assertThat(results.getGroupedCustomerStats()).allSatisfy(cc -> {
-            assertThat(cc.getCustomerCount()).isEqualTo(279);
-            assertThat(cc.getAverageSpending()).isCloseTo(BigDecimal.valueOf(24), within(BigDecimal.valueOf(1)));
+            assertThat(cc.getCustomerCount()).isEqualTo(186);
+            assertThat(cc.getAverageSpending()).isCloseTo(BigDecimal.valueOf(36), within(BigDecimal.valueOf(1)));
         });
     }
 

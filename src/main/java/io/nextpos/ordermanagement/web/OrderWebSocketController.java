@@ -27,28 +27,28 @@ public class OrderWebSocketController {
     }
 
     @MessageMapping("/realtimeOrderLineItems/{clientId}")
-    @SendTo("/dest/realtimeOrderLineItems/{clientId}")
+    @SendTo("/topic/realtimeOrderLineItems/{clientId}")
     public InProcessOrderLineItems realtimeOrderLineItems(@DestinationVariable String clientId) {
 
         return orderService.getInProcessOrderLineItems(clientId);
     }
 
     @MessageMapping("/realtimeOrders/{clientId}")
-    @SendTo("/dest/realtimeOrders/{clientId}")
+    @SendTo("/topic/realtimeOrders/{clientId}")
     public InProcessOrders realtimeOrders(@DestinationVariable String clientId) {
 
         return orderService.getInProcessOrders(clientId);
     }
 
     @MessageMapping("/inflightOrders/{clientId}")
-    @SendTo("/dest/inflightOrders/{clientId}")
+    @SendTo("/topic/inflightOrders/{clientId}")
     public String inflightOrders(@DestinationVariable String clientId) {
 
         return clientId + ".inflightOrders.established";
     }
 
     @MessageMapping("/order/{orderId}")
-    @SendTo("/dest/order/{orderId}")
+    @SendTo("/topic/order/{orderId}")
     public String orderDetails(@DestinationVariable String orderId) {
 
         return orderId + ".order.established";

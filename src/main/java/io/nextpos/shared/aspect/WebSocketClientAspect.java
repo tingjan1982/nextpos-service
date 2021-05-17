@@ -29,7 +29,7 @@ public class WebSocketClientAspect {
 
         final Object result = proceedingJoinPoint.proceed();
 
-        messagingTemplate.convertAndSend("/dest/inflightOrders/" + order.getClientId(), order.getClientId() + ".inflightOrders.ordersChanged");
+        messagingTemplate.convertAndSend("/topic/inflightOrders/" + order.getClientId(), order.getClientId() + ".inflightOrders.ordersChanged");
 
         return result;
     }
@@ -39,7 +39,7 @@ public class WebSocketClientAspect {
 
         final String orderId = result.getId();
 
-        messagingTemplate.convertAndSend("/dest/order/" + orderId, orderId + ".order.orderChanged");
+        messagingTemplate.convertAndSend("/topic/order/" + orderId, orderId + ".order.orderChanged");
     }
 
     @AfterReturning(value = "onWebSocketClientOrder(webSocketClientOrder)", argNames = "webSocketClientOrder,result", returning = "result")
@@ -47,7 +47,7 @@ public class WebSocketClientAspect {
 
         final String orderId = result.getOrderId();
 
-        messagingTemplate.convertAndSend("/dest/order/" + orderId, orderId + ".order.orderChanged");
+        messagingTemplate.convertAndSend("/topic/order/" + orderId, orderId + ".order.orderChanged");
     }
 
     @Pointcut(value = "@annotation(webSocketClientOrders) && args(order, ..)", argNames = "webSocketClientOrders,order")

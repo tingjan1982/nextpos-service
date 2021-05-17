@@ -335,7 +335,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             this.authorizeMembershipRequests(http);
             this.authorizeClientSubscriptionRequests(http);
             this.authorizeRosterPlanRequests(http);
-            this.authorizeInventoryRequests(http);
+            this.authorizeReservationRequests(http);
 
             http.authorizeRequests().anyRequest().authenticated();
         }
@@ -375,8 +375,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
             HttpSecurityDecorator.newInstance(http)
                     .addAuthorization(GET, "/roles/**", UserRole.UserPermission.of(Permission.USER_ROLE, Permission.Operation.READ), Role.USER_ROLE)
-                    .addAuthorization(POST, "/roles/**", UserRole.UserPermission.of(Permission.USER_ROLE, Permission.Operation.WRITE), Role.USER_ROLE)
-                    .addAuthorization(DELETE, "/roles/**", UserRole.UserPermission.of(Permission.USER_ROLE, Permission.Operation.DELETE), Role.USER_ROLE)
+                    .addAuthorization(POST, "/roles/**", UserRole.UserPermission.of(Permission.USER_ROLE, Permission.Operation.WRITE), Role.MANAGER_ROLE)
+                    .addAuthorization(DELETE, "/roles/**", UserRole.UserPermission.of(Permission.USER_ROLE, Permission.Operation.DELETE), Role.MANAGER_ROLE)
                     .decorate();
         }
 
@@ -414,11 +414,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
             HttpSecurityDecorator.newInstance(http)
                     .addAuthorization(GET, "/products/**", UserRole.UserPermission.of(Permission.PRODUCT, Permission.Operation.READ), Role.USER_ROLE)
-                    .addAuthorization(GET, "/searchces/**", UserRole.UserPermission.of(Permission.PRODUCT, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(GET, "/searches/**", UserRole.UserPermission.of(Permission.PRODUCT, Permission.Operation.READ), Role.USER_ROLE)
                     .addAuthorization(POST, "/products/*/togglePin", UserRole.UserPermission.of(Permission.PRODUCT_TOGGLES, Permission.Operation.WRITE), Role.USER_ROLE)
                     .addAuthorization(POST, "/products/*/toggleOutOfStock", UserRole.UserPermission.of(Permission.PRODUCT_TOGGLES, Permission.Operation.WRITE), Role.USER_ROLE)
                     .addAuthorization(POST, "/products/**", UserRole.UserPermission.of(Permission.PRODUCT, Permission.Operation.WRITE), Role.MANAGER_ROLE)
                     .addAuthorization(DELETE, "/products/**", UserRole.UserPermission.of(Permission.PRODUCT, Permission.Operation.DELETE), Role.MANAGER_ROLE)
+
+                    .addAuthorization(GET, "/inventories/**", UserRole.UserPermission.of(Permission.INVENTORY, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/inventories/**", UserRole.UserPermission.of(Permission.INVENTORY, Permission.Operation.WRITE), Role.USER_ROLE)
+                    .addAuthorization(DELETE, "/inventories/**", UserRole.UserPermission.of(Permission.INVENTORY, Permission.Operation.DELETE), Role.MANAGER_ROLE)
+
+                    .addAuthorization(GET, "/inventoryOrders/**", UserRole.UserPermission.of(Permission.INVENTORY, Permission.Operation.READ), Role.USER_ROLE)
+                    .addAuthorization(POST, "/inventoryOrders/**", UserRole.UserPermission.of(Permission.INVENTORY, Permission.Operation.WRITE), Role.USER_ROLE)
+                    .addAuthorization(DELETE, "/inventoryOrders/**", UserRole.UserPermission.of(Permission.INVENTORY, Permission.Operation.DELETE), Role.MANAGER_ROLE)
 
                     .addAuthorization(GET, "/productoptions/**", UserRole.UserPermission.of(Permission.PRODUCT, Permission.Operation.READ), Role.USER_ROLE)
                     .addAuthorization(POST, "/productoptions/**", UserRole.UserPermission.of(Permission.PRODUCT, Permission.Operation.WRITE), Role.MANAGER_ROLE)
@@ -504,10 +512,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .decorate();
         }
 
-        private void authorizeInventoryRequests(HttpSecurity http) throws Exception {
+        private void authorizeReservationRequests(HttpSecurity http) throws Exception {
 
-            http.authorizeRequests()
-                    .antMatchers("/inventories/**").hasAuthority(Role.MANAGER_ROLE);
+            HttpSecurityDecorator.newInstance(http)
+                    .addAuthorization("/reservations/**", UserRole.UserPermission.of(Permission.RESERVATION, Permission.Operation.ALL), Role.USER_ROLE)
+                    .addAuthorization("/reservationDays/**", UserRole.UserPermission.of(Permission.RESERVATION, Permission.Operation.ALL), Role.USER_ROLE)
+                    .decorate();
         }
     }
 

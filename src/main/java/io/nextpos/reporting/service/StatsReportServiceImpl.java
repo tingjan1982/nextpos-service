@@ -103,7 +103,7 @@ public class StatsReportServiceImpl implements StatsReportService {
                 .and("demographicData.male").as("male")
                 .and("demographicData.female").as("female")
                 .and("demographicData.kid").as("kid")
-                .andExpression("demographicData.male + demographicData.female + demographicData.kid").as("customerCount")
+                .andExpression("demographicData.male + demographicData.female").as("customerCount")
                 //.and(context -> Document.parse("{ $divide: [ { $toDecimal: [ '$total.amountWithTax' ] }, { $add: [ '$demographicData.male', '$demographicData.female', '$demographicData.kid' ] } ] }")).as("avgCustomerSpending")
                 .and(context -> Document.parse("{ $dayOfMonth: {date: '$createdDate', timezone: '" + timezone + "'} }")).as("day");
 

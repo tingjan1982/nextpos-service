@@ -18,6 +18,7 @@ public enum Permission {
      * Product related
      */
     PRODUCT,
+    INVENTORY,
     PRODUCT_TOGGLES,
     OFFER,
 
@@ -44,7 +45,8 @@ public enum Permission {
      * Advanced feature related
      */
     REPORT,
-    ROSTER;
+    ROSTER,
+    RESERVATION;
 
     public static List<String> ALL_PERMISSION;
 

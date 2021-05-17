@@ -31,7 +31,7 @@ public class OrderMessagingServiceImpl implements OrderMessagingService {
         final InProcessOrderLineItems inProcessOrderLineItems = orderService.getInProcessOrderLineItems(clientId);
         inProcessOrderLineItems.setNeedAlert(needAlert);
 
-        messagingTemplate.convertAndSend("/dest/realtimeOrderLineItems/" + clientId, inProcessOrderLineItems);
+        messagingTemplate.convertAndSend("/topic/realtimeOrderLineItems/" + clientId, inProcessOrderLineItems);
     }
 
     @Override
@@ -42,6 +42,6 @@ public class OrderMessagingServiceImpl implements OrderMessagingService {
         final InProcessOrders inProcessOrders = orderService.getInProcessOrders(clientId);
         inProcessOrders.setNeedAlert(needAlert);
 
-        messagingTemplate.convertAndSend("/dest/realtimeOrders/" + clientId, inProcessOrders);
+        messagingTemplate.convertAndSend("/topic/realtimeOrders/" + clientId, inProcessOrders);
     }
 }
