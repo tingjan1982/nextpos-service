@@ -163,7 +163,7 @@ public class ProductLabelController {
         productLabelService.reorderProductLabels(request.getProductLabelIds());
     }
 
-
+    @Deprecated
     @PostMapping("/{id}/order")
     @ResponseStatus(code = HttpStatus.NO_CONTENT)
     public void updateProductLabelOrder(@PathVariable final String id,

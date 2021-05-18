@@ -3,6 +3,7 @@ package io.nextpos.product.data;
 import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.ClientObject;
+import io.nextpos.shared.model.ObjectOrdering;
 import io.nextpos.workingarea.data.WorkingArea;
 import lombok.*;
 import org.hibernate.annotations.Fetch;
@@ -20,7 +21,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class ProductLabel extends BaseObject implements ClientObject {
+public class ProductLabel extends BaseObject implements ClientObject, ObjectOrdering<Integer> {
 
     @Id
     @GeneratedValue(generator = "uuid")
@@ -44,8 +45,11 @@ public class ProductLabel extends BaseObject implements ClientObject {
     @ToString.Exclude
     private WorkingArea workingArea;
 
+    @Deprecated
     @EqualsAndHashCode.Include
-    private String orderKey;
+    private Integer orderKey;
+
+    private Integer ordering = 0;
 
     private String color;
 
@@ -64,7 +68,7 @@ public class ProductLabel extends BaseObject implements ClientObject {
     public ProductLabel(final String name, final Client client) {
         this.name = name;
         this.client = client;
-        this.orderKey = name;
+        this.orderKey = 0;
     }
 
     public static ProductLabel dynamicLabel(Client client, String name) {
@@ -103,7 +107,7 @@ public class ProductLabel extends BaseObject implements ClientObject {
         @Override
         public int compare(final ProductLabel o1, final ProductLabel o2) {
 
-            final Comparator<ProductLabel> chainedComparator = Comparator.comparing(ProductLabel::getOrderKey);
+            final Comparator<ProductLabel> chainedComparator = Comparator.comparing(ProductLabel::getOrdering).thenComparing(ProductLabel::getName);
 
             return chainedComparator.compare(o1, o2);
         }

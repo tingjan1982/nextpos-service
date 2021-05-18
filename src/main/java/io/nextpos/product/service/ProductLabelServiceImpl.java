@@ -56,7 +56,7 @@ public class ProductLabelServiceImpl implements ProductLabelService {
 
     @Override
     public List<ProductLabel> getProductLabels(final Client client) {
-        return productLabelRepository.findAllByClientAndParentLabelIsNull(client, Sort.by(Sort.Order.asc("orderKey"), Sort.Order.asc("name")));
+        return productLabelRepository.findAllByClientAndParentLabelIsNull(client, Sort.by(Sort.Order.asc("ordering"), Sort.Order.asc("name")));
     }
 
 
@@ -109,27 +109,29 @@ public class ProductLabelServiceImpl implements ProductLabelService {
      * <p>
      * This will ensure that the label will be positioned in between the two elements.
      */
+    @Deprecated
     @Override
     public ProductLabel updateProductLabelOrder(String productLabelId, int index, String previousProductLabelId, String nextProductLabelId) {
 
-        final ProductLabel productLabel = productLabelRepository.findById(productLabelId).orElseThrow();
-        final Optional<ProductLabel> previousLabelOptional = productLabelRepository.findById(previousProductLabelId);
-        final Optional<ProductLabel> nextLabelOptional = productLabelRepository.findById(nextProductLabelId);
-
-        if (previousLabelOptional.isEmpty()) {
-            nextLabelOptional.ifPresent(l -> productLabel.setOrderKey("" + index + l.getOrderKey()));
-
-        } else if (nextLabelOptional.isEmpty()) {
-            previousLabelOptional.ifPresent(l -> productLabel.setOrderKey(l.getOrderKey() + index));
-
-        } else {
-            final ProductLabel previousLabel = previousLabelOptional.get();
-            final ProductLabel nextLabel = nextLabelOptional.get();
-
-            productLabel.setOrderKey(previousLabel.getOrderKey() + nextLabel.getOrderKey());
-        }
-
-        return productLabelRepository.save(productLabel);
+//        final ProductLabel productLabel = productLabelRepository.findById(productLabelId).orElseThrow();
+//        final Optional<ProductLabel> previousLabelOptional = productLabelRepository.findById(previousProductLabelId);
+//        final Optional<ProductLabel> nextLabelOptional = productLabelRepository.findById(nextProductLabelId);
+//
+//        if (previousLabelOptional.isEmpty()) {
+//            nextLabelOptional.ifPresent(l -> productLabel.setOrderKey("" + index + l.getOrderKey()));
+//
+//        } else if (nextLabelOptional.isEmpty()) {
+//            previousLabelOptional.ifPresent(l -> productLabel.setOrderKey(l.getOrderKey() + index));
+//
+//        } else {
+//            final ProductLabel previousLabel = previousLabelOptional.get();
+//            final ProductLabel nextLabel = nextLabelOptional.get();
+//
+//            productLabel.setOrderKey(previousLabel.getOrderKey() + nextLabel.getOrderKey());
+//        }
+//
+//        return productLabelRepository.save(productLabel);
+        return null;
     }
 
     @Override
@@ -139,7 +141,7 @@ public class ProductLabelServiceImpl implements ProductLabelService {
 
         productLabelIds.forEach(labelId -> {
             final ProductLabel productLabel = this.getProductLabelOrThrows(labelId);
-            productLabel.setOrderKey(String.valueOf(order.getAndIncrement()));
+            productLabel.setOrdering(order.getAndIncrement());
             this.saveProductLabel(productLabel);
         });
     }

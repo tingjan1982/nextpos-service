@@ -43,9 +43,9 @@ class ProductSearchServiceImplTest {
 
         client = clientService.createClient(DummyObjects.dummyClient());
         final ProductLabel drinkLabel = new ProductLabel("drink", client);
-        drinkLabel.setOrderKey("2");
+        drinkLabel.setOrdering(2);
         final ProductLabel foodLabel = new ProductLabel("food", client);
-        foodLabel.setOrderKey("1");
+        foodLabel.setOrdering(1);
         final ProductLabel pastaLabel = foodLabel.addChildProductLabel("pasta");
         final ProductLabel labelWithoutProduct = new ProductLabel("not used", client);
 

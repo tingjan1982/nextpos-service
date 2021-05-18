@@ -11,9 +11,9 @@ import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 @RestController
@@ -38,7 +38,7 @@ public class ProductSearchController {
 
     private ProductSearchResponse toProductSearchResponse(final Map<ProductLabel, List<ProductVersion>> groupedProducts) {
 
-        final TreeMap<String, List<LightProductResponse>> results = new TreeMap<>();
+        final LinkedHashMap<String, List<LightProductResponse>> results = new LinkedHashMap<>();
 
         groupedProducts.forEach((key, value) -> {
             final List<LightProductResponse> products = value.stream()

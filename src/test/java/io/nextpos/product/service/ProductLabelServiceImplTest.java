@@ -139,7 +139,7 @@ class ProductLabelServiceImplTest {
 
         for (int i = 0; i < 5; i++) {
             final String labelName = "label " + i;
-            final ProductLabel label = addLabel(labels, labelName, labelName);
+            final ProductLabel label = addLabel(labels, labelName, 0);
             productLabelService.saveProductLabel(label);
         }
 
@@ -165,21 +165,21 @@ class ProductLabelServiceImplTest {
 
         List<ProductLabel> labels = new ArrayList<>();
 
-        addLabel(labels, "a", "bbcbc");
-        addLabel(labels, "b", "bbcbc4");
-        addLabel(labels, "c", "0b");
-        addLabel(labels, "d", "bbc");
-        addLabel(labels, "e", "00b");
+        addLabel(labels, "a", 3);
+        addLabel(labels, "b", 5);
+        addLabel(labels, "c", 2);
+        addLabel(labels, "d", 1);
+        addLabel(labels, "e", 4);
 
-        final Comparator<ProductLabel> comparatorToUse = Comparator.comparing(ProductLabel::getOrderKey, Comparator.nullsLast(Comparator.naturalOrder()));
+        final Comparator<ProductLabel> comparatorToUse = Comparator.comparing(ProductLabel::getOrdering, Comparator.nullsLast(Comparator.naturalOrder()));
         labels.sort(comparatorToUse);
 
         labels.forEach(System.out::println);
     }
 
-    private ProductLabel addLabel(List<ProductLabel> labels, String labelName, String orderKey) {
+    private ProductLabel addLabel(List<ProductLabel> labels, String labelName, int ordering) {
         final ProductLabel label = new ProductLabel(labelName, client);
-        label.setOrderKey(orderKey);
+        label.setOrdering(ordering);
 
         labels.add(label);
 
