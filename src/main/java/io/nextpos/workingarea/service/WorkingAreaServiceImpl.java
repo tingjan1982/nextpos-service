@@ -1,6 +1,7 @@
 package io.nextpos.workingarea.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.data.ClientUserRepository;
 import io.nextpos.product.data.ProductLabelRepository;
 import io.nextpos.product.data.ProductRepository;
 import io.nextpos.shared.exception.BusinessLogicException;
@@ -28,12 +29,15 @@ public class WorkingAreaServiceImpl implements WorkingAreaService {
 
     private final ProductLabelRepository productLabelRepository;
 
+    private final ClientUserRepository clientUserRepository;
+
     @Autowired
-    public WorkingAreaServiceImpl(final WorkingAreaRepository workingAreaRepository, final PrinterRepository printerRepository, ProductRepository productRepository, ProductLabelRepository productLabelRepository) {
+    public WorkingAreaServiceImpl(final WorkingAreaRepository workingAreaRepository, final PrinterRepository printerRepository, ProductRepository productRepository, ProductLabelRepository productLabelRepository, ClientUserRepository clientUserRepository) {
         this.workingAreaRepository = workingAreaRepository;
         this.printerRepository = printerRepository;
         this.productRepository = productRepository;
         this.productLabelRepository = productLabelRepository;
+        this.clientUserRepository = clientUserRepository;
     }
 
     @Override
@@ -67,7 +71,7 @@ public class WorkingAreaServiceImpl implements WorkingAreaService {
     public void deleteWorkingArea(final WorkingArea workingArea) {
 
         if (!checkWorkingAreaDeletable(workingArea)) {
-            throw new BusinessLogicException("message.workingAreaInUse", "Working area is used by at least one product or category.");
+            throw new BusinessLogicException("message.workingAreaInUse", "Working area is associated with at least product, category or user.");
         }
 
         workingArea.clearPrinters();
@@ -76,7 +80,9 @@ public class WorkingAreaServiceImpl implements WorkingAreaService {
     }
 
     private boolean checkWorkingAreaDeletable(WorkingArea workingArea) {
-        return !productRepository.existsAllByWorkingArea(workingArea) && !productLabelRepository.existsAllByWorkingArea(workingArea);
+        return !productRepository.existsAllByWorkingArea(workingArea) &&
+                !productLabelRepository.existsAllByWorkingArea(workingArea) &&
+                !clientUserRepository.existsAllByWorkingAreas(workingArea);
     }
 
     @Override

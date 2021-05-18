@@ -1,6 +1,7 @@
 package io.nextpos.workingarea.data;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.data.ClientUser;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.ClientObject;
 import lombok.*;
@@ -42,6 +43,12 @@ public class WorkingArea extends BaseObject implements ClientObject {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Set<Printer> printers = new HashSet<>();
+
+    @ManyToMany(mappedBy = "workingAreas", fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SUBSELECT)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Set<ClientUser> clientUsers = new HashSet<>();
 
     public WorkingArea(final Client client, final String name) {
         this.client = client;

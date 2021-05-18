@@ -1,5 +1,6 @@
 package io.nextpos.client.data;
 
+import io.nextpos.workingarea.data.WorkingArea;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,6 +23,8 @@ public interface ClientUserRepository extends JpaRepository<ClientUser, String> 
     Optional<ClientUser> findByUsernameAndClientIn(String username, List<Client> clients);
 
     List<ClientUser> findAllByClientInOrderByNicknameAsc(List<Client> clients);
-    
+
+    boolean existsAllByWorkingAreas(WorkingArea workingArea);
+
     void deleteAllByClient(Client client);
 }

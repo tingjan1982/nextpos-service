@@ -9,6 +9,8 @@ import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.config.SecurityConfig;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectAlreadyExistsException;
+import io.nextpos.workingarea.data.WorkingArea;
+import io.nextpos.workingarea.service.WorkingAreaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +39,9 @@ class ClientServiceImplTest {
 
     @Autowired
     private LinkedClientAccountService linkedClientAccountService;
+
+    @Autowired
+    private WorkingAreaService workingAreaService;
 
     private Client client;
 
@@ -82,17 +87,32 @@ class ClientServiceImplTest {
     void crudClientUser() {
 
         clientService.saveClient(client);
+
+        final WorkingArea kitchen = new WorkingArea(client, "kitchen");
+        workingAreaService.saveWorkingArea(kitchen);
+        final WorkingArea bar = new WorkingArea(client, "bar");
+        workingAreaService.saveWorkingArea(bar);
+
         final String username = "user@nextpos.io";
         final ClientUser clientUser = new ClientUser(client, username, "admin", SecurityConfig.Role.ADMIN_ROLE);
+        clientUser.addWorkingArea(kitchen);
+        clientUser.addWorkingArea(bar);
 
         final ClientUser createdUser = clientService.createClientUser(clientUser);
 
+        assertThat(clientService.getClientUser(client, clientUser.getUsername())).satisfies(u -> {
+            assertThat(u.getId()).isEqualTo(clientUser.getId());
+            assertThat(u.getNickname()).isNotNull();
+            assertThat(u.getPassword()).startsWith("{bcrypt}");
+            assertThat(u.getRoles()).contains(SecurityConfig.Role.ADMIN_ROLE);
+            assertThat(u.getWorkingAreas()).hasSize(2);
+        });
+
+        assertThat(workingAreaService.getWorkingArea(kitchen.getId()).getClientUsers()).hasSize(1);
+        assertThat(workingAreaService.getWorkingArea(bar.getId()).getClientUsers()).hasSize(1);
+
         final ClientPasswordRegistry clientPasswordRegistry = clientPasswordRegistryRepository.findByClient(client).orElseThrow();
         assertThat(clientPasswordRegistry.isPasswordUsed("admin")).isTrue();
-
-        assertThat(createdUser).isNotNull();
-        assertThat(createdUser.getPassword()).startsWith("{bcrypt}");
-        assertThat(createdUser.getId()).isEqualTo(clientUser.getId());
 
         assertThatThrownBy(() -> clientService.createClientUser(clientUser)).isInstanceOf(ObjectAlreadyExistsException.class);
 
@@ -114,11 +134,15 @@ class ClientServiceImplTest {
         createdUser.setPassword("password");
         createdUser.setRoles(SecurityConfig.Role.USER_ROLE);
 
-        final ClientUser updatedUser = clientService.saveClientUser(createdUser);
+        clientService.saveClientUser(createdUser);
 
-        assertThat(updatedUser.getNickname()).isEqualTo("tom");
-        assertThat(updatedUser.getId()).isEqualTo(clientUser.getId());
-        assertThat(updatedUser.getRoles()).contains(SecurityConfig.Role.USER_ROLE);
+        assertThat(clientService.getClientUser(client, createdUser.getUsername())).satisfies(u -> {
+            assertThat(u.getId()).isEqualTo(clientUser.getId());
+            assertThat(u.getNickname()).isEqualTo("tom");
+            assertThat(u.getRoles()).contains(SecurityConfig.Role.USER_ROLE);
+        });
+
+        assertThatThrownBy(() -> workingAreaService.deleteWorkingArea(kitchen)).isInstanceOf(BusinessLogicException.class);
 
         clientService.deleteClientUser(client, username);
         clientService.deleteClientUser(client, anotherUser.getUsername());
@@ -126,6 +150,14 @@ class ClientServiceImplTest {
         assertThat(clientService.getClientUsers(client)).isEmpty();
 
         assertThatThrownBy(() -> clientService.loadUserByUsername(username)).isInstanceOf(UsernameNotFoundException.class);
+
+        assertThat(workingAreaService.getWorkingArea(kitchen.getId()).getClientUsers()).isEmpty();
+        assertThat(workingAreaService.getWorkingArea(bar.getId()).getClientUsers()).isEmpty();
+
+        workingAreaService.deleteWorkingArea(kitchen);
+        workingAreaService.deleteWorkingArea(bar);
+
+        assertThat(workingAreaService.getWorkingAreas(client)).isEmpty();
     }
 
     @Test

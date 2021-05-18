@@ -1,16 +1,21 @@
 package io.nextpos.client.data;
 
-import io.micrometer.core.instrument.util.StringUtils;
 import io.nextpos.roles.data.UserRole;
 import io.nextpos.shared.config.SecurityConfig;
 import io.nextpos.shared.model.BaseObject;
+import io.nextpos.workingarea.data.WorkingArea;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity(name = "client_users")
 @NamedEntityGraph(name = "ClientUser.userRole",
@@ -66,6 +71,13 @@ public class ClientUser extends BaseObject {
     @Column(length = 1000)
     private String permissions;
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(joinColumns = @JoinColumn(name = "client_user_id"), inverseJoinColumns = @JoinColumn(name = "working_area_id"))
+    @Fetch(FetchMode.SUBSELECT)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Set<WorkingArea> workingAreas = new HashSet<>();
+
     @Deprecated
     public ClientUser(Client client, String username, String password, String roles) {
         this.username = username;
@@ -98,6 +110,15 @@ public class ClientUser extends BaseObject {
         }
     }
 
+    public void addWorkingArea(WorkingArea workingArea) {
+        workingAreas.add(workingArea);
+        workingArea.getClientUsers().add(this);
+    }
+
+    public void clearWorkingAreas() {
+        workingAreas.forEach(p -> p.getClientUsers().removeIf(next -> StringUtils.equals(next.getId(), this.getId())));
+        workingAreas.clear();
+    }
 
     /**
      * Represent a meaningful name. todo: change to return nickname when ClientUserRequest.nickname has NotBlank validation.

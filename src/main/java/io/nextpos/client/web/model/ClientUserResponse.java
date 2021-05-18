@@ -32,6 +32,8 @@ public class ClientUserResponse {
 
     private String userRoleId;
 
+    private List<String> workingAreaIds;
+
     private boolean defaultUser;
 
     private String permissions;

@@ -367,6 +367,8 @@ public class ClientServiceImpl implements ClientService {
         clientPasswordRegistry.removePassword(clientUser.getUsername());
         clientPasswordRegistryRepository.save(clientPasswordRegistry);
 
+        clientUser.clearWorkingAreas();
+
         clientUserRepository.delete(clientUser);
     }
 

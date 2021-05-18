@@ -19,6 +19,8 @@ import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.subscription.data.ClientSubscriptionAccess;
 import io.nextpos.subscription.service.ClientSubscriptionAccessService;
+import io.nextpos.workingarea.data.WorkingArea;
+import io.nextpos.workingarea.service.WorkingAreaService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -39,6 +41,8 @@ public class ClientController {
 
     private final UserRoleService userRoleService;
 
+    private final WorkingAreaService workingAreaService;
+
     private final ClientBootstrapService clientBootstrapService;
 
     private final ClientActivationService clientActivationService;
@@ -52,9 +56,10 @@ public class ClientController {
     private final OAuth2Helper oAuth2Helper;
 
     @Autowired
-    public ClientController(final ClientService clientService, final UserRoleService userRoleService, ClientBootstrapService clientBootstrapService, final ClientActivationService clientActivationService, ClientUserTrackingService clientUserTrackingService, ClientSubscriptionAccessService clientSubscriptionAccessService, EncryptionService encryptionService, final OAuth2Helper oAuth2Helper) {
+    public ClientController(final ClientService clientService, final UserRoleService userRoleService, WorkingAreaService workingAreaService, ClientBootstrapService clientBootstrapService, final ClientActivationService clientActivationService, ClientUserTrackingService clientUserTrackingService, ClientSubscriptionAccessService clientSubscriptionAccessService, EncryptionService encryptionService, final OAuth2Helper oAuth2Helper) {
         this.clientService = clientService;
         this.userRoleService = userRoleService;
+        this.workingAreaService = workingAreaService;
         this.clientBootstrapService = clientBootstrapService;
         this.clientActivationService = clientActivationService;
         this.clientUserTrackingService = clientUserTrackingService;
@@ -265,6 +270,11 @@ public class ClientController {
             clientUser.setUserRole(userRole);
         }
 
+        request.getWorkingAreaIds().forEach(id -> {
+            final WorkingArea workingArea = workingAreaService.getWorkingArea(id);
+            clientUser.addWorkingArea(workingArea);
+        });
+
         return clientUser;
     }
 
@@ -306,28 +316,34 @@ public class ClientController {
 
         updateClientUserFromRequest(clientUser, updateClientUserRequest);
 
-        clientService.saveClientUser(clientUser);
-        return toClientUserResponse(clientUser);
+        return toClientUserResponse(clientService.saveClientUser(clientUser));
     }
 
-    private void updateClientUserFromRequest(final ClientUser clientUser, final UpdateClientUserRequest updateClientUserRequest) {
+    private void updateClientUserFromRequest(final ClientUser clientUser, final UpdateClientUserRequest request) {
 
-        clientUser.setNickname(updateClientUserRequest.getNickname());
-        final String roles = String.join(",", updateClientUserRequest.getRoles());
+        clientUser.setNickname(request.getNickname());
+        final String roles = String.join(",", request.getRoles());
         clientUser.setRoles(roles);
 
-        if (StringUtils.isNotBlank(updateClientUserRequest.getUserRoleId())) {
-            final UserRole userRole = userRoleService.loadUserRole(updateClientUserRequest.getUserRoleId());
+        if (StringUtils.isNotBlank(request.getUserRoleId())) {
+            final UserRole userRole = userRoleService.loadUserRole(request.getUserRoleId());
             clientUser.setUserRole(userRole);
         } else {
             userRoleService.removeClientUserRole(clientUser);
         }
+
+        clientUser.clearWorkingAreas();
+
+        request.getWorkingAreaIds().forEach(id -> {
+            final WorkingArea workingArea = workingAreaService.getWorkingArea(id);
+            clientUser.addWorkingArea(workingArea);
+        });
     }
 
     @PostMapping("/me/users/{username}/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateClientUser(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                 @PathVariable final String username) {
+    public void userLogout(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                           @PathVariable final String username) {
 
         clientUserTrackingService.deleteClientUsageTrack(client, ClientUsageTrack.TrackingType.USER, username);
     }
@@ -377,6 +393,7 @@ public class ClientController {
                 clientUser.getPassword(),
                 roles,
                 clientUser.getUserRole() != null ? clientUser.getUserRole().getId() : null,
+                clientUser.getWorkingAreas().stream().map(WorkingArea::getId).collect(Collectors.toList()),
                 clientUser.isDefaultUser(),
                 clientUser.getPermissions());
     }
