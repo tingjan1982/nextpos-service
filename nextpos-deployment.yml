@@ -10,7 +10,7 @@ spec:
   selector:
     matchLabels:
       app: nextpos-service
-  minReadySeconds: 150
+  minReadySeconds: 120
   strategy:
     type: RollingUpdate
     rollingUpdate:
