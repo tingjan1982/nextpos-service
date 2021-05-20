@@ -47,6 +47,7 @@ public class ClientSubscriptionAccessServiceImpl implements ClientSubscriptionAc
                 "calendar",
                 "staff",
                 "roster",
+                "reservation",
                 "einvoice"
         ), 1, 1);
     }

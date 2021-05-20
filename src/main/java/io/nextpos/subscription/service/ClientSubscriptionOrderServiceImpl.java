@@ -45,6 +45,8 @@ import io.nextpos.subscription.data.SubscriptionPlan;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.Binary;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -60,6 +62,8 @@ import java.util.concurrent.CompletableFuture;
 @Service
 @ChainedTransaction
 public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrderService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClientSubscriptionServiceImpl.class);
 
     private final ClientService clientService;
 
@@ -120,9 +124,8 @@ public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrd
             sendNotification(clientSubscriptionInvoice, overrideEmail).get();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("Error while creating and sending client order: {}", e.getMessage(), e);
         }
-
     }
 
     private ProductSnapshot createProductSnapshot(ClientSubscriptionInvoice clientSubscriptionInvoice) {

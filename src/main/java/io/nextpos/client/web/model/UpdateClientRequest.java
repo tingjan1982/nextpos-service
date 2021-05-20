@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -24,4 +26,6 @@ public class UpdateClientRequest {
     private Map<String, String> attributes;
 
     private Map<ClientSetting.SettingName, ClientSettingRequest> clientSettings;
+
+    private List<String> paymentMethodIds = new ArrayList<>();
 }

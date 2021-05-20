@@ -48,6 +48,7 @@ public class WebConfig implements WebMvcConfigurer {
                 "/clients/me/*",
                 "/clientSettings/*",
                 "/clientstatus/*",
+                "/settings/*",
                 "/orders/*",
                 "/ordersets/*",
                 "/splitOrders/*",

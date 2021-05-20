@@ -6,6 +6,7 @@ import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
 import io.nextpos.product.data.ProductOption;
 import io.nextpos.roles.data.UserRole;
+import io.nextpos.settings.data.PaymentMethod;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.workingarea.data.Printer;
@@ -73,6 +74,13 @@ public class Client extends BaseObject {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private List<ClientSetting> clientSettings = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(joinColumns = @JoinColumn(name = "client_id"), inverseJoinColumns = @JoinColumn(name = "payment_method_id"))
+    @Fetch(FetchMode.SUBSELECT)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Set<PaymentMethod> supportedPaymentMethods = new HashSet<>();
 
     /**
      * The following associations exist so when client is deleted, all associated client objects are also removed via cascade operation.
@@ -188,6 +196,14 @@ public class Client extends BaseObject {
     public void updateClientInfo(ClientInfo clientInfo) {
         clientInfo.setClient(this);
         setClientInfo(clientInfo);
+    }
+
+    public void addSupportedPaymentMethod(PaymentMethod paymentMethod) {
+        this.supportedPaymentMethods.add(paymentMethod);
+    }
+
+    public void clearPaymentMethods() {
+        this.supportedPaymentMethods.clear();
     }
 
     public enum Status {

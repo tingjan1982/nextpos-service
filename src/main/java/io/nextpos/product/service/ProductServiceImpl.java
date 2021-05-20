@@ -85,11 +85,10 @@ public class ProductServiceImpl implements ProductService {
 
         final AtomicInteger order = new AtomicInteger(1);
 
-        productIds.forEach(productId -> {
-            final Product product = this.getProduct(productId);
-            product.setOrdering(order.getAndIncrement());
-            this.saveProduct(product);
-        });
+        productIds.forEach(productId -> productRepository.findById(productId).ifPresent(p -> {
+            p.setOrdering(order.getAndIncrement());
+            this.saveProduct(p);
+        }));
     }
 
     @Override

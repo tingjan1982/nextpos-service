@@ -58,7 +58,7 @@ dependencies {
     implementation 'org.springframework.security:spring-security-oauth2-client' // contains ClientRegistration class
     implementation 'org.springframework.retry:spring-retry'
 
-    implementation 'com.hazelcast:hazelcast-spring'
+    //implementation 'com.hazelcast:hazelcast-spring'
     //implementation 'com.hazelcast:hazelcast-client'
     
     implementation 'org.apache.commons:commons-lang3'

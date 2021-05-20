@@ -52,7 +52,7 @@ public class ManageClientSubscription {
             if (status == ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PENDING) {
                 invoices.forEach(inv -> {
                     System.out.println("invoice id: " + inv.getId());
-                    
+
                     if (inv.getClientSubscription() == null) {
                         System.out.println("sub doesn't exist");
                         clientSubscriptionInvoiceRepository.delete(inv);
@@ -67,39 +67,45 @@ public class ManageClientSubscription {
     }
 
     @Test
-    void updateSubscription() {
+    void renewClientSubscription() {
 
-        clientService.getClientByUsername("a0919910@gmail.com").ifPresent(c -> {
+        final SubscriptionPlan.PlanPeriod newPlanPeriod = SubscriptionPlan.PlanPeriod.MONTHLY;
+
+        clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
             final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());
-            subscription.setPlanPeriod(SubscriptionPlan.PlanPeriod.HALF_YEARLY);
-            clientSubscriptionService.saveClientSubscription(subscription);
 
-            System.out.println("Updated client subscription: " + subscription);
+            if (newPlanPeriod != subscription.getPlanPeriod()) {
+                subscription.setPlanPeriod(newPlanPeriod);
+                clientSubscriptionService.saveClientSubscription(subscription);
 
-            Date renewalDate = DateTimeUtil.toDate(c.getZoneId(), LocalDateTime.of(2021, 5, 1, 0, 0, 0));
-            final ClientSubscriptionInvoice renewalInvoice = new ClientSubscriptionInvoice(c.getZoneId(), subscription, renewalDate, true);
-            clientSubscriptionInvoiceRepository.save(renewalInvoice);
+                System.out.println("Updated client subscription plan period: " + subscription);
+            }
 
-            System.out.println("Updated renewal invoice: " + renewalInvoice);
+            Date renewalDate = DateTimeUtil.toDate(c.getZoneId(), LocalDateTime.of(2021, 6, 1, 0, 0, 0));
+            final ClientSubscriptionInvoice renewalInvoice = clientSubscriptionService.createClientSubscriptionInvoice(c, subscription, renewalDate);
 
-            subscription.setCurrentInvoiceId(renewalInvoice.getId());
-            clientSubscriptionService.saveClientSubscription(subscription);
+            System.out.println("Renewal invoice identifier: " + renewalInvoice.getInvoiceIdentifier());
+            System.out.println("Created renewal invoice: " + renewalInvoice);
+        });
+    }
 
-            System.out.println("Updated client subscription: " + subscription);
+    @Test
+    void activateClientSubscription() {
 
-            final ClientSubscriptionInvoice paid = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(renewalInvoice.getInvoiceIdentifier(), false);
-
-            System.out.println("Updated invoice: " + paid);
+        String invoiceIdentifier = "419800";
+        clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
+            final ClientSubscriptionInvoice paid = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(invoiceIdentifier, false);
+            System.out.println("Paid invoice: " + paid);
         });
     }
 
     @Test
     void sendSubscriptionInvoice() {
-        clientService.getClientByUsername("a0919910@gmail.com").ifPresent(c -> {
+        clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
             final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());
             final ClientSubscriptionInvoice invoice = clientSubscriptionService.getClientSubscriptionInvoice(subscription.getCurrentInvoiceId());
 
-            clientSubscriptionOrderService.sendClientSubscriptionOrder(invoice, "rain.io.app@gmail.com");
+            clientSubscriptionOrderService.sendClientSubscriptionOrder(invoice, null);
         });
     }
 }

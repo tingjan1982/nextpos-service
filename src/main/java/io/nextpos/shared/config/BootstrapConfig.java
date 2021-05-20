@@ -128,6 +128,8 @@ public class BootstrapConfig {
             settingsService.saveCountrySettings(defaultCountrySettings);
         });
 
+        this.createDefaultPaymentMethods();
+
         if (checkMongoDbSessionSupport()) {
             final SubscriptionPaymentInstruction paymentInstruction = subscriptionPlanService.getSubscriptionPaymentInstructionByCountry(DEFAULT_COUNTRY_CODE).orElseGet(() -> {
 
@@ -137,6 +139,20 @@ public class BootstrapConfig {
 
             LOGGER.info("Default subscription payment instruction: {}", paymentInstruction);
         }
+    }
+
+    private void createDefaultPaymentMethods() {
+
+        settingsService.findCountrySettings(DEFAULT_COUNTRY_CODE).ifPresent(cs -> {
+            cs.addSupportedPaymentMethod(settingsService.getOrCreatePaymentMethod("CASH", "Cash", 1));
+            cs.addSupportedPaymentMethod(settingsService.getOrCreatePaymentMethod("CARD", "Card", 2));
+            cs.addSupportedPaymentMethod(settingsService.getOrCreatePaymentMethod("LINE_PAY", "Line Pay", 3));
+            cs.addSupportedPaymentMethod(settingsService.getOrCreatePaymentMethod("JKO", "街口", 4));
+            cs.addSupportedPaymentMethod(settingsService.getOrCreatePaymentMethod("UBER_EATS", "Uber Eats", 5));
+            cs.addSupportedPaymentMethod(settingsService.getOrCreatePaymentMethod("FOOD_PANDA", "Foodpanda", 6));
+
+            settingsService.saveCountrySettings(cs);
+        });
     }
 
     private void createMongoTables() {

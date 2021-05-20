@@ -3,10 +3,12 @@ package io.nextpos.client.web.model;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientInfo;
 import io.nextpos.client.data.ClientSetting;
+import io.nextpos.settings.web.model.PaymentMethodResponse;
 import io.nextpos.subscription.data.ClientSubscriptionAccess;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -34,6 +36,8 @@ public class ClientResponse {
 
     private final Map<ClientSetting.SettingName, ClientSettingResponse> clientSettings;
 
+    private final List<PaymentMethodResponse> paymentMethods;
+
     private ClientInfoResponse clientInfo;
 
     private ClientSubscriptionAccess clientSubscriptionAccess;
@@ -53,6 +57,10 @@ public class ClientResponse {
         clientSettings = client.getClientSettings().stream()
                 .map(s -> new ClientSettingResponse(s.getId(), s.getName(), s.getStoredValue(), s.getValueType(), s.isEnabled()))
                 .collect(Collectors.toMap(ClientSettingResponse::getSettingName, res -> res));
+
+        paymentMethods = client.getSupportedPaymentMethods().stream()
+                .map(PaymentMethodResponse::new)
+                .collect(Collectors.toList());
     }
 
     @Data

@@ -1,6 +1,7 @@
 package io.nextpos.settings.service;
 
 import io.nextpos.settings.data.CountrySettings;
+import io.nextpos.settings.data.PaymentMethod;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,7 +22,7 @@ class SettingsServiceImplTest {
 
 
     @Test
-    void createCountrySettings() {
+    void createCountrySettingsAndPaymentMethods() {
 
         final CountrySettings countrySettings = new CountrySettings("US", BigDecimal.valueOf(0.08), false, Currency.getInstance("USD"), 2, RoundingMode.HALF_UP);
         countrySettings.addCommonAttribute("UBN");
@@ -30,8 +31,26 @@ class SettingsServiceImplTest {
 
         final CountrySettings retrievedCountrySettings = settingsService.getCountrySettings(countrySettings.getIsoCountryCode());
 
-        assertThat(retrievedCountrySettings).isNotNull();
+        assertThat(retrievedCountrySettings.getIsoCountryCode()).isEqualTo("US");
         assertThat(retrievedCountrySettings.getCommonAttributes()).hasSize(1);
+        assertThat(retrievedCountrySettings.getSupportedPaymentMethods()).isEmpty();
+
+        final PaymentMethod paymentMethod = settingsService.getOrCreatePaymentMethod("CASH", "Cash", 1);
+
+        assertThat(paymentMethod.getId()).isNotNull();
+        assertThat(paymentMethod.getPaymentKey()).isEqualTo("CASH");
+        assertThat(paymentMethod.getDisplayName()).isEqualTo("Cash");
+
+        retrievedCountrySettings.addSupportedPaymentMethod(paymentMethod);
+        settingsService.saveCountrySettings(retrievedCountrySettings);
+
+        assertThat(settingsService.getCountrySettings(countrySettings.getIsoCountryCode()).getSupportedPaymentMethods()).hasSize(1);
+
+        retrievedCountrySettings.clearPaymentMethods();
+        settingsService.saveCountrySettings(retrievedCountrySettings);
+
+        assertThat(settingsService.getCountrySettings(countrySettings.getIsoCountryCode()).getSupportedPaymentMethods()).isEmpty();
+
     }
 
     @Test

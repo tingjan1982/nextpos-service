@@ -2,19 +2,22 @@ package io.nextpos.settings.data;
 
 import io.nextpos.shared.model.BaseObject;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Currency;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Supplier;
 
 @Entity(name = "country_settings")
 @Data
 @EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor
 public class CountrySettings extends BaseObject {
 
     @Id
@@ -36,6 +39,13 @@ public class CountrySettings extends BaseObject {
     @CollectionTable(name = "country_settings_attributes", joinColumns = @JoinColumn(name = "iso_country_code"))
     private Set<String> commonAttributes = new HashSet<>();
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(joinColumns = @JoinColumn(name = "country_code"), inverseJoinColumns = @JoinColumn(name = "payment_method_id"))
+    @OrderBy("ordering asc")
+    @Fetch(FetchMode.SUBSELECT)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Set<PaymentMethod> supportedPaymentMethods = new LinkedHashSet<>();
 
     public CountrySettings(String isoCountryCode, BigDecimal taxRate, boolean taxInclusive, Currency currency, int decimalPlaces, RoundingMode roundingMode) {
         this.isoCountryCode = isoCountryCode;
@@ -49,6 +59,14 @@ public class CountrySettings extends BaseObject {
     public CountrySettings addCommonAttribute(String attribute) {
         this.commonAttributes.add(attribute);
         return this;
+    }
+
+    public void addSupportedPaymentMethod(PaymentMethod paymentMethod) {
+        this.supportedPaymentMethods.add(paymentMethod);
+    }
+
+    public void clearPaymentMethods() {
+        this.supportedPaymentMethods.clear();
     }
 
     public RoundingAmountHelper roundingAmountHelper() {

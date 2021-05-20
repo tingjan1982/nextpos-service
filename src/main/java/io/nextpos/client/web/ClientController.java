@@ -12,6 +12,7 @@ import io.nextpos.clienttracker.service.ClientUserTrackingService;
 import io.nextpos.einvoice.common.encryption.EncryptionService;
 import io.nextpos.roles.data.UserRole;
 import io.nextpos.roles.service.UserRoleService;
+import io.nextpos.settings.service.SettingsService;
 import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.shared.exception.ClientAccountException;
@@ -41,6 +42,8 @@ public class ClientController {
 
     private final UserRoleService userRoleService;
 
+    private final SettingsService settingsService;
+
     private final WorkingAreaService workingAreaService;
 
     private final ClientBootstrapService clientBootstrapService;
@@ -56,9 +59,10 @@ public class ClientController {
     private final OAuth2Helper oAuth2Helper;
 
     @Autowired
-    public ClientController(final ClientService clientService, final UserRoleService userRoleService, WorkingAreaService workingAreaService, ClientBootstrapService clientBootstrapService, final ClientActivationService clientActivationService, ClientUserTrackingService clientUserTrackingService, ClientSubscriptionAccessService clientSubscriptionAccessService, EncryptionService encryptionService, final OAuth2Helper oAuth2Helper) {
+    public ClientController(final ClientService clientService, final UserRoleService userRoleService, SettingsService settingsService, WorkingAreaService workingAreaService, ClientBootstrapService clientBootstrapService, final ClientActivationService clientActivationService, ClientUserTrackingService clientUserTrackingService, ClientSubscriptionAccessService clientSubscriptionAccessService, EncryptionService encryptionService, final OAuth2Helper oAuth2Helper) {
         this.clientService = clientService;
         this.userRoleService = userRoleService;
+        this.settingsService = settingsService;
         this.workingAreaService = workingAreaService;
         this.clientBootstrapService = clientBootstrapService;
         this.clientActivationService = clientActivationService;
@@ -140,6 +144,10 @@ public class ClientController {
         if (updateClientRequest.getClientSettings() != null) {
             updateClientRequest.getClientSettings().forEach((k, v) -> client.saveClientSettings(k, v.getValue(), v.isEnabled()));
         }
+
+        client.clearPaymentMethods();
+
+        updateClientRequest.getPaymentMethodIds().forEach(id -> settingsService.getPaymentMethod(id).ifPresent(client::addSupportedPaymentMethod));
     }
 
     @GetMapping("/me/info")
