@@ -246,6 +246,10 @@ class OrderServiceImplTest {
     void moveOrder() {
 
         Order sourceOrder = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
+        sourceOrder.getDemographicData().setMale(1);
+        sourceOrder.getDemographicData().setFemale(1);
+        sourceOrder.getDemographicData().setKid(1);
+
         sourceOrder.updateTables(List.of(table1));
         sourceOrder.addOrderLineItem(DummyObjects.productSnapshot("coffee", new BigDecimal("45")), 1);
         orderService.createOrder(sourceOrder);
@@ -259,6 +263,9 @@ class OrderServiceImplTest {
         assertThat(sourceOrder2.getState()).isEqualByComparingTo(Order.OrderState.IN_PROCESS);
 
         final Order targetOrder = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
+        targetOrder.getDemographicData().setMale(1);
+        targetOrder.getDemographicData().setFemale(1);
+        targetOrder.getDemographicData().setKid(1);
         targetOrder.updateTables(List.of(table2));
         targetOrder.addOrderLineItem(DummyObjects.productSnapshot("coffee", new BigDecimal("45")), 1);
         targetOrder.addOrderLineItem(DummyObjects.productSnapshot("tea", new BigDecimal("30")), 1);
@@ -269,6 +276,11 @@ class OrderServiceImplTest {
         final Order updatedOrder = orderService.moveOrder(sourceOrder.getId(), targetOrder.getId());
         assertThat(updatedOrder.getOrderLineItems()).hasSize(3);
         assertThat(updatedOrder.getId()).isEqualTo(targetOrder.getId());
+        assertThat(updatedOrder.getDemographicData()).satisfies(d -> {
+            assertThat(d.getMale()).isEqualTo(2);
+            assertThat(d.getFemale()).isEqualTo(2);
+            assertThat(d.getKid()).isEqualTo(2);
+        });
         assertThat(orderService.getOrder(sourceOrder.getId()).getState()).isEqualByComparingTo(Order.OrderState.DELETED);
 
         final Shift activeShift = shiftService.getActiveShiftOrThrows(client.getId());

@@ -45,11 +45,7 @@ public class ProductLabel extends BaseObject implements ClientObject, ObjectOrde
     @ToString.Exclude
     private WorkingArea workingArea;
 
-    @Deprecated
-    @EqualsAndHashCode.Include
-    private Integer orderKey;
-
-    private Integer ordering = 0;
+    private Integer ordering;
 
     private String color;
 
@@ -68,7 +64,7 @@ public class ProductLabel extends BaseObject implements ClientObject, ObjectOrde
     public ProductLabel(final String name, final Client client) {
         this.name = name;
         this.client = client;
-        this.orderKey = 0;
+        this.ordering = 0;
     }
 
     public static ProductLabel dynamicLabel(Client client, String name) {

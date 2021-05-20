@@ -184,6 +184,8 @@ public class OrderServiceImpl implements OrderService {
 
         sourceOrder.getOrderLineItems().forEach(targetOrder::addOrderLineItem);
 
+        targetOrder.mergeDemographicData(sourceOrder.getDemographicData());
+
         this.markOrderAsDeleted(sourceOrderId, false);
         return this.saveOrder(targetOrder);
     }

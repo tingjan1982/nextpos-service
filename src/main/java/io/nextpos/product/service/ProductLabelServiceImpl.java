@@ -89,51 +89,6 @@ public class ProductLabelServiceImpl implements ProductLabelService {
         return productsToUpdate.stream().map(productRepository::save).collect(Collectors.toList());
     }
 
-    /**
-     * The logic of implementing product label ordering is as follow.
-     * <p>
-     * if label (e) is moved to the first position then:
-     * orderKey = 0 + (e + 1).orderKey
-     * <p>
-     * The leading 0 is to ensure it will be the first and
-     * the subsequent append is to ensure that subsequent element moving into the first position will surely be the first.
-     * <p>
-     * if (label (e) is moved to the last position then:
-     * e.orderKey = (e - 1).orderKey + last position index
-     * <p>
-     * The trailing position is to ensure it will be the last element and
-     * the prepending of previous element's order key is to ensure it will surely be the last.
-     * <p>
-     * if (label (e) is moved in between two element (e - 1) and (e + 1) then:
-     * e.orderKey = (e - 1).orderKey + (e + 1).orderKey
-     * <p>
-     * This will ensure that the label will be positioned in between the two elements.
-     */
-    @Deprecated
-    @Override
-    public ProductLabel updateProductLabelOrder(String productLabelId, int index, String previousProductLabelId, String nextProductLabelId) {
-
-//        final ProductLabel productLabel = productLabelRepository.findById(productLabelId).orElseThrow();
-//        final Optional<ProductLabel> previousLabelOptional = productLabelRepository.findById(previousProductLabelId);
-//        final Optional<ProductLabel> nextLabelOptional = productLabelRepository.findById(nextProductLabelId);
-//
-//        if (previousLabelOptional.isEmpty()) {
-//            nextLabelOptional.ifPresent(l -> productLabel.setOrderKey("" + index + l.getOrderKey()));
-//
-//        } else if (nextLabelOptional.isEmpty()) {
-//            previousLabelOptional.ifPresent(l -> productLabel.setOrderKey(l.getOrderKey() + index));
-//
-//        } else {
-//            final ProductLabel previousLabel = previousLabelOptional.get();
-//            final ProductLabel nextLabel = nextLabelOptional.get();
-//
-//            productLabel.setOrderKey(previousLabel.getOrderKey() + nextLabel.getOrderKey());
-//        }
-//
-//        return productLabelRepository.save(productLabel);
-        return null;
-    }
-
     @Override
     public void reorderProductLabels(List<String> productLabelIds) {
 

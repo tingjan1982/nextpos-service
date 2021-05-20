@@ -128,6 +128,7 @@ public class CalendarEventServiceImpl implements CalendarEventService {
             seriesEvents.forEach(e -> {
                         if (e.isIsolated()) {
                             e.setEventSeries(null);
+                            e.setIsolated(false);
                             calendarEventRepository.save(e);
                         } else {
                             calendarEventRepository.delete(e);

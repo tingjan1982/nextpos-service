@@ -9,7 +9,6 @@ import io.nextpos.shared.DummyObjects;
 import io.nextpos.workingarea.data.WorkingArea;
 import io.nextpos.workingarea.service.WorkingAreaService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,34 +132,6 @@ class ProductLabelServiceImplTest {
     }
 
     @Test
-    void updateProductLabelOrder() {
-
-        List<ProductLabel> labels = new ArrayList<>();
-
-        for (int i = 0; i < 5; i++) {
-            final String labelName = "label " + i;
-            final ProductLabel label = addLabel(labels, labelName, 0);
-            productLabelService.saveProductLabel(label);
-        }
-
-        // https://stackoverflow.com/questions/50215341/java8-null-safe-comparison
-        final Comparator<ProductLabel> comparatorToUse = Comparator.comparing(ProductLabel::getOrderKey, Comparator.nullsLast(Comparator.naturalOrder()));
-
-        productLabelService.updateProductLabelOrder(labels.get(4).getId(), 1, labels.get(0).getId(), labels.get(1).getId()); // orderKey=1, 12, 2, null, null
-        assertThat(productLabelService.getProductLabels(client)).isSortedAccordingTo(comparatorToUse);
-        productLabelService.getProductLabels(client).forEach(l -> LOGGER.info("id: {}, name: {}, order: {}", l.getId(), l.getName(), l.getOrderKey()));
-
-        productLabelService.updateProductLabelOrder(labels.get(3).getId(), 1, labels.get(4).getId(), labels.get(1).getId()); // orderKey=1, 12, 122, 2, null
-        assertThat(productLabelService.getProductLabels(client)).isSortedAccordingTo(comparatorToUse);
-        productLabelService.getProductLabels(client).forEach(l -> LOGGER.info("id: {}, name: {}, order: {}", l.getId(), l.getName(), l.getOrderKey()));
-
-        productLabelService.updateProductLabelOrder(labels.get(2).getId(), 2, labels.get(4).getId(), labels.get(3).getId()); // orderKey=1, 12, 12122, 122, 2
-        assertThat(productLabelService.getProductLabels(client)).isSortedAccordingTo(comparatorToUse);
-        productLabelService.getProductLabels(client).forEach(l -> LOGGER.info("id: {}, name: {}, order: {}", l.getId(), l.getName(), l.getOrderKey()));
-    }
-
-    @Test
-    @Disabled
     void testOrderingAlgorithm() {
 
         List<ProductLabel> labels = new ArrayList<>();
@@ -173,16 +144,12 @@ class ProductLabelServiceImplTest {
 
         final Comparator<ProductLabel> comparatorToUse = Comparator.comparing(ProductLabel::getOrdering, Comparator.nullsLast(Comparator.naturalOrder()));
         labels.sort(comparatorToUse);
-
-        labels.forEach(System.out::println);
     }
 
-    private ProductLabel addLabel(List<ProductLabel> labels, String labelName, int ordering) {
+    private void addLabel(List<ProductLabel> labels, String labelName, int ordering) {
         final ProductLabel label = new ProductLabel(labelName, client);
         label.setOrdering(ordering);
 
         labels.add(label);
-
-        return label;
     }
 }

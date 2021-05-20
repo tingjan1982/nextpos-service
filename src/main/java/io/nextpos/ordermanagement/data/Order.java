@@ -204,6 +204,12 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         return tables.isEmpty() ? new TableInfo() : tables.get(0);
     }
 
+    public void mergeDemographicData(DemographicData demographicDataToMerge) {
+        this.demographicData.male = this.demographicData.male + demographicDataToMerge.male;
+        this.demographicData.female = this.demographicData.female + demographicDataToMerge.female;
+        this.demographicData.kid = this.demographicData.kid + demographicDataToMerge.kid;
+    }
+
     /**
      * Convenience method to add OrderLineItem.
      */
