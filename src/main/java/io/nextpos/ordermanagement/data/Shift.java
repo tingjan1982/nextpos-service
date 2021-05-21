@@ -54,17 +54,38 @@ public class Shift extends MongoBaseObject {
     public void balanceClosingShift(Function<Shift, ClosingShiftTransactionReport> closingShiftTransactionReport) {
 
         end.setClosingShiftReport(closingShiftTransactionReport.apply(this));
-        end.balanceClosingShift(OrderTransaction.PaymentMethod.CASH, start.balance);
-        end.balanceClosingShift(OrderTransaction.PaymentMethod.CARD, BigDecimal.ZERO);
+
+        end.closingBalances.forEach((pm, b) -> {
+            BigDecimal startingBalance = OrderTransaction.PaymentMethod.CASH.name().equals(pm) ? start.balance : BigDecimal.ZERO;
+            end.balanceClosingShift(b, pm, startingBalance);
+        });
     }
 
-    public void closeShift(String closedBy, ClosingBalanceDetails cash, ClosingBalanceDetails card) {
+    public void closeShift(String closedBy, Map<String, ClosingBalanceDetails> closingBalances) {
 
         end.setWho(closedBy);
-        end.updateClosingBalanceDetails(cash, OrderTransaction.PaymentMethod.CASH, start.balance);
-        end.updateClosingBalanceDetails(card, OrderTransaction.PaymentMethod.CARD, BigDecimal.ZERO);
+
+        closingBalances.forEach((pm, b) -> {
+            BigDecimal startingBalance = OrderTransaction.PaymentMethod.CASH.name().equals(pm) ? start.balance : BigDecimal.ZERO;
+            end.updateClosingBalanceDetails(b, pm, startingBalance);
+        });
 
         shiftStatus = ShiftStatus.CONFIRM_CLOSE;
+    }
+
+    public static Map<String, ClosingBalanceDetails> createClosingBalances(ClosingBalanceDetails cash, ClosingBalanceDetails card) {
+
+        Map<String, ClosingBalanceDetails> closingBalances = new HashMap<>();
+
+        if (cash != null) {
+            closingBalances.put(OrderTransaction.PaymentMethod.CASH.name(), cash);
+        }
+
+        if (card != null) {
+            closingBalances.put(OrderTransaction.PaymentMethod.CARD.name(), card);
+        }
+
+        return closingBalances;
     }
 
     public void confirmCloseShift(String closingRemark) {
@@ -132,41 +153,39 @@ public class Shift extends MongoBaseObject {
 
         private ClosingShiftTransactionReport closingShiftReport;
 
-        private Map<OrderTransaction.PaymentMethod, ClosingBalanceDetails> closingBalances = new HashMap<>();
+        private Map<String, ClosingBalanceDetails> closingBalances = new HashMap<>();
 
         private String closingRemark;
 
-        public ClosingBalanceDetails getClosingBalance(OrderTransaction.PaymentMethod paymentMethod) {
+        public ClosingBalanceDetails getClosingBalance(String paymentMethod) {
             return closingBalances.getOrDefault(paymentMethod, new ClosingBalanceDetails());
         }
 
-        public void balanceClosingShift(OrderTransaction.PaymentMethod paymentMethod, final BigDecimal startingBalance) {
+        private void balanceClosingShift(ClosingBalanceDetails closingBalanceDetails, String paymentMethod, final BigDecimal startingBalance) {
 
-            closingShiftReport.getShiftTotal(paymentMethod).ifPresent(total -> {
-                final BigDecimal orderTotal = total.getOrderTotal();
+            closingShiftReport.getPaymentMethodTotal(paymentMethod).ifPresent(total -> {
+                final BigDecimal orderTotal = total.getSettleAmount();
 
-                if (closingBalances.containsKey(paymentMethod)) {
-                    final ClosingBalanceDetails closingBalanceDetails = closingBalances.get(paymentMethod);
-                    closingBalanceDetails.setClosingBalance(orderTotal.add(startingBalance));
-                    closingBalanceDetails.setDifference(BigDecimal.ZERO);
-                }
+                closingBalanceDetails.setExpectedBalance(orderTotal);
+                closingBalanceDetails.setClosingBalance(orderTotal.add(startingBalance));
+                closingBalanceDetails.setDifference(BigDecimal.ZERO);
             });
         }
 
-        public void updateClosingBalanceDetails(ClosingBalanceDetails closingBalanceDetails, OrderTransaction.PaymentMethod paymentMethod, final BigDecimal startingBalance) {
+        private void updateClosingBalanceDetails(ClosingBalanceDetails closingBalanceDetails, String paymentMethod, final BigDecimal startingBalance) {
 
-            if (closingBalanceDetails != null) {
-                closingBalances.put(paymentMethod, closingBalanceDetails);
+            closingBalances.put(paymentMethod, closingBalanceDetails);
 
-                closingShiftReport.getShiftTotal(paymentMethod).ifPresent(p -> {
-                    final BigDecimal orderTotal = p.getSettleAmount();
-                    BigDecimal difference = closingBalanceDetails.getClosingBalance().subtract(orderTotal).subtract(startingBalance);
-                    closingBalanceDetails.setDifference(difference);
-                });
-            }
+            closingShiftReport.getPaymentMethodTotal(paymentMethod).ifPresent(p -> {
+                final BigDecimal orderTotal = p.getSettleAmount();
+
+                closingBalanceDetails.setExpectedBalance(orderTotal);
+                BigDecimal difference = closingBalanceDetails.getClosingBalance().subtract(orderTotal).subtract(startingBalance);
+                closingBalanceDetails.setDifference(difference);
+            });
         }
 
-        public boolean checkClosingBalance() {
+        private boolean checkClosingBalance() {
             return closingBalances.values().stream().allMatch(ClosingBalanceDetails::isBalanced);
         }
 
@@ -188,12 +207,14 @@ public class Shift extends MongoBaseObject {
         @PositiveOrZero
         private BigDecimal closingBalance = BigDecimal.ZERO;
 
+        private BigDecimal expectedBalance = BigDecimal.ZERO;
+
         private BigDecimal difference = BigDecimal.ZERO;
 
         private String unbalanceReason;
 
         public static ClosingBalanceDetails of(BigDecimal closingBalance) {
-            return new ClosingBalanceDetails(closingBalance, BigDecimal.ZERO, "test");
+            return new ClosingBalanceDetails(closingBalance, closingBalance, BigDecimal.ZERO, "test");
         }
 
         @JsonIgnore

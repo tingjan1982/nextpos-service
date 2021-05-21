@@ -134,10 +134,10 @@ class OrderTransactionServiceImplTest {
 
         final Order order = createMockOrder();
 
-        final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), client.getId(), order.getOrderTotal(), BigDecimal.valueOf(150),
+        final OrderTransaction orderTransaction = new OrderTransaction(order,
                 OrderTransaction.PaymentMethod.CARD,
                 OrderTransaction.BillType.SINGLE,
-                List.of());
+                order.getOrderTotal());
 
         final ElectronicInvoice electronicInvoice = createMockElectronicInvoice(order);
         orderTransaction.getInvoiceDetails().setElectronicInvoice(electronicInvoice);

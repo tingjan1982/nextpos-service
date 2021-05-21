@@ -121,7 +121,7 @@ public class ManageClientAccount {
     void deleteClient() {
 
         MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext = mongoTemplate.getConverter().getMappingContext();
-        String clientIdToDelete = "cli-n4Ze76i0cTYFY3JOed99wq04z2U1";
+        String clientIdToDelete = "cli-v14LKjQf3o6kQBTWk87f4epF8nmN";
 
         mappingContext.getPersistentEntities()
                 .stream()

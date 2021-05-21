@@ -21,7 +21,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -99,7 +98,7 @@ class ElectronicInvoiceServiceImplTest {
         final Order order = new Order(client.getId(), orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 2);
 
-        final OrderTransaction orderTransaction = new OrderTransaction(order.getId(), client.getId(), order.getOrderTotal(), order.getOrderTotal(), OrderTransaction.PaymentMethod.CARD, OrderTransaction.BillType.SINGLE, List.of());
+        final OrderTransaction orderTransaction = new OrderTransaction(order, OrderTransaction.PaymentMethod.CARD, OrderTransaction.BillType.SINGLE, order.getOrderTotal());
         orderTransaction.putPaymentDetails(OrderTransaction.PaymentDetailsKey.LAST_FOUR_DIGITS, "1234");
 
         final ElectronicInvoice electronicInvoice = electronicInvoiceService.createElectronicInvoice(client, order, orderTransaction);

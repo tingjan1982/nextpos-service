@@ -2,7 +2,6 @@ package io.nextpos.ordermanagement.web.model;
 
 import io.nextpos.ordermanagement.data.Shift;
 import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
-import io.nextpos.ordertransaction.data.OrderTransaction;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -28,6 +27,27 @@ public class ShiftResponse {
 
     private List<Shift.DeletedLineItem> deletedLineItems;
 
+    public ShiftResponse(Shift shift) {
+
+        this.id = shift.getId();
+        this.clientId = shift.getClientId();
+        this.shiftStatus = shift.getShiftStatus();
+
+        this.open = new ShiftResponse.OpenShiftDetailsResponse(
+                shift.getStart().getTimestamp(),
+                shift.getStart().getWho(),
+                shift.getStart().getBalance());
+
+        this.close = new ShiftResponse.CloseShiftDetailsResponse(
+                shift.getEnd().getTimestamp(),
+                shift.getEnd().getWho(),
+                shift.getEnd().getClosingShiftReport(),
+                shift.getEnd().getClosingBalances(),
+                shift.getEnd().getClosingRemark());
+
+        this.deletedLineItems = shift.getDeletedLineItems();
+    }
+
     @Data
     @AllArgsConstructor
     public static class OpenShiftDetailsResponse {
@@ -49,7 +69,7 @@ public class ShiftResponse {
 
         private ClosingShiftTransactionReport closingShiftReport;
 
-        private Map<OrderTransaction.PaymentMethod, Shift.ClosingBalanceDetails> closingBalances;
+        private Map<String, Shift.ClosingBalanceDetails> closingBalances;
 
         private String closingRemark;
     }

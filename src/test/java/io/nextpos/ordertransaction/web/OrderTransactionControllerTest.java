@@ -52,7 +52,7 @@ class OrderTransactionControllerTest {
         order.addOrderLineItem(DummyObjects.productSnapshot("sandwich", new BigDecimal("100")), 1);
         order.applyOffer(new BigDecimal("100"));
         order.setState(Order.OrderState.DELIVERED);
-        orderService.saveOrder(order);
+        orderService.createOrder(order);
 
         OrderTransactionRequest request = new OrderTransactionRequest();
         request.setOrderId(order.getId());
@@ -68,7 +68,7 @@ class OrderTransactionControllerTest {
 
         assertThat(orderTransaction.getOrderTotal()).isEqualByComparingTo(order.getOrderTotal());
         assertThat(orderTransaction.getSettleAmount()).isEqualByComparingTo(order.getOrderTotal());
-        assertThat(orderTransaction.getPaymentDetails().getPaymentMethod()).isEqualByComparingTo(OrderTransaction.PaymentMethod.CARD);
+        assertThat(orderTransaction.getPaymentDetails().getPaymentMethod()).isEqualTo(OrderTransaction.PaymentMethod.CARD.name());
         assertThat(orderTransaction.getBillDetails()).satisfies(b -> {
             assertThat(b.getBillType()).isEqualByComparingTo(OrderTransaction.BillType.SINGLE);
             assertThat(b.getBillLineItems()).hasSize(4);

@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -138,7 +139,9 @@ public class ShiftController {
     public ShiftResponse closeShift(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                     @Valid @RequestBody CloseShiftRequest closeShiftRequest) {
 
-        final Shift shift = shiftService.closeShift(client.getId(), closeShiftRequest.getCash(), closeShiftRequest.getCard());
+        Map<String, Shift.ClosingBalanceDetails> closingBalances = Map.of("CASH", closeShiftRequest.getCash(), "CARD", closeShiftRequest.getCard());
+
+        final Shift shift = shiftService.closeShift(client.getId(), closingBalances);
 
         return toShiftResponse(shift);
     }
@@ -161,24 +164,6 @@ public class ShiftController {
     }
 
     private ShiftResponse toShiftResponse(final Shift shift) {
-
-        final ShiftResponse.OpenShiftDetailsResponse openShiftResponse = new ShiftResponse.OpenShiftDetailsResponse(
-                shift.getStart().getTimestamp(),
-                shift.getStart().getWho(),
-                shift.getStart().getBalance());
-
-        final ShiftResponse.CloseShiftDetailsResponse closeShiftResponse = new ShiftResponse.CloseShiftDetailsResponse(
-                shift.getEnd().getTimestamp(),
-                shift.getEnd().getWho(),
-                shift.getEnd().getClosingShiftReport(),
-                shift.getEnd().getClosingBalances(),
-                shift.getEnd().getClosingRemark());
-
-        return new ShiftResponse(shift.getId(),
-                shift.getClientId(),
-                shift.getShiftStatus(),
-                openShiftResponse,
-                closeShiftResponse,
-                shift.getDeletedLineItems());
+        return new ShiftResponse(shift);
     }
 }

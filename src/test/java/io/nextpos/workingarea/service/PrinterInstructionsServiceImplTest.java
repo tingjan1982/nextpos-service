@@ -29,10 +29,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @SpringBootTest
 @Transactional
@@ -261,7 +258,10 @@ class PrinterInstructionsServiceImplTest {
         orderService.markOrderAsDeleted(orderToDelete.getId(), true);
 
         shiftService.initiateCloseShift(client.getId());
-        shiftService.closeShift(client.getId(), Shift.ClosingBalanceDetails.of(new BigDecimal("100")), Shift.ClosingBalanceDetails.of(BigDecimal.ZERO));
+        final Map<String, Shift.ClosingBalanceDetails> closingBalances = Shift.createClosingBalances(
+                Shift.ClosingBalanceDetails.of(new BigDecimal("100")), Shift.ClosingBalanceDetails.of(BigDecimal.ZERO));
+
+        shiftService.closeShift(client.getId(), closingBalances);
         final Shift closedShift = shiftService.confirmCloseShift(client.getId(), "closing remark");
 
         final SinglePrintInstruction instruction = printerInstructionService.createShiftReportPrintInstruction(client, closedShift);

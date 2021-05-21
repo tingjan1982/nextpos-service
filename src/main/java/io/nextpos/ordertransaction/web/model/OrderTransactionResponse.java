@@ -24,7 +24,7 @@ public class OrderTransactionResponse {
 
     private final BigDecimal settleAmount;
 
-    private final OrderTransaction.PaymentMethod paymentMethod;
+    private final String paymentMethod;
 
     private final OrderTransaction.PaymentDetails paymentDetails;
 

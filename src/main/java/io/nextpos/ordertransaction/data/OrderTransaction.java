@@ -40,23 +40,6 @@ public class OrderTransaction extends MongoBaseObject {
 
     private BillDetails billDetails;
 
-    public OrderTransaction(final String orderId,
-                            final String clientId,
-                            final BigDecimal orderTotal,
-                            final BigDecimal settleAmount,
-                            final PaymentMethod paymentMethod,
-                            final BillType billType,
-                            final List<BillLineItem> billLineItems) {
-
-        this.orderId = orderId;
-        this.clientId = clientId;
-        this.orderTotal = orderTotal;
-        this.settleAmount = settleAmount;
-        this.paymentDetails = new PaymentDetails(paymentMethod);
-        this.invoiceDetails = new InvoiceDetails();
-        this.billDetails = new BillDetails(billType, billLineItems);
-    }
-
     public OrderTransaction(Order order, PaymentMethod paymentMethod, BillType billType, BigDecimal settleAmount) {
 
         this.orderId = order.getId();
@@ -112,7 +95,7 @@ public class OrderTransaction extends MongoBaseObject {
         }
     }
 
-    public PaymentMethod getPaymentMethod() {
+    public String getPaymentMethod() {
         return this.paymentDetails.getPaymentMethod();
     }
 
@@ -162,16 +145,17 @@ public class OrderTransaction extends MongoBaseObject {
     }
 
     @Data
+    @NoArgsConstructor
     public static class PaymentDetails {
 
-        private PaymentMethod paymentMethod;
+        private String paymentMethod;
 
         private PaymentStatus paymentStatus;
 
         private Map<OrderTransaction.PaymentDetailsKey, Object> values = new HashMap<>();
 
         PaymentDetails(final PaymentMethod paymentMethod) {
-            this.paymentMethod = paymentMethod;
+            this.paymentMethod = paymentMethod.name();
         }
     }
 
@@ -236,9 +220,11 @@ public class OrderTransaction extends MongoBaseObject {
         private BigDecimal subTotal;
     }
 
-
+    /**
+     * Serves as validation check
+     */
     public enum PaymentMethod {
-        CASH, CARD
+        CASH, CARD, LINE_PAY, JKO, UBER_EATS, FOOD_PANDA
     }
 
     public enum PaymentStatus {

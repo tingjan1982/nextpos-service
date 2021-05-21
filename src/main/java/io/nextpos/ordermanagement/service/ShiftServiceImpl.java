@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -114,13 +115,13 @@ public class ShiftServiceImpl implements ShiftService {
     }
 
     @Override
-    public Shift closeShift(final String clientId, Shift.ClosingBalanceDetails cash, final Shift.ClosingBalanceDetails card) {
+    public Shift closeShift(final String clientId, Map<String, Shift.ClosingBalanceDetails> closingBalances) {
 
         final Shift shift = getCurrentShiftOrThrows(clientId);
         Shift.ShiftAction.CLOSE.checkShiftStatus(shift);
 
         final String currentUser = authenticationHelper.resolveCurrentUsername();
-        shift.closeShift(currentUser, cash, card);
+        shift.closeShift(currentUser, closingBalances);
 
         return shiftRepository.save(shift);
     }
@@ -192,24 +193,18 @@ public class ShiftServiceImpl implements ShiftService {
         notificationDetails.addTemplateData("shiftCloseDate", DateTimeUtil.formatDateTime(shift.getEnd().toLocalDateTime(client.getZoneId())));
         final ClosingShiftTransactionReport closingShiftReport = shift.getEnd().getClosingShiftReport();
 
-        final Shift.ClosingBalanceDetails cashBalance = shift.getEnd().getClosingBalance(OrderTransaction.PaymentMethod.CASH);
+        final Shift.ClosingBalanceDetails cashBalance = shift.getEnd().getClosingBalance(OrderTransaction.PaymentMethod.CASH.name());
+        notificationDetails.addTemplateData("openBalance", shift.getStart().getBalance());
+        notificationDetails.addTemplateData("cashTotal", cashBalance.getExpectedBalance());
+        notificationDetails.addTemplateData("actualCashTotal", cashBalance.getClosingBalance());
+        notificationDetails.addTemplateData("cashDifference", cashBalance.getDifference());
+        notificationDetails.addTemplateData("cashReason", cashBalance.getUnbalanceReason());
 
-        closingShiftReport.getShiftTotal(OrderTransaction.PaymentMethod.CASH).ifPresent(t -> {
-            notificationDetails.addTemplateData("cashTotal", t.getOrderTotal());
-            notificationDetails.addTemplateData("openBalance", shift.getStart().getBalance());
-            notificationDetails.addTemplateData("actualCashTotal", cashBalance.getClosingBalance());
-            notificationDetails.addTemplateData("cashDifference", cashBalance.getDifference());
-            notificationDetails.addTemplateData("cashReason", cashBalance.getUnbalanceReason());
-        });
-
-        final Shift.ClosingBalanceDetails cardBalance = shift.getEnd().getClosingBalance(OrderTransaction.PaymentMethod.CARD);
-
-        closingShiftReport.getShiftTotal(OrderTransaction.PaymentMethod.CARD).ifPresent(t -> {
-            notificationDetails.addTemplateData("cardTotal", t.getOrderTotal());
-            notificationDetails.addTemplateData("actualCardTotal", cardBalance.getClosingBalance());
-            notificationDetails.addTemplateData("cardDifference", cardBalance.getDifference());
-            notificationDetails.addTemplateData("cardReason", cardBalance.getUnbalanceReason());
-        });
+        final Shift.ClosingBalanceDetails cardBalance = shift.getEnd().getClosingBalance(OrderTransaction.PaymentMethod.CARD.name());
+        notificationDetails.addTemplateData("cardTotal", cardBalance.getExpectedBalance());
+        notificationDetails.addTemplateData("actualCardTotal", cardBalance.getClosingBalance());
+        notificationDetails.addTemplateData("cardDifference", cardBalance.getDifference());
+        notificationDetails.addTemplateData("cardReason", cardBalance.getUnbalanceReason());
 
         notificationDetails.addTemplateData("shiftTotal", closingShiftReport.getOneOrderSummary().getOrderTotal());
         notificationDetails.addTemplateData("closingRemark", shift.getEnd().getClosingRemark());

@@ -102,12 +102,20 @@ class ShiftServiceImplTest {
         cashClosingBalance.setUnbalanceReason("算錯");
         final Shift.ClosingBalanceDetails cardClosingBalance = Shift.ClosingBalanceDetails.of(BigDecimal.valueOf(2000));
         cardClosingBalance.setUnbalanceReason("單不見了");
-        final Shift closingShift = shiftService.closeShift(clientId, cashClosingBalance, cardClosingBalance);
+        final Shift closingShift = shiftService.closeShift(clientId, Shift.createClosingBalances(cashClosingBalance, cardClosingBalance));
 
         assertThat(closingShift).satisfies(s -> {
             assertThat(s.getStart().getWho()).isEqualTo("dummyUser");
             assertThat(s.getEnd().getTimestamp()).isBefore(new Date());
             assertThat(s.getEnd().getClosingBalances()).hasSize(2);
+
+            assertThat(s.getEnd().getClosingBalances()).allSatisfy((pm, b) -> {
+                assertThat(b.getExpectedBalance()).isNotZero();
+                assertThat(b.getClosingBalance()).isNotZero();
+                assertThat(b.getDifference()).isNotZero();
+                assertThat(b.getUnbalanceReason()).isNotBlank();
+            });
+
             assertThat(s.getEnd().getClosingShiftReport()).isNotNull();
             assertThat(s.getShiftStatus()).isEqualTo(Shift.ShiftStatus.CONFIRM_CLOSE);
         });
@@ -120,6 +128,14 @@ class ShiftServiceImplTest {
         final Optional<Shift> mostRecentShift = shiftService.getMostRecentShift(clientId);
         assertThat(mostRecentShift).isPresent();
         assertThat(mostRecentShift).get().isEqualTo(closedShift);
+
+        final Shift balancedShift = shiftService.balanceClosingShift(closedShift.getId());
+
+        assertThat(balancedShift.getEnd().getClosingBalances()).allSatisfy((pm, b) -> {
+            assertThat(b.getExpectedBalance()).isNotZero();
+            assertThat(b.getClosingBalance()).isNotZero();
+            assertThat(b.getDifference()).isZero();
+        });
     }
 
     private Order createOrder(OrderTransaction.PaymentMethod paymentMethod, boolean settle) {
@@ -144,7 +160,7 @@ class ShiftServiceImplTest {
 
         shiftService.openShift(clientId, BigDecimal.valueOf(1000));
         shiftService.initiateCloseShift(clientId);
-        shiftService.closeShift(clientId, Shift.ClosingBalanceDetails.of(BigDecimal.valueOf(100)), null);
+        shiftService.closeShift(clientId, Shift.createClosingBalances(Shift.ClosingBalanceDetails.of(BigDecimal.valueOf(100)), null));
 
         assertThat(shiftService.abortCloseShift(clientId)).satisfies(s -> {
             assertThat(s.getEnd()).isNotNull();

@@ -38,8 +38,8 @@ public class ShiftReport {
         final Shift.CloseShiftDetails closeShift = shift.getEnd();
         endDate = closeShift.getTimestamp();
 
-        updatePaymentMethodSummary(cash, closeShift, OrderTransaction.PaymentMethod.CASH);
-        updatePaymentMethodSummary(card, closeShift, OrderTransaction.PaymentMethod.CARD);
+        updatePaymentMethodSummary(cash, closeShift, OrderTransaction.PaymentMethod.CASH.name());
+        updatePaymentMethodSummary(card, closeShift, OrderTransaction.PaymentMethod.CARD.name());
 
         orderSummary = closeShift.getClosingShiftReport().getOneOrderSummary();
 
@@ -57,13 +57,10 @@ public class ShiftReport {
 
     private void updatePaymentMethodSummary(PaymentMethodSummary paymentMethodSummary,
                                             Shift.CloseShiftDetails closeShift,
-                                            OrderTransaction.PaymentMethod paymentMethod) {
-
-        final ClosingShiftTransactionReport closingShiftReport = closeShift.getClosingShiftReport();
-
-        closingShiftReport.getShiftTotal(paymentMethod).ifPresent(t -> paymentMethodSummary.setTotal(t.getSettleAmount()));
+                                            String paymentMethod) {
 
         final Shift.ClosingBalanceDetails closingBalance = closeShift.getClosingBalance(paymentMethod);
+        paymentMethodSummary.setTotal(closingBalance.getExpectedBalance());
         paymentMethodSummary.setClosingBalance(closingBalance.getClosingBalance());
         paymentMethodSummary.setDifference(closingBalance.getDifference());
         paymentMethodSummary.setUnbalanceReason(closingBalance.getUnbalanceReason());

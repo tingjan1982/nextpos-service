@@ -209,13 +209,10 @@ class SplitOrderServiceImplTest {
 
     private void createOrderTransaction(Order sourceOrder, BigDecimal settleAmount) {
         OrderTransaction orderTransaction = new OrderTransaction(
-                sourceOrder.getId(),
-                client.getId(),
-                sourceOrder.getOrderTotal(),
-                settleAmount,
+                sourceOrder,
                 OrderTransaction.PaymentMethod.CARD,
                 OrderTransaction.BillType.SPLIT,
-                List.of(new OrderTransaction.BillLineItem("split", 1, settleAmount, settleAmount))
+                settleAmount
         );
 
         orderTransactionService.createOrderTransaction(client, orderTransaction);

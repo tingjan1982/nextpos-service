@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
 
 @SpringBootTest
 @Transactional
@@ -66,10 +65,9 @@ class OrderTransactionReportServiceImplTest {
         return orderService.saveOrder(order);
     }
 
-    private OrderTransaction createOrderTransaction(Order order, BigDecimal settleAmount, OrderTransaction.PaymentMethod paymentMethod) {
+    private void createOrderTransaction(Order order, BigDecimal settleAmount, OrderTransaction.PaymentMethod paymentMethod) {
 
-        final OrderTransaction transaction = new OrderTransaction(order.getId(), "client", order.getOrderTotal(), settleAmount, paymentMethod, OrderTransaction.BillType.SINGLE, List.of());
-        return orderTransactionRepository.save(transaction);
+        final OrderTransaction transaction = new OrderTransaction(order, paymentMethod, OrderTransaction.BillType.SINGLE, settleAmount);
+        orderTransactionRepository.save(transaction);
     }
-
 }

@@ -9,6 +9,7 @@ import io.nextpos.workingarea.data.SinglePrintInstruction;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -24,7 +25,7 @@ public interface ShiftService {
 
     Shift initiateCloseShift(String clientId);
 
-    Shift closeShift(String clientId, Shift.ClosingBalanceDetails cash, final Shift.ClosingBalanceDetails card);
+    Shift closeShift(String clientId, Map<String, Shift.ClosingBalanceDetails> closingBalances);
 
     Shift confirmCloseShift(String clientId, String closingRemark);
 

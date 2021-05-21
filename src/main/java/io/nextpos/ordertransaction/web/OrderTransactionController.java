@@ -113,7 +113,7 @@ public class OrderTransactionController {
 
     private void validateCashChange(OrderTransaction orderTransaction) {
 
-        if (orderTransaction.getPaymentMethod() == OrderTransaction.PaymentMethod.CASH) {
+        if (OrderTransaction.PaymentMethod.CASH.name().equals(orderTransaction.getPaymentMethod())) {
             final BigDecimal cash = orderTransaction.getPaymentDetailsByKey(OrderTransaction.PaymentDetailsKey.CASH);
 
             if (cash != null) {

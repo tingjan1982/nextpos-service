@@ -13,7 +13,7 @@ public class PaymentMethodTotal {
 
     private OrderTransaction.OrderTransactionStatus status;
 
-    private OrderTransaction.PaymentMethod paymentMethod;
+    private String paymentMethod;
 
     private BigDecimal orderTotal;
 
