@@ -1,6 +1,7 @@
 package io.nextpos.inventorymanagement.data;
 
 import io.nextpos.shared.model.MongoBaseObject;
+import io.nextpos.shared.model.WithClientId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class InventoryOrder extends MongoBaseObject {
+public class InventoryOrder extends MongoBaseObject implements WithClientId {
 
     @Id
     private String id;

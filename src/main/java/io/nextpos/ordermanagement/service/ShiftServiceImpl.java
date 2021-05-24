@@ -5,19 +5,14 @@ import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.notification.data.DynamicEmailDetails;
 import io.nextpos.notification.data.NotificationDetails;
 import io.nextpos.notification.service.NotificationService;
-import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.OrderRepository;
-import io.nextpos.ordermanagement.data.Shift;
-import io.nextpos.ordermanagement.data.ShiftRepository;
+import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
-import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.service.OrderTransactionReportService;
 import io.nextpos.shared.auth.AuthenticationHelper;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.exception.ShiftException;
 import io.nextpos.shared.service.annotation.MongoTransaction;
-import io.nextpos.shared.util.DateTimeUtil;
 import io.nextpos.workingarea.data.SinglePrintInstruction;
 import io.nextpos.workingarea.service.PrinterInstructionService;
 import org.slf4j.Logger;
@@ -188,31 +183,9 @@ public class ShiftServiceImpl implements ShiftService {
         }
 
         DynamicEmailDetails notificationDetails = new DynamicEmailDetails(shift.getClientId(), emailAddress, "d-a1b0553668d34b2f84a4cd1c2e1689d6");
-        notificationDetails.addTemplateData("client", client.getClientName());
-        notificationDetails.addTemplateData("shiftOpenDate", DateTimeUtil.formatDateTime(shift.getStart().toLocalDateTime(client.getZoneId())));
-        notificationDetails.addTemplateData("shiftCloseDate", DateTimeUtil.formatDateTime(shift.getEnd().toLocalDateTime(client.getZoneId())));
-        final ClosingShiftTransactionReport closingShiftReport = shift.getEnd().getClosingShiftReport();
 
-        final Shift.ClosingBalanceDetails cashBalance = shift.getEnd().getClosingBalance(OrderTransaction.PaymentMethod.CASH.name());
-        notificationDetails.addTemplateData("openBalance", shift.getStart().getBalance());
-        notificationDetails.addTemplateData("cashTotal", cashBalance.getExpectedBalance());
-        notificationDetails.addTemplateData("actualCashTotal", cashBalance.getClosingBalance());
-        notificationDetails.addTemplateData("cashDifference", cashBalance.getDifference());
-        notificationDetails.addTemplateData("cashReason", cashBalance.getUnbalanceReason());
-
-        final Shift.ClosingBalanceDetails cardBalance = shift.getEnd().getClosingBalance(OrderTransaction.PaymentMethod.CARD.name());
-        notificationDetails.addTemplateData("cardTotal", cardBalance.getExpectedBalance());
-        notificationDetails.addTemplateData("actualCardTotal", cardBalance.getClosingBalance());
-        notificationDetails.addTemplateData("cardDifference", cardBalance.getDifference());
-        notificationDetails.addTemplateData("cardReason", cardBalance.getUnbalanceReason());
-
-        notificationDetails.addTemplateData("shiftTotal", closingShiftReport.getOneOrderSummary().getOrderTotal());
-        notificationDetails.addTemplateData("closingRemark", shift.getEnd().getClosingRemark());
-        notificationDetails.addTemplateData("orderCount", closingShiftReport.getTotalOrderCount());
-        notificationDetails.addTemplateData("deletedOrderCount", closingShiftReport.getOrderCount(Order.OrderState.DELETED).getOrderCount());
-        notificationDetails.addTemplateData("discountTotal", closingShiftReport.getOneOrderSummary().getDiscount());
-        notificationDetails.addTemplateData("serviceChargeTotal", closingShiftReport.getOneOrderSummary().getDiscount());
-        notificationDetails.addTemplateData("deletedLineItems", shift.getDeletedLineItems());
+        final ShiftReport shiftReport = new ShiftReport(client, shift);
+        notificationDetails.addTemplateData("shift", shiftReport);
 
         return notificationService.sendNotification(notificationDetails);
     }

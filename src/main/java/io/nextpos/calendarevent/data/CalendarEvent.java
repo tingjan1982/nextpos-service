@@ -2,6 +2,7 @@ package io.nextpos.calendarevent.data;
 
 import io.nextpos.calendarevent.service.bean.UpdateCalendarEventObject;
 import io.nextpos.shared.model.MongoBaseObject;
+import io.nextpos.shared.model.WithClientId;
 import io.nextpos.shared.util.DateTimeUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,7 +23,7 @@ import java.util.List;
 @Document
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class CalendarEvent extends MongoBaseObject {
+public class CalendarEvent extends MongoBaseObject implements WithClientId {
 
     @Id
     private String id;

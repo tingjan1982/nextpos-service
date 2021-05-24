@@ -1,6 +1,7 @@
 package io.nextpos.inventorymanagement.data;
 
 import io.nextpos.shared.model.MongoBaseObject;
+import io.nextpos.shared.model.WithClientId;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -11,7 +12,7 @@ import java.util.List;
 @Document
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class BillOfMaterial extends MongoBaseObject {
+public class BillOfMaterial extends MongoBaseObject implements WithClientId {
 
     private String id;
 

@@ -5,6 +5,7 @@ import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.model.MongoBaseObject;
+import io.nextpos.shared.model.WithClientId;
 import io.nextpos.shared.util.DateTimeUtil;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -21,7 +22,7 @@ import java.util.function.Function;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class Shift extends MongoBaseObject {
+public class Shift extends MongoBaseObject implements WithClientId {
 
     @Id
     private String id;

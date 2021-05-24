@@ -1,6 +1,7 @@
 package io.nextpos.ordermanagement.data;
 
 import io.nextpos.shared.model.MongoBaseObject;
+import io.nextpos.shared.model.WithClientId;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -11,7 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class OrderIdCounter extends MongoBaseObject {
+public class OrderIdCounter extends MongoBaseObject implements WithClientId {
 
     @Id
     private String id;

@@ -233,7 +233,7 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
     @Override
     public SinglePrintInstruction createShiftReportPrintInstruction(Client client, Shift shift) {
 
-        final ShiftReport shiftReport = new ShiftReport(shift);
+        final ShiftReport shiftReport = new ShiftReport(client, shift);
         final String printInstruction = renderFreeMarkerContent("shiftReport.ftl", Map.of("shift", shiftReport));
         final List<Printer> printers = workingAreaService.getPrintersByServiceType(client, Printer.ServiceType.CHECKOUT);
 

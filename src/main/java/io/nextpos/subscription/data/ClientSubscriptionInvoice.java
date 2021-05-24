@@ -3,6 +3,7 @@ package io.nextpos.subscription.data;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.ordermanagement.data.TaxableAmount;
 import io.nextpos.shared.model.MongoBaseObject;
+import io.nextpos.shared.model.WithClientId;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -23,7 +24,7 @@ import java.util.TimeZone;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class ClientSubscriptionInvoice extends MongoBaseObject {
+public class ClientSubscriptionInvoice extends MongoBaseObject implements WithClientId {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM");
 

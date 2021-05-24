@@ -1,6 +1,7 @@
 package io.nextpos.subscription.data;
 
 import io.nextpos.shared.model.MongoBaseObject;
+import io.nextpos.shared.model.WithClientId;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,7 @@ import java.util.Date;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class ClientSubscription extends MongoBaseObject {
+public class ClientSubscription extends MongoBaseObject implements WithClientId {
 
     @Id
     private String id;

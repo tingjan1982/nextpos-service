@@ -116,7 +116,7 @@ public class FixOrderRelatedRecords {
     @Test
     void deleteClientOrdersAndRelatedRecords() {
 
-        clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
+        clientService.getClientByUsername("rain.io.app@gmail.com").ifPresent(c -> {
             Query query = Query.query(where("clientId").is(c.getId()));
             final List<Order> orders = mongoTemplate.findAllAndRemove(query, Order.class);
             System.out.println("Orders: " + orders.size());

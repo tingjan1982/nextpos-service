@@ -54,6 +54,8 @@ public class ManageClientAccount {
                 .peek(c -> LOGGER.info("Client[{}] - {}", c.getId(), c.getClientName()))
                 .map(Client::getId).collect(Collectors.toList());
 
+        LOGGER.info("Client count: {}", clientIds.size());
+
         MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext = mongoTemplate.getConverter().getMappingContext();
         AtomicInteger totalDocument = new AtomicInteger();
         AtomicInteger documentWithClientId = new AtomicInteger();
@@ -64,20 +66,18 @@ public class ManageClientAccount {
                 .stream()
                 .filter(it -> it.isAnnotationPresent(Document.class))
                 .forEach(it -> {
-                    LOGGER.info("Processing {} collection", it.getName());
                     totalDocument.incrementAndGet();
                     final MongoPersistentProperty property = it.getPersistentProperty("clientId");
 
                     if (property != null) {
                         documentWithClientId.incrementAndGet();
-                        LOGGER.info("{} collection: Client id property: {}", it.getName(), property);
                         Query query = Query.query(where("clientId").nin(clientIds));
                         final List<?> documentsWithoutClient = mongoTemplate.find(query, it.getType());
-                        LOGGER.info("{} collection: found {} documents without client", it.getName(), documentsWithoutClient.size());
+                        LOGGER.info("{}: without client total: {}", it.getName(), documentsWithoutClient.size());
 
                     } else {
                         documentWithoutClientId.incrementAndGet();
-                        LOGGER.info("Skipping {} collection without client id", it.getName());
+                        LOGGER.info("Skipping without client id: {}", it.getName());
                     }
                 });
 

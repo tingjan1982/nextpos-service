@@ -1,6 +1,7 @@
 package io.nextpos.membership.data;
 
 import io.nextpos.shared.model.MongoBaseObject;
+import io.nextpos.shared.model.WithClientId;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -23,7 +24,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class Membership extends MongoBaseObject {
+public class Membership extends MongoBaseObject implements WithClientId {
 
     @Id
     private String id;

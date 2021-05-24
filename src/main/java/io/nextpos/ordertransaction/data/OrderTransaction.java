@@ -3,6 +3,7 @@ package io.nextpos.ordertransaction.data;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.shared.model.MongoBaseObject;
+import io.nextpos.shared.model.WithClientId;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -19,7 +20,7 @@ import java.util.stream.Collectors;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class OrderTransaction extends MongoBaseObject {
+public class OrderTransaction extends MongoBaseObject implements WithClientId {
 
     @Id
     private String id;

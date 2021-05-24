@@ -276,6 +276,6 @@ class PrinterInstructionsServiceImplTest {
     }
 
     private void printInstruction(String printInstruction) {
-        printerInstructionService.outputToPrinter("192.168.2.246", printInstruction);
+        printerInstructionService.outputToPrinter("192.168.2.200", printInstruction);
     }
 }

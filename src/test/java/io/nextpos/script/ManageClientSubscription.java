@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
@@ -100,6 +101,7 @@ public class ManageClientSubscription {
     }
 
     @Test
+    @WithMockUser("rain.io.app@gmail.com")
     void sendSubscriptionInvoice() {
         clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
             final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());

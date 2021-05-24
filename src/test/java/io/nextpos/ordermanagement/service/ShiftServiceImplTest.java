@@ -1,6 +1,7 @@
 package io.nextpos.ordermanagement.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.service.ClientService;
 import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.ordermanagement.data.Order;
@@ -47,19 +48,23 @@ class ShiftServiceImplTest {
     private OrderTransactionService orderTransactionService;
 
     @Autowired
+    private ClientService clientService;
+
+    @Autowired
     private ShiftRepository shiftRepository;
 
     @Autowired
     private OrderSettings orderSettings;
 
-    private final String clientId = "dummyClient";
-
     private Client client;
+
+    private String clientId;
 
     @BeforeEach
     void setup() {
         client = DummyObjects.dummyClient();
-        client.setId(clientId);
+        clientService.saveClient(client);
+        clientId = client.getId();
     }
 
     @AfterEach
@@ -140,15 +145,14 @@ class ShiftServiceImplTest {
 
     private Order createOrder(OrderTransaction.PaymentMethod paymentMethod, boolean settle) {
 
-        final Order order = Order.newOrder(clientId, Order.OrderType.IN_STORE, orderSettings);
+        Order order = Order.newOrder(clientId, Order.OrderType.IN_STORE, orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 2);
-        order.setState(Order.OrderState.DELIVERED);
-
         orderService.createOrder(order);
+        order = orderService.performOrderAction(order.getId(), Order.OrderAction.SUBMIT).getOrder();
 
         if (settle) {
             orderTransactionService.createOrderTransaction(client, new OrderTransaction(order, paymentMethod, OrderTransaction.BillType.SINGLE, order.getOrderTotal()));
-            orderService.performOrderAction(order.getId(), Order.OrderAction.COMPLETE);
+            order = orderService.performOrderAction(order.getId(), Order.OrderAction.COMPLETE).getOrder();
         }
 
         return order;

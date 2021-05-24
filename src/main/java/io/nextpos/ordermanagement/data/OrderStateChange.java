@@ -1,6 +1,7 @@
 package io.nextpos.ordermanagement.data;
 
 import io.nextpos.shared.exception.BusinessLogicException;
+import io.nextpos.shared.model.WithClientId;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,7 +19,7 @@ import java.util.Optional;
 @Document
 @Data
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class OrderStateChange {
+public class OrderStateChange implements WithClientId {
 
     @Id
     private String orderId;

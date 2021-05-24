@@ -1,5 +1,4 @@
 <#-- @ftlvariable name="shift" type="io.nextpos.ordermanagement.data.ShiftReport" -->
-<#-- @ftlvariable name="client" type="io.nextpos.client.data.Client" -->
 <#-- reference: https://freemarker.apache.org/docs/dgui_misc_whitespace.html-->
 <@compress single_line=true>
     <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">

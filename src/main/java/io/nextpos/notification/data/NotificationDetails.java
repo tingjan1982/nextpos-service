@@ -1,6 +1,7 @@
 package io.nextpos.notification.data;
 
 import io.nextpos.shared.model.MongoBaseObject;
+import io.nextpos.shared.model.WithClientId;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,7 +14,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
-public class NotificationDetails extends MongoBaseObject {
+public class NotificationDetails extends MongoBaseObject implements WithClientId {
 
     @Id
     private String id;
