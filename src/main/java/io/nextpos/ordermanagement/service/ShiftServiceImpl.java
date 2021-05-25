@@ -194,6 +194,11 @@ public class ShiftServiceImpl implements ShiftService {
     public SinglePrintInstruction printShiftReport(Client client, String shiftId) {
 
         final Shift shift = this.getShift(shiftId);
+
+        if (!shift.getShiftStatus().isFinalState()) {
+            throw new BusinessLogicException("message.shiftNotClosed", "Please close the shift before printing the shift report");
+        }
+
         return printerInstructionService.createShiftReportPrintInstruction(client, shift);
     }
 

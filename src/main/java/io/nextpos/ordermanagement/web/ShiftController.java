@@ -17,12 +17,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -137,9 +138,15 @@ public class ShiftController {
 
     @PostMapping("/close")
     public ShiftResponse closeShift(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                    @Valid @RequestBody CloseShiftRequest closeShiftRequest) {
+                                    @Valid @RequestBody CloseShiftRequest request) {
 
-        Map<String, Shift.ClosingBalanceDetails> closingBalances = Map.of("CASH", closeShiftRequest.getCash(), "CARD", closeShiftRequest.getCard());
+        final HashMap<String, Shift.ClosingBalanceDetails> closingBalances = new HashMap<>();
+        closingBalances.put("CASH", request.getCash());
+        closingBalances.put("CARD", request.getCard());
+
+        if (!CollectionUtils.isEmpty(request.getClosingBalances())) {
+            closingBalances.putAll(request.getClosingBalances());
+        }
 
         final Shift shift = shiftService.closeShift(client.getId(), closingBalances);
 

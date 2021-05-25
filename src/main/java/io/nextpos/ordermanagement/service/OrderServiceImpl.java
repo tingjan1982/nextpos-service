@@ -347,6 +347,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @WebSocketClientOrder
     public Order prepareLineItems(final String orderId, final List<String> lineItemIds) {
         return publishLineItemEvent(orderId, lineItemIds, Order.OrderAction.PREPARE);
     }
