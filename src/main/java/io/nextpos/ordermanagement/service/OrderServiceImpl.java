@@ -162,7 +162,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public InProcessOrders getInProcessOrders(String clientId) {
 
-        final List<InProcessOrder> orders = this.getOrdersByStates(clientId, List.of(Order.OrderState.IN_PROCESS, Order.OrderState.SETTLED, Order.OrderState.COMPLETED)).stream()
+        final List<InProcessOrder> orders = this.getOrdersByStates(clientId,
+                List.of(Order.OrderState.IN_PROCESS, Order.OrderState.SETTLED, Order.OrderState.COMPLETED)).stream()
                 .filter(o -> o.getOrderLineItems().stream().anyMatch(li -> li.getState().isPreparing()))
                 .map(InProcessOrder::new)
                 .sorted(InProcessOrder.getComparator())

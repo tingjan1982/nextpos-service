@@ -24,37 +24,25 @@
                 <text x="${indent}">${shift.orderSummary.discount}&#10;</text>
                 <text>總服務費:</text>
                 <text x="${indent}">${shift.orderSummary.serviceCharge}&#10;</text>
+                <text>開帳現金:</text>
+                <text x="${indent}">${shift.startBalance}&#10;</text>
                 <feed line="1"/>
 
-                <!-- cash -->
-                <text align="center" width="2" height="2"/>
-                <text>現金&#10;</text>
-                <feed line="1"/>
-                <text align="left" width="1" height="1"/>
+                <#list shift.summaries as summary>
+                    <text align="center" width="2" height="2"/>
+                    <text>${summary.paymentMethodDisplayName}&#10;</text>
+                    <feed line="1"/>
+                    <text align="left" width="1" height="1"/>
 
-                <text>營業額:</text>
-                <text x="${indent}">${shift.cash.total}&#10;</text>
-                <text>關帳金額:</text>
-                <text x="${indent}">${shift.cash.closingBalance}&#10;</text>
-                <text>差額:</text>
-                <text x="${indent}">${shift.cash.difference}&#10;</text>
-                <text>差異原因: ${shift.cash.unbalanceReason!""}&#10;</text>
-                <feed line="1"/>
-
-                <!-- card -->
-                <text align="center" width="2" height="2"/>
-                <text>刷卡&#10;</text>
-                <feed line="1"/>
-                <text align="left" width="1" height="1"/>
-
-                <text>營業額:</text>
-                <text x="${indent}">${shift.card.total}&#10;</text>
-                <text>關帳金額:</text>
-                <text x="${indent}">${shift.card.closingBalance}&#10;</text>
-                <text>差額:</text>
-                <text x="${indent}">${shift.card.difference}&#10;</text>
-                <text>差異原因: ${shift.card.unbalanceReason!""}&#10;</text>
-                <feed line="1"/>
+                    <text>${summary.paymentMethodDisplayName}營業額:</text>
+                    <text x="${indent}">${summary.total}&#10;</text>
+                    <text>關帳金額:</text>
+                    <text x="${indent}">${summary.closingBalance}&#10;</text>
+                    <text>差額:</text>
+                    <text x="${indent}">${summary.difference}&#10;</text>
+                    <text>差異原因: ${summary.unbalanceReason!""}&#10;</text>
+                    <feed line="1"/>
+                </#list>
 
                 <!-- order count -->
                 <text align="center" width="2" height="2"/>

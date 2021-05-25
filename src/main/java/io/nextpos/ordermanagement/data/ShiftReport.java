@@ -2,7 +2,6 @@ package io.nextpos.ordermanagement.data;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
-import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.shared.util.DateTimeUtil;
 import io.nextpos.shared.util.PaymentMethodLocalization;
 import lombok.Data;
@@ -36,10 +35,6 @@ public class ShiftReport {
 
     private BigDecimal startBalance;
 
-    private PaymentMethodSummary cash;
-
-    private PaymentMethodSummary card;
-
     private List<PaymentMethodSummary> summaries;
 
     private int totalOrderCount;
@@ -66,9 +61,6 @@ public class ShiftReport {
         startBalance = shift.getStart().getBalance();
 
         final Map<String, Shift.ClosingBalanceDetails> closingBalances = shift.getEnd().getClosingBalances();
-
-        cash = new PaymentMethodSummary(OrderTransaction.PaymentMethod.CASH.name(), closingBalances.get(OrderTransaction.PaymentMethod.CASH.name()));
-        card = new PaymentMethodSummary(OrderTransaction.PaymentMethod.CARD.name(), closingBalances.get(OrderTransaction.PaymentMethod.CARD.name()));
 
         summaries = closingBalances.entrySet().stream()
                 .map(e -> new PaymentMethodSummary(e.getKey(), e.getValue())).collect(Collectors.toList());
