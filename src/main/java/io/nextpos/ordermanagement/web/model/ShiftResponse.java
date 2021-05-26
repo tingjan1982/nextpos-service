@@ -16,9 +16,6 @@ public class ShiftResponse {
 
     private String id;
 
-    // todo: is this used?
-    private String clientId;
-
     private Shift.ShiftStatus shiftStatus;
 
     private OpenShiftDetailsResponse open;
@@ -30,7 +27,6 @@ public class ShiftResponse {
     public ShiftResponse(Shift shift) {
 
         this.id = shift.getId();
-        this.clientId = shift.getClientId();
         this.shiftStatus = shift.getShiftStatus();
 
         this.open = new ShiftResponse.OpenShiftDetailsResponse(
