@@ -3,6 +3,7 @@ package io.nextpos.ordermanagement.data;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
 import io.nextpos.ordertransaction.data.OrderTransaction;
+import io.nextpos.settings.data.PaymentMethod;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.model.MongoBaseObject;
 import io.nextpos.shared.model.WithClientId;
@@ -45,11 +46,15 @@ public class Shift extends MongoBaseObject implements WithClientId {
         shiftStatus = ShiftStatus.ACTIVE;
     }
 
-    public void initiateCloseShift(Function<Shift, ClosingShiftTransactionReport> closingShiftTransactionReport) {
+    public void initiateCloseShift(Function<Shift, ClosingShiftTransactionReport> closingShiftTransactionReport, Set<PaymentMethod> supportedPaymentMethods) {
 
         end.setTimestamp(new Date());
         end.setClosingShiftReport(closingShiftTransactionReport.apply(this));
         shiftStatus = ShiftStatus.CLOSING;
+
+        supportedPaymentMethods.forEach(pm -> end.replaceClosingBalance(pm.getPaymentKey(), BigDecimal.ZERO));
+
+        end.closingShiftReport.getTotalByPaymentMethod().forEach((pm, t) -> end.replaceClosingBalance(pm, t.getSettleAmount()));
     }
 
     public void balanceClosingShift(Function<Shift, ClosingShiftTransactionReport> closingShiftTransactionReport) {
@@ -158,8 +163,8 @@ public class Shift extends MongoBaseObject implements WithClientId {
 
         private String closingRemark;
 
-        public ClosingBalanceDetails getClosingBalance(String paymentMethod) {
-            return closingBalances.getOrDefault(paymentMethod, new ClosingBalanceDetails());
+        public void replaceClosingBalance(String paymentMethod, BigDecimal expectedBalance) {
+            closingBalances.put(paymentMethod, new ClosingBalanceDetails(expectedBalance));
         }
 
         private void balanceClosingShift(ClosingBalanceDetails closingBalanceDetails, String paymentMethod, final BigDecimal startingBalance) {
@@ -213,6 +218,10 @@ public class Shift extends MongoBaseObject implements WithClientId {
         private BigDecimal difference = BigDecimal.ZERO;
 
         private String unbalanceReason;
+
+        ClosingBalanceDetails(BigDecimal expectedBalance) {
+            this.expectedBalance = expectedBalance;
+        }
 
         public static ClosingBalanceDetails of(BigDecimal closingBalance) {
             return new ClosingBalanceDetails(closingBalance, closingBalance, BigDecimal.ZERO, "test");

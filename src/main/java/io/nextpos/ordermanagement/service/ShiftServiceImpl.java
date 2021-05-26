@@ -8,6 +8,7 @@ import io.nextpos.notification.service.NotificationService;
 import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
 import io.nextpos.ordertransaction.service.OrderTransactionReportService;
+import io.nextpos.settings.data.PaymentMethod;
 import io.nextpos.shared.auth.AuthenticationHelper;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
@@ -22,10 +23,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -95,7 +93,7 @@ public class ShiftServiceImpl implements ShiftService {
     }
 
     @Override
-    public Shift initiateCloseShift(final String clientId) {
+    public Shift initiateCloseShift(final String clientId, Set<PaymentMethod> supportedPaymentMethods) {
 
         final Shift shift = getCurrentShiftOrThrows(clientId);
         Shift.ShiftAction.INITIATE_CLOSE.checkShiftStatus(shift);
@@ -104,7 +102,7 @@ public class ShiftServiceImpl implements ShiftService {
             throw new BusinessLogicException("message.completeAllOrdersFirst", "Please complete all orders before closing shift.");
         }
 
-        shift.initiateCloseShift(orderTransactionReportService::getClosingShiftTransactionReport);
+        shift.initiateCloseShift(orderTransactionReportService::getClosingShiftTransactionReport, supportedPaymentMethods);
 
         return shiftRepository.save(shift);
     }

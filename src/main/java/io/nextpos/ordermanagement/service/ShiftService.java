@@ -5,12 +5,14 @@ import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.notification.data.NotificationDetails;
 import io.nextpos.ordermanagement.data.Shift;
 import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
+import io.nextpos.settings.data.PaymentMethod;
 import io.nextpos.workingarea.data.SinglePrintInstruction;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public interface ShiftService {
@@ -23,7 +25,7 @@ public interface ShiftService {
 
     Shift balanceClosingShift(String shiftId);
 
-    Shift initiateCloseShift(String clientId);
+    Shift initiateCloseShift(String clientId, Set<PaymentMethod> supportedPaymentMethods);
 
     Shift closeShift(String clientId, Map<String, Shift.ClosingBalanceDetails> closingBalances);
 

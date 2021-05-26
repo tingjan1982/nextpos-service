@@ -257,7 +257,7 @@ class PrinterInstructionsServiceImplTest {
         orderService.createOrder(orderToDelete);
         orderService.markOrderAsDeleted(orderToDelete.getId(), true);
 
-        shiftService.initiateCloseShift(client.getId());
+        shiftService.initiateCloseShift(client.getId(), Set.of());
         final Map<String, Shift.ClosingBalanceDetails> closingBalances = Shift.createClosingBalances(
                 Shift.ClosingBalanceDetails.of(new BigDecimal("100")), Shift.ClosingBalanceDetails.of(BigDecimal.ZERO));
 

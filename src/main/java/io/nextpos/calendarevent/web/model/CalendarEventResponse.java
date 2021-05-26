@@ -39,7 +39,7 @@ public class CalendarEventResponse {
 
     private String eventSeriesId;
 
-    private boolean eventSeriesMainEvent;
+    private boolean eventSeriesMainEvent = true;
 
     private CalendarEventSeries.EventRepeat eventRepeat;
 

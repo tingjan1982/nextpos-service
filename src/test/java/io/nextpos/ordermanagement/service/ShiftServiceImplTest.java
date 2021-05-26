@@ -26,10 +26,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -91,15 +88,20 @@ class ShiftServiceImplTest {
 
         // there should be an active shift.
         assertThatCode(() -> shiftService.getActiveShift(clientId)).doesNotThrowAnyException();
-        assertThatThrownBy(() -> shiftService.initiateCloseShift(clientId)).isInstanceOf(BusinessLogicException.class);
+        assertThatThrownBy(() -> shiftService.initiateCloseShift(clientId, Set.of())).isInstanceOf(BusinessLogicException.class);
 
         orderService.performOrderAction(order.getId(), Order.OrderAction.DELETE);
 
         createOrder(OrderTransaction.PaymentMethod.CASH, true);
         createOrder(OrderTransaction.PaymentMethod.CARD, true);
 
-        assertThat(shiftService.initiateCloseShift(clientId)).satisfies(s -> {
-            assertThat(s.getEnd().getClosingShiftReport()).isNotNull();
+        assertThat(shiftService.initiateCloseShift(clientId, Set.of())).satisfies(s -> {
+            assertThat(s.getEnd().getClosingShiftReport().getTotalByPaymentMethod()).hasSize(2);
+            assertThat(s.getEnd().getClosingBalances()).hasSize(2);
+            assertThat(s.getEnd().getClosingBalances()).allSatisfy((pm, b) -> {
+                assertThat(b.getExpectedBalance()).isNotZero();
+                assertThat(b.getClosingBalance()).isZero();
+            });
             assertThat(s.getShiftStatus()).isEqualTo(Shift.ShiftStatus.CLOSING);
         });
 
@@ -163,7 +165,7 @@ class ShiftServiceImplTest {
     void abortShift() {
 
         shiftService.openShift(clientId, BigDecimal.valueOf(1000));
-        shiftService.initiateCloseShift(clientId);
+        shiftService.initiateCloseShift(clientId, Set.of());
         shiftService.closeShift(clientId, Shift.createClosingBalances(Shift.ClosingBalanceDetails.of(BigDecimal.valueOf(100)), null));
 
         assertThat(shiftService.abortCloseShift(clientId)).satisfies(s -> {

@@ -132,7 +132,7 @@ public class ShiftController {
     @PostMapping("/initiateClose")
     public ShiftResponse initiateCloseShift(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
-        final Shift shift = shiftService.initiateCloseShift(client.getId());
+        final Shift shift = shiftService.initiateCloseShift(client.getId(), client.getSupportedPaymentMethods());
         return toShiftResponse(shift);
     }
 
