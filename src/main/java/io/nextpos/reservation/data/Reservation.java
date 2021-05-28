@@ -68,7 +68,7 @@ public class Reservation extends MongoBaseObject implements WithClientId {
         this.clientId = clientId;
         this.reservationType = reservationType;
         this.reservationDate = reservationDate;
-        this.status = ReservationStatus.CREATED;
+        this.status = ReservationStatus.BOOKED;
     }
 
     public static Reservation normalReservation(String clientId, Date reservationDate, List<TableLayout.TableDetails> tables) {
@@ -118,7 +118,7 @@ public class Reservation extends MongoBaseObject implements WithClientId {
 
     public enum ReservationStatus {
 
-        CREATED,
+        BOOKED,
 
         /**
          * Booking is confirmed.

@@ -94,9 +94,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.csrf().disable()
                 .cors().and()
-                .regexMatcher("^\\/(actuator|counters|tokens|admin)(\\/.+)*(\\?.+)?$")
+                .regexMatcher("^\\/(actuator|counters|tokens|admin|ws|web-reservations)(\\/.+)*(\\?.+)?$")
                 .authorizeRequests()
-                .antMatchers("/actuator/health", "/ws/**", "/admin/**", "/tokens/**").permitAll()
+                .antMatchers("/actuator/health", "/ws/**", "/admin/**", "/tokens/**", "/web-reservations/**").permitAll()
                 .anyRequest().authenticated().and().httpBasic();
     }
 

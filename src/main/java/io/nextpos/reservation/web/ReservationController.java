@@ -38,7 +38,7 @@ public class ReservationController {
 
         Reservation reservation = fromRequest(client, request);
 
-        return new ReservationResponse(reservationService.saveReservation(client, reservation));
+        return toResponse(client, reservationService.saveReservation(client, reservation));
     }
 
     private Reservation fromRequest(Client client, ReservationRequest request) {
@@ -59,7 +59,7 @@ public class ReservationController {
     public ReservationResponse getReservation(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                               @PathVariable String id) {
 
-        return new ReservationResponse(reservationService.getReservation(id));
+        return toResponse(client, reservationService.getReservation(id));
     }
 
     @PostMapping("/{id}")
@@ -71,7 +71,7 @@ public class ReservationController {
 
         updateFromRequest(client, reservation, request);
 
-        return new ReservationResponse(reservationService.saveReservation(client, reservation));
+        return toResponse(client, reservationService.saveReservation(client, reservation));
     }
 
     private void updateFromRequest(Client client, Reservation reservation, ReservationRequest request) {
@@ -86,6 +86,11 @@ public class ReservationController {
 
         reservation.updateTableAllocation(tables);
         reservation.setNote(request.getNote());
+    }
+
+    private ReservationResponse toResponse(Client client, Reservation reservation) {
+
+        return new ReservationResponse(client, reservation);
     }
 
     @DeleteMapping("/{id}")
