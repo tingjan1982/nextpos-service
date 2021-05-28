@@ -173,6 +173,23 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public void markAllLineItemsAsPrepared(String clientId) {
+
+        final List<Order> orders = this.getOrdersByStates(clientId,
+                List.of(Order.OrderState.IN_PROCESS, Order.OrderState.SETTLED, Order.OrderState.COMPLETED));
+
+        orders.stream()
+                .flatMap(o -> o.getOrderLineItems().stream())
+                .forEach(li -> {
+                    if (li.getState().isPreparing()) {
+                        li.setState(OrderLineItem.LineItemState.PREPARED);
+                    }
+                });
+
+        orderRepository.saveAll(orders);
+    }
+
+    @Override
     @WebSocketClientOrders
     public Order moveOrder(String sourceOrderId, String targetOrderId) {
 

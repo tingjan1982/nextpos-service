@@ -56,7 +56,11 @@ public class LineItemStateChangeListener {
                 });
                 break;
             case PREPARE:
-                lineItems.forEach(li -> li.setState(OrderLineItem.LineItemState.PREPARED));
+                lineItems.forEach(li -> {
+                    if (li.getState().isPreparing()) {
+                        li.setState(OrderLineItem.LineItemState.PREPARED);
+                    }
+                });
 
                 break;
             case DELIVER:

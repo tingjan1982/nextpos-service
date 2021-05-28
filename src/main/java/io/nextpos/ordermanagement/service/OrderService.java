@@ -38,6 +38,8 @@ public interface OrderService {
 
     InProcessOrders getInProcessOrders(String clientId);
 
+    void markAllLineItemsAsPrepared(String clientId);
+
     Order moveOrder(String sourceOrderId, String targetOrderId);
 
     void deleteOrder(String orderId);

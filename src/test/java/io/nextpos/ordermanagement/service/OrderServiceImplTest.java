@@ -355,6 +355,10 @@ class OrderServiceImplTest {
         assertThat(sortedOrderLineItems.getResults().values()).allSatisfy(lis -> {
             assertThat(lis).isSortedAccordingTo(InProcessOrderLineItem.getComparator());
         });
+
+        orderService.markAllLineItemsAsPrepared(client.getId());
+
+        assertThat(orderService.getInProcessOrderLineItems(client.getId()).getResults()).isEmpty();
     }
 
     private LineItemOrdering createLineItemOrdering(Order order, OrderLineItem orderLineItem) {

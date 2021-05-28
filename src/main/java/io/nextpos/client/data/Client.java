@@ -256,6 +256,8 @@ public class Client extends BaseObject {
 
         PASSCODE_VERIFIED,
 
+        TIME_CARD_DEVICE,
+
         // ==== Taiwan specific attributes ====
 
         /**

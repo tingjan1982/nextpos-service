@@ -148,10 +148,14 @@ public class OrderController {
         return new OrdersResponse(orders);
     }
 
-    @GetMapping("/inProcess")
-    public InProcessOrderLineItems getInProcessOrders(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+    @PostMapping("/markAllAsPrepared")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void markAllAsPrepared(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
 
-        return orderService.getInProcessOrderLineItems(client.getId());
+        orderService.markAllLineItemsAsPrepared(client.getId());
+
+        orderMessagingService.sendOrderLineItems(client.getId(), true);
+        orderMessagingService.sendOrders(client.getId(), true);
     }
 
     @GetMapping("/availableTables")
@@ -324,20 +328,6 @@ public class OrderController {
 
         Order copiedOrder = orderService.copyOrder(id);
         return OrderResponse.toOrderResponse(copiedOrder);
-    }
-
-    /**
-     * todo: remove GET after frontend is refactored to use POST method.
-     */
-    @GetMapping(value = "/{id}/orderToWorkingArea")
-    public List<PrinterInstructionResponse> printOrderToWorkingArea(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                                    @PathVariable final String id) {
-
-        final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
-
-        final PrinterInstructions orderToWorkingArea = printerInstructionService.createOrderToWorkingArea(order, List.of(), true);
-
-        return toPrinterInstructionResponses(orderToWorkingArea);
     }
 
     @PostMapping(value = "/{id}/orderToWorkingArea")
