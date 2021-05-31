@@ -52,7 +52,7 @@ public class ReservationController {
                 .collect(Collectors.toList());
 
         final Date reservationDate = DateTimeUtil.toDate(client.getZoneId(), request.getReservationDate());
-        final Reservation reservation = Reservation.normalReservation(client.getId(), reservationDate, tables);
+        final Reservation reservation = new Reservation(client.getId(), request.getReservationType(), reservationDate, tables);
         reservation.updateBookingDetails(request.getName(), request.getPhoneNumber(), request.getPeople(), request.getKid());
         reservation.setNote(request.getNote());
 
@@ -107,6 +107,16 @@ public class ReservationController {
 
         reservation.updateTableAllocation(tables);
         reservation.setNote(request.getNote());
+    }
+
+    @PostMapping("/{id}/reserveBooking")
+    public ReservationResponse updateReservation(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                 @PathVariable String id) {
+
+        final Reservation reservation = reservationService.getReservation(id);
+        reservation.setReservationType(Reservation.ReservationType.RESERVATION);
+
+        return toResponse(client, reservationService.saveReservation(client, reservation));
     }
 
     private ReservationResponse toResponse(Client client, Reservation reservation) {
