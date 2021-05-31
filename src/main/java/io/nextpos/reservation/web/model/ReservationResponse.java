@@ -16,7 +16,9 @@ public class ReservationResponse {
 
     private ClientInfo client;
 
-    private Date reservationDate;
+    private Date reservationStartDate;
+
+    private Date reservationEndDate;
 
     private String name;
 
@@ -44,7 +46,8 @@ public class ReservationResponse {
             this.client = new ClientInfo(client);
         }
 
-        this.reservationDate = reservation.getReservationDate();
+        this.reservationStartDate = reservation.getStartDate();
+        this.reservationEndDate = reservation.getEndDate();
         this.name = reservation.getName();
         this.phoneNumber = reservation.getPhoneNumber();
         this.people = reservation.getPeople();

@@ -1,6 +1,5 @@
 package io.nextpos.reservation.data;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.nextpos.membership.data.Membership;
 import io.nextpos.shared.model.MongoBaseObject;
 import io.nextpos.shared.model.WithClientId;
@@ -8,7 +7,6 @@ import io.nextpos.tablelayout.data.TableLayout;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -35,7 +33,9 @@ public class Reservation extends MongoBaseObject implements WithClientId {
     /**
      * Booking date
      */
-    private Date reservationDate;
+    private Date startDate;
+
+    private Date endDate;
 
     private String name;
 
@@ -57,17 +57,11 @@ public class Reservation extends MongoBaseObject implements WithClientId {
     @DBRef
     private Membership membership;
 
-    @DBRef
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @JsonIgnore
-    private ReservationDay currentReservationDay;
-
-    private Reservation(String clientId, ReservationType reservationType, Date reservationDate) {
+    private Reservation(String clientId, ReservationType reservationType, Date startDate) {
         this.id = new ObjectId().toString();
         this.clientId = clientId;
         this.reservationType = reservationType;
-        this.reservationDate = reservationDate;
+        this.startDate = startDate;
         this.status = ReservationStatus.BOOKED;
     }
 
@@ -86,7 +80,6 @@ public class Reservation extends MongoBaseObject implements WithClientId {
         this.tableAllocations = tables.stream()
                 .map(TableAllocation::new)
                 .collect(Collectors.toList());
-        this.status = ReservationStatus.CONFIRMED;
     }
 
     public void updateBookingDetails(String name, String phoneNumber, int people, int kid) {

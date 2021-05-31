@@ -5,7 +5,6 @@ import io.nextpos.client.service.ClientService;
 import io.nextpos.membership.data.Membership;
 import io.nextpos.membership.service.MembershipService;
 import io.nextpos.reservation.data.Reservation;
-import io.nextpos.reservation.data.ReservationDay;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.shared.util.DateTimeUtil;
@@ -19,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Date;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -67,47 +67,40 @@ class ReservationServiceImplTest {
     void saveReservation() {
 
         final LocalTime noonTime = LocalTime.of(12, 0);
-        final LocalDateTime reservationDate = LocalDateTime.of(LocalDate.now(), noonTime);
-        final Reservation reservation = Reservation.normalReservation(client.getId(), DateTimeUtil.toDate(client.getZoneId(), reservationDate), tableLayout.getTables());
+        final LocalDateTime reservationDt = LocalDateTime.of(LocalDate.now(), noonTime);
+        final LocalDateTime endDt = LocalDateTime.of(LocalDate.now(), noonTime.plusHours(2));
+        final Date reservationDate = DateTimeUtil.toDate(client.getZoneId(), reservationDt);
+        final Date endDate = DateTimeUtil.toDate(client.getZoneId(), endDt);
+
+        final Reservation reservation = Reservation.normalReservation(client.getId(), reservationDate, tableLayout.getTables());
+        //reservation.setEndDate(endDate);
+
+        assertThat(reservationService.getAvailableReservableTables(client, reservationDt)).hasSize(2);
 
         reservationService.saveReservation(client, reservation);
 
         assertThat(reservation.getReservationType()).isEqualByComparingTo(Reservation.ReservationType.RESERVATION);
-        assertThat(reservation.getReservationDate()).isNotNull();
+        assertThat(reservation.getStartDate()).isNotNull();
+        assertThat(reservation.getEndDate()).isNotNull();
         assertThat(reservation.getTableAllocations()).hasSize(2);
 
-        final ReservationDay reservationDay = reservation.getCurrentReservationDay();
-        assertThat(reservationDay).isNotNull();
+        assertThat(reservationService.getAvailableReservableTables(client, reservationDt)).isEmpty();
 
-        assertThat(reservationDay).satisfies(day -> {
-            assertThat(day.getDate()).isEqualTo(LocalDate.now());
-            assertThat(day.getTimeSlots()).hasSize(1);
-            assertThat(day.getTimeSlots().get(noonTime)).satisfies(ts -> {
-                assertThat(ts).isNotNull();
-                assertThat(ts.getTableBookings().values()).allSatisfy(tb -> {
-                    assertThat(tb.getReservation()).isEqualTo(reservation);
-                    assertThat(tb.getStatus()).isEqualByComparingTo(ReservationDay.TableBooking.BookingStatus.BOOKED);
-                });
-            });
-        });
+        assertThat(reservationService.getReservationsByDateRange(client, reservationDt, endDt)).hasSize(1); // 12 - 2
+        assertThat(reservationService.getReservationsByDateRange(client, reservationDt.minusHours(1), endDt.minusHours(1))).hasSize(1); // 11 - 1
+        assertThat(reservationService.getReservationsByDateRange(client, reservationDt.plusHours(1), endDt.plusHours(1))).hasSize(1); // 1 - 3
+        assertThat(reservationService.getReservationsByDateRange(client, reservationDt.minusHours(1), endDt.minusHours(2))).isEmpty(); // 11 - 12
+        assertThat(reservationService.getReservationsByDateRange(client, reservationDt.plusHours(2), endDt.plusHours(1))).isEmpty(); // 2 - 3
 
         reservation.updateTableAllocation(List.of(tableLayout.getTables().get(0)));
-        final LocalDateTime newReservationDate = LocalDateTime.of(LocalDate.now().plusDays(1), LocalTime.of(13, 0));
-        reservation.setReservationDate(DateTimeUtil.toDate(client.getZoneId(), newReservationDate));
+        final LocalDateTime newReservationDate = reservationDt.plusHours(1);
+        reservation.setStartDate(DateTimeUtil.toDate(client.getZoneId(), newReservationDate));
         reservation.setMembership(membership);
 
         reservationService.saveReservation(client, reservation);
-
-        reservationDay.getTimeSlots().values().stream()
-                .flatMap(ts -> ts.getTableBookings().values().stream())
-                .forEach(tb -> {
-                    assertThat(tb.getReservation()).isNull();
-                    assertThat(tb.getStatus()).isEqualByComparingTo(ReservationDay.TableBooking.BookingStatus.AVAILABLE);
-                });
-
-        assertThat(reservation.getCurrentReservationDay()).isNotEqualTo(reservationDay);
-
+        
         assertThat(reservationService.getReservation(reservation.getId())).satisfies(r -> {
+            assertThat(r.getStatus()).isEqualByComparingTo(Reservation.ReservationStatus.BOOKED);
             assertThat(r.getTableAllocations()).hasSize(1);
             assertThat(r.getMembership()).isNotNull();
         });

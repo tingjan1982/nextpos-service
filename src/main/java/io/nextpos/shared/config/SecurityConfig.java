@@ -516,7 +516,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
             HttpSecurityDecorator.newInstance(http)
                     .addAuthorization("/reservations/**", UserRole.UserPermission.of(Permission.RESERVATION, Permission.Operation.ALL), Role.USER_ROLE)
-                    .addAuthorization("/reservationDays/**", UserRole.UserPermission.of(Permission.RESERVATION, Permission.Operation.ALL), Role.USER_ROLE)
                     .decorate();
         }
     }

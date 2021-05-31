@@ -71,8 +71,7 @@ public class WebConfig implements WebMvcConfigurer {
                 "/linkedClientAccounts/*",
                 "/inventories/*",
                 "/inventoryOrders/*",
-                "/reservations/*",
-                "/reservationDays/*");
+                "/reservations/*");
 
         return registrationBean;
     }

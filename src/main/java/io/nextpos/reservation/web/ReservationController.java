@@ -5,15 +5,19 @@ import io.nextpos.reservation.data.Reservation;
 import io.nextpos.reservation.service.ReservationService;
 import io.nextpos.reservation.web.model.ReservationRequest;
 import io.nextpos.reservation.web.model.ReservationResponse;
+import io.nextpos.reservation.web.model.ReservationsResponse;
 import io.nextpos.shared.util.DateTimeUtil;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -55,6 +59,23 @@ public class ReservationController {
         return reservation;
     }
 
+    @GetMapping
+    public ReservationsResponse getReservations(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                @RequestParam("reservationDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate reservationDate,
+                                                @RequestParam(value = "reservationType", defaultValue = "RESERVATION") Reservation.ReservationType reservationType) {
+
+        final List<Reservation> reservations = reservationService.getReservationsByDateAndType(client, reservationDate, reservationType);
+
+        return new ReservationsResponse(reservationType, reservations);
+    }
+
+    @GetMapping("/availableTables")
+    public void getAvailableTables(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                   @RequestParam("reservationDate") LocalDateTime reservationDate) {
+
+        final List<TableLayout.TableDetails> availableTables = reservationService.getAvailableReservableTables(client, reservationDate);
+    }
+
     @GetMapping("/{id}")
     public ReservationResponse getReservation(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                               @PathVariable String id) {
@@ -77,7 +98,7 @@ public class ReservationController {
     private void updateFromRequest(Client client, Reservation reservation, ReservationRequest request) {
 
         final Date reservationDate = DateTimeUtil.toDate(client.getZoneId(), request.getReservationDate());
-        reservation.setReservationDate(reservationDate);
+        reservation.setStartDate(reservationDate);
         reservation.updateBookingDetails(request.getName(), request.getPhoneNumber(), request.getPeople(), request.getKid());
 
         final List<TableLayout.TableDetails> tables = request.getTableIds().stream()
@@ -98,6 +119,7 @@ public class ReservationController {
     public void deleteReservation(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                   @PathVariable String id) {
 
-        reservationService.deleteReservation(id);
+        final Reservation reservation = reservationService.getReservation(id);
+        reservationService.cancelReservation(reservation);
     }
 }
