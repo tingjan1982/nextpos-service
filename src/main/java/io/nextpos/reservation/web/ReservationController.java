@@ -3,6 +3,7 @@ package io.nextpos.reservation.web;
 import io.nextpos.client.data.Client;
 import io.nextpos.reservation.data.Reservation;
 import io.nextpos.reservation.service.ReservationService;
+import io.nextpos.reservation.web.model.AvailableTablesResponse;
 import io.nextpos.reservation.web.model.ReservationRequest;
 import io.nextpos.reservation.web.model.ReservationResponse;
 import io.nextpos.reservation.web.model.ReservationsResponse;
@@ -52,7 +53,7 @@ public class ReservationController {
                 .collect(Collectors.toList());
 
         final Date reservationDate = DateTimeUtil.toDate(client.getZoneId(), request.getReservationDate());
-        final Reservation reservation = new Reservation(client.getId(), request.getReservationType(), reservationDate, tables);
+        final Reservation reservation = Reservation.newReservation(client.getId(), reservationDate, tables);
         reservation.updateBookingDetails(request.getName(), request.getPhoneNumber(), request.getPeople(), request.getKid());
         reservation.setNote(request.getNote());
 
@@ -62,18 +63,22 @@ public class ReservationController {
     @GetMapping
     public ReservationsResponse getReservations(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                 @RequestParam("reservationDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate reservationDate,
-                                                @RequestParam(value = "reservationType", defaultValue = "RESERVATION") Reservation.ReservationType reservationType) {
+                                                @RequestParam(value = "reservationStatus", defaultValue = "BOOKED") Reservation.ReservationStatus reservationStatus) {
 
-        final List<Reservation> reservations = reservationService.getReservationsByDateAndType(client, reservationDate, reservationType);
+        final List<Reservation> reservations = reservationService.getReservationsByDateAndStatus(client, reservationDate, reservationStatus);
 
-        return new ReservationsResponse(reservationType, reservations);
+        return new ReservationsResponse(reservationStatus, reservations);
     }
 
     @GetMapping("/availableTables")
-    public void getAvailableTables(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                   @RequestParam("reservationDate") LocalDateTime reservationDate) {
+    public AvailableTablesResponse getAvailableTables(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                      @RequestParam("reservationDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime reservationDate) {
 
-        final List<TableLayout.TableDetails> availableTables = reservationService.getAvailableReservableTables(client, reservationDate);
+        final List<String> results = reservationService.getAvailableReservableTables(client, reservationDate).stream()
+                .map(TableLayout.TableDetails::getId)
+                .collect(Collectors.toList());
+
+        return new AvailableTablesResponse(results);
     }
 
     @GetMapping("/{id}")
@@ -105,18 +110,8 @@ public class ReservationController {
                 .map(tableLayoutService::getTableDetailsOrThrows)
                 .collect(Collectors.toList());
 
-        reservation.updateTableAllocation(tables);
+        reservation.updateTableAllocationAndStatus(tables);
         reservation.setNote(request.getNote());
-    }
-
-    @PostMapping("/{id}/reserveBooking")
-    public ReservationResponse updateReservation(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                 @PathVariable String id) {
-
-        final Reservation reservation = reservationService.getReservation(id);
-        reservation.setReservationType(Reservation.ReservationType.RESERVATION);
-
-        return toResponse(client, reservationService.saveReservation(client, reservation));
     }
 
     private ReservationResponse toResponse(Client client, Reservation reservation) {

@@ -9,13 +9,13 @@ import java.util.stream.Collectors;
 @Data
 public class ReservationsResponse {
 
-    private Reservation.ReservationType reservationType;
+    private Reservation.ReservationStatus reservationStatus;
 
     private List<ReservationResponse> results;
 
-    public ReservationsResponse(Reservation.ReservationType reservationType, List<Reservation> reservations) {
+    public ReservationsResponse(Reservation.ReservationStatus reservationStatus, List<Reservation> reservations) {
 
-        this.reservationType = reservationType;
+        this.reservationStatus = reservationStatus;
         this.results = reservations.stream()
                 .map(ReservationResponse::new)
                 .collect(Collectors.toList());

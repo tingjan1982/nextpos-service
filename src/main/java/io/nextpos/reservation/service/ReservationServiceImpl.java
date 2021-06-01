@@ -142,7 +142,6 @@ public class ReservationServiceImpl implements ReservationService {
 
         Query query = Query.query(new Criteria().andOperator(
                 where("clientId").is(client.getId())
-                        .and("reservationType").is(Reservation.ReservationType.RESERVATION)
                         .and("status").ne(Reservation.ReservationStatus.CANCELLED),
                 new Criteria().orOperator(
                         where("startDate").gte(startDate).lt(endDate), // less than end date to book right after.
@@ -154,14 +153,14 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
-    public List<Reservation> getReservationsByDateAndType(Client client, LocalDate reservationDate, Reservation.ReservationType reservationType) {
+    public List<Reservation> getReservationsByDateAndStatus(Client client, LocalDate reservationDate, Reservation.ReservationStatus reservationStatus) {
 
         Date startDate = DateTimeUtil.toDate(client.getZoneId(), reservationDate.atStartOfDay());
         Date endDate = DateTimeUtil.toDate(client.getZoneId(), reservationDate.atTime(23, 59, 59));
 
         Query query = new Query().with(Sort.by(Sort.Order.asc("id")))
                 .addCriteria(where("clientId").is(client.getId())
-                .and("reservationType").is(reservationType)
+                .and("status").is(reservationStatus)
                 .and("startDate").gte(startDate).lte(endDate));
 
         return mongoTemplate.find(query, Reservation.class);

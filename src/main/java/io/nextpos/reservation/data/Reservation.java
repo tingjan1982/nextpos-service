@@ -28,8 +28,6 @@ public class Reservation extends MongoBaseObject implements WithClientId {
 
     private String clientId;
 
-    private ReservationType reservationType;
-
     /**
      * Booking date
      */
@@ -57,28 +55,24 @@ public class Reservation extends MongoBaseObject implements WithClientId {
     @DBRef
     private Membership membership;
 
-    public Reservation(String clientId, ReservationType reservationType, Date startDate, List<TableLayout.TableDetails> tables) {
+    private Reservation(String clientId, Date startDate, List<TableLayout.TableDetails> tables) {
         this.id = new ObjectId().toString();
         this.clientId = clientId;
-        this.reservationType = reservationType;
         this.startDate = startDate;
-        this.status = ReservationStatus.BOOKED;
 
-        this.updateTableAllocation(tables);
+        this.updateTableAllocationAndStatus(tables);
     }
 
-    public static Reservation normalReservation(String clientId, Date reservationDate, List<TableLayout.TableDetails> tables) {
-        return new Reservation(clientId, ReservationType.RESERVATION, reservationDate, tables);
+    public static Reservation newReservation(String clientId, Date reservationDate, List<TableLayout.TableDetails> tables) {
+        return new Reservation(clientId, reservationDate, tables);
     }
 
-    public static Reservation waitingReservation(String clientId, Date reservationDate) {
-        return new Reservation(clientId, ReservationType.WAITING, reservationDate, List.of());
-    }
-
-    public void updateTableAllocation(List<TableLayout.TableDetails> tables) {
+    public void updateTableAllocationAndStatus(List<TableLayout.TableDetails> tables) {
         this.tableAllocations = tables.stream()
                 .map(TableAllocation::new)
                 .collect(Collectors.toList());
+
+        this.status = this.tableAllocations.isEmpty() ? ReservationStatus.WAITING : ReservationStatus.BOOKED;
     }
 
     public void updateBookingDetails(String name, String phoneNumber, int people, int kid) {
@@ -87,12 +81,6 @@ public class Reservation extends MongoBaseObject implements WithClientId {
         this.people = people;
         this.kid = kid;
     }
-
-    public enum ReservationType {
-
-        RESERVATION, WAITING
-    }
-
 
     @Data
     @NoArgsConstructor
@@ -111,6 +99,8 @@ public class Reservation extends MongoBaseObject implements WithClientId {
     public enum ReservationStatus {
 
         BOOKED,
+
+        WAITING,
 
         /**
          * Booking is confirmed.

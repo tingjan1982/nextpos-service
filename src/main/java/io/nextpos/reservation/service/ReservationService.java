@@ -25,5 +25,5 @@ public interface ReservationService {
 
     List<Reservation> getReservationsByDateRange(Client client, LocalDateTime startDt, LocalDateTime endDt);
 
-    List<Reservation> getReservationsByDateAndType(Client client, LocalDate reservationDate, Reservation.ReservationType reservationType);
+    List<Reservation> getReservationsByDateAndStatus(Client client, LocalDate reservationDate, Reservation.ReservationStatus reservationStatus);
 }

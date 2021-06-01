@@ -70,16 +70,14 @@ class ReservationServiceImplTest {
         final LocalDateTime reservationDt = LocalDateTime.of(LocalDate.now(), noonTime);
         final LocalDateTime endDt = LocalDateTime.of(LocalDate.now(), noonTime.plusHours(2));
         final Date reservationDate = DateTimeUtil.toDate(client.getZoneId(), reservationDt);
-        final Date endDate = DateTimeUtil.toDate(client.getZoneId(), endDt);
 
-        final Reservation reservation = Reservation.normalReservation(client.getId(), reservationDate, tableLayout.getTables());
-        //reservation.setEndDate(endDate);
+        final Reservation reservation = Reservation.newReservation(client.getId(), reservationDate, tableLayout.getTables());
 
         assertThat(reservationService.getAvailableReservableTables(client, reservationDt)).hasSize(2);
 
         reservationService.saveReservation(client, reservation);
 
-        assertThat(reservation.getReservationType()).isEqualByComparingTo(Reservation.ReservationType.RESERVATION);
+        assertThat(reservation.getStatus()).isEqualByComparingTo(Reservation.ReservationStatus.BOOKED);
         assertThat(reservation.getStartDate()).isNotNull();
         assertThat(reservation.getEndDate()).isNotNull();
         assertThat(reservation.getTableAllocations()).hasSize(2);
@@ -92,7 +90,7 @@ class ReservationServiceImplTest {
         assertThat(reservationService.getReservationsByDateRange(client, reservationDt.minusHours(1), endDt.minusHours(2))).isEmpty(); // 11 - 12
         assertThat(reservationService.getReservationsByDateRange(client, reservationDt.plusHours(2), endDt.plusHours(1))).isEmpty(); // 2 - 3
 
-        reservation.updateTableAllocation(List.of(tableLayout.getTables().get(0)));
+        reservation.updateTableAllocationAndStatus(List.of(tableLayout.getTables().get(0)));
         final LocalDateTime newReservationDate = reservationDt.plusHours(1);
         reservation.setStartDate(DateTimeUtil.toDate(client.getZoneId(), newReservationDate));
         reservation.setMembership(membership);
@@ -104,5 +102,8 @@ class ReservationServiceImplTest {
             assertThat(r.getTableAllocations()).hasSize(1);
             assertThat(r.getMembership()).isNotNull();
         });
+
+        assertThat(reservationService.getReservationsByDateAndStatus(client, newReservationDate.toLocalDate(), Reservation.ReservationStatus.WAITING)).isEmpty();
+        assertThat(reservationService.getReservationsByDateAndStatus(client, newReservationDate.toLocalDate(), Reservation.ReservationStatus.BOOKED)).hasSize(1);
     }
 }

@@ -1,6 +1,5 @@
 package io.nextpos.reservation.web.model;
 
-import io.nextpos.reservation.data.Reservation;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -17,8 +16,6 @@ public class ReservationRequest {
 
     @NotNull
     private LocalDateTime reservationDate;
-
-    private Reservation.ReservationType reservationType = Reservation.ReservationType.RESERVATION;
 
     @NotBlank
     private String name;
