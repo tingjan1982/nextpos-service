@@ -4,6 +4,8 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.roles.data.Permission;
 import io.nextpos.roles.data.UserRole;
+import io.nextpos.shared.config.security.ApiKeyAuthenticationFilter;
+import io.nextpos.shared.config.security.ApiKeyAuthenticationProvider;
 import io.nextpos.shared.exception.ConfigurationException;
 import io.nextpos.shared.web.RequestIdContextFilter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,7 @@ import org.springframework.security.oauth2.provider.request.DefaultOAuth2Request
 import org.springframework.security.oauth2.provider.token.*;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
 import org.springframework.stereotype.Component;
 
@@ -59,6 +62,9 @@ import static org.springframework.http.HttpMethod.*;
  * https://projects.spring.io/spring-security-oauth/docs/oauth2.html
  * <p>
  * https://docs.spring.io/spring-security-oauth2-boot/docs/current/reference/htmlsingle/
+ *
+ * Api Key authentication:
+ * https://medium.com/swlh/a-trip-through-spring-security-effa98bff0da
  */
 @EnableWebSecurity(debug = false)
 @Order(2)
@@ -74,10 +80,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final ApiKeyAuthenticationProvider apiKeyAuthenticationProvider;
+
     @Autowired
-    public SecurityConfig(ClientService clientService, PasswordEncoder passwordEncoder) {
+    public SecurityConfig(ClientService clientService, PasswordEncoder passwordEncoder, ApiKeyAuthenticationProvider apiKeyAuthenticationProvider) {
         this.clientService = clientService;
         this.passwordEncoder = passwordEncoder;
+        this.apiKeyAuthenticationProvider = apiKeyAuthenticationProvider;
     }
 
     /**
@@ -93,10 +102,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
 
         http.csrf().disable()
-                .cors().and()
+                .cors()
+                .and()
+                .addFilterBefore(new ApiKeyAuthenticationFilter(authenticationManager()), AnonymousAuthenticationFilter.class)
                 .regexMatcher("^\\/(actuator|counters|tokens|admin|ws|web-reservations)(\\/.+)*(\\?.+)?$")
                 .authorizeRequests()
-                .antMatchers("/actuator/health", "/ws/**", "/admin/**", "/tokens/**", "/web-reservations/**").permitAll()
+                .antMatchers("/actuator/health", "/ws/**", "/admin/**", "/tokens/**").permitAll()
                 .anyRequest().authenticated().and().httpBasic();
     }
 
@@ -106,6 +117,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         auth.inMemoryAuthentication().withUser(actuatorUsername).password(encodedPassword).roles("ADMIN");
 
         auth.userDetailsService(clientService).passwordEncoder(passwordEncoder);
+
+        auth.authenticationProvider(apiKeyAuthenticationProvider);
     }
 
     /**
@@ -186,7 +199,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             return ((String) claims.get(USER_NAME));
         }
     }
-
 
     /**
      * Authorization server configuration
