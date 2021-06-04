@@ -28,8 +28,4 @@ public class DateTimeUtil {
     public static String formatDate(ZoneId zoneId, Date date) {
         return formatDateTime(toLocalDateTime(zoneId, date));
     }
-
-    public static boolean dateEquals(LocalDateTime date1, LocalDateTime date2) {
-        return date1 != null && date2 != null && date1.compareTo(date2) == 0;
-    }
 }

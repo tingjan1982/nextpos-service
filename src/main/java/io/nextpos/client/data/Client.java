@@ -153,14 +153,12 @@ public class Client extends BaseObject {
         return ZoneId.of(timezone);
     }
 
-    public Client addAttribute(ClientAttributes key, String value) {
+    public void addAttribute(ClientAttributes key, String value) {
         attributes.put(key.name(), value);
-        return this;
     }
 
-    public Client addAttribute(String key, String value) {
+    public void addAttribute(String key, String value) {
         attributes.put(key, value);
-        return this;
     }
 
     public String getAttribute(String key) {

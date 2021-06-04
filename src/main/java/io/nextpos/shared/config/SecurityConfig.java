@@ -355,11 +355,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         private void authorizeClientRequests(final HttpSecurity http) throws Exception {
 
             http.authorizeRequests()
-                    .antMatchers(POST, "/clients/*/deactivate").access("hasAuthority('MASTER')")
-                    .antMatchers(POST, "/clients/resetPassword").access("hasAuthority('MASTER')")
-                    .antMatchers(DELETE, "/clients/*/hard").access("hasAuthority('MASTER')")
-                    .antMatchers(POST, "/clients").permitAll()
-                    .antMatchers(GET, "/clients/default").permitAll();
+                    .antMatchers(POST, "/clients").permitAll();
 
             HttpSecurityDecorator.newInstance(http)
                     .addAuthorization(GET, "/clients/me/users/**", UserRole.UserPermission.of(Permission.CLIENT_USER, Permission.Operation.READ), Role.USER_ROLE)
@@ -371,6 +367,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .addAuthorization(GET, "/clients/**", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.READ), Role.USER_ROLE)
                     .addAuthorization(POST, "/clients/me/**", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.WRITE), Role.OWNER_ROLE)
                     .addAuthorization(DELETE, "/clients/me", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.DELETE), Role.ADMIN_ROLE)
+                    .addAuthorization(DELETE, "/client/me/hard", UserRole.UserPermission.of(Permission.CLIENT, Permission.Operation.DELETE), Role.ADMIN_ROLE)
                     .decorate();
         }
 

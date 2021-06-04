@@ -11,7 +11,7 @@ public interface OrderRepository extends MongoRepository<Order, String> {
 
     List<Order> findAllByClientIdAndCreatedDateGreaterThanEqualAndStateIsIn(String clientId, Date date, List<Order.OrderState> orderStates, Sort sort);
 
-    List<Order> findAllByClientIdAndStateIsInAndCreatedDateGreaterThanEqual(String clientId, List<Order.OrderState> orderState, Date date, Sort sort);
+    List<Order> findAllByClientIdAndCreatedDateGreaterThanEqualAndOrderTypeAndStateIsIn(String clientId, Date date, Order.OrderType orderType, List<Order.OrderState> orderStates);
 
     long countByClientIdAndStateIn(String clientId, List<Order.OrderState> orderStates);
 

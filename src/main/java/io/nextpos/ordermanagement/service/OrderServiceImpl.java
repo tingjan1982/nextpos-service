@@ -125,8 +125,8 @@ public class OrderServiceImpl implements OrderService {
         final List<Order.OrderState> states = Order.OrderState.inflightStates();
 
         final Shift activeShift = shiftService.getActiveShiftOrThrows(clientId);
-
         final Sort sort = Sort.by(Sort.Order.by("state"), Sort.Order.asc("createdDate"));
+
         return orderRepository.findAllByClientIdAndCreatedDateGreaterThanEqualAndStateIsIn(clientId, activeShift.getStart().getTimestamp(), states, sort);
     }
 
@@ -137,7 +137,23 @@ public class OrderServiceImpl implements OrderService {
 
         final Shift activeShift = shiftService.getActiveShiftOrThrows(clientId);
         final Sort sort = Sort.by(Sort.Order.desc("createdDate"));
-        return orderRepository.findAllByClientIdAndStateIsInAndCreatedDateGreaterThanEqual(clientId, orderStates, activeShift.getStart().getTimestamp(), sort);
+
+        return orderRepository.findAllByClientIdAndCreatedDateGreaterThanEqualAndStateIsIn(clientId, activeShift.getStart().getTimestamp(), orderStates, sort);
+    }
+
+    @Override
+    public List<Order> getInStoreInFlightOrders(String clientId) {
+
+        final Optional<Shift> activeShift = shiftService.getActiveShift(clientId);
+
+        if (activeShift.isEmpty()) {
+            return List.of();
+        }
+
+        return orderRepository.findAllByClientIdAndCreatedDateGreaterThanEqualAndOrderTypeAndStateIsIn(clientId,
+                activeShift.get().getStart().getTimestamp(),
+                Order.OrderType.IN_STORE,
+                Order.OrderState.inflightStates());
     }
 
     @Override

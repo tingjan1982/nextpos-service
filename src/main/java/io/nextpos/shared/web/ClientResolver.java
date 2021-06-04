@@ -4,7 +4,6 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.shared.config.SecurityConfig;
 import io.nextpos.shared.exception.ClientAccountException;
-import io.nextpos.shared.exception.ObjectNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -60,11 +59,7 @@ public class ClientResolver extends OncePerRequestFilter {
         final SecurityConfig.ExtraClaims extraClaims = (SecurityConfig.ExtraClaims) oAuth2AuthenticationDetails.getDecodedDetails();
 
         final String clientId = extraClaims.getApplicationClientId();
-        final Client.Status[] statuses = new Client.Status[]{Client.Status.PENDING_ACTIVE, Client.Status.ACTIVE, Client.Status.INACTIVE};
-
-        final Client client = clientService.getClientByStatuses(clientId, statuses).orElseThrow(() -> {
-            throw new ObjectNotFoundException(clientId, Client.class);
-        });
+        final Client client = clientService.getClientOrThrows(clientId);
 
         if (client.getStatus() == Client.Status.INACTIVE) {
             throw new ClientAccountException("Specified account is not active. Please contact customer service for more details", client);

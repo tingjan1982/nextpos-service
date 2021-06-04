@@ -15,6 +15,7 @@ import io.nextpos.roles.service.UserRoleService;
 import io.nextpos.settings.service.SettingsService;
 import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.config.BootstrapConfig;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ClientAccountException;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.web.ClientResolver;
@@ -120,12 +121,6 @@ public class ClientController {
         return toClientResponse(client);
     }
 
-    @GetMapping("/default")
-    public ClientResponse getTestClient() {
-
-        return toClientResponse(clientService.getDefaultClient());
-    }
-
     @PostMapping("/me")
     public ClientResponse updateClient(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                        @Valid @RequestBody UpdateClientRequest updateClientRequest) {
@@ -208,21 +203,10 @@ public class ClientController {
                                          @RequestBody String password) {
 
         final String aesKey = encryptionService.generateAESKey(password);
-        client.addAttribute(Client.ClientAttributes.AES_KEY.name(), aesKey);
+        client.addAttribute(Client.ClientAttributes.AES_KEY, aesKey);
         clientService.saveClient(client);
 
         return toClientResponse(client);
-    }
-
-    @PostMapping("/{id}/deactivate")
-    @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public void deactivateClient(@PathVariable String id) {
-
-        final Client client = clientService.getClient(id).orElseThrow(() -> {
-            throw new ClientAccountException("Specified client account is not active", id);
-        });
-
-        clientService.updateClientStatus(client, Client.Status.INACTIVE);
     }
 
     /**
@@ -242,10 +226,15 @@ public class ClientController {
         clientService.updateClientStatus(client, Client.Status.DELETED);
     }
 
-    @DeleteMapping("/{id}/hard")
+    @DeleteMapping("/me/hard")
     @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public void hardDeleteClient(@PathVariable String id) {
-        clientService.deleteClient(id);
+    public void hardDeleteClient(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
+
+        if (client.getStatus() != Client.Status.DELETED) {
+            throw new BusinessLogicException("You have to mark client account as deleted first.");
+        }
+
+        clientService.deleteClient(client.getId());
     }
 
     private ClientResponse toClientResponse(final Client client) {
@@ -373,8 +362,8 @@ public class ClientController {
     }
 
     @PatchMapping("/me/users/currentUser/password")
-    public ClientUserResponse updateClientUserPassword(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                       @Valid @RequestBody UpdateClientUserPasswordRequest request) {
+    public ClientUserResponse updateCurrentClientUserPassword(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                              @Valid @RequestBody UpdateClientUserPasswordRequest request) {
 
         final ClientUser currentUser = oAuth2Helper.resolveCurrentClientUser(client);
 

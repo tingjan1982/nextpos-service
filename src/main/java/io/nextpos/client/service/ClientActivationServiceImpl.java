@@ -150,7 +150,7 @@ public class ClientActivationServiceImpl implements ClientActivationService {
         });
 
         final String passcode = generatePasscode();
-        client.addAttribute(Client.ClientAttributes.PASSCODE.name(), passcode);
+        client.addAttribute(Client.ClientAttributes.PASSCODE, passcode);
         clientService.saveClient(client);
 
         final EmailDetails emailDetails = new EmailDetails(client.getId(), client.getUsername(), "Rain App Reset Password", passcode);
@@ -170,7 +170,7 @@ public class ClientActivationServiceImpl implements ClientActivationService {
 
         if (verified) {
             client.removeAttribute(Client.ClientAttributes.PASSCODE.name());
-            client.addAttribute(Client.ClientAttributes.PASSCODE_VERIFIED.name(), String.valueOf(System.currentTimeMillis()));
+            client.addAttribute(Client.ClientAttributes.PASSCODE_VERIFIED, String.valueOf(System.currentTimeMillis()));
         }
 
         return verified;

@@ -2,6 +2,7 @@ package io.nextpos.reservation.service;
 
 import com.nimbusds.oauth2.sdk.util.CollectionUtils;
 import io.nextpos.client.data.Client;
+import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.reservation.data.*;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
@@ -34,15 +35,18 @@ public class ReservationServiceImpl implements ReservationService {
 
     private final ReservationSettingsRepository reservationSettingsRepository;
 
+    private final OrderService orderService;
+
     private final TableLayoutService tableLayoutService;
 
     private final MongoTemplate mongoTemplate;
 
     @Autowired
-    public ReservationServiceImpl(ReservationDayRepository reservationDayRepository, ReservationRepository reservationRepository, ReservationSettingsRepository reservationSettingsRepository, TableLayoutService tableLayoutService, MongoTemplate mongoTemplate) {
+    public ReservationServiceImpl(ReservationDayRepository reservationDayRepository, ReservationRepository reservationRepository, ReservationSettingsRepository reservationSettingsRepository, OrderService orderService, TableLayoutService tableLayoutService, MongoTemplate mongoTemplate) {
         this.reservationDayRepository = reservationDayRepository;
         this.reservationRepository = reservationRepository;
         this.reservationSettingsRepository = reservationSettingsRepository;
+        this.orderService = orderService;
         this.tableLayoutService = tableLayoutService;
         this.mongoTemplate = mongoTemplate;
     }
@@ -101,6 +105,17 @@ public class ReservationServiceImpl implements ReservationService {
                 .flatMap(r -> r.getTableAllocations().stream())
                 .map(Reservation.TableAllocation::getTableId)
                 .collect(Collectors.toList());
+
+//        final LocalDate today = DateTimeUtil.toLocalDate(client.getZoneId(), new Date());
+//
+//        if (reservationTime.toLocalDate().isEqual(today)) {
+//            final List<String> inflightTables = orderService.getInStoreInFlightOrders(client.getId()).stream()
+//                    .flatMap(o -> o.getTables().stream())
+//                    .map(Order.TableInfo::getTableId)
+//                    .collect(Collectors.toList());
+//
+//            bookedTables.addAll(inflightTables);
+//        }
 
         return tableLayoutService.getTableLayouts(client).stream()
                 .flatMap(tl -> tl.getTables().stream())

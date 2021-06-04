@@ -34,6 +34,8 @@ public interface OrderService {
 
     List<Order> getOrdersByStates(String clientId, List<Order.OrderState> orderStates);
 
+    List<Order> getInStoreInFlightOrders(String clientId);
+
     InProcessOrderLineItems getInProcessOrderLineItems(String clientId);
 
     InProcessOrders getInProcessOrders(String clientId);
