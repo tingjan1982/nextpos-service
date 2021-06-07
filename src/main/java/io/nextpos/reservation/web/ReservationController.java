@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -68,6 +69,15 @@ public class ReservationController {
         final List<Reservation> reservations = reservationService.getReservationsByDateAndStatus(client, reservationDate, reservationStatus);
 
         return new ReservationsResponse(reservationStatus, reservations);
+    }
+
+    @GetMapping("/byMonth")
+    public ReservationsResponse getReservationsByYearMonth(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                           @RequestParam("yearMonth") YearMonth yearMonth) {
+
+        final List<Reservation> reservations = reservationService.getReservationsByDateRange(client, yearMonth);
+
+        return new ReservationsResponse(reservations);
     }
 
     @GetMapping("/availableTables")

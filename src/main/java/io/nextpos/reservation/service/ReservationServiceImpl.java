@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -194,6 +195,19 @@ public class ReservationServiceImpl implements ReservationService {
                         where("endDate").gt(startDate).lte(endDate)) // greater than start date to book right before.
                 )
         );
+
+        return mongoTemplate.find(query, Reservation.class);
+    }
+
+    @Override
+    public List<Reservation> getReservationsByDateRange(Client client, YearMonth yearMonth) {
+
+        final Date startDate = DateTimeUtil.toDate(client.getZoneId(), yearMonth.atDay(1).atStartOfDay());
+        final Date endDate = DateTimeUtil.toDate(client.getZoneId(), yearMonth.atEndOfMonth().atTime(23, 59, 59));
+
+        Query query = new Query().with(Sort.by(Sort.Order.asc("id")))
+                .addCriteria(where("clientId").is(client.getId())
+                        .and("startDate").gte(startDate).lte(endDate));
 
         return mongoTemplate.find(query, Reservation.class);
     }
