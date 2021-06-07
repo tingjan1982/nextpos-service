@@ -12,15 +12,12 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
 public class SmsDetails extends NotificationDetails {
 
-    private String fromNumber;
-
     private String toNumber;
 
     private String message;
 
-    public SmsDetails(final String clientId, final String fromNumber, final String toNumber, final String message) {
+    public SmsDetails(final String clientId, final String toNumber, final String message) {
         super(clientId);
-        this.fromNumber = fromNumber;
         this.toNumber = toNumber;
         this.message = message;
     }

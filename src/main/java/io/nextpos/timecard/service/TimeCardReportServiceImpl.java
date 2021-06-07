@@ -43,6 +43,7 @@ public class TimeCardReportServiceImpl implements TimeCardReportService {
                 .and("clockIn").as("clockIn")
                 .and("clockOut").as("clockOut")
                 .and(context -> Document.parse("{ $dayOfMonth: {date: '$clockIn', timezone: 'Asia/Taipei'} }")).as("day")
+                .andExpression("(clockOut - clockIn)").as("totalMillis")
                 .andExpression("(clockOut - clockIn) / (1000 * 60 * 60)").as("hour");
 
         final Date fromDate = DateTimeUtil.toDate(client.getZoneId(), yearMonth.atDay(1).atStartOfDay());
@@ -56,6 +57,7 @@ public class TimeCardReportServiceImpl implements TimeCardReportService {
                 .first("username").as("username")
                 .first("nickname").as("displayName")
                 .count().as("totalShifts")
+                .sum("totalMillis").as("totalMillis")
                 .sum("hour").as("totalHours");
 
         final FacetOperation facets = Aggregation.facet(sortByClockIn, userTimeCards).as("userTimeCards");
@@ -86,6 +88,7 @@ public class TimeCardReportServiceImpl implements TimeCardReportService {
             final TimeCardReport.UserShift emptyUserShift = new TimeCardReport.UserShift(u.getUsername(),
                     u.getUsername(),
                     u.getNickname(),
+                    0,
                     0,
                     BigDecimal.ZERO);
             userShifts.putIfAbsent(u.getUsername(), emptyUserShift);

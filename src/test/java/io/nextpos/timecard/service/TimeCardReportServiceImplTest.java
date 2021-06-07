@@ -9,6 +9,7 @@ import io.nextpos.timecard.data.TimeCardReport;
 import io.nextpos.timecard.data.UserTimeCard;
 import io.nextpos.timecard.data.UserTimeCardRepository;
 import org.assertj.core.data.Index;
+import org.assertj.core.data.Offset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
@@ -56,8 +58,7 @@ class TimeCardReportServiceImplTest {
         final LocalDateTime firstOfMonth = now.withDayOfMonth(1);
         final LocalDateTime lastOfMonth = YearMonth.now().atEndOfMonth().atStartOfDay();
 
-        createUserTimeCard(username, firstOfMonth, firstOfMonth.plusHours(5));
-
+        createUserTimeCard(username, firstOfMonth, firstOfMonth.plusHours(5).plusMinutes(40));
         createUserTimeCard(username, now, now.plus(1, ChronoUnit.HALF_DAYS));
         createUserTimeCard(username, now, now.plusDays(1));
 
@@ -73,10 +74,14 @@ class TimeCardReportServiceImplTest {
 
         assertThat(result.getUserTimeCards()).satisfies(u -> {
             assertThat(u.getTotalShifts()).isEqualTo(3);
-            assertThat(u.getTotalHours()).isEqualByComparingTo("41.0");
+            assertThat(u.getTotalMillis()).isNotZero();
+            assertThat(u.getHours()).isEqualTo(41);
+            assertThat(u.getMinutes()).isEqualTo(40);
+            assertThat(u.getTotalHours()).isCloseTo(new BigDecimal("41"), Offset.offset(new BigDecimal("1")));
         }, Index.atIndex(0));
         assertThat(result.getUserTimeCards()).satisfies(u -> {
             assertThat(u.getTotalShifts()).isEqualTo(2);
+            assertThat(u.getTotalMillis()).isNotZero();
             assertThat(u.getTotalHours()).isEqualByComparingTo("48.0");
         }, Index.atIndex(1));
     }

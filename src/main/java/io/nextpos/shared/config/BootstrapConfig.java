@@ -105,6 +105,7 @@ public class BootstrapConfig {
             settings.setTaxInclusive(true);
             settings.setDecimalPlaces(0);
             settings.setRoundingMode(RoundingMode.HALF_UP);
+            settings.setDialingCode("886");
 
             settings.getCommonAttributes().clear();
             settingsProperties.getCommonAttributes().forEach(settings::addCommonAttribute);
@@ -119,7 +120,8 @@ public class BootstrapConfig {
                     true,
                     Currency.getInstance("TWD"),
                     0,
-                    RoundingMode.HALF_UP);
+                    RoundingMode.HALF_UP,
+                    "886");
 
             settingsProperties.getCommonAttributes().forEach(defaultCountrySettings::addCommonAttribute);
             settingsProperties.getCountryAttributes().getOrDefault(DEFAULT_COUNTRY_CODE, List.of()).forEach(defaultCountrySettings::addCommonAttribute);

@@ -195,7 +195,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public Optional<Client> getClient(final String clientId) {
-        return clientRepository.findByIdAndStatusIn(clientId, Client.Status.ACTIVE, Client.Status.PENDING_ACTIVE);
+        return clientRepository.findById(clientId);
     }
 
     @Override

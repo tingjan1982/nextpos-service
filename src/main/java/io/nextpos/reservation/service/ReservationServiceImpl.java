@@ -2,8 +2,12 @@ package io.nextpos.reservation.service;
 
 import com.nimbusds.oauth2.sdk.util.CollectionUtils;
 import io.nextpos.client.data.Client;
+import io.nextpos.notification.data.SmsDetails;
+import io.nextpos.notification.service.NotificationService;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.reservation.data.*;
+import io.nextpos.settings.data.CountrySettings;
+import io.nextpos.settings.service.SettingsService;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
@@ -11,6 +15,7 @@ import io.nextpos.shared.util.DateTimeUtil;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -39,16 +44,25 @@ public class ReservationServiceImpl implements ReservationService {
 
     private final TableLayoutService tableLayoutService;
 
+    private final NotificationService notificationService;
+
+    private final SettingsService settingsService;
+
     private final MongoTemplate mongoTemplate;
 
+    private final String reservationUrl;
+
     @Autowired
-    public ReservationServiceImpl(ReservationDayRepository reservationDayRepository, ReservationRepository reservationRepository, ReservationSettingsRepository reservationSettingsRepository, OrderService orderService, TableLayoutService tableLayoutService, MongoTemplate mongoTemplate) {
+    public ReservationServiceImpl(ReservationDayRepository reservationDayRepository, ReservationRepository reservationRepository, ReservationSettingsRepository reservationSettingsRepository, OrderService orderService, TableLayoutService tableLayoutService, NotificationService notificationService, SettingsService settingsService, MongoTemplate mongoTemplate, @Value("${reservation.url}") String reservationUrl) {
         this.reservationDayRepository = reservationDayRepository;
         this.reservationRepository = reservationRepository;
         this.reservationSettingsRepository = reservationSettingsRepository;
         this.orderService = orderService;
         this.tableLayoutService = tableLayoutService;
+        this.notificationService = notificationService;
+        this.settingsService = settingsService;
         this.mongoTemplate = mongoTemplate;
+        this.reservationUrl = reservationUrl;
     }
 
 
@@ -80,7 +94,11 @@ public class ReservationServiceImpl implements ReservationService {
         }
 
         reservation.setStatus(previousStatus);
-        return reservationRepository.save(reservation);
+
+        final Reservation saved = reservationRepository.save(reservation);
+        //this.sendNotification(client, saved);
+
+        return saved;
     }
 
     private ReservationDay getOrCreateReservationCapacity(String clientId, LocalDate reservationDate) {
@@ -90,10 +108,17 @@ public class ReservationServiceImpl implements ReservationService {
         });
     }
 
-    private ReservationSettings getOrCreateReservationSettings(Client client) {
-        return reservationSettingsRepository.findById(client.getId()).orElseGet(() -> {
-            return reservationSettingsRepository.save(new ReservationSettings(client.getId()));
-        });
+    private void sendNotification(Client client, Reservation reservation) {
+
+        final CountrySettings countrySettings = settingsService.getCountrySettings(client.getCountryCode());
+        String dateTime = DateTimeUtil.formatDate(client.getZoneId(), reservation.getStartDate(), "MM/dd HH:mm");
+        String reservationLink = reservationUrl + "/r/" + reservation.getId();
+        final String formattedNumber = countrySettings.formatPhoneNumber(reservation.getPhoneNumber());
+
+        String message = String.format("%s %s: %s", client.getClientName(), dateTime, reservationLink);
+        SmsDetails smsDetails = new SmsDetails(reservation.getClientId(), formattedNumber, message);
+
+        notificationService.sendSimpleNotification(smsDetails);
     }
 
     @Override
@@ -121,6 +146,12 @@ public class ReservationServiceImpl implements ReservationService {
                 .flatMap(tl -> tl.getTables().stream())
                 .filter(td -> !bookedTables.contains(td.getId()))
                 .collect(Collectors.toList());
+    }
+
+    private ReservationSettings getOrCreateReservationSettings(Client client) {
+        return reservationSettingsRepository.findById(client.getId()).orElseGet(() -> {
+            return reservationSettingsRepository.save(new ReservationSettings(client.getId()));
+        });
     }
 
     @Override
@@ -175,8 +206,8 @@ public class ReservationServiceImpl implements ReservationService {
 
         Query query = new Query().with(Sort.by(Sort.Order.asc("id")))
                 .addCriteria(where("clientId").is(client.getId())
-                .and("status").is(reservationStatus)
-                .and("startDate").gte(startDate).lte(endDate));
+                        .and("status").is(reservationStatus)
+                        .and("startDate").gte(startDate).lte(endDate));
 
         return mongoTemplate.find(query, Reservation.class);
     }

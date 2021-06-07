@@ -34,6 +34,8 @@ public class CountrySettings extends BaseObject {
     @Enumerated(EnumType.STRING)
     private RoundingMode roundingMode;
 
+    private String dialingCode;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @Column(name = "attribute")
     @CollectionTable(name = "country_settings_attributes", joinColumns = @JoinColumn(name = "iso_country_code"))
@@ -47,13 +49,14 @@ public class CountrySettings extends BaseObject {
     @ToString.Exclude
     private Set<PaymentMethod> supportedPaymentMethods = new LinkedHashSet<>();
 
-    public CountrySettings(String isoCountryCode, BigDecimal taxRate, boolean taxInclusive, Currency currency, int decimalPlaces, RoundingMode roundingMode) {
+    public CountrySettings(String isoCountryCode, BigDecimal taxRate, boolean taxInclusive, Currency currency, int decimalPlaces, RoundingMode roundingMode, String dialingCode) {
         this.isoCountryCode = isoCountryCode;
         this.taxInclusive = taxInclusive;
         this.taxRate = taxRate;
         this.currency = currency;
         this.decimalPlaces = decimalPlaces;
         this.roundingMode = roundingMode;
+        this.dialingCode = dialingCode;
     }
 
     public CountrySettings addCommonAttribute(String attribute) {
@@ -71,6 +74,10 @@ public class CountrySettings extends BaseObject {
 
     public RoundingAmountHelper roundingAmountHelper() {
         return new RoundingAmountHelper(decimalPlaces, roundingMode);
+    }
+
+    public String formatPhoneNumber(String phoneNumber) {
+        return String.format("+%s%s", dialingCode, phoneNumber.substring(1));
     }
 
     @Data

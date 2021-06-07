@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Positive;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ public class ReservationRequest {
     private String name;
 
     @NotBlank
+    @Pattern(regexp = "^[0-9]{10}$")
     private String phoneNumber;
 
     @Positive

@@ -25,6 +25,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Sendgrid Handlebars reference:
@@ -59,6 +60,17 @@ public class NotificationServiceImpl implements NotificationService {
         this.notificationDetailsRepository = notificationDetailsRepository;
         this.notificationProperties = notificationProperties;
         this.mailProperties = mailProperties;
+    }
+
+    @Override
+    public void sendSimpleNotification(NotificationDetails notificationDetails) {
+
+        try {
+            this.sendNotification(notificationDetails).get(10, TimeUnit.SECONDS);
+
+        } catch (Exception e) {
+            throw new GeneralApplicationException("Notification cannot be sent a specified time: " + e.getMessage(), e);
+        }
     }
 
     @Override
@@ -176,7 +188,7 @@ public class NotificationServiceImpl implements NotificationService {
 
         Message message = Message.creator(
                 new PhoneNumber(notificationDetails.getToNumber()),
-                new PhoneNumber("+15103808519"),
+                new PhoneNumber(notificationProperties.getFromNumber()),
                 notificationDetails.getMessage())
                 .create();
 

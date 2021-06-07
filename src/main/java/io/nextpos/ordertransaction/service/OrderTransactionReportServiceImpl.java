@@ -69,7 +69,7 @@ public class OrderTransactionReportServiceImpl implements OrderTransactionReport
 
         final FacetOperation facets = Aggregation.facet(stateFilter, flattenTransactions, totalByPaymentMethod).as("totalByPaymentMethod")
                 .and(stateFilter, orderSummary).as("orderSummary")
-                .and(flattenTransactions, entries).as("entries")
+                //.and(flattenTransactions, entries).as("entries")
                 .and(totalOrderCount).as("totalOrderCount")
                 .and(orderCountByState).as("orderCountByState");
 

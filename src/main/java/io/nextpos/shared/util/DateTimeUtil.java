@@ -21,11 +21,19 @@ public class DateTimeUtil {
     }
 
     public static String formatDateTime(LocalDateTime localDateTime) {
-        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+        return formatDateTime(localDateTime, "yyyy/MM/dd HH:mm:ss");
+    }
+
+    public static String formatDateTime(LocalDateTime localDateTime, String pattern) {
+        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
         return localDateTime.format(formatter);
     }
 
     public static String formatDate(ZoneId zoneId, Date date) {
         return formatDateTime(toLocalDateTime(zoneId, date));
+    }
+
+    public static String formatDate(ZoneId zoneId, Date date, String pattern) {
+        return formatDateTime(toLocalDateTime(zoneId, date), pattern);
     }
 }

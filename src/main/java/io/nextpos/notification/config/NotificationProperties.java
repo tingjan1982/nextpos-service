@@ -14,4 +14,6 @@ public class NotificationProperties {
     private String accountSid;
 
     private String authToken;
+
+    private String fromNumber;
 }

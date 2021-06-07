@@ -72,6 +72,7 @@ class ReservationServiceImplTest {
         final Date reservationDate = DateTimeUtil.toDate(client.getZoneId(), reservationDt);
 
         final Reservation reservation = Reservation.newReservation(client.getId(), reservationDate, tableLayout.getTables());
+        reservation.updateBookingDetails("Joe", "0988120232", 4, 2);
 
         assertThat(reservationService.getAvailableReservableTables(client, reservationDt)).hasSize(2);
 

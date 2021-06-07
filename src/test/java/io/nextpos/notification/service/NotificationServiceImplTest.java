@@ -67,7 +67,8 @@ class NotificationServiceImplTest {
     @Disabled
     void sendSmsNotification() throws Exception {
 
-        final SmsDetails smsDetails = new SmsDetails("dummy-id", "from", "+886988120232", "test message");
+        final SmsDetails smsDetails = new SmsDetails("dummy-id", "+886988120232",
+                "你的訂位 - https://rain-reservation-app.vercel.app/");
 
         final CompletableFuture<NotificationDetails> future = notificationService.sendNotification(smsDetails);
 

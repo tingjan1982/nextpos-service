@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.List;
 
 @Data
@@ -27,7 +28,18 @@ public class TimeCardReport {
 
         private int totalShifts;
 
+        private long totalMillis;
+
         private BigDecimal totalHours;
+
+        public long getHours() {
+            return Duration.ofMillis(totalMillis).toHours();
+        }
+
+        public long getMinutes() {
+            return Duration.ofMillis(totalMillis).toMinutesPart();
+        }
+
     }
 }
 

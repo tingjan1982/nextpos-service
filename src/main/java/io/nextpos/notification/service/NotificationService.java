@@ -6,5 +6,7 @@ import java.util.concurrent.CompletableFuture;
 
 public interface NotificationService {
 
+    void sendSimpleNotification(NotificationDetails notificationDetails);
+
     CompletableFuture<NotificationDetails> sendNotification(NotificationDetails notificationDetails);
 }
