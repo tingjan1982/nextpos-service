@@ -108,11 +108,6 @@ public class Reservation extends MongoBaseObject implements WithClientId {
         CONFIRMED,
 
         /**
-         * Table is allocated.
-         */
-        ALLOCATED,
-
-        /**
          * Customer has seated.
          */
         SEATED,

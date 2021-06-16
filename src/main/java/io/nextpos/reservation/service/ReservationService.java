@@ -18,6 +18,8 @@ public interface ReservationService {
 
     Reservation getReservation(String id);
 
+    void confirmReservation(Reservation reservation);
+
     void cancelReservation(Reservation reservation);
 
     void deleteReservation(String id);

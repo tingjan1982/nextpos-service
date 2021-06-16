@@ -246,6 +246,8 @@ public class Client extends BaseObject {
          */
         ADDRESS,
 
+        PHONE_NUMBER,
+
         TABLE_AVAILABILITY_DISPLAY,
 
         ORDER_DISPLAY_MODE,
