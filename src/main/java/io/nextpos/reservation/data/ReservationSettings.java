@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import javax.persistence.Id;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,12 +23,15 @@ public class ReservationSettings extends MongoBaseObject implements WithClientId
 
     private Duration reservationDuration;
 
+    private Period maxReservableTime;
+
     private int nonReservableTableCount;
 
     private List<String> nonReservableTables = new ArrayList<>();
 
     public ReservationSettings(String clientId) {
         this.clientId = clientId;
+        this.maxReservableTime = Period.ofWeeks(2);
         this.reservationDuration = Duration.ofHours(2);
     }
 

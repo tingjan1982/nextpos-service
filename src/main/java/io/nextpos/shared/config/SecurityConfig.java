@@ -90,7 +90,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     /**
-     * Use basic auth only to authenticate /actuator and /counter requests.
+     * Use basic auth only to authenticate /actuator requests.
      * <p>
      * Reference to configuring multiple HttpSecurity with @Order:
      * https://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#multiple-httpsecurity
@@ -105,7 +105,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .cors()
                 .and()
                 .addFilterBefore(new ApiKeyAuthenticationFilter(authenticationManager()), AnonymousAuthenticationFilter.class)
-                .regexMatcher("^\\/(actuator|counters|tokens|admin|ws|web-reservations)(\\/.+)*(\\?.+)?$")
+                .regexMatcher("^\\/(actuator|tokens|admin|ws|web-reservations)(\\/.+)*(\\?.+)?$")
                 .authorizeRequests()
                 .antMatchers("/actuator/health", "/ws/**", "/admin/**", "/tokens/**").permitAll()
                 .anyRequest().authenticated().and().httpBasic();
