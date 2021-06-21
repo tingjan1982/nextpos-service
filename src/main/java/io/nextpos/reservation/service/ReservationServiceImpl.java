@@ -109,7 +109,8 @@ public class ReservationServiceImpl implements ReservationService {
         });
     }
 
-    private void sendNotification(Client client, Reservation reservation) {
+    @Override
+    public void sendReservationNotification(Client client, Reservation reservation) {
 
         final CountrySettings countrySettings = settingsService.getCountrySettings(client.getCountryCode());
         String dateTime = DateTimeUtil.formatDate(client.getZoneId(), reservation.getStartDate(), "MM/dd HH:mm");
@@ -146,6 +147,7 @@ public class ReservationServiceImpl implements ReservationService {
         return tableLayoutService.getTableLayouts(client).stream()
                 .flatMap(tl -> tl.getTables().stream())
                 .filter(td -> !bookedTables.contains(td.getId()))
+                .filter(td -> !reservationSettings.getNonReservableTables().contains(td.getId()))
                 .collect(Collectors.toList());
     }
 

@@ -19,28 +19,26 @@ import java.util.List;
 public class ReservationSettings extends MongoBaseObject implements WithClientId {
 
     @Id
-    private String clientId;
+    private String id;
 
     private Duration reservationDuration;
 
     private Period maxReservableTime;
 
-    private int nonReservableTableCount;
-
     private List<String> nonReservableTables = new ArrayList<>();
 
-    public ReservationSettings(String clientId) {
-        this.clientId = clientId;
+    public ReservationSettings(String id) {
+        this.id = id;
         this.maxReservableTime = Period.ofWeeks(2);
         this.reservationDuration = Duration.ofHours(2);
     }
 
     public LocalDateTime getEndDate(LocalDateTime reservationTime) {
-        return reservationTime.plusHours(reservationDuration.toHours());
+        return reservationTime.plusMinutes(reservationDuration.toMinutes());
     }
 
     @Override
-    public String getId() {
-        return this.clientId;
+    public String getClientId() {
+        return this.id;
     }
 }

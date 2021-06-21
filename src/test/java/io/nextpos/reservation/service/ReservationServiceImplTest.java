@@ -106,5 +106,13 @@ class ReservationServiceImplTest {
 
         assertThat(reservationService.getReservationsByDateAndStatus(client, newReservationDate.toLocalDate(), Reservation.ReservationStatus.WAITING)).isEmpty();
         assertThat(reservationService.getReservationsByDateAndStatus(client, newReservationDate.toLocalDate(), Reservation.ReservationStatus.BOOKED)).hasSize(1);
+
+        reservationService.confirmReservation(reservation);
+
+        assertThat(reservation.getStatus()).isEqualByComparingTo(Reservation.ReservationStatus.CONFIRMED);
+
+        reservationService.cancelReservation(reservation);
+
+        assertThat(reservation.getStatus()).isEqualByComparingTo(Reservation.ReservationStatus.CANCELLED);
     }
 }

@@ -124,6 +124,15 @@ public class ReservationController {
         reservation.setNote(request.getNote());
     }
 
+    @PostMapping("/{id}/sendNotification")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void sendNotification(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @PathVariable String id) {
+
+        Reservation reservation = reservationService.getReservation(id);
+
+        reservationService.sendReservationNotification(client, reservation);
+    }
+
     private ReservationResponse toResponse(Client client, Reservation reservation) {
 
         return new ReservationResponse(client, reservation);

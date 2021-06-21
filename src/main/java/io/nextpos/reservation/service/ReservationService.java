@@ -14,6 +14,8 @@ public interface ReservationService {
 
     Reservation saveReservation(Client client, Reservation reservation);
 
+    void sendReservationNotification(Client client, Reservation reservation);
+
     List<TableLayout.TableDetails> getAvailableReservableTables(Client client, LocalDateTime reservationTime);
 
     Reservation getReservation(String id);
