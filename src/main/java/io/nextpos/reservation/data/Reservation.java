@@ -1,6 +1,7 @@
 package io.nextpos.reservation.data;
 
 import io.nextpos.membership.data.Membership;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.model.MongoBaseObject;
 import io.nextpos.shared.model.WithClientId;
 import io.nextpos.tablelayout.data.TableLayout;
@@ -59,6 +60,7 @@ public class Reservation extends MongoBaseObject implements WithClientId {
         this.id = new ObjectId().toString();
         this.clientId = clientId;
         this.startDate = startDate;
+        this.status = ReservationStatus.WAITING;
 
         this.updateTableAllocationAndStatus(tables);
     }
@@ -72,7 +74,14 @@ public class Reservation extends MongoBaseObject implements WithClientId {
                 .map(TableAllocation::new)
                 .collect(Collectors.toList());
 
-        this.status = this.tableAllocations.isEmpty() ? ReservationStatus.WAITING : ReservationStatus.BOOKED;
+
+        if (this.tableAllocations.isEmpty() && this.status != ReservationStatus.WAITING) {
+            throw new BusinessLogicException("Reservation not in WAITING state cannot have empty tables");
+        }
+
+        if (this.status == ReservationStatus.WAITING) {
+            this.status = this.tableAllocations.isEmpty() ? ReservationStatus.WAITING : ReservationStatus.BOOKED;
+        }
     }
 
     public void updateBookingDetails(String name, String phoneNumber, int people, int kid) {
@@ -98,9 +107,9 @@ public class Reservation extends MongoBaseObject implements WithClientId {
 
     public enum ReservationStatus {
 
-        BOOKED,
-
         WAITING,
+
+        BOOKED,
 
         /**
          * Booking is confirmed.

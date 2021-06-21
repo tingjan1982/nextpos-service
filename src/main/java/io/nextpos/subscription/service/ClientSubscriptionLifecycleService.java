@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface ClientSubscriptionLifecycleService {
 
+    List<ClientSubscription> findClientSubscriptionsUpForRenewal();
+
     List<ClientSubscriptionInvoice> findSubscriptionInvoicesForRenewal();
 
     List<ClientSubscriptionInvoice> findUnpaidSubscriptionInvoices();

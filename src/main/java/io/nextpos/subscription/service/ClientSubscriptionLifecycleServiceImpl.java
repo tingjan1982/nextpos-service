@@ -41,6 +41,21 @@ public class ClientSubscriptionLifecycleServiceImpl implements ClientSubscriptio
     }
 
     @Override
+    public List<ClientSubscription> findClientSubscriptionsUpForRenewal() {
+
+        final Date tenDaysFromNow = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).plusDays(10).toInstant());
+
+        final List<ClientSubscription> clientSubscriptions = clientSubscriptionRepository.findAllByStatusAndPlanEndDateBetween(
+                ClientSubscription.SubscriptionStatus.ACTIVE,
+                new Date(),
+                tenDaysFromNow);
+
+        return clientSubscriptions.stream()
+                .filter(sub -> clientService.getClient(sub.getClientId()).isPresent())
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<ClientSubscriptionInvoice> findSubscriptionInvoicesForRenewal() {
 
         final Date tenDaysFromNow = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).plusDays(10).toInstant());
@@ -50,6 +65,7 @@ public class ClientSubscriptionLifecycleServiceImpl implements ClientSubscriptio
                 tenDaysFromNow);
 
         return activeSubscriptions.stream()
+                .filter(sub -> clientService.getClient(sub.getClientId()).isPresent())
                 .map(sub -> {
                     final Client client = clientService.getClientOrThrows(sub.getClientId());
                     return clientSubscriptionService.createClientSubscriptionInvoice(client, sub, sub.getPlanEndDate());

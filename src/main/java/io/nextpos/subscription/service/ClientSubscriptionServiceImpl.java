@@ -146,7 +146,7 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
         dynamicEmailDetails.addTemplateData("subscriptionAmountWithTax", helper.roundAmountAsString(() -> subscriptionInvoice.getDueAmount().getAmountWithTax()));
         dynamicEmailDetails.addTemplateData("invoiceIdentifier", subscriptionInvoice.getInvoiceIdentifier());
 
-        notificationService.sendNotification(dynamicEmailDetails);
+        notificationService.sendSimpleNotification(dynamicEmailDetails);
     }
 
     @Override

@@ -1,12 +1,14 @@
 package io.nextpos.script;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.data.ClientRepository;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.shared.util.DateTimeUtil;
 import io.nextpos.subscription.data.ClientSubscription;
 import io.nextpos.subscription.data.ClientSubscriptionInvoice;
 import io.nextpos.subscription.data.ClientSubscriptionInvoiceRepository;
 import io.nextpos.subscription.data.SubscriptionPlan;
+import io.nextpos.subscription.service.ClientSubscriptionLifecycleService;
 import io.nextpos.subscription.service.ClientSubscriptionOrderService;
 import io.nextpos.subscription.service.ClientSubscriptionService;
 import org.junit.jupiter.api.Disabled;
@@ -31,15 +33,21 @@ public class ManageClientSubscription {
 
     private final ClientSubscriptionOrderService clientSubscriptionOrderService;
 
+    private final ClientSubscriptionLifecycleService clientSubscriptionLifecycleService;
+
     private final ClientService clientService;
+
+    private final ClientRepository clientRepository;
 
     private final ClientSubscriptionInvoiceRepository clientSubscriptionInvoiceRepository;
 
     @Autowired
-    public ManageClientSubscription(ClientSubscriptionService clientSubscriptionService, ClientSubscriptionOrderService clientSubscriptionOrderService, ClientService clientService, ClientSubscriptionInvoiceRepository clientSubscriptionInvoiceRepository) {
+    public ManageClientSubscription(ClientSubscriptionService clientSubscriptionService, ClientSubscriptionOrderService clientSubscriptionOrderService, ClientSubscriptionLifecycleService clientSubscriptionLifecycleService, ClientService clientService, ClientRepository clientRepository, ClientSubscriptionInvoiceRepository clientSubscriptionInvoiceRepository) {
         this.clientSubscriptionService = clientSubscriptionService;
         this.clientSubscriptionOrderService = clientSubscriptionOrderService;
+        this.clientSubscriptionLifecycleService = clientSubscriptionLifecycleService;
         this.clientService = clientService;
+        this.clientRepository = clientRepository;
         this.clientSubscriptionInvoiceRepository = clientSubscriptionInvoiceRepository;
     }
 
@@ -65,6 +73,34 @@ public class ManageClientSubscription {
                 });
             }
         }
+    }
+
+    @Test
+    void getClientSubscriptionsUpFoRenewal() {
+
+        final List<ClientSubscription> subscriptions = clientSubscriptionLifecycleService.findClientSubscriptionsUpForRenewal();
+
+        System.out.println("Subscriptions: " + subscriptions.size());
+    }
+
+    @Test
+    void createClientRenewalInvoices() {
+
+        final List<ClientSubscriptionInvoice> invoices = clientSubscriptionLifecycleService.findSubscriptionInvoicesForRenewal();
+
+        System.out.println("Created subscription invoices: " + invoices.size());
+    }
+
+    @Test
+    void getClientSubscription() {
+
+        clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
+            final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());
+            final List<ClientSubscriptionInvoice> invoices = clientSubscriptionService.getClientSubscriptionInvoices(subscription);
+
+            System.out.println(subscription);
+            System.out.println(invoices.size());
+        });
     }
 
     @Test
