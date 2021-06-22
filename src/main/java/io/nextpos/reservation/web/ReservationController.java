@@ -64,7 +64,7 @@ public class ReservationController {
     @GetMapping
     public ReservationsResponse getReservations(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                 @RequestParam("reservationDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate reservationDate,
-                                                @RequestParam(value = "reservationStatus", defaultValue = "BOOKED") Reservation.ReservationStatus reservationStatus) {
+                                                @RequestParam(value = "reservationStatus", required = false) Reservation.ReservationStatus reservationStatus) {
 
         final List<Reservation> reservations = reservationService.getReservationsByDateAndStatus(client, reservationDate, reservationStatus);
 

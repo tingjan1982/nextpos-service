@@ -228,8 +228,11 @@ public class ReservationServiceImpl implements ReservationService {
 
         Query query = new Query().with(Sort.by(Sort.Order.asc("id")))
                 .addCriteria(where("clientId").is(client.getId())
-                        .and("status").is(reservationStatus)
                         .and("startDate").gte(startDate).lte(endDate));
+
+        if (reservationStatus != null) {
+            query.addCriteria(where("status").is(reservationStatus));
+        }
 
         return mongoTemplate.find(query, Reservation.class);
     }
