@@ -4,7 +4,9 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.client.web.model.ClientResponse;
 import io.nextpos.reservation.data.Reservation;
+import io.nextpos.reservation.data.ReservationSettings;
 import io.nextpos.reservation.service.ReservationService;
+import io.nextpos.reservation.service.ReservationSettingsService;
 import io.nextpos.reservation.web.ReservationController;
 import io.nextpos.tablelayout.data.TableLayout;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,14 +23,17 @@ public class WebReservationController {
 
     private final ReservationService reservationService;
 
+    private final ReservationSettingsService reservationSettingsService;
+
     private final ClientService clientService;
 
     private final ReservationController reservationController;
 
 
     @Autowired
-    public WebReservationController(ReservationService reservationService, ClientService clientService, ReservationController reservationController) {
+    public WebReservationController(ReservationService reservationService, ReservationSettingsService reservationSettingsService, ClientService clientService, ReservationController reservationController) {
         this.reservationService = reservationService;
+        this.reservationSettingsService = reservationSettingsService;
         this.clientService = clientService;
         this.reservationController = reservationController;
     }
@@ -61,7 +66,9 @@ public class WebReservationController {
     @GetMapping("/clients/{id}")
     public ClientResponse getClient(@PathVariable String id) {
 
-        return new ClientResponse(clientService.getClientOrThrows(id));
+        final ReservationSettings reservationSettings = reservationSettingsService.getReservationSettingsByReservationKey(id);
+
+        return new ClientResponse(clientService.getClientOrThrows(reservationSettings.getId()));
     }
 
     @PostMapping("/clients/{id}/findTables")
