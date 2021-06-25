@@ -14,6 +14,7 @@ import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -91,6 +92,11 @@ public class Reservation extends MongoBaseObject implements WithClientId {
         this.kid = kid;
     }
 
+    public static Comparator<Reservation> getComparator() {
+        return Comparator.comparing(Reservation::getStatus,
+                Comparator.comparing(Reservation.ReservationStatus::getOrdering));
+    }
+
     @Data
     @NoArgsConstructor
     public static class TableAllocation {
@@ -107,25 +113,35 @@ public class Reservation extends MongoBaseObject implements WithClientId {
 
     public enum ReservationStatus {
 
-        WAITING,
+        WAITING(0),
 
-        BOOKED,
+        BOOKED(0),
 
         /**
          * Booking is confirmed.
          */
-        CONFIRMED,
+        CONFIRMED(0),
 
         /**
          * Customer has seated.
          */
-        SEATED,
+        SEATED(0),
 
         /**
          * Booking is cancelled.
          */
-        CANCELLED,
+        CANCELLED(1),
 
-        DELETED
+        DELETED(1);
+
+        private Integer ordering;
+
+        ReservationStatus(int ordering) {
+            this.ordering = ordering;
+        }
+
+        public Integer getOrdering() {
+            return ordering;
+        }
     }
 }

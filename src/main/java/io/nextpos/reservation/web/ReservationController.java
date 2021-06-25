@@ -82,9 +82,10 @@ public class ReservationController {
 
     @GetMapping("/availableTables")
     public AvailableTablesResponse getAvailableTables(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                                      @RequestParam("reservationDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime reservationDate) {
+                                                      @RequestParam("reservationDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime reservationDate,
+                                                      @RequestParam(value = "reservationId", required = false) String reservationId) {
 
-        final List<String> results = reservationService.getAvailableReservableTables(client, reservationDate).stream()
+        final List<String> results = reservationService.getAvailableReservableTables(client, reservationDate, reservationId).stream()
                 .map(TableLayout.TableDetails::getId)
                 .collect(Collectors.toList());
 

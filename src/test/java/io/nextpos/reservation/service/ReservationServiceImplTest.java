@@ -84,6 +84,7 @@ class ReservationServiceImplTest {
         assertThat(reservation.getTableAllocations()).hasSize(2);
 
         assertThat(reservationService.getAvailableReservableTables(client, reservationDt)).isEmpty();
+        assertThat(reservationService.getAvailableReservableTables(client, reservationDt, reservation.getId())).hasSize(2);
 
         assertThat(reservationService.getReservationsByDateRange(client, reservationDt, endDt)).hasSize(1); // 12 - 2
         assertThat(reservationService.getReservationsByDateRange(client, reservationDt.minusHours(1), endDt.minusHours(1))).hasSize(1); // 11 - 1
@@ -114,5 +115,11 @@ class ReservationServiceImplTest {
         reservationService.cancelReservation(reservation);
 
         assertThat(reservation.getStatus()).isEqualByComparingTo(Reservation.ReservationStatus.CANCELLED);
+
+        final Reservation anotherReservation = Reservation.newReservation(client.getId(), new Date(), List.of());
+        reservationService.saveReservation(client, anotherReservation);
+
+        final List<Reservation> reservations = reservationService.getReservationsByDateAndStatus(client, newReservationDate.toLocalDate(), null);
+        assertThat(reservations).hasSize(2).isSortedAccordingTo(Reservation.getComparator());
     }
 }

@@ -18,6 +18,8 @@ public interface ReservationService {
 
     List<TableLayout.TableDetails> getAvailableReservableTables(Client client, LocalDateTime reservationTime);
 
+    List<TableLayout.TableDetails> getAvailableReservableTables(Client client, LocalDateTime reservationTime, String reservationId);
+
     Reservation getReservation(String id);
 
     void confirmReservation(Reservation reservation);

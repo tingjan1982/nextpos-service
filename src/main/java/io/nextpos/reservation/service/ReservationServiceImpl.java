@@ -27,6 +27,7 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
@@ -126,9 +127,16 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public List<TableLayout.TableDetails> getAvailableReservableTables(Client client, LocalDateTime reservationTime) {
 
+        return this.getAvailableReservableTables(client, reservationTime, null);
+    }
+
+    @Override
+    public List<TableLayout.TableDetails> getAvailableReservableTables(Client client, LocalDateTime reservationTime, String reservationId) {
+
         final ReservationSettings reservationSettings = this.getOrCreateReservationSettings(client);
 
         final List<String> bookedTables = this.getReservationsByDateRange(client, reservationTime, reservationSettings.getEndDate(reservationTime)).stream()
+                .filter(r -> !Objects.equals(r.getId(), reservationId))
                 .flatMap(r -> r.getTableAllocations().stream())
                 .map(Reservation.TableAllocation::getTableId)
                 .collect(Collectors.toList());
@@ -226,7 +234,7 @@ public class ReservationServiceImpl implements ReservationService {
         Date startDate = DateTimeUtil.toDate(client.getZoneId(), reservationDate.atStartOfDay());
         Date endDate = DateTimeUtil.toDate(client.getZoneId(), reservationDate.atTime(23, 59, 59));
 
-        Query query = new Query().with(Sort.by(Sort.Order.asc("id")))
+        Query query = new Query().with(Sort.by(Sort.Order.asc("startDate")))
                 .addCriteria(where("clientId").is(client.getId())
                         .and("startDate").gte(startDate).lte(endDate));
 
@@ -234,6 +242,9 @@ public class ReservationServiceImpl implements ReservationService {
             query.addCriteria(where("status").is(reservationStatus));
         }
 
-        return mongoTemplate.find(query, Reservation.class);
+        final List<Reservation> reservations = mongoTemplate.find(query, Reservation.class);
+        reservations.sort(Reservation.getComparator());
+
+        return reservations;
     }
 }
