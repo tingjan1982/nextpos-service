@@ -7,6 +7,7 @@ import io.nextpos.reservation.web.model.ReservationSettingsRequest;
 import io.nextpos.reservation.web.model.ReservationSettingsResponse;
 import io.nextpos.shared.web.ClientResolver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -19,9 +20,12 @@ public class ReservationSettingsController {
 
     private final ReservationSettingsService reservationSettingsService;
 
+    private final String reservationUrl;
+
     @Autowired
-    public ReservationSettingsController(ReservationSettingsService reservationSettingsService) {
+    public ReservationSettingsController(ReservationSettingsService reservationSettingsService, @Value("${reservation.url}") String reservationUrl) {
         this.reservationSettingsService = reservationSettingsService;
+        this.reservationUrl = reservationUrl;
     }
 
     @GetMapping("/me")
@@ -50,6 +54,6 @@ public class ReservationSettingsController {
 
     private ReservationSettingsResponse toResponse(ReservationSettings reservationSettings) {
 
-        return new ReservationSettingsResponse(reservationSettings);
+        return new ReservationSettingsResponse(reservationSettings, reservationUrl);
     }
 }

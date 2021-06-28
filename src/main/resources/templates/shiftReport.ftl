@@ -9,6 +9,8 @@
                 <text lang="zh-tw"/>
                 <text font="font_b"/>
                 <text align="center" width="2" height="2"/>
+                <text>${shift.clientName}&#10;</text>
+                <feed line="1"/>
                 <text>關帳紀錄&#10;</text>
                 <feed line="1"/>
                 <text align="left" width="1" height="1"/>
