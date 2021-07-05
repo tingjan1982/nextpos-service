@@ -8,6 +8,7 @@ import io.nextpos.tablelayout.data.TableLayout;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.util.Date;
 import java.util.List;
 
 public interface ReservationService {
@@ -34,5 +35,9 @@ public interface ReservationService {
 
     List<Reservation> getReservationsByDateRange(Client client, YearMonth yearMonth);
 
+    List<Reservation> getReservationsByDateRange(Client client, Date startDate, Date endDate, List<Reservation.ReservationStatus> statusToFilter);
+
     List<Reservation> getReservationsByDateAndStatus(Client client, LocalDate reservationDate, Reservation.ReservationStatus reservationStatus);
+
+    Reservation delayReservation(Client client, Reservation reservation, long minutesToDelay);
 }

@@ -1,12 +1,14 @@
 package io.nextpos.reservation.web;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.web.OrderController;
+import io.nextpos.ordermanagement.web.model.OrderRequest;
+import io.nextpos.ordermanagement.web.model.OrderResponse;
 import io.nextpos.reservation.data.Reservation;
 import io.nextpos.reservation.service.ReservationService;
-import io.nextpos.reservation.web.model.AvailableTablesResponse;
-import io.nextpos.reservation.web.model.ReservationRequest;
-import io.nextpos.reservation.web.model.ReservationResponse;
-import io.nextpos.reservation.web.model.ReservationsResponse;
+import io.nextpos.reservation.web.model.*;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.util.DateTimeUtil;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.tablelayout.data.TableLayout;
@@ -21,6 +23,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,10 +35,13 @@ public class ReservationController {
 
     private final TableLayoutService tableLayoutService;
 
+    private final OrderController orderController;
+
     @Autowired
-    public ReservationController(ReservationService reservationService, TableLayoutService tableLayoutService) {
+    public ReservationController(ReservationService reservationService, TableLayoutService tableLayoutService, OrderController orderController) {
         this.reservationService = reservationService;
         this.tableLayoutService = tableLayoutService;
+        this.orderController = orderController;
     }
 
     @PostMapping
@@ -76,6 +82,22 @@ public class ReservationController {
                                                            @RequestParam("yearMonth") YearMonth yearMonth) {
 
         final List<Reservation> reservations = reservationService.getReservationsByDateRange(client, yearMonth);
+
+        return new ReservationsResponse(reservations);
+    }
+
+    @GetMapping("/byDateRange")
+    public ReservationsResponse getReservationsByYearMonth(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                           @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+                                                           @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+                                                           @RequestParam("status") List<Reservation.ReservationStatus> statuses) {
+
+        final Date reservationStartDate = DateTimeUtil.toDate(client.getZoneId(), startDate);
+        final Date reservationEndDate = DateTimeUtil.toDate(client.getZoneId(), endDate);
+        final List<Reservation> reservations = reservationService.getReservationsByDateRange(client,
+                reservationStartDate,
+                reservationEndDate,
+                statuses);
 
         return new ReservationsResponse(reservations);
     }
@@ -132,6 +154,38 @@ public class ReservationController {
         Reservation reservation = reservationService.getReservation(id);
 
         reservationService.sendReservationNotification(client, reservation);
+    }
+
+    @PostMapping("/{id}/seat")
+    public OrderResponse seatReservation(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @PathVariable String id) {
+
+        Reservation reservation = reservationService.getReservation(id);
+
+        if (!EnumSet.of(Reservation.ReservationStatus.BOOKED, Reservation.ReservationStatus.CONFIRMED).contains(reservation.getStatus())) {
+            throw new BusinessLogicException("Reservation is not in the correct state: " + reservation.getStatus());
+        }
+
+        final Order.DemographicData demographicData = new Order.DemographicData();
+        demographicData.setMale(reservation.getPeople());
+        demographicData.setKid(reservation.getKid());
+
+        return orderController.createOrder(client, new OrderRequest(
+                Order.OrderType.IN_STORE,
+                reservation.getTableAllocations().stream().map(Reservation.TableAllocation::getTableId).collect(Collectors.toList()),
+                demographicData,
+                null,
+                List.of()
+        ));
+    }
+
+    @PostMapping("/{id}/delay")
+    public ReservationResponse seat(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client, @PathVariable String id,
+                                    @RequestBody ReservationDelayRequest request) {
+
+        Reservation reservation = reservationService.getReservation(id);
+        final Reservation updatedReservation = reservationService.delayReservation(client, reservation, request.getMinutes());
+
+        return toResponse(client, updatedReservation);
     }
 
     private ReservationResponse toResponse(Client client, Reservation reservation) {

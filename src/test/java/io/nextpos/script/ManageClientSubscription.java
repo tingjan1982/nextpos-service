@@ -94,7 +94,7 @@ public class ManageClientSubscription {
     @Test
     void getClientSubscription() {
 
-        clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
+        clientService.getClientByUsername("a0919910@gmail.com").ifPresent(c -> {
             final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());
             final List<ClientSubscriptionInvoice> invoices = clientSubscriptionService.getClientSubscriptionInvoices(subscription);
 
@@ -129,7 +129,7 @@ public class ManageClientSubscription {
     @Test
     void activateClientSubscription() {
 
-        String invoiceIdentifier = "419800";
+        String invoiceIdentifier = "207677";
         clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
             final ClientSubscriptionInvoice paid = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(invoiceIdentifier, false);
             System.out.println("Paid invoice: " + paid);
@@ -139,7 +139,7 @@ public class ManageClientSubscription {
     @Test
     @WithMockUser("rain.io.app@gmail.com")
     void sendSubscriptionInvoice() {
-        clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
+        clientService.getClientByUsername("a0919910@gmail.com").ifPresent(c -> {
             final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());
             final ClientSubscriptionInvoice invoice = clientSubscriptionService.getClientSubscriptionInvoice(subscription.getCurrentInvoiceId());
 

@@ -1,6 +1,5 @@
 package io.nextpos.reservation.service;
 
-import com.nimbusds.oauth2.sdk.util.CollectionUtils;
 import io.nextpos.client.data.Client;
 import io.nextpos.notification.data.SmsDetails;
 import io.nextpos.notification.service.NotificationService;
@@ -21,6 +20,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -221,9 +221,19 @@ public class ReservationServiceImpl implements ReservationService {
         final Date startDate = DateTimeUtil.toDate(client.getZoneId(), yearMonth.atDay(1).atStartOfDay());
         final Date endDate = DateTimeUtil.toDate(client.getZoneId(), yearMonth.atEndOfMonth().atTime(23, 59, 59));
 
-        Query query = new Query().with(Sort.by(Sort.Order.asc("id")))
+        return this.getReservationsByDateRange(client, startDate, endDate, null);
+    }
+
+    @Override
+    public List<Reservation> getReservationsByDateRange(Client client, Date startDate, Date endDate, List<Reservation.ReservationStatus> statuses) {
+
+        Query query = new Query().with(Sort.by(Sort.Order.asc("startDate")))
                 .addCriteria(where("clientId").is(client.getId())
                         .and("startDate").gte(startDate).lte(endDate));
+
+        if (!CollectionUtils.isEmpty(statuses)) {
+            query.addCriteria(where("status").in(statuses));
+        }
 
         return mongoTemplate.find(query, Reservation.class);
     }
@@ -246,5 +256,16 @@ public class ReservationServiceImpl implements ReservationService {
         reservations.sort(Reservation.getComparator());
 
         return reservations;
+    }
+
+    @Override
+    public Reservation delayReservation(Client client, Reservation reservation, long minutesToDelay) {
+
+        final LocalDateTime reservationDt = DateTimeUtil.toLocalDateTime(client.getZoneId(), reservation.getStartDate());
+        final LocalDateTime delayedReservationDt = reservationDt.plusMinutes(minutesToDelay);
+
+        reservation.setStartDate(DateTimeUtil.toDate(client.getZoneId(), delayedReservationDt));
+
+        return reservationRepository.save(reservation);
     }
 }
