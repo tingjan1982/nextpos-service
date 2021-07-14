@@ -179,6 +179,12 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     @Override
+    public void seatReservation(Reservation reservation) {
+        reservation.setStatus(Reservation.ReservationStatus.SEATED);
+        reservationRepository.save(reservation);
+    }
+
+    @Override
     public void cancelReservation(Reservation reservation) {
         reservation.setStatus(Reservation.ReservationStatus.CANCELLED);
         reservationRepository.save(reservation);

@@ -169,13 +169,17 @@ public class ReservationController {
         demographicData.setMale(reservation.getPeople());
         demographicData.setKid(reservation.getKid());
 
-        return orderController.createOrder(client, new OrderRequest(
+        final OrderResponse response = orderController.createOrder(client, new OrderRequest(
                 Order.OrderType.IN_STORE,
                 reservation.getTableAllocations().stream().map(Reservation.TableAllocation::getTableId).collect(Collectors.toList()),
                 demographicData,
                 null,
                 List.of()
         ));
+
+        reservationService.seatReservation(reservation);
+
+        return response;
     }
 
     @PostMapping("/{id}/delay")

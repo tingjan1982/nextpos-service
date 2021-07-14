@@ -25,6 +25,8 @@ public interface ReservationService {
 
     void confirmReservation(Reservation reservation);
 
+    void seatReservation(Reservation reservation);
+
     void cancelReservation(Reservation reservation);
 
     void deleteReservation(String id);
