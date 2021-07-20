@@ -1,5 +1,6 @@
 package io.nextpos.reservation.web.model;
 
+import io.nextpos.reservation.data.Reservation;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -33,4 +34,6 @@ public class ReservationRequest {
     private List<String> tableIds = new ArrayList<>();
 
     private String note;
+
+    private Reservation.SourceOfOrigin sourceOfOrigin = Reservation.SourceOfOrigin.APP;
 }

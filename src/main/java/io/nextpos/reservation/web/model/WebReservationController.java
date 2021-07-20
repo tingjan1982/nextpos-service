@@ -91,6 +91,8 @@ public class WebReservationController {
 
         final Client client = clientService.getClientOrThrows(id);
 
+        request.setSourceOfOrigin(Reservation.SourceOfOrigin.WEB);
+
         return reservationController.createReservation(client, request);
     }
 }

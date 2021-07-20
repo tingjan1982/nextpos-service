@@ -54,20 +54,23 @@ public class Reservation extends MongoBaseObject implements WithClientId {
 
     private ReservationStatus status;
 
+    private SourceOfOrigin sourceOfOrigin = SourceOfOrigin.APP;
+
     @DBRef
     private Membership membership;
 
-    private Reservation(String clientId, Date startDate, List<TableLayout.TableDetails> tables) {
+    private Reservation(String clientId, Date startDate, SourceOfOrigin sourceOfOrigin, List<TableLayout.TableDetails> tables) {
         this.id = new ObjectId().toString();
         this.clientId = clientId;
         this.startDate = startDate;
         this.status = ReservationStatus.WAITING;
+        this.sourceOfOrigin = sourceOfOrigin;
 
         this.updateTableAllocationAndStatus(tables);
     }
 
-    public static Reservation newReservation(String clientId, Date reservationDate, List<TableLayout.TableDetails> tables) {
-        return new Reservation(clientId, reservationDate, tables);
+    public static Reservation newReservation(String clientId, Date reservationDate, SourceOfOrigin sourceOfOrigin, List<TableLayout.TableDetails> tables) {
+        return new Reservation(clientId, reservationDate, sourceOfOrigin, tables);
     }
 
     public void updateTableAllocationAndStatus(List<TableLayout.TableDetails> tables) {
@@ -143,5 +146,10 @@ public class Reservation extends MongoBaseObject implements WithClientId {
         public Integer getOrdering() {
             return ordering;
         }
+    }
+
+    public enum SourceOfOrigin {
+
+        APP, WEB
     }
 }

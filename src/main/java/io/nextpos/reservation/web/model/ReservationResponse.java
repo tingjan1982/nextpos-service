@@ -34,6 +34,8 @@ public class ReservationResponse {
 
     private Reservation.ReservationStatus status;
 
+    private Reservation.SourceOfOrigin sourceOfOrigin;
+
     public ReservationResponse(Reservation reservation) {
         this(null, reservation);
     }
@@ -55,6 +57,7 @@ public class ReservationResponse {
         this.note = reservation.getNote();
         this.tables = reservation.getTableAllocations();
         this.status = reservation.getStatus();
+        this.sourceOfOrigin = reservation.getSourceOfOrigin();
     }
 
     @Data

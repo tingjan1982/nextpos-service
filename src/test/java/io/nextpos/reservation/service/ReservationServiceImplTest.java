@@ -71,7 +71,7 @@ class ReservationServiceImplTest {
         final LocalDateTime endDt = LocalDateTime.of(LocalDate.now(), noonTime.plusHours(2));
         final Date reservationDate = DateTimeUtil.toDate(client.getZoneId(), reservationDt);
 
-        final Reservation reservation = Reservation.newReservation(client.getId(), reservationDate, tableLayout.getTables());
+        final Reservation reservation = Reservation.newReservation(client.getId(), reservationDate, Reservation.SourceOfOrigin.APP, tableLayout.getTables());
         reservation.updateBookingDetails("Joe", "0988120232", 4, 2);
 
         assertThat(reservationService.getAvailableReservableTables(client, reservationDt)).hasSize(2);
@@ -116,7 +116,7 @@ class ReservationServiceImplTest {
 
         assertThat(reservation.getStatus()).isEqualByComparingTo(Reservation.ReservationStatus.CANCELLED);
 
-        final Reservation anotherReservation = Reservation.newReservation(client.getId(), new Date(), List.of());
+        final Reservation anotherReservation = Reservation.newReservation(client.getId(), new Date(), Reservation.SourceOfOrigin.APP, List.of());
         reservationService.saveReservation(client, anotherReservation);
 
         final List<Reservation> reservations = reservationService.getReservationsByDateAndStatus(client, newReservationDate.toLocalDate(), null);

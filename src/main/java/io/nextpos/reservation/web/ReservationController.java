@@ -60,7 +60,8 @@ public class ReservationController {
                 .collect(Collectors.toList());
 
         final Date reservationDate = DateTimeUtil.toDate(client.getZoneId(), request.getReservationDate());
-        final Reservation reservation = Reservation.newReservation(client.getId(), reservationDate, tables);
+        final Reservation reservation = Reservation.newReservation(client.getId(), reservationDate, request.getSourceOfOrigin(), tables);
+
         reservation.updateBookingDetails(request.getName(), request.getPhoneNumber(), request.getPeople(), request.getKid());
         reservation.setNote(request.getNote());
 

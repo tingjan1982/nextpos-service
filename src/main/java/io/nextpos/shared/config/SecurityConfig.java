@@ -39,6 +39,8 @@ import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenCo
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -101,13 +103,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
 
+        final ApiKeyAuthenticationFilter filter = new ApiKeyAuthenticationFilter(authenticationManager());
+        filter.setRequiresAuthenticationRequestMatcher(new OrRequestMatcher(
+                new AntPathRequestMatcher("/web-reservations/**"),
+                new AntPathRequestMatcher("/admin/**")
+        ));
+
         http.csrf().disable()
                 .cors()
                 .and()
-                .addFilterBefore(new ApiKeyAuthenticationFilter(authenticationManager()), AnonymousAuthenticationFilter.class)
+                .addFilterBefore(filter, AnonymousAuthenticationFilter.class)
                 .regexMatcher("^\\/(actuator|tokens|admin|ws|web-reservations)(\\/.+)*(\\?.+)?$")
                 .authorizeRequests()
-                .antMatchers("/actuator/health", "/ws/**", "/admin/**", "/tokens/**").permitAll()
+                .antMatchers("/actuator/health", "/ws/**", "/tokens/**").permitAll()
                 .anyRequest().authenticated().and().httpBasic();
     }
 
