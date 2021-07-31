@@ -5,11 +5,13 @@ import io.nextpos.membership.data.Membership;
 import io.nextpos.membership.data.MembershipRepository;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.MongoTransaction;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 @Service
 @MongoTransaction
@@ -52,5 +54,17 @@ public class MembershipServiceImpl implements MembershipService {
     @Override
     public void deleteMembership(Membership membership) {
         membershipRepository.delete(membership);
+    }
+
+    @Override
+    public void updateMembership(String membershipId, Consumer<Membership> action) {
+
+        Membership membership = null;
+
+        if (StringUtils.isNotBlank(membershipId)) {
+            membership = this.getMembership(membershipId).orElse(null);
+        }
+
+        action.accept(membership);
     }
 }

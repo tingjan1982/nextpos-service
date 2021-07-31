@@ -5,6 +5,7 @@ import io.nextpos.membership.data.Membership;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 public interface MembershipService {
 
@@ -19,4 +20,6 @@ public interface MembershipService {
     List<Membership> getMemberships(Client client);
 
     void deleteMembership(Membership membership);
+
+    void updateMembership(String membershipId, Consumer<Membership> action);
 }

@@ -94,17 +94,31 @@ public class ManageClientSubscription {
     @Test
     void getClientSubscription() {
 
-        clientService.getClientByUsername("a0919910@gmail.com").ifPresent(c -> {
+        clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
             final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());
             final List<ClientSubscriptionInvoice> invoices = clientSubscriptionService.getClientSubscriptionInvoices(subscription);
 
-            System.out.println(subscription);
-            System.out.println(invoices.size());
+            System.out.println("Client subscription id: " + subscription.getId());
+            System.out.println("Client subscription status: " + subscription.getStatus());
+
+            invoices.forEach(inv -> {
+                System.out.printf("Invoice %s (%s) %s %s: %s%n", inv.getId(), inv.getInvoiceIdentifier(), inv.getValidFrom(), inv.getValidTo(), inv.getStatus());
+            });
         });
     }
 
     @Test
-    void renewClientSubscription() {
+    void sendClientSubscriptionInvoice() {
+        clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
+            final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());
+            final ClientSubscriptionInvoice invoice = clientSubscriptionService.getClientSubscriptionInvoice(subscription.getCurrentInvoiceId());
+
+            clientSubscriptionService.sendClientSubscriptionInvoice(c, invoice);
+        });
+    }
+
+    @Test
+    void renewClientSubscriptionForSpecificDate() {
 
         final SubscriptionPlan.PlanPeriod newPlanPeriod = SubscriptionPlan.PlanPeriod.MONTHLY;
 
@@ -129,7 +143,7 @@ public class ManageClientSubscription {
     @Test
     void activateClientSubscription() {
 
-        String invoiceIdentifier = "207677";
+        String invoiceIdentifier = "414461";
         clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
             final ClientSubscriptionInvoice paid = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(invoiceIdentifier, false);
             System.out.println("Paid invoice: " + paid);
@@ -139,7 +153,7 @@ public class ManageClientSubscription {
     @Test
     @WithMockUser("rain.io.app@gmail.com")
     void sendSubscriptionInvoice() {
-        clientService.getClientByUsername("a0919910@gmail.com").ifPresent(c -> {
+        clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
             final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());
             final ClientSubscriptionInvoice invoice = clientSubscriptionService.getClientSubscriptionInvoice(subscription.getCurrentInvoiceId());
 

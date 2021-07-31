@@ -29,7 +29,6 @@ import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.PrinterInstructions;
 import io.nextpos.workingarea.service.PrinterInstructionService;
 import io.nextpos.workingarea.service.WorkingAreaService;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,6 +93,9 @@ public class OrderController {
                                      @RequestBody OrderRequest orderRequest) {
 
         Order order = orderCreationFactory.newOrder(client, orderRequest);
+
+        membershipService.updateMembership(orderRequest.getMembershipId(), order::updateMembership);
+
         final Order createdOrder = orderService.createOrder(order);
 
         return OrderResponse.toOrderResponse(createdOrder);
@@ -234,9 +236,7 @@ public class OrderController {
 
         orderCreationFactory.updateTableInfoAndDemographicData(order, orderRequest);
 
-        if (StringUtils.isNotBlank(orderRequest.getMembershipId())) {
-            membershipService.getMembership(orderRequest.getMembershipId()).ifPresent(order::updateMembership);
-        }
+        membershipService.updateMembership(orderRequest.getMembershipId(), order::updateMembership);
 
         return OrderResponse.toOrderResponse(orderService.saveOrder(order));
     }
@@ -263,11 +263,7 @@ public class OrderController {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
-        if (StringUtils.isNotBlank(request.getMembershipId())) {
-            membershipService.getMembership(request.getMembershipId()).ifPresent(order::updateMembership);
-        } else {
-            order.setMembership(null);
-        }
+        membershipService.updateMembership(request.getMembershipId(), order::updateMembership);
 
         return OrderResponse.toOrderResponse(orderService.saveOrder(order));
     }

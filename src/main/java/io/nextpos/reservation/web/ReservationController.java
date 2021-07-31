@@ -1,6 +1,7 @@
 package io.nextpos.reservation.web;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.membership.service.MembershipService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.web.OrderController;
 import io.nextpos.ordermanagement.web.model.OrderRequest;
@@ -35,12 +36,15 @@ public class ReservationController {
 
     private final TableLayoutService tableLayoutService;
 
+    private final MembershipService membershipService;
+
     private final OrderController orderController;
 
     @Autowired
-    public ReservationController(ReservationService reservationService, TableLayoutService tableLayoutService, OrderController orderController) {
+    public ReservationController(ReservationService reservationService, TableLayoutService tableLayoutService, MembershipService membershipService, OrderController orderController) {
         this.reservationService = reservationService;
         this.tableLayoutService = tableLayoutService;
+        this.membershipService = membershipService;
         this.orderController = orderController;
     }
 
@@ -64,6 +68,8 @@ public class ReservationController {
 
         reservation.updateBookingDetails(request.getName(), request.getPhoneNumber(), request.getPeople(), request.getKid());
         reservation.setNote(request.getNote());
+
+        membershipService.updateMembership(request.getMembershipId(), reservation::setMembership);
 
         return reservation;
     }
@@ -146,6 +152,8 @@ public class ReservationController {
 
         reservation.updateTableAllocationAndStatus(tables);
         reservation.setNote(request.getNote());
+
+        membershipService.updateMembership(request.getMembershipId(), reservation::setMembership);
     }
 
     @PostMapping("/{id}/sendNotification")
@@ -170,11 +178,13 @@ public class ReservationController {
         demographicData.setMale(reservation.getPeople());
         demographicData.setKid(reservation.getKid());
 
+        final String membershipId = reservation.getMembership() != null ? reservation.getMembership().getId() : null;
+
         final OrderResponse response = orderController.createOrder(client, new OrderRequest(
                 Order.OrderType.IN_STORE,
                 reservation.getTableAllocations().stream().map(Reservation.TableAllocation::getTableId).collect(Collectors.toList()),
                 demographicData,
-                null,
+                membershipId,
                 List.of()
         ));
 

@@ -36,4 +36,6 @@ public class ReservationRequest {
     private String note;
 
     private Reservation.SourceOfOrigin sourceOfOrigin = Reservation.SourceOfOrigin.APP;
+
+    private String membershipId;
 }

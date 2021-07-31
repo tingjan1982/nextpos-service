@@ -68,7 +68,12 @@ public class OrderVisitors {
         @Override
         public void accept(Order order) {
             order.setMembership(membership);
-            order.setLookupMembershipId(membership.getId());
+
+            if (membership != null) {
+                order.setLookupMembershipId(membership.getId());
+            } else {
+                order.setLookupMembershipId(null);
+            }
         }
     }
 
