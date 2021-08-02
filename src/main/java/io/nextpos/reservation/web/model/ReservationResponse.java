@@ -36,6 +36,8 @@ public class ReservationResponse {
 
     private Reservation.SourceOfOrigin sourceOfOrigin;
 
+    private String membershipId;
+
     public ReservationResponse(Reservation reservation) {
         this(null, reservation);
     }
@@ -58,6 +60,10 @@ public class ReservationResponse {
         this.tables = reservation.getTableAllocations();
         this.status = reservation.getStatus();
         this.sourceOfOrigin = reservation.getSourceOfOrigin();
+
+        if (reservation.getMembership() != null) {
+            this.membershipId = reservation.getMembership().getId();
+        }
     }
 
     @Data
