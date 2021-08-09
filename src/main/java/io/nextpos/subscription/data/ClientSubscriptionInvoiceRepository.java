@@ -9,7 +9,7 @@ public interface ClientSubscriptionInvoiceRepository extends MongoRepository<Cli
 
     List<ClientSubscriptionInvoice> findAllByDueDateBeforeAndStatus(Date date, ClientSubscriptionInvoice.SubscriptionInvoiceStatus status);
 
-    List<ClientSubscriptionInvoice> findAllByClientSubscription(ClientSubscription clientSubscription);
+    List<ClientSubscriptionInvoice> findAllByClientSubscriptionOrderByValidToDesc(ClientSubscription clientSubscription);
 
     List<ClientSubscriptionInvoice> findAllByStatusIn(List<ClientSubscriptionInvoice.SubscriptionInvoiceStatus> status);
 

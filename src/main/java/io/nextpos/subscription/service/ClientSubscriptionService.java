@@ -12,9 +12,9 @@ public interface ClientSubscriptionService {
 
     ClientSubscriptionInvoice createClientSubscription(Client client, CreateClientSubscription createClientSubscription);
 
-    void sendClientSubscriptionInvoice(Client client, ClientSubscriptionInvoice subscriptionInvoice);
-
     ClientSubscriptionInvoice createClientSubscriptionInvoice(Client client, ClientSubscription clientSubscription, Date planStartDate);
+
+    void sendClientSubscriptionInvoice(Client client, ClientSubscriptionInvoice subscriptionInvoice);
 
     ClientSubscriptionInvoice activateClientSubscriptionByInvoiceIdentifier(String invoiceIdentifier, boolean sendInvoiceNotification);
 
@@ -27,6 +27,8 @@ public interface ClientSubscriptionService {
     ClientSubscription lapseClientSubscription(ClientSubscription clientSubscription);
 
     ClientSubscription saveClientSubscription(ClientSubscription subscription);
+
+    void deleteClientSubscriptionInvoice(String invoiceId);
 
     ClientSubscription getCurrentClientSubscription(String clientId);
 

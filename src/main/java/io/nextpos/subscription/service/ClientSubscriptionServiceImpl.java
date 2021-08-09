@@ -10,6 +10,7 @@ import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.subscription.data.*;
 import io.nextpos.subscription.service.bean.CreateClientSubscription;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,6 +111,11 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
         return createAndSendClientSubscriptionInvoice(client, clientSubscription, validFrom, false);
     }
 
+    @Override
+    public ClientSubscriptionInvoice createClientSubscriptionInvoice(Client client, ClientSubscription clientSubscription, Date planStartDate) {
+        return this.createAndSendClientSubscriptionInvoice(client, clientSubscription, planStartDate, true);
+    }
+
     private ClientSubscriptionInvoice createAndSendClientSubscriptionInvoice(Client client, ClientSubscription clientSubscription, Date subscriptionValidFrom, boolean renewal) {
 
         final ClientSubscriptionInvoice subscriptionInvoice = new ClientSubscriptionInvoice(client.getZoneId(), clientSubscription, subscriptionValidFrom, renewal);
@@ -150,8 +156,30 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
     }
 
     @Override
-    public ClientSubscriptionInvoice createClientSubscriptionInvoice(Client client, ClientSubscription clientSubscription, Date planStartDate) {
-        return this.createAndSendClientSubscriptionInvoice(client, clientSubscription, planStartDate, true);
+    public void deleteClientSubscriptionInvoice(String invoiceId) {
+
+        final ClientSubscriptionInvoice invoiceToDelete = getClientSubscriptionInvoice(invoiceId);
+
+        if (invoiceToDelete.getStatus() != ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PENDING) {
+            throw new BusinessLogicException("Non pending invoice cannot be deleted");
+        }
+
+        final ClientSubscription clientSubscription = invoiceToDelete.getClientSubscription();
+        final List<ClientSubscriptionInvoice> invoices = getClientSubscriptionInvoices(clientSubscription);
+
+        if (invoices.size() == 1) {
+            throw new BusinessLogicException("This is the first ever invoice and cannot be deleted");
+        }
+
+        clientSubscriptionInvoiceRepository.delete(invoiceToDelete);
+
+        invoices.stream()
+                .filter(inv -> !StringUtils.equals(inv.getId(), invoiceToDelete.getId()))
+                .findFirst()
+                .ifPresent(lastInv -> {
+                    clientSubscription.setCurrentInvoiceId(lastInv.getId());
+                    this.saveClientSubscription(clientSubscription);
+                });
     }
 
     @Override
@@ -290,7 +318,7 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
 
     @Override
     public List<ClientSubscriptionInvoice> getClientSubscriptionInvoices(ClientSubscription clientSubscription) {
-        return clientSubscriptionInvoiceRepository.findAllByClientSubscription(clientSubscription);
+        return clientSubscriptionInvoiceRepository.findAllByClientSubscriptionOrderByValidToDesc(clientSubscription);
     }
 
     @Override

@@ -2,15 +2,20 @@ package io.nextpos.subscription.web;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
+import io.nextpos.shared.util.DateTimeUtil;
 import io.nextpos.subscription.data.ClientSubscription;
 import io.nextpos.subscription.data.ClientSubscriptionInvoice;
 import io.nextpos.subscription.service.ClientSubscriptionService;
 import io.nextpos.subscription.web.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,6 +63,22 @@ public class ManagerSubscriptionController {
         final ClientSubscription clientSubscription = clientSubscriptionService.getClientSubscription(id);
 
         return new ClientSubscriptionResponse(clientSubscription);
+    }
+
+    @PostMapping("/clientSubscriptions/{id}/renew")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void renewClientSubscription(@PathVariable String id, @RequestBody RenewSubscriptionRequest request) {
+
+        final ClientSubscription clientSubscription = clientSubscriptionService.getClientSubscription(id);
+        clientService.getClient(clientSubscription.getClientId()).ifPresent(c -> {
+            Date renewalDate = clientSubscription.getPlanEndDate();
+
+            if (request.getRenewalDate() != null) {
+                renewalDate = DateTimeUtil.toDate(c.getZoneId(), LocalDateTime.of(request.getRenewalDate(), LocalTime.of(0, 0)));
+            }
+
+            clientSubscriptionService.createClientSubscriptionInvoice(c, clientSubscription, renewalDate);
+        });
     }
 
     @PostMapping("/clientSubscriptions/{id}/lapse")
@@ -111,7 +132,7 @@ public class ManagerSubscriptionController {
     public ClientSubscriptionInvoicesResponse getOutstandingClientInvoices() {
 
         final List<ClientSubscriptionInvoiceResponse> invoices = clientSubscriptionService.getClientSubscriptionInvoicesByStatuses(
-                List.of(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PENDING, ClientSubscriptionInvoice.SubscriptionInvoiceStatus.OVERDUE)).stream()
+                        List.of(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PENDING, ClientSubscriptionInvoice.SubscriptionInvoiceStatus.OVERDUE)).stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
 
@@ -119,10 +140,10 @@ public class ManagerSubscriptionController {
 
     }
 
-    @PostMapping("/invoices/{invoiceIdentifier}/sendInvoice")
-    public ClientSubscriptionInvoiceResponse sendClientSubscriptionInvoice(@PathVariable String invoiceIdentifier) {
+    @PostMapping("/invoices/{id}/sendInvoice")
+    public ClientSubscriptionInvoiceResponse sendClientSubscriptionInvoice(@PathVariable String id) {
 
-        final ClientSubscriptionInvoice clientSubscriptionInvoice = clientSubscriptionService.getClientSubscriptionInvoiceByInvoiceIdentifier(invoiceIdentifier);
+        final ClientSubscriptionInvoice clientSubscriptionInvoice = clientSubscriptionService.getClientSubscriptionInvoice(id);
         Client client = clientService.getClientOrThrows(clientSubscriptionInvoice.getClientSubscription().getClientId());
 
         clientSubscriptionService.sendClientSubscriptionInvoice(client, clientSubscriptionInvoice);
@@ -141,5 +162,12 @@ public class ManagerSubscriptionController {
     private ClientSubscriptionInvoiceResponse toResponse(ClientSubscriptionInvoice subscriptionInvoice) {
 
         return new ClientSubscriptionInvoiceResponse(subscriptionInvoice);
+    }
+
+    @DeleteMapping("/invoices/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteClientSubscriptionInvoice(@PathVariable String id) {
+
+        clientSubscriptionService.deleteClientSubscriptionInvoice(id);
     }
 }
