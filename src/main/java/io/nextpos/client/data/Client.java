@@ -258,6 +258,8 @@ public class Client extends BaseObject {
 
         TIME_CARD_DEVICE,
 
+        PUSH_NOTIFICATION_TOKEN,
+
         // ==== Taiwan specific attributes ====
 
         /**

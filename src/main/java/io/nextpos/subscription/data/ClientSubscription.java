@@ -68,6 +68,17 @@ public class ClientSubscription extends MongoBaseObject implements WithClientId 
         this.current = true;
     }
 
+    public void updateSubscriptionFeature(String featureName, boolean enabled) {
+
+        final SubscriptionPlan.SubscriptionPlanLimit subscriptionLimit = this.subscriptionPlanSnapshot.getSubscriptionLimit();
+
+        if (enabled) {
+            subscriptionLimit.getRestrictedFeatures().remove(featureName);
+        } else {
+            subscriptionLimit.getRestrictedFeatures().add(featureName);
+        }
+    }
+
     public boolean isActiveSubscription() {
         return this.status.isActive();
     }

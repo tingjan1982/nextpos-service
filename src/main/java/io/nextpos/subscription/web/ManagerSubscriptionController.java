@@ -65,6 +65,16 @@ public class ManagerSubscriptionController {
         return new ClientSubscriptionResponse(clientSubscription);
     }
 
+    @PostMapping("/clientSubscriptions/{id}/features")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void toggleClientSubscriptionFeatures(@PathVariable String id, @RequestBody FeaturesRequest request) {
+
+        final ClientSubscription clientSubscription = clientSubscriptionService.getClientSubscription(id);
+        clientSubscription.updateSubscriptionFeature(request.getFeature(), request.isEnabled());
+
+        clientSubscriptionService.saveClientSubscription(clientSubscription);
+    }
+
     @PostMapping("/clientSubscriptions/{id}/renew")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void renewClientSubscription(@PathVariable String id, @RequestBody RenewSubscriptionRequest request) {

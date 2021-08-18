@@ -2,6 +2,7 @@ package io.nextpos.subscription.web.model;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.subscription.data.ClientSubscription;
+import io.nextpos.subscription.data.ClientSubscriptionAccess;
 import io.nextpos.subscription.data.SubscriptionPlan;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,6 +21,8 @@ public class ClientSubscriptionResponse {
     private String subscriptionPlanId;
 
     private String planName;
+    
+    private ClientSubscriptionAccess clientSubscriptionAccess;
 
     private ClientSubscription.SubscriptionStatus status;
 
@@ -44,8 +47,11 @@ public class ClientSubscriptionResponse {
     public ClientSubscriptionResponse(ClientSubscription clientSubscription) {
         id = clientSubscription.getId();
         clientId = clientSubscription.getClientId();
+
         subscriptionPlanId = clientSubscription.getSubscriptionPlanSnapshot().getId();
         planName = clientSubscription.getSubscriptionPlanSnapshot().getPlanName();
+        clientSubscriptionAccess = new ClientSubscriptionAccess(clientSubscription.getSubscriptionPlanSnapshot().getSubscriptionLimit());
+
         status = clientSubscription.getStatus();
         planPrice = clientSubscription.getPlanPrice();
         discountAmount = clientSubscription.getDiscountAmount();
@@ -61,6 +67,7 @@ public class ClientSubscriptionResponse {
                 client.getId(),
                 "free",
                 "planName.free",
+                ClientSubscriptionAccess.defaultClientSubscriptionAccess(),
                 ClientSubscription.SubscriptionStatus.ACTIVE,
                 BigDecimal.ZERO,
                 BigDecimal.ZERO,
