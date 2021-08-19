@@ -198,23 +198,6 @@ public class ClientController {
         return toClientResponse(clientService.saveClient(client));
     }
 
-    @PostMapping("/me/pushNotificationToken")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void savePushNotificationToken(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                          @RequestBody String token) {
-
-        client.addAttribute(Client.ClientAttributes.PUSH_NOTIFICATION_TOKEN, token);
-        clientService.saveClient(client);
-    }
-
-    @GetMapping("/me/pushNotificationToken")
-    public PushNotificationTokenResponse getPushNotificationToken(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client) {
-
-        return new PushNotificationTokenResponse(
-                client.getId(),
-                client.getAttribute(Client.ClientAttributes.PUSH_NOTIFICATION_TOKEN));
-    }
-
     @PostMapping("/me/aeskey")
     public ClientResponse generateAESKey(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                          @RequestBody String password) {

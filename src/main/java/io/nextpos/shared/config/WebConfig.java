@@ -72,7 +72,8 @@ public class WebConfig implements WebMvcConfigurer {
                 "/inventories/*",
                 "/inventoryOrders/*",
                 "/reservations/*",
-                "/reservationSettings/*");
+                "/reservationSettings/*",
+                "/pushNotifications/*");
 
         return registrationBean;
     }
