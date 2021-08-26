@@ -6,6 +6,7 @@ import io.nextpos.product.data.ProductType;
 import io.nextpos.product.data.ProductVersion;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -32,7 +33,13 @@ public class LightProductResponse {
 
     private List<ChildProduct> childProducts;
 
+    private boolean hasOptions;
+
     public LightProductResponse(ProductVersion product) {
+        this(product, false);
+    }
+
+    public LightProductResponse(ProductVersion product, boolean hasOptionCheck) {
 
         ProductLabel productLabel = product.getProduct().getProductLabel();
         String productLabelId = productLabel != null ? productLabel.getId() : null;
@@ -48,6 +55,10 @@ public class LightProductResponse {
 
         if (product.getProduct() instanceof ProductSet) {
             childProducts = ChildProduct.toChildProducts(((ProductSet) product.getProduct()));
+        }
+
+        if (hasOptionCheck) {
+            hasOptions = !CollectionUtils.isEmpty(product.getProduct().getProductOptionOfProducts());
         }
     }
 }

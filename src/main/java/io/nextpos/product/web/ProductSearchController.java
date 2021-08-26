@@ -36,6 +36,24 @@ public class ProductSearchController {
         return toProductSearchResponse(groupedProducts);
     }
 
+    @GetMapping("/products")
+    public ProductSearchResponse getProductsGroupedByLabels2(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                            @RequestParam(value = "state", defaultValue = "DESIGN") Version version) {
+
+        final Map<ProductLabel, List<ProductVersion>> groupedProducts = productSearchService.getAllProductsGroupedByLabels(client, version);
+
+        final LinkedHashMap<String, List<LightProductResponse>> results = new LinkedHashMap<>();
+
+        groupedProducts.forEach((key, value) -> {
+            final List<LightProductResponse> products = value.stream()
+                    .map(p -> new LightProductResponse(p, true))
+                    .collect(Collectors.toList());
+            results.put(key.getName(), products);
+        });
+
+        return new ProductSearchResponse(results);
+    }
+
     private ProductSearchResponse toProductSearchResponse(final Map<ProductLabel, List<ProductVersion>> groupedProducts) {
 
         final LinkedHashMap<String, List<LightProductResponse>> results = new LinkedHashMap<>();
