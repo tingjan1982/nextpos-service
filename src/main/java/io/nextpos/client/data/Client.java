@@ -272,6 +272,6 @@ public class Client extends BaseObject {
     }
 
     public enum ClientType {
-        FOOD_BEVERAGE, RETAIL
+        FOOD_BEVERAGE, RETAIL, RESERVATION
     }
 }
