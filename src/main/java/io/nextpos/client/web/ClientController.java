@@ -100,6 +100,9 @@ public class ClientController {
             clientRequest.getAttributes().forEach(client::addAttribute);
         }
 
+        client.addSupportedPaymentMethod(settingsService.getPaymentMethodByPaymentKey("CASH"));
+        client.addSupportedPaymentMethod(settingsService.getPaymentMethodByPaymentKey("CARD"));
+
         return client;
     }
 

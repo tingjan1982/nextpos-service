@@ -16,4 +16,6 @@ public interface SettingsService {
     PaymentMethod getOrCreatePaymentMethod(String paymentName, String displayName, int ordering);
 
     Optional<PaymentMethod> getPaymentMethod(String id);
+
+    PaymentMethod getPaymentMethodByPaymentKey(String paymentKey);
 }

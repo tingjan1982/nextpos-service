@@ -55,4 +55,12 @@ public class SettingsServiceImpl implements SettingsService {
     public Optional<PaymentMethod> getPaymentMethod(String id) {
         return paymentMethodRepository.findById(id);
     }
+
+    @Override
+    public PaymentMethod getPaymentMethodByPaymentKey(String paymentKey) {
+
+        return paymentMethodRepository.findByPaymentKey(paymentKey).orElseThrow(() -> {
+            throw new ObjectNotFoundException(paymentKey, PaymentMethod.class);
+        });
+    }
 }

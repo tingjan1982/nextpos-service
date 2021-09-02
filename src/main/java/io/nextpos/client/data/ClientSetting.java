@@ -77,6 +77,8 @@ public class ClientSetting extends BaseObject implements ClientObject {
 
         ELECTRONIC_INVOICE(ValueType.BOOLEAN),
 
+        PUSH_NOTIFICATION(ValueType.BOOLEAN),
+
         /**
          * This is a placeholder to customize offer application behavior, to determine whether offer discount can be stacked or is exclusive only.
          */

@@ -1,10 +1,10 @@
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: nextpos-ingress
 spec:
   tls:
-    - secretName: nextpos-secret-tls1
+    - secretName: nextpos-secret-tls2
   backend:
     serviceName: nextpos-service-nodeport
     servicePort: 80     
