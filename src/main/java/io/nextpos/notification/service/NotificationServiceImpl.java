@@ -69,7 +69,7 @@ public class NotificationServiceImpl implements NotificationService {
             this.sendNotification(notificationDetails).get(10, TimeUnit.SECONDS);
 
         } catch (Exception e) {
-            throw new GeneralApplicationException("Notification cannot be sent a specified time: " + e.getMessage(), e);
+            throw new GeneralApplicationException("Notification was not sent within the specified timeout: " + e.getMessage(), e);
         }
     }
 

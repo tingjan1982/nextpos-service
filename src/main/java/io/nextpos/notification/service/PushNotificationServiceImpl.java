@@ -21,7 +21,9 @@ public class PushNotificationServiceImpl implements PushNotificationService {
     @Override
     public PushNotification savePushNotification(String clientId, String token) {
 
-        final PushNotification pushNotification = pushNotificationRepository.findByClientId(clientId).orElseGet(() -> new PushNotification(clientId));
+        final PushNotification pushNotification = pushNotificationRepository.findByClientId(clientId).orElseGet(() -> {
+            return pushNotificationRepository.save(new PushNotification(clientId));
+        });
 
         pushNotification.addToken(token);
 
