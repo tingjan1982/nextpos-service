@@ -50,8 +50,6 @@ public class SalesReportServiceImpl implements SalesReportService {
         ProjectionOperation projection = createProjection(zonedDateRange);
         final MatchOperation filter = createMatchFilter(clientId, zonedDateRange);
 
-        final MatchOperation completedOrderFilter = Aggregation.match(Criteria.where("state").in(Order.OrderState.SETTLED, Order.OrderState.COMPLETED));
-
         final GroupOperation salesTotal = Aggregation.group("clientId")
                 .sum("orderTotal").as("salesTotal")
                 .sum("serviceCharge").as("serviceChargeTotal")
@@ -80,11 +78,11 @@ public class SalesReportServiceImpl implements SalesReportService {
                 .first("lineItems.productSnapshot.label").as("productLabel");
 
         final FacetOperation facets = Aggregation
-                .facet(completedOrderFilter, salesTotal).as("totalSales")
+                .facet(salesTotal).as("totalSales")
                 .and(flattenTransactions, salesByPaymentMethod).as("salesByPaymentMethod")
-                .and(completedOrderFilter, createSalesByRangeFacet()).as("salesByRange")
-                .and(completedOrderFilter, flattenLineItems, salesByProduct, sortSalesByProduct).as("salesByProduct")
-                .and(completedOrderFilter, flattenLineItems, salesByLabel, sortSalesByProduct).as("salesByLabel");
+                .and(createSalesByRangeFacet()).as("salesByRange")
+                .and(flattenLineItems, salesByProduct, sortSalesByProduct).as("salesByProduct")
+                .and(flattenLineItems, salesByLabel, sortSalesByProduct).as("salesByLabel");
 
         final TypedAggregation<Order> aggregations = Aggregation.newAggregation(Order.class,
                 lookupTransactions,
@@ -162,7 +160,7 @@ public class SalesReportServiceImpl implements SalesReportService {
 
         final String timezone = zonedDateRange.getClientTimeZone().getId();
 
-        return Aggregation.project("clientId", "state", "createdDate", "transactions")
+        return Aggregation.project("id", "clientId", "state", "createdDate", "transactions")
                 .and(createToDecimal("orderTotal")).as("orderTotal")
                 .and(createToDecimal("serviceCharge")).as("serviceCharge")
                 .and(createToDecimal("discount")).as("discount")
@@ -176,7 +174,7 @@ public class SalesReportServiceImpl implements SalesReportService {
 
         return Aggregation.match(
                 Criteria.where("clientId").is(clientId)
-                        .and("state").in(Order.OrderState.finalStates())
+                        .and("state").in(Order.OrderState.SETTLED, Order.OrderState.COMPLETED)
                         .and("createdDate").gte(zonedDateRange.getFromDate()).lte(zonedDateRange.getToDate()));
     }
 

@@ -1,9 +1,10 @@
 package io.nextpos.product.data;
 
 import io.nextpos.client.data.Client;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -12,9 +13,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity(name = "client_product_set")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class ProductSet extends Product {
 
     @ManyToMany(fetch = FetchType.EAGER)

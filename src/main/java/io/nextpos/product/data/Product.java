@@ -5,10 +5,7 @@ import io.nextpos.shared.model.BaseObject;
 import io.nextpos.shared.model.ObjectOrdering;
 import io.nextpos.shared.model.ParentObject;
 import io.nextpos.workingarea.data.WorkingArea;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
@@ -27,9 +24,10 @@ import java.util.*;
  */
 @Entity(name = "client_product")
 @Inheritance(strategy = InheritanceType.JOINED)
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class Product extends BaseObject implements ParentObject<String, ProductVersion>, ObjectOrdering<Integer> {
 
     @Id
@@ -214,5 +212,19 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
         public P build() {
             return (P) new Product(this);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Product product = (Product) o;
+        return id.equals(product.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), id);
     }
 }
