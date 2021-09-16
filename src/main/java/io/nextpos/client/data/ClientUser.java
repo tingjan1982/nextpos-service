@@ -4,10 +4,7 @@ import io.nextpos.roles.data.UserRole;
 import io.nextpos.shared.config.SecurityConfig;
 import io.nextpos.shared.model.BaseObject;
 import io.nextpos.workingarea.data.WorkingArea;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -15,6 +12,7 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity(name = "client_users")
@@ -27,9 +25,10 @@ import java.util.Set;
                         })
         }
 )
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class ClientUser extends BaseObject {
 
     @Id
@@ -129,5 +128,18 @@ public class ClientUser extends BaseObject {
 
     public boolean isDefaultUser() {
         return roles.contains(SecurityConfig.Role.ADMIN_ROLE);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ClientUser that = (ClientUser) o;
+        return Objects.equals(id, that.id) && client.equals(that.client) && username.equals(that.username);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, client, username);
     }
 }

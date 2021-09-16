@@ -71,7 +71,7 @@ class MerchandisingServiceImplTest {
 
         final OrderSettings taiwanOrderSettings = new OrderSettings(BigDecimal.valueOf(0.05), true, Currency.getInstance("TWD"), BigDecimal.ZERO, 0, RoundingMode.HALF_UP);
         Order order = new Order(client.getId(), taiwanOrderSettings);
-        orderService.saveOrder(order);
+        orderService.createOrder(order);
 
         final OrderLineItem lineItem = new OrderLineItem(DummyObjects.productSnapshot(), 1, orderSettings);
 

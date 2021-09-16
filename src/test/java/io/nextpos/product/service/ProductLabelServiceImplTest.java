@@ -104,8 +104,8 @@ class ProductLabelServiceImplTest {
 
         productService.saveProduct(product);
 
-        assertThat(product.getProductOptionOfProducts()).isEmpty();
-        assertThat(product.getWorkingArea()).isNull();
+        assertThat(product.getProductOptionOfProducts()).hasSize(2);
+        assertThat(product.getWorkingArea()).isNotNull();
 
         final List<Product> appliedProducts = productLabelService.applyProductLabelChangesToProducts(drink);
 

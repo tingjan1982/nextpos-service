@@ -12,12 +12,14 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Entity(name = "client_working_area")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class WorkingArea extends BaseObject implements ClientObject {
 
     @Id
@@ -69,5 +71,18 @@ public class WorkingArea extends BaseObject implements ClientObject {
 
     public enum Visibility {
         ALL, PRODUCT, ROSTER
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        WorkingArea that = (WorkingArea) o;
+        return Objects.equals(id, that.id) && client.equals(that.client) && name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, client, name);
     }
 }

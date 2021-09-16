@@ -38,7 +38,7 @@ class LineItemStateChangeListenerTest {
         final Order order = new Order(client.getId(), orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 2);
-        orderService.saveOrder(order);
+        orderService.createOrder(order);
 
         eventPublisher.publishEvent(new OrderStateChangeEvent(this, order, Order.OrderAction.SUBMIT, new CompletableFuture<>()));
 

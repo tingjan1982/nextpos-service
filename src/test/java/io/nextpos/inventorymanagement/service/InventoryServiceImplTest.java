@@ -146,7 +146,7 @@ class InventoryServiceImplTest {
         Callable<String> task = () -> {
             retryTemplate.execute(r -> {
                 final Inventory inventory = inventoryService.getInventory(stock.getId());
-                inventory.updateInventoryQuantity("2020blue", new BigDecimal("1"));
+                inventory.updateInventoryQuantity("2021blue", new BigDecimal("1"));
                 return inventoryService.saveInventory(inventory);
             });
 
@@ -157,7 +157,7 @@ class InventoryServiceImplTest {
 
         assertThat(inventoryService.getInventory(stock.getId())).satisfies(i -> {
             LOGGER.info("{}", i);
-            assertThat(i.getInventoryQuantity("2020blue").getQuantity()).isEqualByComparingTo("13");
+            assertThat(i.getInventoryQuantity("2021blue").getQuantity()).isEqualByComparingTo("13");
         });
     }
 }

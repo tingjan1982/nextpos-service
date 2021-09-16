@@ -58,7 +58,9 @@ public class ClientBootstrapServiceImpl implements ClientBootstrapService {
         workingAreaService.saveWorkingArea(workingArea);
 
         final ProductLabel drinks = new ProductLabel("飲品 (預設)", client);
+        drinks.setWorkingArea(workingArea);
         final ProductLabel mains = new ProductLabel("主餐 (預設)", client);
+        mains.setWorkingArea(workingArea);
         final ProductLabel desserts = new ProductLabel("甜品 (預設)", client);
 
         productLabelService.saveProductLabel(drinks);
@@ -67,19 +69,16 @@ public class ClientBootstrapServiceImpl implements ClientBootstrapService {
 
         final Product coffee = Product.builder(client).productNameAndPrice("美式咖啡", new BigDecimal("50")).build();
         coffee.setProductLabel(drinks);
-        coffee.setWorkingArea(workingArea);
 
         productService.saveProduct(coffee);
 
         final Product pasta = Product.builder(client).productNameAndPrice("義大利麵", new BigDecimal("250")).build();
         pasta.setProductLabel(mains);
-        pasta.setWorkingArea(workingArea);
 
         productService.saveProduct(pasta);
 
         final Product cake = Product.builder(client).productNameAndPrice("好吃的蛋糕", new BigDecimal("85")).build();
         cake.setProductLabel(mains);
-        cake.setWorkingArea(workingArea);
 
         productService.saveProduct(cake);
 

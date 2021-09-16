@@ -1,19 +1,17 @@
 package io.nextpos.client.data;
 
 import io.nextpos.shared.model.BaseObject;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 @Entity(name = "client_status")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class ClientStatus extends BaseObject {
 
     @Id

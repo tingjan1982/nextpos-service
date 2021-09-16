@@ -9,6 +9,7 @@ import org.hibernate.annotations.GenericGenerator;
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * ClientSetting differs from attributes in that setting has typed value and enabled flag to control is the value is used.
@@ -21,9 +22,10 @@ import java.util.Date;
  */
 @Entity(name = "client_settings")
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "clientId"})})
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class ClientSetting extends BaseObject implements ClientObject {
 
     @Id
@@ -116,5 +118,18 @@ public class ClientSetting extends BaseObject implements ClientObject {
         public Class<?> getClassType() {
             return classType;
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ClientSetting that = (ClientSetting) o;
+        return client.equals(that.client) && name == that.name;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(client, name);
     }
 }

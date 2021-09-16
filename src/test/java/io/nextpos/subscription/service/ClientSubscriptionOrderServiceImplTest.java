@@ -32,6 +32,8 @@ class ClientSubscriptionOrderServiceImplTest {
 
     private final ClientSubscriptionOrderService clientSubscriptionOrderService;
 
+    private final ClientSubscriptionService clientSubscriptionService;
+
     private final ClientService clientService;
 
     private final InvoiceNumberRangeService invoiceNumberRangeService;
@@ -45,8 +47,9 @@ class ClientSubscriptionOrderServiceImplTest {
     private Client atlasClient;
 
     @Autowired
-    ClientSubscriptionOrderServiceImplTest(ClientSubscriptionOrderService clientSubscriptionOrderService, ClientService clientService, InvoiceNumberRangeService invoiceNumberRangeService, OrderService orderService, CountrySettings countrySettings) {
+    ClientSubscriptionOrderServiceImplTest(ClientSubscriptionOrderService clientSubscriptionOrderService, ClientSubscriptionService clientSubscriptionService, ClientService clientService, InvoiceNumberRangeService invoiceNumberRangeService, OrderService orderService, CountrySettings countrySettings) {
         this.clientSubscriptionOrderService = clientSubscriptionOrderService;
+        this.clientSubscriptionService = clientSubscriptionService;
         this.clientService = clientService;
         this.invoiceNumberRangeService = invoiceNumberRangeService;
         this.orderService = orderService;
@@ -76,6 +79,8 @@ class ClientSubscriptionOrderServiceImplTest {
         SubscriptionPlan subscriptionPlan = new SubscriptionPlan(countrySettings.getIsoCountryCode(), SubscriptionPlan.PlanGroup.DEFAULT, "Standard", countrySettings);
         subscriptionPlan.addPlanPrice(SubscriptionPlan.PlanPeriod.MONTHLY, new SubscriptionPlan.PlanPrice(new BigDecimal("990")));
         ClientSubscription clientSubscription = new ClientSubscription(client.getId(), subscriptionPlan, SubscriptionPlan.PlanPeriod.MONTHLY);
+        clientSubscriptionService.saveClientSubscription(clientSubscription);
+
         final ClientSubscriptionInvoice clientSubscriptionInvoice = new ClientSubscriptionInvoice(ZoneId.of("Asia/Taipei"), clientSubscription, new Date());
 
         clientSubscriptionOrderService.sendClientSubscriptionOrder(clientSubscriptionInvoice, "rain.io.app@gmail.com");

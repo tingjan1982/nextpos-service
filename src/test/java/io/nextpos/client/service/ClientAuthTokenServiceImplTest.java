@@ -56,6 +56,6 @@ class ClientAuthTokenServiceImplTest {
         final String encodedToken = textEncryptor.encrypt(updatedToken);
 
         assertThatThrownBy(() -> clientAuthTokenService.decodeClientAuthToken(encodedToken)).isInstanceOf(BusinessLogicException.class)
-                .hasMessage("Token has expired");
+                .hasMessageContaining("Token has expired");
     }
 }

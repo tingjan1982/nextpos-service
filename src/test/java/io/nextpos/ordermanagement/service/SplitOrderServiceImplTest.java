@@ -62,7 +62,7 @@ class SplitOrderServiceImplTest {
 
         assertThat(targetOrder).satisfies(o -> {
             assertThat(o.getSerialId()).isNotNull();
-            assertThat(o.getOneTableInfo().getDisplayName()).isEqualTo("splitOrder");
+            assertThat(o.getOneTableInfo().getDisplayName()).isEqualTo("SplitOrder");
             assertThat(o.getState()).isEqualByComparingTo(Order.OrderState.DELIVERED);
             assertThat(o.getOrderTotal()).isNotZero();
             assertThat(o.getOrderLineItems()).hasSize(1);
@@ -175,7 +175,7 @@ class SplitOrderServiceImplTest {
         final Order sourceOrder = new Order(client.getId(), orderSettings);
         sourceOrder.addOrderLineItem(DummyObjects.productSnapshot(), 3);
         sourceOrder.setState(Order.OrderState.DELIVERED);
-        orderService.saveOrder(sourceOrder);
+        orderService.createOrder(sourceOrder);
 
         final List<SplitAmountDetails> splitAmountDetails = splitOrderService.splitByHeadCount(sourceOrder.getId(), 3);
 

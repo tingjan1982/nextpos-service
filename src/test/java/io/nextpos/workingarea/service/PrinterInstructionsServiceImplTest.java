@@ -14,6 +14,7 @@ import io.nextpos.ordertransaction.service.ElectronicInvoiceService;
 import io.nextpos.ordertransaction.service.OrderTransactionService;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
+import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.PrinterInstructions;
 import io.nextpos.workingarea.data.SinglePrintInstruction;
@@ -26,13 +27,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
 
 @SpringBootTest
-@Transactional
+@ChainedTransaction
 class PrinterInstructionsServiceImplTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PrinterInstructionsServiceImplTest.class);
@@ -276,6 +276,6 @@ class PrinterInstructionsServiceImplTest {
     }
 
     private void printInstruction(String printInstruction) {
-        printerInstructionService.outputToPrinter("192.168.2.200", printInstruction);
+        //printerInstructionService.outputToPrinter("192.168.2.200", printInstruction);
     }
 }

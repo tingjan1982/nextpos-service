@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
@@ -263,8 +264,13 @@ public class BootstrapConfig {
                 .collect(Collectors.toMap(Pair::getLeft, Pair::getRight, (existing, replacement) -> existing, LinkedHashMap::new));
     }
 
+    /**
+     * Setting a prototype scoped bean here is important because of the different spring test contexts that are created
+     * during the test suite execution. This will ensure that the autowired Client instance will always be the same
+     * as the one that exists in the database.
+     */
     @Bean
-    @Lazy
+    @Scope("prototype")
     public Client defaultClient() {
         return clientService.getDefaultClient();
     }

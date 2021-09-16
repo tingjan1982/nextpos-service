@@ -1,8 +1,9 @@
 package io.nextpos.shared.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.MappedSuperclass;
 import javax.persistence.PrePersist;
@@ -10,9 +11,10 @@ import java.util.Date;
 
 
 @MappedSuperclass
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public abstract class BaseObject {
 
     protected Date createdTime;

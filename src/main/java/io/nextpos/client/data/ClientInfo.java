@@ -1,10 +1,7 @@
 package io.nextpos.client.data;
 
 import io.nextpos.shared.model.BaseObject;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import javax.persistence.*;
 
@@ -12,9 +9,10 @@ import javax.persistence.*;
  * https://www.baeldung.com/jpa-one-to-one
  */
 @Entity(name = "client_info")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class ClientInfo extends BaseObject {
 
     @Id

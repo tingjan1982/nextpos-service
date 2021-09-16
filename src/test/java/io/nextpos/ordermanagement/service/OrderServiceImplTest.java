@@ -1,6 +1,7 @@
 package io.nextpos.ordermanagement.service;
 
 import io.nextpos.client.data.Client;
+import io.nextpos.client.data.ClientRepository;
 import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.merchandising.data.ProductLevelOffer;
@@ -60,6 +61,9 @@ class OrderServiceImplTest {
 
     @Autowired
     private Client client;
+
+    @Autowired
+    private ClientRepository clientRepository;
 
     private TableLayout.TableDetails table1;
 
@@ -416,16 +420,6 @@ class OrderServiceImplTest {
         assertThat(orderService.generateSerialId(client.getId())).isEqualTo("%s-%s", todayIdPrefix, 1);
         assertThat(orderService.generateSerialId(client.getId())).isEqualTo("%s-%s", todayIdPrefix, 2);
         assertThat(orderService.generateSerialId(client.getId())).isEqualTo("%s-%s", todayIdPrefix, 3);
-
-        final OrderIdCounter shouldBeSaved = new OrderIdCounter(client.getId(), todayIdPrefix, 1);
-        orderIdCounterRepository.save(shouldBeSaved);
-
-        assertThat(shouldBeSaved.getId()).isNotNull();
-
         assertThat(orderService.generateSerialId(client.getId())).isEqualTo("%s-%s", todayIdPrefix, 4);
-
-        assertThat(orderIdCounterRepository.findAll()).hasSize(2);
-        assertThat(orderIdCounterRepository.findAll().get(0).getId()).isNotNull();
-
     }
 }

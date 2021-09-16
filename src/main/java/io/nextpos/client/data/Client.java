@@ -26,9 +26,10 @@ import java.util.*;
  */
 @Entity(name = "client")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = "username"))
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class Client extends BaseObject {
 
     @Id
@@ -273,5 +274,18 @@ public class Client extends BaseObject {
 
     public enum ClientType {
         FOOD_BEVERAGE, RETAIL, RESERVATION
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Client client = (Client) o;
+        return Objects.equals(id, client.id) && username.equals(client.username);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, username);
     }
 }

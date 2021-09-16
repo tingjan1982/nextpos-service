@@ -68,8 +68,9 @@ class UserRoleServiceImplTest {
         assertThat(userToCheck.getUserRole().getPermissions()).hasSize(updatedUserRole.getPermissions().size());
         assertThat(userToCheck.getUserRole()).isEqualTo(updatedUserRole);
 
-        userToCheck.removeUserRole();
-        final ClientUser removedRoleUser = clientService.saveClientUser(userToCheck);
+        userRoleService.removeClientUserRole(userToCheck);
+
+        final ClientUser removedRoleUser = clientService.getClientUser(client, userToCheck.getUsername());
         final UserRole updatedRole2 = userRoleService.getUserRole(updatedUserRole.getId());
 
         assertThat(removedRoleUser.getUserRole()).isNull();

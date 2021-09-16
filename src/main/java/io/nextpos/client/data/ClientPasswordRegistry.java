@@ -2,10 +2,7 @@ package io.nextpos.client.data;
 
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.model.BaseObject;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -13,9 +10,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Entity(name = "client_password_registry")
-@Data
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class ClientPasswordRegistry extends BaseObject {
 
     @Id

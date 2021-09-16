@@ -11,11 +11,13 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @ChainedTransaction
+@TestPropertySource(properties = "nomock=true")
 class LinkedClientAccountServiceImplTest {
 
     private final LinkedClientAccountService linkedClientAccountService;
@@ -70,7 +72,7 @@ class LinkedClientAccountServiceImplTest {
 
     @Test
     @WithMockUser("ron@roncafe.bar")
-    void test() {
+    void testAuthentication() {
 
         final Client ron = new Client("Ron", "ron@roncafe.bar", "1234", "TW", "Asia/Taipei");
         clientService.createClient(ron);
