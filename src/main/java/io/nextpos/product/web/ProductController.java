@@ -81,7 +81,10 @@ public class ProductController {
 
         Product.ProductBuilder<?, ?> builder;
 
-        if (!CollectionUtils.isEmpty(productRequest.getChildProducts())) {
+        if (!CollectionUtils.isEmpty(productRequest.getProductComboLabels())) {
+            builder = ProductCombo.builder(client);
+
+        } else if (!CollectionUtils.isEmpty(productRequest.getChildProducts())) {
             final ProductSet.ProductSetBuilder productSetBuilder = ProductSet.builder(client);
             productRequest.getChildProducts().forEach(pid -> productSetBuilder.addChildProduct(productService.getProduct(pid)));
             builder = productSetBuilder;
@@ -103,6 +106,20 @@ public class ProductController {
         product.setWorkingArea(resolvedWorkingArea);
 
         productOptionVisitorWrapper.accept(product, productRequest.getProductOptionIds());
+
+        if (product instanceof ProductCombo) {
+            productService.saveProduct(product);
+            
+            final ProductCombo productCombo = (ProductCombo) product;
+
+            productRequest.getProductComboLabels().forEach(cl -> {
+                final ProductLabel productLabel = productLabelService.getProductLabelOrThrows(cl.getProductLabelId());
+
+                final ProductCombo.ProductComboLabel comboLabel = productCombo.addProductComboLabel(productLabel);
+                comboLabel.setMultipleSelection(cl.isMultipleSelection());
+                comboLabel.setOrdering(cl.getOrdering());
+            });
+        }
 
         return product;
     }
@@ -179,6 +196,21 @@ public class ProductController {
 
             if (productRequest.getChildProducts() != null) {
                 productRequest.getChildProducts().forEach(pid -> productSet.addChildProduct(productService.getProduct(pid)));
+            }
+        }
+
+        if (product instanceof ProductCombo) {
+            final ProductCombo productCombo = (ProductCombo) product;
+            productCombo.clearProductComboLabels();
+
+            if (productRequest.getProductComboLabels() != null) {
+                productRequest.getProductComboLabels().forEach(cl -> {
+                    final ProductLabel productLabel = productLabelService.getProductLabelOrThrows(cl.getProductLabelId());
+
+                    final ProductCombo.ProductComboLabel comboLabel = productCombo.addProductComboLabel(productLabel);
+                    comboLabel.setMultipleSelection(cl.isMultipleSelection());
+                    comboLabel.setOrdering(cl.getOrdering());
+                });
             }
         }
     }
@@ -294,33 +326,16 @@ public class ProductController {
     private ProductResponse toResponse(Product product, final Version version) {
 
         ProductVersion productVersion = product.getObjectByVersionThrows(version);
+        final ProductResponse productResponse = new ProductResponse(product, productVersion);
 
-        final ProductLabel productLabel = product.getProductLabel();
-        final WorkingArea workingArea = product.getWorkingArea();
+        if (product instanceof ProductCombo) {
+            final ProductCombo productCombo = (ProductCombo) product;
+            final List<ProductComboLabelResponse> combos = productCombo.getProductComboLabels().stream()
+                    .map(ProductComboLabelResponse::new)
+                    .collect(Collectors.toList());
 
-        final List<String> productOptionIds = product.getProductOptionOfProducts().stream()
-                .map(po -> po.getProductOption().getId()).collect(Collectors.toList());
-
-        final List<ProductOptionResponse> productOptions = product.getProductOptionOfProducts().stream()
-                .map(po -> toProductOptionResponse(version, po))
-                .collect(Collectors.toList());
-
-        final ProductResponse productResponse = new ProductResponse(product.getId(),
-                ProductType.resolveProductType(product),
-                productVersion.getId(),
-                productVersion.getProductName(),
-                productVersion.getInternalProductName(),
-                version,
-                productVersion.getDescription(),
-                productVersion.getPrice(),
-                productVersion.getCostPrice(),
-                productLabel != null ? productLabel.getId() : null,
-                productLabel != null ? productLabel.getName() : null,
-                workingArea != null ? workingArea.getId() : null,
-                productOptionIds,
-                productOptions,
-                product.isPinned(),
-                product.isOutOfStock());
+            productResponse.setProductComboLabels(combos);
+        }
 
         if (product instanceof ProductSet) {
             productResponse.setChildProducts(ChildProduct.toChildProducts(((ProductSet) product)));
@@ -331,11 +346,5 @@ public class ProductController {
         });
 
         return productResponse;
-    }
-
-    private ProductOptionResponse toProductOptionResponse(final Version version, final ProductOptionRelation.ProductOptionOfProduct po) {
-
-        final ProductOptionVersion productOptionVersion = po.getProductOption().getObjectByVersionThrows(version);
-        return ProductOptionResponse.fromProductOptionVersion(productOptionVersion);
     }
 }

@@ -1,9 +1,6 @@
 package io.nextpos.product.service;
 
-import io.nextpos.product.data.ParentProduct;
-import io.nextpos.product.data.Product;
-import io.nextpos.product.data.ProductSet;
-import io.nextpos.product.data.VariationDefinition;
+import io.nextpos.product.data.*;
 
 import java.util.List;
 
@@ -13,11 +10,15 @@ public interface ProductService {
 
     ProductSet saveProductSet(ProductSet productSet);
 
+    ProductCombo saveProductCombo(ProductCombo productCombo);
+
     ParentProduct saveParentProduct(ParentProduct parentProduct);
 
     Product getProduct(String id);
 
     ProductSet getProductSet(String id);
+
+    ProductCombo getProductCombo(String id);
 
     ParentProduct getParentProduct(String id);
 

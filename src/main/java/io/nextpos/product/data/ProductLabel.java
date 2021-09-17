@@ -15,12 +15,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 @Entity(name = "client_product_label")
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"name", "clientId"})})
-@Data
-@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 public class ProductLabel extends BaseObject implements ClientObject, ObjectOrdering<Integer> {
 
     @Id
@@ -107,5 +109,18 @@ public class ProductLabel extends BaseObject implements ClientObject, ObjectOrde
 
             return chainedComparator.compare(o1, o2);
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ProductLabel that = (ProductLabel) o;
+        return Objects.equals(id, that.id) && name.equals(that.name) && client.equals(that.client);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, client);
     }
 }

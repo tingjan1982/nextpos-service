@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,6 +34,9 @@ class ProductServiceImplTest {
 
     @Autowired
     private ProductVersionRepository productVersionRepository;
+
+    @Autowired
+    private ProductComboRepository productComboRepository;
 
     @Autowired
     private ClientService clientService;
@@ -148,6 +152,56 @@ class ProductServiceImplTest {
         productService.saveProductSet(cmb);
 
         assertThat(productService.getProductSet(cmb.getId())).satisfies(p -> assertThat(p.getChildProducts()).hasSize(1));
+    }
+
+    @Test
+    void createProductCombo() {
+
+        final ProductLabel foodLabel = new ProductLabel("Food", createdClient);
+        productLabelService.saveProductLabel(foodLabel);
+
+        final ProductLabel drinkLabel = new ProductLabel("Drinks", createdClient);
+        productLabelService.saveProductLabel(drinkLabel);
+
+        final Product coffee = Product.builder(createdClient).productNameAndPrice("Coffee", BigDecimal.valueOf(50))
+                .productLabel(drinkLabel).build();
+        productService.saveProduct(coffee);
+
+        assertThat(coffee.getProductLabel()).isEqualTo(drinkLabel);
+
+        final ProductCombo combo = ProductCombo.builder(createdClient).productNameAndPrice("Combo", BigDecimal.ZERO).build();
+
+        productService.saveProductCombo(combo);
+
+        assertThat(combo.getId()).isNotNull();
+
+        combo.addProductComboLabel(foodLabel).setOrdering(2);
+        combo.addProductComboLabel(drinkLabel).setOrdering(1);
+
+        productService.saveProductCombo(combo);
+
+        assertThat(productService.getProductCombo(combo.getId())).satisfies(pc -> {
+            assertThat(pc.getProductComboLabels()).hasSize(2);
+            assertThat(pc.getProductComboLabels()).isSortedAccordingTo(Comparator.comparing(ProductCombo.ProductComboLabel::getOrdering));
+            final ProductCombo.ProductComboLabel comboLabelToCompare = pc.getProductComboLabel(drinkLabel).orElseThrow();
+            assertThat(comboLabelToCompare.getProductCombo()).isEqualTo(combo);
+            assertThat(comboLabelToCompare.getProductLabel()).isEqualTo(drinkLabel);
+            assertThat(comboLabelToCompare.isMultipleSelection()).isFalse();
+
+        });
+
+        combo.clearProductComboLabels();
+
+        productService.saveProductCombo(combo);
+
+        assertThat(productService.getProductCombo(combo.getId()).getProductComboLabels()).isEmpty();
+
+        productService.deleteProduct(combo);
+
+        assertThat(productComboRepository.findAll()).isEmpty();
+
+        assertThat(productLabelService.getProductLabel(foodLabel.getId())).isNotNull();
+        assertThat(productLabelService.getProductLabel(drinkLabel.getId())).isNotNull();
     }
 
     @Test

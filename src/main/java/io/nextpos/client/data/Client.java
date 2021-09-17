@@ -23,6 +23,8 @@ import java.util.*;
 /**
  * The 1 to many associations here are declared in case of a force deletion of client that
  * would also cascade deletions of associated objects.
+ *
+ * Recommended lombok and JPA practice: https://dzone.com/articles/lombok-and-jpa-what-may-go-wrong
  */
 @Entity(name = "client")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = "username"))

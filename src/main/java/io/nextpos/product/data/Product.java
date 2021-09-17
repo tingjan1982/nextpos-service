@@ -67,6 +67,8 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
 
     protected Product(ProductBuilder<?, ?> builder) {
         this(builder.client, builder.productVersion());
+
+        this.productLabel = builder.productLabel;
     }
 
     public Product(final Client client, final ProductVersion latestVersion) {
@@ -149,6 +151,8 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
 
         protected String description;
 
+        protected ProductLabel productLabel;
+
         protected BigDecimal price;
 
         protected BigDecimal costPrice;
@@ -176,6 +180,11 @@ public class Product extends BaseObject implements ParentObject<String, ProductV
 
         public T description(String description) {
             this.description = description;
+            return (T) this;
+        }
+
+        public T productLabel(ProductLabel productLabel) {
+            this.productLabel = productLabel;
             return (T) this;
         }
 

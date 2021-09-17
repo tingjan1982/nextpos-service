@@ -38,4 +38,17 @@ public class ProductRequest {
     private List<String> productOptionIds;
 
     private List<String> childProducts;
+
+    private List<ProductComboLabelRequest> productComboLabels;
+
+    @Data
+    @NoArgsConstructor
+    public static class ProductComboLabelRequest {
+
+        private String productLabelId;
+
+        private boolean multipleSelection;
+
+        private int ordering;
+    }
 }

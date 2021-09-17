@@ -19,15 +19,18 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductSetRepository productSetRepository;
 
+    private final ProductComboRepository productComboRepository;
+
     private final ParentProductRepository parentProductRepository;
 
     private final VariationDefinitionRepository variationDefinitionRepository;
 
     @Autowired
-    public ProductServiceImpl(final ProductRepository productRepository, final ProductVersionRepository productVersionRepository, final ProductSetRepository productSetRepository, ParentProductRepository parentProductRepository, VariationDefinitionRepository variationDefinitionRepository) {
+    public ProductServiceImpl(final ProductRepository productRepository, final ProductVersionRepository productVersionRepository, final ProductSetRepository productSetRepository, ProductComboRepository productComboRepository, ParentProductRepository parentProductRepository, VariationDefinitionRepository variationDefinitionRepository) {
         this.productRepository = productRepository;
         this.productVersionRepository = productVersionRepository;
         this.productSetRepository = productSetRepository;
+        this.productComboRepository = productComboRepository;
         this.parentProductRepository = parentProductRepository;
         this.variationDefinitionRepository = variationDefinitionRepository;
     }
@@ -42,6 +45,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductSet saveProductSet(ProductSet productSet) {
         return productSetRepository.save(productSet);
+    }
+
+    @Override
+    public ProductCombo saveProductCombo(ProductCombo productCombo) {
+        return productComboRepository.save(productCombo);
     }
 
     @Override
@@ -60,6 +68,13 @@ public class ProductServiceImpl implements ProductService {
     public ProductSet getProductSet(final String id) {
         return productSetRepository.findById(id).orElseThrow(() -> {
             throw new ObjectNotFoundException(id, ProductSet.class);
+        });
+    }
+
+    @Override
+    public ProductCombo getProductCombo(String id) {
+        return productComboRepository.findById(id).orElseThrow(() -> {
+            throw new ObjectNotFoundException(id, ProductCombo.class);
         });
     }
 
