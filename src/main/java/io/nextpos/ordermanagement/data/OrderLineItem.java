@@ -40,6 +40,8 @@ public class OrderLineItem implements OfferApplicableObject {
 
     private BigDecimal lineItemSubTotal = BigDecimal.ZERO;
 
+    private BigDecimal comboTotal = BigDecimal.ZERO;
+
     private AppliedOfferInfo appliedOfferInfo;
 
     private String associatedLineItemId;
@@ -191,6 +193,7 @@ public class OrderLineItem implements OfferApplicableObject {
         copy.discountedSubTotal = discountedSubTotal.copy();
         copy.appliedOfferInfo = appliedOfferInfo != null ? appliedOfferInfo.copy() : null;
         copy.lineItemSubTotal = lineItemSubTotal;
+        copy.comboTotal = comboTotal;
         copy.associatedLineItemId = associatedLineItemId;
         copy.childLineItems = childLineItems.stream().map(OrderLineItem::copy).collect(Collectors.toList());
 

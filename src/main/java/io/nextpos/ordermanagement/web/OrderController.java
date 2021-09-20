@@ -188,7 +188,7 @@ public class OrderController {
     @PostMapping("/orderOrdering")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void orderOrdering(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                 @Valid @RequestBody OrderingRequest request) {
+                              @Valid @RequestBody OrderingRequest request) {
 
         orderService.reorder(request.getOrderIds());
 
@@ -248,8 +248,8 @@ public class OrderController {
     @PostMapping("/{id}/move")
     @OrderLogAction
     public OrderResponse moveOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
-                                     @PathVariable final String id,
-                                     @Valid @RequestBody MoveOrderRequest request) {
+                                   @PathVariable final String id,
+                                   @Valid @RequestBody MoveOrderRequest request) {
 
         final Order updatedOrder = orderService.moveOrder(id, request.getTargetOrderId());
         return OrderResponse.toOrderResponse(updatedOrder);
@@ -381,6 +381,20 @@ public class OrderController {
         return OrderResponse.toOrderResponse(order);
     }
 
+    @PostMapping("/{id}/comboLineitems")
+    @OrderLogAction
+    public OrderResponse addComboOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                               @PathVariable String id,
+                                               @Valid @RequestBody ComboOrderLineItemRequest request) {
+
+        final OrderLineItem comboOrderLineItem = orderCreationFactory.newOrderLineItem(client, request);
+
+        final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
+        orderService.addOrderLineItem(client, order, comboOrderLineItem);
+
+        return OrderResponse.toOrderResponse(order);
+    }
+
     @PostMapping("/{id}/lineitems/prepare")
     @OrderLogAction
     public OrderResponse prepareLineItems(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
@@ -425,7 +439,7 @@ public class OrderController {
                 request.getSku(),
                 request.getOverridePrice(),
                 request.toProductOptionSnapshots(),
-                productDiscount, 
+                productDiscount,
                 discountValue);
 
         final Order updatedOrder = orderService.updateOrderLineItem(order, updateLineItem);

@@ -145,6 +145,8 @@ public class OrderResponse {
          */
         private BigDecimal lineItemSubTotal;
 
+        private BigDecimal comboTotal;
+
         /**
          * Total without discount
          */
@@ -176,6 +178,7 @@ public class OrderResponse {
             price = li.getProductPriceWithOptions().getAmount();
             quantity = li.getQuantity();
             lineItemSubTotal = li.getLineItemSubTotal();
+            comboTotal = li.getComboTotal();
             subTotal = li.getSubTotal();
             discountedSubTotal = li.getDiscountedSubTotal();
             appliedOfferInfo = li.getAppliedOfferInfo();

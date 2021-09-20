@@ -4,14 +4,21 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderLineItem;
+import io.nextpos.ordermanagement.data.OrderSettings;
+import io.nextpos.ordermanagement.service.OrderService;
+import io.nextpos.ordermanagement.web.model.ComboOrderLineItemRequest;
 import io.nextpos.ordermanagement.web.model.OrderLineItemRequest;
 import io.nextpos.ordermanagement.web.model.OrderProductOptionRequest;
 import io.nextpos.ordermanagement.web.model.OrderRequest;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.service.ProductService;
+import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
+import io.nextpos.workingarea.data.WorkingArea;
+import io.nextpos.workingarea.service.WorkingAreaService;
 import org.assertj.core.data.Index;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,13 +39,22 @@ class OrderCreationFactoryImplTest {
     private OrderCreationFactory orderCreationFactory;
 
     @Autowired
+    private OrderService orderService;
+
+    @Autowired
     private ClientService clientService;
 
     @Autowired
     private ProductService productService;
 
     @Autowired
+    private WorkingAreaService workingAreaService;
+
+    @Autowired
     private TableLayoutService tableLayoutService;
+
+    @Autowired
+    private CountrySettings countrySettings;
 
     private Client client;
 
@@ -83,7 +99,71 @@ class OrderCreationFactoryImplTest {
             assertThat(li.getProductSnapshot().getProductOptions()).hasSize(1);
 
         }, Index.atIndex(0));
+    }
 
-        // todo: test newOrderLineItem
+    @Test
+    void newComboLineItem() {
+
+        final WorkingArea potArea = new WorkingArea(client, "Pot Area");
+        workingAreaService.saveWorkingArea(potArea);
+        final WorkingArea meatArea = new WorkingArea(client, "Meat area");
+        workingAreaService.saveWorkingArea(meatArea);
+
+        final Product combo = Product.builder(client).productNameAndPrice("Combo", new BigDecimal("100")).build();
+        productService.saveProduct(combo);
+        final Product potFlavor = Product.builder(client).productNameAndPrice("Pot flavor", new BigDecimal("50")).build();
+        potFlavor.setWorkingArea(potArea);
+        productService.saveProduct(potFlavor);
+        final Product meat = Product.builder(client).productNameAndPrice("Meat", new BigDecimal("399")).build();
+        meat.setWorkingArea(meatArea);
+        productService.saveProduct(meat);
+
+        ComboOrderLineItemRequest comboRequest = new ComboOrderLineItemRequest();
+        comboRequest.setProductId(combo.getId());
+        comboRequest.setQuantity(1);
+        comboRequest.getChildLineItems().add(toRequest(potFlavor));
+        comboRequest.getChildLineItems().add(toRequest(meat));
+
+        final OrderLineItem comboLineItem = orderCreationFactory.newOrderLineItem(client, comboRequest);
+
+        assertThat(comboLineItem.getProductSnapshot().getId()).isEqualTo(combo.getId());
+        assertThat(comboLineItem.getComboTotal()).isEqualTo("549");
+        assertThat(comboLineItem.getWorkingAreaId()).isNull();
+        assertThat(comboLineItem.getChildLineItems()).hasSize(2);
+        assertThat(comboLineItem.getChildLineItems()).allSatisfy(li -> {
+            assertThat(li.getLineItemSubTotal()).isNotZero();
+            assertThat(li.getWorkingAreaId()).isNotNull();
+        });
+
+        final OrderSettings orderSettings = DummyObjects.orderSettings(countrySettings);
+        final Order order = new Order(client.getId(), orderSettings);
+        orderService.createOrder(order);
+
+        orderService.addOrderLineItem(client, order, comboLineItem);
+
+        assertThat(order.getOrderLineItems()).hasSize(3);
+        assertThat(order.getOrderTotal()).isEqualTo("549");
+        assertThat(order.getOrderLineItems().get(1).getWorkingAreaId()).isEqualTo(potArea.getId());
+        assertThat(order.getOrderLineItems().get(2).getWorkingAreaId()).isEqualTo(meatArea.getId());
+
+        order.getOrderLineItems().forEach(li -> {
+            if (li.getChildLineItems().isEmpty()) {
+                assertThat(li.getAssociatedLineItemId()).isEqualTo(comboLineItem.getId());
+            }
+        });
+
+        orderService.deleteOrderLineItem(order, comboLineItem.getId());
+
+        assertThat(order.getOrderLineItems()).isEmpty();
+        assertThat(order.getDeletedOrderLineItems()).hasSize(3);
+        assertThat(order.getOrderTotal()).isZero();
+    }
+
+    private OrderLineItemRequest toRequest(Product product) {
+        final OrderLineItemRequest request = new OrderLineItemRequest();
+        request.setProductId(product.getId());
+        request.setQuantity(1);
+
+        return request;
     }
 }

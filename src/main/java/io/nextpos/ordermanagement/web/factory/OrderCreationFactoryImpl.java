@@ -8,6 +8,7 @@ import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
+import io.nextpos.ordermanagement.web.model.ComboOrderLineItemRequest;
 import io.nextpos.ordermanagement.web.model.OrderLineItemRequest;
 import io.nextpos.ordermanagement.web.model.OrderRequest;
 import io.nextpos.product.data.Product;
@@ -107,6 +108,23 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
                 throw new BusinessLogicException("message.emptyTables", "There must at least be one table associated with an in-store order");
             }
         }
+    }
+
+    @Override
+    public OrderLineItem newOrderLineItem(final Client client, final ComboOrderLineItemRequest li) {
+
+        final OrderLineItem mainLineItem = this.newOrderLineItem(client, (OrderLineItemRequest) li);
+        BigDecimal total = mainLineItem.getLineItemSubTotal();
+
+        for (OrderLineItemRequest cli : li.getChildLineItems()) {
+            final OrderLineItem childLineItem = this.newOrderLineItem(client, cli);
+            total = total.add(childLineItem.getLineItemSubTotal());
+            mainLineItem.getChildLineItems().add(childLineItem);
+        }
+
+        mainLineItem.setComboTotal(total);
+
+        return mainLineItem;
     }
 
     @Override

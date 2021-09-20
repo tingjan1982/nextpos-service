@@ -1,7 +1,6 @@
 package io.nextpos.ordermanagement.service;
 
 import io.nextpos.client.data.Client;
-import io.nextpos.client.data.ClientRepository;
 import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.merchandising.data.ProductLevelOffer;
@@ -57,13 +56,7 @@ class OrderServiceImplTest {
     private WorkingAreaService workingAreaService;
 
     @Autowired
-    private OrderIdCounterRepository orderIdCounterRepository;
-
-    @Autowired
     private Client client;
-
-    @Autowired
-    private ClientRepository clientRepository;
 
     private TableLayout.TableDetails table1;
 
