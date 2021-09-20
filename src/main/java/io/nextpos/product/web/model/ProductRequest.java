@@ -48,7 +48,5 @@ public class ProductRequest {
         private String productLabelId;
 
         private boolean multipleSelection;
-
-        private int ordering;
     }
 }

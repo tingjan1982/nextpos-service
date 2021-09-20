@@ -8,9 +8,9 @@ import lombok.Data;
 @AllArgsConstructor
 public class ProductComboLabelResponse {
 
-    private String labelId;
+    private String id;
 
-    private String labelName;
+    private String name;
 
     private boolean multipleSelection;
 
@@ -18,8 +18,8 @@ public class ProductComboLabelResponse {
 
     public ProductComboLabelResponse(ProductCombo.ProductComboLabel comboLabel) {
 
-        this.labelId = comboLabel.getProductLabel().getId();
-        this.labelName = comboLabel.getProductLabel().getName();
+        this.id = comboLabel.getProductLabel().getId();
+        this.name = comboLabel.getProductLabel().getName();
         this.multipleSelection = comboLabel.isMultipleSelection();
         this.ordering = comboLabel.getOrdering();
     }

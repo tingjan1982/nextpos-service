@@ -29,6 +29,7 @@ import javax.validation.Valid;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @RestController
@@ -111,13 +112,14 @@ public class ProductController {
             productService.saveProduct(product);
             
             final ProductCombo productCombo = (ProductCombo) product;
+            final AtomicInteger order = new AtomicInteger(1);
 
             productRequest.getProductComboLabels().forEach(cl -> {
                 final ProductLabel productLabel = productLabelService.getProductLabelOrThrows(cl.getProductLabelId());
 
                 final ProductCombo.ProductComboLabel comboLabel = productCombo.addProductComboLabel(productLabel);
                 comboLabel.setMultipleSelection(cl.isMultipleSelection());
-                comboLabel.setOrdering(cl.getOrdering());
+                comboLabel.setOrdering(order.getAndIncrement());
             });
         }
 
@@ -202,6 +204,7 @@ public class ProductController {
         if (product instanceof ProductCombo) {
             final ProductCombo productCombo = (ProductCombo) product;
             productCombo.clearProductComboLabels();
+            final AtomicInteger order = new AtomicInteger(1);
 
             if (productRequest.getProductComboLabels() != null) {
                 productRequest.getProductComboLabels().forEach(cl -> {
@@ -209,7 +212,7 @@ public class ProductController {
 
                     final ProductCombo.ProductComboLabel comboLabel = productCombo.addProductComboLabel(productLabel);
                     comboLabel.setMultipleSelection(cl.isMultipleSelection());
-                    comboLabel.setOrdering(cl.getOrdering());
+                    comboLabel.setOrdering(order.getAndIncrement());
                 });
             }
         }

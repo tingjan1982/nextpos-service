@@ -1,9 +1,6 @@
 package io.nextpos.product.web.model;
 
-import io.nextpos.product.data.ProductLabel;
-import io.nextpos.product.data.ProductSet;
-import io.nextpos.product.data.ProductType;
-import io.nextpos.product.data.ProductVersion;
+import io.nextpos.product.data.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.util.CollectionUtils;
@@ -35,6 +32,8 @@ public class LightProductResponse {
 
     private boolean hasOptions;
 
+    private boolean comboProduct;
+
     public LightProductResponse(ProductVersion product) {
         this(product, false);
     }
@@ -56,6 +55,8 @@ public class LightProductResponse {
         if (product.getProduct() instanceof ProductSet) {
             childProducts = ChildProduct.toChildProducts(((ProductSet) product.getProduct()));
         }
+
+        comboProduct = product.getProduct() instanceof ProductCombo;
 
         if (hasOptionCheck) {
             hasOptions = !CollectionUtils.isEmpty(product.getProduct().getProductOptionOfProducts());
