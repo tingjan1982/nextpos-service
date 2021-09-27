@@ -85,9 +85,9 @@ public class SalesReportServiceImpl implements SalesReportService {
                 .and(flattenLineItems, salesByLabel, sortSalesByProduct).as("salesByLabel");
 
         final TypedAggregation<Order> aggregations = Aggregation.newAggregation(Order.class,
+                filter,
                 lookupTransactions,
                 projection,
-                filter,
                 facets);
 
         final AggregationResults<RangedSalesReport> result = mongoTemplate.aggregate(aggregations, RangedSalesReport.class);

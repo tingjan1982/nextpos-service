@@ -135,7 +135,7 @@ public class ManageClientSubscription {
     @Test
     void activateClientSubscription() {
 
-        String invoiceIdentifier = "009500";
+        String invoiceIdentifier = "720681";
         clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
             final ClientSubscriptionInvoice paid = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(invoiceIdentifier, false);
             System.out.println("Paid invoice: " + paid);

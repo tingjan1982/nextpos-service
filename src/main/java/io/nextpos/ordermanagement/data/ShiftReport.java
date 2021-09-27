@@ -7,6 +7,7 @@ import io.nextpos.shared.util.PaymentMethodLocalization;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -63,7 +64,9 @@ public class ShiftReport {
         final Map<String, Shift.ClosingBalanceDetails> closingBalances = shift.getEnd().getClosingBalances();
 
         summaries = closingBalances.entrySet().stream()
-                .map(e -> new PaymentMethodSummary(e.getKey(), e.getValue())).collect(Collectors.toList());
+                .map(e -> new PaymentMethodSummary(e.getKey(), e.getValue()))
+                .sorted(Comparator.comparing(PaymentMethodSummary::getPaymentMethod))
+                .collect(Collectors.toList());
 
         orderSummary = closeShift.getClosingShiftReport().getOneOrderSummary();
 

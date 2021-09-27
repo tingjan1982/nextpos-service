@@ -6,6 +6,7 @@ import io.nextpos.shared.model.MongoBaseObject;
 import io.nextpos.shared.model.WithClientId;
 import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -25,6 +26,10 @@ public class OrderTransaction extends MongoBaseObject implements WithClientId {
     @Id
     private String id;
 
+    /**
+     * This greatly improves the lookup aggregation performance.
+     */
+    @Indexed
     private String orderId;
 
     private String clientId;
