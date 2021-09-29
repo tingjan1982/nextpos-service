@@ -121,5 +121,9 @@ class ReservationServiceImplTest {
 
         final List<Reservation> reservations = reservationService.getReservationsByDateAndStatus(client, newReservationDate.toLocalDate(), null);
         assertThat(reservations).hasSize(2).isSortedAccordingTo(Reservation.getComparator());
+
+        reservationService.sendReservationNotification(client, reservation);
+
+        assertThat(reservation.getMessageSentDate()).isNotNull();
     }
 }

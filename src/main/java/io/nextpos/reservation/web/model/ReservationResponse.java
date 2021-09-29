@@ -36,6 +36,8 @@ public class ReservationResponse {
 
     private Reservation.SourceOfOrigin sourceOfOrigin;
 
+    private Date messageSentDate;
+
     private String membershipId;
 
     public ReservationResponse(Reservation reservation) {
@@ -60,6 +62,7 @@ public class ReservationResponse {
         this.tables = reservation.getTableAllocations();
         this.status = reservation.getStatus();
         this.sourceOfOrigin = reservation.getSourceOfOrigin();
+        this.messageSentDate = reservation.getMessageSentDate();
 
         if (reservation.getMembership() != null) {
             this.membershipId = reservation.getMembership().getId();

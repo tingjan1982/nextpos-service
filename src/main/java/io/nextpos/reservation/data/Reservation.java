@@ -56,6 +56,8 @@ public class Reservation extends MongoBaseObject implements WithClientId {
 
     private SourceOfOrigin sourceOfOrigin = SourceOfOrigin.APP;
 
+    private Date messageSentDate;
+
     @DBRef
     private Membership membership;
 

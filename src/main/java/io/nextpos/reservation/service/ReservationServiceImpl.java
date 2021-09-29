@@ -122,6 +122,9 @@ public class ReservationServiceImpl implements ReservationService {
         SmsDetails smsDetails = new SmsDetails(reservation.getClientId(), formattedNumber, message);
 
         notificationService.sendSimpleNotification(smsDetails);
+
+        reservation.setMessageSentDate(new Date());
+        reservationRepository.save(reservation);
     }
 
     @Override
