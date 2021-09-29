@@ -12,6 +12,8 @@ public class ProductComboLabelResponse {
 
     private String name;
 
+    private boolean required;
+
     private boolean multipleSelection;
 
     private int ordering;
@@ -20,6 +22,7 @@ public class ProductComboLabelResponse {
 
         this.id = comboLabel.getProductLabel().getId();
         this.name = comboLabel.getProductLabel().getName();
+        this.required = comboLabel.isRequired();
         this.multipleSelection = comboLabel.isMultipleSelection();
         this.ordering = comboLabel.getOrdering();
     }

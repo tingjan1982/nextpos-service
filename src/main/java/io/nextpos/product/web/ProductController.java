@@ -110,17 +110,10 @@ public class ProductController {
 
         if (product instanceof ProductCombo) {
             productService.saveProduct(product);
-            
+
             final ProductCombo productCombo = (ProductCombo) product;
-            final AtomicInteger order = new AtomicInteger(1);
 
-            productRequest.getProductComboLabels().forEach(cl -> {
-                final ProductLabel productLabel = productLabelService.getProductLabelOrThrows(cl.getProductLabelId());
-
-                final ProductCombo.ProductComboLabel comboLabel = productCombo.addProductComboLabel(productLabel);
-                comboLabel.setMultipleSelection(cl.isMultipleSelection());
-                comboLabel.setOrdering(order.getAndIncrement());
-            });
+            addProductComboLabels(productRequest.getProductComboLabels(), productCombo);
         }
 
         return product;
@@ -204,17 +197,24 @@ public class ProductController {
         if (product instanceof ProductCombo) {
             final ProductCombo productCombo = (ProductCombo) product;
             productCombo.clearProductComboLabels();
+
+            addProductComboLabels(productRequest.getProductComboLabels(), productCombo);
+        }
+    }
+
+    private void addProductComboLabels(List<ProductRequest.ProductComboLabelRequest> request, ProductCombo productCombo) {
+
+        if (!CollectionUtils.isEmpty(request)) {
             final AtomicInteger order = new AtomicInteger(1);
 
-            if (productRequest.getProductComboLabels() != null) {
-                productRequest.getProductComboLabels().forEach(cl -> {
-                    final ProductLabel productLabel = productLabelService.getProductLabelOrThrows(cl.getProductLabelId());
+            request.forEach(cl -> {
+                final ProductLabel productLabel = productLabelService.getProductLabelOrThrows(cl.getProductLabelId());
 
-                    final ProductCombo.ProductComboLabel comboLabel = productCombo.addProductComboLabel(productLabel);
-                    comboLabel.setMultipleSelection(cl.isMultipleSelection());
-                    comboLabel.setOrdering(order.getAndIncrement());
-                });
-            }
+                final ProductCombo.ProductComboLabel comboLabel = productCombo.addProductComboLabel(productLabel);
+                comboLabel.setRequired(cl.isRequired());
+                comboLabel.setMultipleSelection(cl.isMultipleSelection());
+                comboLabel.setOrdering(order.getAndIncrement());
+            });
         }
     }
 

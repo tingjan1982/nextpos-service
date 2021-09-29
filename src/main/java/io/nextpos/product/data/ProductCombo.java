@@ -96,6 +96,8 @@ public class ProductCombo extends Product {
         @JoinColumn(name = "product_label_id")
         @ToString.Exclude
         private ProductLabel productLabel;
+        
+        private boolean required;
 
         private boolean multipleSelection;
 
