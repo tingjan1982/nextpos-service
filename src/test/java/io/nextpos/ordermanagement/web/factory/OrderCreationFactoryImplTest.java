@@ -114,7 +114,7 @@ class OrderCreationFactoryImplTest {
         final Product potFlavor = Product.builder(client).productNameAndPrice("Pot flavor", new BigDecimal("50")).build();
         potFlavor.setWorkingArea(potArea);
         productService.saveProduct(potFlavor);
-        final Product meat = Product.builder(client).productNameAndPrice("Meat", new BigDecimal("399")).build();
+        final Product meat = Product.builder(client).productNameAndPrice("Meat", new BigDecimal("400")).build();
         meat.setWorkingArea(meatArea);
         productService.saveProduct(meat);
 
@@ -127,7 +127,7 @@ class OrderCreationFactoryImplTest {
         final OrderLineItem comboLineItem = orderCreationFactory.newOrderLineItem(client, comboRequest);
 
         assertThat(comboLineItem.getProductSnapshot().getId()).isEqualTo(combo.getId());
-        assertThat(comboLineItem.getComboTotal()).isEqualTo("549");
+        assertThat(comboLineItem.getComboTotal()).isEqualTo("550");
         assertThat(comboLineItem.getWorkingAreaId()).isNull();
         assertThat(comboLineItem.getChildLineItems()).hasSize(2);
         assertThat(comboLineItem.getChildLineItems()).allSatisfy(li -> {
@@ -135,27 +135,32 @@ class OrderCreationFactoryImplTest {
             assertThat(li.getWorkingAreaId()).isNotNull();
         });
 
+        final OrderLineItem comboLineItem2 = orderCreationFactory.newOrderLineItem(client, comboRequest);
+        // test adding line item to order.
+
         final OrderSettings orderSettings = DummyObjects.orderSettings(countrySettings);
         final Order order = new Order(client.getId(), orderSettings);
         orderService.createOrder(order);
 
         orderService.addOrderLineItem(client, order, comboLineItem);
+        orderService.addOrderLineItem(client, order, comboLineItem2);
 
-        assertThat(order.getOrderLineItems()).hasSize(3);
-        assertThat(order.getOrderTotal()).isEqualTo("549");
+        assertThat(order.getOrderLineItems()).hasSize(6);
+        assertThat(order.getOrderTotal()).isEqualTo("1100");
         assertThat(order.getOrderLineItems().get(1).getWorkingAreaId()).isEqualTo(potArea.getId());
         assertThat(order.getOrderLineItems().get(2).getWorkingAreaId()).isEqualTo(meatArea.getId());
 
         order.getOrderLineItems().forEach(li -> {
             if (li.getChildLineItems().isEmpty()) {
-                assertThat(li.getAssociatedLineItemId()).isEqualTo(comboLineItem.getId());
+                assertThat(li.getAssociatedLineItemId()).isNotNull();
             }
         });
 
         orderService.deleteOrderLineItem(order, comboLineItem.getId());
+        orderService.deleteOrderLineItem(order, comboLineItem2.getId());
 
         assertThat(order.getOrderLineItems()).isEmpty();
-        assertThat(order.getDeletedOrderLineItems()).hasSize(3);
+        assertThat(order.getDeletedOrderLineItems()).hasSize(6);
         assertThat(order.getOrderTotal()).isZero();
     }
 
