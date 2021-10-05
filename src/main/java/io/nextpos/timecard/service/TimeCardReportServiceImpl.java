@@ -47,10 +47,10 @@ public class TimeCardReportServiceImpl implements TimeCardReportService {
                 .andExpression("(clockOut - clockIn) / (1000 * 60 * 60)").as("hour");
 
         final Date fromDate = DateTimeUtil.toDate(client.getZoneId(), yearMonth.atDay(1).atStartOfDay());
-        final Date toDate = DateTimeUtil.toDate(client.getZoneId(), yearMonth.atEndOfMonth().atTime(23, 59, 59).plusDays(1));
+        final Date toDate = DateTimeUtil.toDate(client.getZoneId(), yearMonth.atEndOfMonth().atTime(23, 59, 59));
 
         final MatchOperation filter = Aggregation.match(Criteria.where("clientId").is(client.getId())
-                .and("clockIn").gte(fromDate).lt(toDate));
+                .and("clockIn").gte(fromDate).lte(toDate));
 
         final SortOperation sortByClockIn = Aggregation.sort(Sort.Direction.DESC, "clockIn");
         final AggregationOperation userTimeCards = Aggregation.group("username")
