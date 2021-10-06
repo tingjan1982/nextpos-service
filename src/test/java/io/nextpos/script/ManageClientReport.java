@@ -8,6 +8,8 @@ import io.nextpos.ordermanagement.service.ShiftService;
 import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.reporting.data.RangedSalesReport;
 import io.nextpos.reporting.service.SalesReportService;
+import io.nextpos.timecard.data.TimeCardReport;
+import io.nextpos.timecard.service.TimeCardReportService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -18,6 +20,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 
 @Disabled
 @SpringBootTest
@@ -33,11 +36,14 @@ public class ManageClientReport {
 
     private final SalesReportService salesReportService;
 
+    private final TimeCardReportService timeCardReportService;
+
     @Autowired
-    public ManageClientReport(ClientService clientService, ShiftService shiftService, SalesReportService salesReportService) {
+    public ManageClientReport(ClientService clientService, ShiftService shiftService, SalesReportService salesReportService, TimeCardReportService timeCardReportService) {
         this.clientService = clientService;
         this.shiftService = shiftService;
         this.salesReportService = salesReportService;
+        this.timeCardReportService = timeCardReportService;
     }
 
     @Test
@@ -62,5 +68,20 @@ public class ManageClientReport {
         LOGGER.info("{}", dateRange);
 
         return dateRange;
+    }
+
+    @Test
+    void getTimeCardReport() {
+
+        clientService.getClientByUsername("ronandcompanytainan@gmail.com").ifPresent(c -> {
+            final TimeCardReport timeCardReport = timeCardReportService.getTimeCardReport(c, YearMonth.of(2021, 9));
+            System.out.println(timeCardReport);
+
+
+            timeCardReport.getUserTimeCards().forEach(us -> {
+                System.out.printf("%s: %s, %s\n", us.getDisplayName(), us.getHours(), us.getMinutes());
+            });
+
+        });
     }
 }

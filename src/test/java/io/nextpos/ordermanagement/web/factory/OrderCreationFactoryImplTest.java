@@ -6,6 +6,7 @@ import io.nextpos.merchandising.data.ProductLevelOffer;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderSettings;
+import io.nextpos.ordermanagement.data.UpdateTableInfo;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordermanagement.web.model.ComboOrderLineItemRequest;
 import io.nextpos.ordermanagement.web.model.OrderLineItemRequest;
@@ -58,7 +59,9 @@ class OrderCreationFactoryImplTest {
 
     private Client client;
 
-    private TableLayout.TableDetails tableDetails;
+    private TableLayout.TableDetails table1;
+
+    private TableLayout.TableDetails table2;
 
     @BeforeEach
     void prepare() {
@@ -68,7 +71,8 @@ class OrderCreationFactoryImplTest {
         final TableLayout tableLayout = DummyObjects.dummyTableLayout(client);
         tableLayoutService.saveTableLayout(tableLayout);
 
-        tableDetails = tableLayout.getTables().get(0);
+        table1 = tableLayout.getTables().get(0);
+        table2 = tableLayout.getTables().get(1);
     }
 
     @Test
@@ -80,7 +84,7 @@ class OrderCreationFactoryImplTest {
 
         final OrderProductOptionRequest poRequest = new OrderProductOptionRequest("ice", "normal", new BigDecimal("10"));
         final OrderLineItemRequest line1 = new OrderLineItemRequest(product.getId(), 1, "sku", new BigDecimal("20"), List.of(poRequest), ProductLevelOffer.GlobalProductDiscount.NO_DISCOUNT, BigDecimal.ZERO);
-        final OrderRequest request = new OrderRequest(Order.OrderType.IN_STORE, List.of(tableDetails.getId()), null, null, List.of(line1));
+        final OrderRequest request = new OrderRequest(Order.OrderType.IN_STORE, List.of(table1.getId()), null, null, List.of(line1));
 
         final Order order = orderCreationFactory.newOrder(client, request);
 
@@ -88,7 +92,7 @@ class OrderCreationFactoryImplTest {
         assertThat(order.getTables()).isNotEmpty();
         assertThat(order.getTables()).allSatisfy(ti -> {
             assertThat(ti).isNotNull();
-            assertThat(ti.getTableId()).isEqualTo(tableDetails.getId());
+            assertThat(ti.getTableId()).isEqualTo(table1.getId());
         });
         assertThat(order.getOrderLineItems()).hasSize(1);
         assertThat(order.getOrderLineItems()).satisfies(li -> {
@@ -170,5 +174,33 @@ class OrderCreationFactoryImplTest {
         request.setQuantity(1);
 
         return request;
+    }
+
+    @Test
+    void updateTableInfo() {
+
+        final OrderSettings orderSettings = DummyObjects.orderSettings(countrySettings);
+        final Order order = new Order(client.getId(), orderSettings);
+        order.updateTables(List.of(table1));
+        orderService.createOrder(order);
+
+        OrderRequest request = new OrderRequest();
+        request.setTableIds(List.of(table2.getId()));
+
+        final UpdateTableInfo updateTableInfo = orderCreationFactory.updateTableInfoAndDemographicData(order, request);
+
+        assertThat(updateTableInfo.hasChange()).isTrue();
+
+        assertThat(updateTableInfo.getFromTables()).satisfies(t -> {
+            assertThat(t.getTableId()).isEqualTo(table1.getId());
+        }, Index.atIndex(0));
+
+        assertThat(updateTableInfo.getToTables()).satisfies(t -> {
+            assertThat(t.getTableId()).isEqualTo(table2.getId());
+        }, Index.atIndex(0));
+
+        final UpdateTableInfo noChange = orderCreationFactory.updateTableInfoAndDemographicData(order, request);
+
+        assertThat(noChange.hasChange()).isFalse();
     }
 }

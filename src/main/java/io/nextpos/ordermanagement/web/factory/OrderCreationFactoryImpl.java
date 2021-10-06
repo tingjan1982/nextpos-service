@@ -4,10 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientSetting;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientSettingsService;
-import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.OrderLineItem;
-import io.nextpos.ordermanagement.data.OrderSettings;
-import io.nextpos.ordermanagement.data.ProductSnapshot;
+import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.web.model.ComboOrderLineItemRequest;
 import io.nextpos.ordermanagement.web.model.OrderLineItemRequest;
 import io.nextpos.ordermanagement.web.model.OrderRequest;
@@ -82,16 +79,18 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
     }
 
     @Override
-    public void updateTableInfoAndDemographicData(final Order order, final OrderRequest orderRequest) {
+    public UpdateTableInfo updateTableInfoAndDemographicData(final Order order, final OrderRequest orderRequest) {
 
-        updateTableInfo(order, orderRequest);
+        final UpdateTableInfo updateTableInfo = updateTableInfo(order, orderRequest);
 
         if (orderRequest.getDemographicData() != null) {
             order.setDemographicData(orderRequest.getDemographicData());
         }
+
+        return updateTableInfo;
     }
 
-    private void updateTableInfo(Order order, OrderRequest orderRequest) {
+    private UpdateTableInfo updateTableInfo(Order order, OrderRequest orderRequest) {
 
         order.setOrderType(orderRequest.getOrderType());
 
@@ -108,6 +107,8 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
                 throw new BusinessLogicException("message.emptyTables", "There must at least be one table associated with an in-store order");
             }
         }
+
+        return new UpdateTableInfo(order);
     }
 
     @Override

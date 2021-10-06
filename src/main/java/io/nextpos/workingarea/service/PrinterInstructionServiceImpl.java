@@ -5,10 +5,7 @@ import freemarker.template.Template;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
-import io.nextpos.ordermanagement.data.Order;
-import io.nextpos.ordermanagement.data.OrderLineItem;
-import io.nextpos.ordermanagement.data.Shift;
-import io.nextpos.ordermanagement.data.ShiftReport;
+import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.GeneralApplicationException;
@@ -139,6 +136,36 @@ public class PrinterInstructionServiceImpl implements PrinterInstructionService 
         final String orderDisplayMode = client.getAttribute(Client.ClientAttributes.ORDER_DISPLAY_MODE);
 
         return StringUtils.isBlank(orderDisplayMode) || orderDisplayMode.equals("LINE_ITEM") ? "lineItemsToWorkingArea.ftl" : "orderToWorkingArea.ftl";
+    }
+
+    @Override
+    public SinglePrintInstruction createUpdateTableInfoInstruction(Client client, UpdateTableInfo updateTableInfo) {
+
+        final String from = updateTableInfo.getFromTables().stream()
+                .map(Order.TableInfo::getTableName)
+                .collect(Collectors.joining(", "));
+
+        final String to = updateTableInfo.getToTables().stream()
+                .map(Order.TableInfo::getTableName)
+                .collect(Collectors.joining(", "));
+
+        final String instruction = renderFreeMarkerContent("updateTableInfo.ftl", Map.of("from", from, "to", to));
+        final List<String> printerIps = resolveWorkingAreaPrinterIps(client);
+
+        return new SinglePrintInstruction(printerIps, instruction);
+    }
+
+    private List<String> resolveWorkingAreaPrinterIps(Client client) {
+
+        List<Printer> printers = workingAreaService.getPrintersByServiceType(client, Printer.ServiceType.WORKING_AREA);
+
+        if (printers.isEmpty()) {
+            printers = workingAreaService.getPrintersByServiceType(client, Printer.ServiceType.CHECKOUT);
+        }
+
+        return printers.stream()
+                .map(Printer::getIpAddress)
+                .collect(Collectors.toList());
     }
 
     @Override

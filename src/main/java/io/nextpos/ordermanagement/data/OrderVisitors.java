@@ -5,6 +5,7 @@ import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.workingarea.service.WorkingAreaService;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -43,6 +44,7 @@ public class OrderVisitors {
         public void accept(Order order) {
 
             if (!tables.isEmpty()) {
+                order.addMetadata(Order.PREVIOUS_TABLES, new ArrayList<>(order.getTables()));
                 order.getTables().clear();
 
                 tables.forEach(t -> {

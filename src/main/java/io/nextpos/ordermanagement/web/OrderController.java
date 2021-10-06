@@ -27,6 +27,7 @@ import io.nextpos.tablelayout.service.TableLayoutService;
 import io.nextpos.tablelayout.web.model.TableDetailsResponse;
 import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.PrinterInstructions;
+import io.nextpos.workingarea.data.SinglePrintInstruction;
 import io.nextpos.workingarea.service.PrinterInstructionService;
 import io.nextpos.workingarea.service.WorkingAreaService;
 import org.slf4j.Logger;
@@ -234,11 +235,17 @@ public class OrderController {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
 
-        orderCreationFactory.updateTableInfoAndDemographicData(order, orderRequest);
-
+        final UpdateTableInfo updateTableInfo = orderCreationFactory.updateTableInfoAndDemographicData(order, orderRequest);
         membershipService.updateMembership(orderRequest.getMembershipId(), order::updateMembership);
 
-        return OrderResponse.toOrderResponse(orderService.saveOrder(order));
+        final OrderResponse orderResponse = OrderResponse.toOrderResponse(orderService.saveOrder(order));
+
+        if (updateTableInfo.hasChange()) {
+            final SinglePrintInstruction updateTableInfoInstruction = printerInstructionService.createUpdateTableInfoInstruction(client, updateTableInfo);
+            orderResponse.setUpdateTable(updateTableInfoInstruction);
+        }
+
+        return orderResponse;
     }
 
 

@@ -3,6 +3,7 @@ package io.nextpos.workingarea.service;
 import io.nextpos.client.data.Client;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.Shift;
+import io.nextpos.ordermanagement.data.UpdateTableInfo;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.workingarea.data.PrinterInstructions;
 import io.nextpos.workingarea.data.SinglePrintInstruction;
@@ -18,6 +19,8 @@ public interface PrinterInstructionService {
     PrinterInstructions createOrderToWorkingArea(Order order);
 
     PrinterInstructions createOrderToWorkingArea(Order order, List<String> lineItemIdsToFilter, boolean bypassStateCheck);
+
+    SinglePrintInstruction createUpdateTableInfoInstruction(Client client, UpdateTableInfo updateTableInfo);
 
     String createOrderDetailsPrintInstruction(Client client, Order order, OrderTransaction orderTransaction);
 

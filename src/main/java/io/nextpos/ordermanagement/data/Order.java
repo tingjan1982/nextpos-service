@@ -52,6 +52,8 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     public static final String HEAD_COUNT = "headCount";
 
+    public static final String PREVIOUS_TABLES = "previousTables";
+
     @Id
     private String id;
 
@@ -694,7 +696,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     }
 
     @Data
-    @NoArgsConstructor(access = AccessLevel.PACKAGE)
+    @NoArgsConstructor
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class TableInfo {
 

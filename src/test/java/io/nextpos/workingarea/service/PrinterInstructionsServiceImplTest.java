@@ -31,6 +31,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.math.BigDecimal;
 import java.util.*;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @SpringBootTest
 @ChainedTransaction
 class PrinterInstructionsServiceImplTest {
@@ -72,7 +74,9 @@ class PrinterInstructionsServiceImplTest {
 
     private Client client;
 
-    private WorkingArea workingArea;
+    private WorkingArea workingArea1;
+
+    private WorkingArea workingArea2;
 
     @BeforeEach
     void prepare() {
@@ -90,10 +94,15 @@ class PrinterInstructionsServiceImplTest {
         final Printer printer = new Printer(client, "main printer", "192.168.2.231", Set.of(Printer.ServiceType.WORKING_AREA, Printer.ServiceType.CHECKOUT));
         workingAreaService.savePrinter(printer);
 
-        workingArea = new WorkingArea(client, "main");
-        workingArea.setNoOfPrintCopies(1);
-        workingArea.addPrinter(printer);
-        workingAreaService.saveWorkingArea(workingArea);
+        workingArea1 = new WorkingArea(client, "wk 1");
+        workingArea1.setNoOfPrintCopies(1);
+        workingArea1.addPrinter(printer);
+        workingAreaService.saveWorkingArea(workingArea1);
+
+        workingArea2 = new WorkingArea(client, "wk 2");
+        workingArea2.setNoOfPrintCopies(1);
+        workingArea2.addPrinter(printer);
+        workingAreaService.saveWorkingArea(workingArea2);
 
         InvoiceNumberRange invoiceNumberRange = new InvoiceNumberRange(ubn, invoiceNumberRangeService.getCurrentRangeIdentifier(), "AG", "10000006", "10000099");
         invoiceNumberRangeService.saveInvoiceNumberRange(invoiceNumberRange);
@@ -116,19 +125,46 @@ class PrinterInstructionsServiceImplTest {
         ));
         final OrderLineItem coffee = order.addOrderLineItem(coffeeP, 5);
         coffee.setState(OrderLineItem.LineItemState.IN_PROCESS);
-        coffee.setWorkingAreaId(workingArea.getId());
+        coffee.setWorkingAreaId(workingArea1.getId());
 
-        final OrderLineItem friedRice = order.addOrderLineItem(DummyObjects.productSnapshot("蛋炒飯", new BigDecimal("100"), DummyObjects.productOptionSnapshot()), 5);
-        friedRice.setState(OrderLineItem.LineItemState.IN_PROCESS);
-        friedRice.setWorkingAreaId(workingArea.getId());
+        final OrderLineItem comboItem = order.addOrderLineItem(DummyObjects.productSnapshot("肉多多", new BigDecimal("399"), DummyObjects.productOptionSnapshot()), 1);
+        comboItem.setState(OrderLineItem.LineItemState.IN_PROCESS);
+        comboItem.setWorkingAreaId(workingArea1.getId());
+
+        final OrderLineItem childItem1 = order.addOrderLineItem(DummyObjects.productSnapshot("清湯", new BigDecimal("0"), DummyObjects.productOptionSnapshot()), 1);
+        childItem1.setState(OrderLineItem.LineItemState.IN_PROCESS);
+        childItem1.setWorkingAreaId(workingArea1.getId());
+
+        final OrderLineItem childItem2 = order.addOrderLineItem(DummyObjects.productSnapshot("牛肉", new BigDecimal("0"), DummyObjects.productOptionSnapshot()), 1);
+        childItem2.setState(OrderLineItem.LineItemState.IN_PROCESS);
+        childItem2.setWorkingAreaId(workingArea2.getId());
 
         orderService.createOrder(order);
 
-        final PrinterInstructions orderToWorkingArea = printerInstructionService.createOrderToWorkingArea(order, List.of(friedRice.getId()), false);
+        final PrinterInstructions orderToWorkingArea = printerInstructionService.createOrderToWorkingArea(order, List.of(), false);
 
         LOGGER.info("{}", orderToWorkingArea);
 
         printInstruction(orderToWorkingArea.getPrinterInstructions().get(0).getPrintInstruction());
+    }
+
+    @Test
+    void createUpdateTableInfo() {
+
+        UpdateTableInfo updateTableInfo = new UpdateTableInfo();
+        final Order.TableInfo fromTable = new Order.TableInfo();
+        fromTable.setTableName("T1");
+        updateTableInfo.getFromTables().add(fromTable);
+        final Order.TableInfo toTable = new Order.TableInfo();
+        fromTable.setTableName("T2");
+        updateTableInfo.getToTables().add(toTable);
+
+        final SinglePrintInstruction updateTableInfoInstruction = printerInstructionService.createUpdateTableInfoInstruction(client, updateTableInfo);
+
+        assertThat(updateTableInfoInstruction.getIpAddresses()).hasSize(1);
+        assertThat(updateTableInfoInstruction.getInstruction()).isNotNull();
+
+        logAndPrint(updateTableInfoInstruction.getInstruction());
     }
 
     @Test
