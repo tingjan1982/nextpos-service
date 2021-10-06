@@ -5,6 +5,7 @@ import io.nextpos.membership.web.model.MembershipResponse;
 import io.nextpos.merchandising.data.OfferApplicableObject;
 import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordertransaction.web.model.OrderTransactionResponse;
+import io.nextpos.workingarea.data.SinglePrintInstruction;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -71,6 +72,8 @@ public class OrderResponse {
     private List<OrderTransactionResponse> transactions;
 
     private MembershipResponse membership;
+
+    private SinglePrintInstruction updateTable;
 
 
     public static OrderResponse toOrderResponse(final Order order) {
