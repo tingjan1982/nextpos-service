@@ -141,7 +141,7 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
 
         if (!CollectionUtils.isEmpty(li.getProductOptions())) {
             productOptionSnapshots = li.getProductOptions().stream()
-                    .map(po -> new ProductSnapshot.ProductOptionSnapshot(po.getOptionName(), po.getOptionValue(), po.getOptionPrice()))
+                    .map(po -> new ProductSnapshot.ProductOptionSnapshot(po.getOptionName(), po.getOptionValueId(), po.getOptionValue(), po.getOptionPrice()))
                     .collect(Collectors.toList());
         }
 

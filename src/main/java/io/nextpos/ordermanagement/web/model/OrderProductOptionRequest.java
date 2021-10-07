@@ -13,6 +13,8 @@ public class OrderProductOptionRequest {
 
     private String optionName;
 
+    private String optionValueId;
+
     private String optionValue;
 
     private BigDecimal optionPrice;

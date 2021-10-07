@@ -81,7 +81,7 @@ class OrderServiceImplTest {
 
         final List<ProductSnapshot.ProductOptionSnapshot> options = List.of(
                 new ProductSnapshot.ProductOptionSnapshot("ice", "1/3"),
-                new ProductSnapshot.ProductOptionSnapshot("sugar", "none", BigDecimal.valueOf(10))
+                new ProductSnapshot.ProductOptionSnapshot("sugar", "none", "none", BigDecimal.valueOf(10))
         );
 
         final ProductSnapshot product = new ProductSnapshot(UUID.randomUUID().toString(), "coffee", "tw01", BigDecimal.valueOf(100), options);
@@ -108,6 +108,13 @@ class OrderServiceImplTest {
                 assertThat(p.getName()).isEqualTo(product.getName());
                 assertThat(p.getSku()).isEqualTo(product.getSku());
                 assertThat(p.getPrice()).isEqualTo(product.getPrice());
+                assertThat(p.getProductOptions()).hasSize(2);
+                assertThat(p.getProductOptions()).satisfies(po -> {
+                    assertThat(po.getOptionName()).isNotNull();
+                    assertThat(po.getOptionValueId()).isNotNull();
+                    assertThat(po.getOptionValue()).isNotNull();
+                    assertThat(po.getOptionPrice()).isGreaterThan(BigDecimal.ZERO);
+                }, Index.atIndex(1));
             });
             assertThat(li.getSubTotal()).satisfies(subTotal -> {
                 assertThat(subTotal.getAmountWithoutTax()).isEqualByComparingTo(new BigDecimal("220"));
@@ -285,6 +292,24 @@ class OrderServiceImplTest {
     }
 
     @Test
+    void moveOrderLineItems() {
+
+        Order sourceOrder = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
+        final OrderLineItem coffee = sourceOrder.addOrderLineItem(DummyObjects.productSnapshot("coffee", new BigDecimal("45")), 1);
+        orderService.createOrder(sourceOrder);
+        orderService.performOrderAction(sourceOrder, Order.OrderAction.SUBMIT);
+
+        Order targetOrder = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
+        orderService.createOrder(targetOrder);
+
+        orderService.moveLineItems(sourceOrder, targetOrder, List.of(coffee.getId()));
+
+        assertThat(sourceOrder.getOrderLineItems()).isEmpty();
+        assertThat(targetOrder.getOrderLineItems()).hasSize(1);
+        assertThat(targetOrder.getOrderLineItems().get(0).getState()).isEqualTo(OrderLineItem.LineItemState.IN_PROCESS);
+    }
+
+    @Test
     void getOrders() {
 
         final LocalDateTime fromDate = LocalDateTime.now();
@@ -373,7 +398,7 @@ class OrderServiceImplTest {
                 "custom",
                 null,
                 BigDecimal.valueOf(200),
-                List.of(new ProductSnapshot.ProductOptionSnapshot("ice", "normal", BigDecimal.valueOf(5))));
+                List.of(new ProductSnapshot.ProductOptionSnapshot("ice", "normal", "normal", BigDecimal.valueOf(5))));
         final OrderLineItem lineItem = new OrderLineItem(productWithOption, 2, orderSettings);
         order.addOrderLineItem(lineItem);
 

@@ -160,7 +160,7 @@ public class OrderServiceImpl implements OrderService {
     public InProcessOrderLineItems getInProcessOrderLineItems(String clientId) {
 
         final Map<String, List<InProcessOrderLineItem>> groupedOrders = this.getOrdersByStates(clientId,
-                List.of(Order.OrderState.IN_PROCESS, Order.OrderState.SETTLED, Order.OrderState.COMPLETED)).stream()
+                        List.of(Order.OrderState.IN_PROCESS, Order.OrderState.SETTLED, Order.OrderState.COMPLETED)).stream()
                 .flatMap(o -> {
                     final Map<String, List<OrderLineItem>> lineItemsGroupedByWorkingArea =
                             OrderVisitors.get(o, OrderVisitors.OrderLineItemGrouper.instance(workingAreaService));
@@ -179,7 +179,7 @@ public class OrderServiceImpl implements OrderService {
     public InProcessOrders getInProcessOrders(String clientId) {
 
         final List<InProcessOrder> orders = this.getOrdersByStates(clientId,
-                List.of(Order.OrderState.IN_PROCESS, Order.OrderState.SETTLED, Order.OrderState.COMPLETED)).stream()
+                        List.of(Order.OrderState.IN_PROCESS, Order.OrderState.SETTLED, Order.OrderState.COMPLETED)).stream()
                 .filter(o -> o.getOrderLineItems().stream().anyMatch(li -> li.getState().isPreparing()))
                 .map(InProcessOrder::new)
                 .sorted(InProcessOrder.getComparator())
@@ -322,8 +322,14 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderStateChangeBean performOrderAction(final String id, final Order.OrderAction orderAction) {
 
-        final CompletableFuture<OrderStateChangeBean> future = new CompletableFuture<>();
         final Order order = this.getOrder(id);
+        return this.performOrderAction(order, orderAction);
+    }
+
+    @Override
+    public OrderStateChangeBean performOrderAction(final Order order, final Order.OrderAction orderAction) {
+
+        final CompletableFuture<OrderStateChangeBean> future = new CompletableFuture<>();
         applicationEventPublisher.publishEvent(new OrderStateChangeEvent(this, order, orderAction, future));
 
         return this.getOrderStateChangeBeanFromFuture(future);
@@ -410,6 +416,23 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return order;
+    }
+
+    @Override
+    @WebSocketClientOrder
+    public Order moveLineItems(Order fromOrder, Order toOrder, List<String> lineItemIds) {
+
+        lineItemIds.stream()
+                .map(fromOrder::getOrderLineItem)
+                .forEach(li -> {
+                    final OrderLineItem copy = li.copy();
+                    toOrder.productSetOrder().addOrderLineItem(copy);
+                    fromOrder.productSetOrder().deleteOrderLineItem(li);
+                });
+
+        this.saveOrder(toOrder);
+
+        return this.saveOrder(fromOrder);
     }
 
     @Override

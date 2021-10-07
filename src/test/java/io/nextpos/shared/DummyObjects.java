@@ -49,7 +49,7 @@ public class DummyObjects {
     }
 
     public static ProductSnapshot.ProductOptionSnapshot productOptionSnapshot() {
-        return new ProductSnapshot.ProductOptionSnapshot("ice", "normal", new BigDecimal(10));
+        return new ProductSnapshot.ProductOptionSnapshot("ice", "normal", "normal", new BigDecimal(10));
     }
 
     public static ProductOptionVersion dummyProductOptionVersion() {

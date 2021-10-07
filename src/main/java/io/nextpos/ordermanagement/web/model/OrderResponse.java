@@ -139,6 +139,8 @@ public class OrderResponse {
 
         private String options;
 
+        private List<String> optionValueIds;
+
         private BigDecimal price;
 
         private int quantity;
@@ -178,6 +180,9 @@ public class OrderResponse {
             sku = productSnapshot.getSku();
             state = li.getState();
             options = li.getProductOptions();
+            optionValueIds = productSnapshot.getProductOptions().stream()
+                    .map(ProductSnapshot.ProductOptionSnapshot::getOptionValueId)
+                    .collect(Collectors.toList());
             price = li.getProductPriceWithOptions().getAmount();
             quantity = li.getQuantity();
             lineItemSubTotal = li.getLineItemSubTotal();

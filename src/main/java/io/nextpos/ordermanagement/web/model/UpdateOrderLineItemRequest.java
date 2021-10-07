@@ -46,7 +46,7 @@ public class UpdateOrderLineItemRequest implements OrderLogChangeObject {
         }
 
         return productOptions.stream()
-                .map(p -> new ProductSnapshot.ProductOptionSnapshot(p.getOptionName(), p.getOptionValue(), p.getOptionPrice()))
+                .map(p -> new ProductSnapshot.ProductOptionSnapshot(p.getOptionName(), p.getOptionValueId(), p.getOptionValue(), p.getOptionPrice()))
                 .collect(Collectors.toList());
     }
 

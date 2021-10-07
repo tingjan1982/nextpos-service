@@ -60,11 +60,15 @@ public interface OrderService {
 
     OrderStateChangeBean performOrderAction(String id, Order.OrderAction orderAction);
 
+    OrderStateChangeBean performOrderAction(Order order, Order.OrderAction orderAction);
+
     Optional<OrderStateChange> getOrderStateChangeByOrderId(String orderId);
 
     Order prepareLineItems(String orderId, List<String> lineItemIds);
 
     Order deliverLineItems(String orderId, List<String> lineItemIds);
+
+    Order moveLineItems(Order fromOrder, Order toOrder, List<String> lineItemIds);
 
     Order copyOrder(String id);
 

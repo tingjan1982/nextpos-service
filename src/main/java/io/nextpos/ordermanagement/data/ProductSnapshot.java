@@ -143,22 +143,25 @@ public class ProductSnapshot {
 
         private String optionName;
 
+        private String optionValueId;
+
         private String optionValue;
 
         private BigDecimal optionPrice;
 
         public ProductOptionSnapshot(final String optionName, final String optionValue) {
-            this(optionName, optionValue, BigDecimal.ZERO);
+            this(optionName, optionValue, optionValue, BigDecimal.ZERO);
         }
 
-        public ProductOptionSnapshot(final String optionName, final String optionValue, final BigDecimal optionPrice) {
+        public ProductOptionSnapshot(final String optionName, String optionValueId, final String optionValue, final BigDecimal optionPrice) {
             this.optionName = optionName;
+            this.optionValueId = optionValueId;
             this.optionValue = optionValue;
             this.optionPrice = optionPrice != null ? optionPrice : BigDecimal.ZERO;
         }
 
         public ProductOptionSnapshot copy() {
-            return new ProductOptionSnapshot(optionName, optionValue, optionPrice);
+            return new ProductOptionSnapshot(optionName, optionValueId, optionValue, optionPrice);
         }
     }
 

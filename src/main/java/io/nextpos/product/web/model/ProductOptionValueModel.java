@@ -12,6 +12,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class ProductOptionValueModel {
 
+    private Long optionValueId;
+
     @NotBlank
     private String value;
 

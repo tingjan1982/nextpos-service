@@ -37,7 +37,7 @@ public class ProductOptionResponse {
     public static ProductOptionResponse fromProductOptionVersion(ProductOptionVersion productOptionVersion) {
 
         final List<ProductOptionValueModel> optionValues = productOptionVersion.getOptionValues().stream()
-                .map(pov -> new ProductOptionValueModel(pov.getOptionValue(), pov.getOptionPrice()))
+                .map(pov -> new ProductOptionValueModel(pov.getId(), pov.getOptionValue(), pov.getOptionPrice()))
                 .collect(Collectors.toList());
 
         return new ProductOptionResponse(productOptionVersion.getProductOption().getId(),
