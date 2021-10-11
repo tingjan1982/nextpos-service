@@ -294,20 +294,56 @@ class OrderServiceImplTest {
     @Test
     void moveOrderLineItems() {
 
-        Order sourceOrder = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
-        final OrderLineItem coffee = sourceOrder.addOrderLineItem(DummyObjects.productSnapshot("coffee", new BigDecimal("45")), 1);
-        orderService.createOrder(sourceOrder);
-        orderService.performOrderAction(sourceOrder, Order.OrderAction.SUBMIT);
+        Order fromOrder = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
+        final OrderLineItem coffee = fromOrder.addOrderLineItem(DummyObjects.productSnapshot("coffee", new BigDecimal("45")), 1);
+        final OrderLineItem tea = fromOrder.addOrderLineItem(DummyObjects.productSnapshot("tea", new BigDecimal("45")), 1);
+        orderService.createOrder(fromOrder);
+        orderService.performOrderAction(fromOrder, Order.OrderAction.SUBMIT);
 
-        Order targetOrder = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
-        orderService.createOrder(targetOrder);
+        Order toOrder = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
+        orderService.createOrder(toOrder);
 
-        orderService.moveLineItems(sourceOrder, targetOrder, List.of(coffee.getId()));
+        orderService.moveLineItems(fromOrder, toOrder, List.of(coffee.getId(), tea.getId()));
 
-        assertThat(sourceOrder.getOrderLineItems()).isEmpty();
-        assertThat(targetOrder.getOrderLineItems()).hasSize(1);
-        assertThat(targetOrder.getOrderLineItems().get(0).getState()).isEqualTo(OrderLineItem.LineItemState.IN_PROCESS);
+        assertThat(fromOrder.getOrderLineItems()).isEmpty();
+        assertThat(toOrder.getState()).isEqualByComparingTo(Order.OrderState.IN_PROCESS);
+        assertThat(toOrder.getOrderLineItems()).hasSize(2);
+        assertThat(toOrder.getOrderLineItems().get(0).getState()).isEqualTo(OrderLineItem.LineItemState.IN_PROCESS);
+
+        Order toOrder2 = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
+        toOrder2.setState(Order.OrderState.DELIVERED);
+
+        orderService.moveLineItems(toOrder, toOrder2, List.of(toOrder.getOrderLineItems().get(0).getId()));
+
+        assertThat(toOrder.getOrderLineItems()).hasSize(1);
+        assertThat(toOrder2.getState()).isEqualByComparingTo(Order.OrderState.IN_PROCESS);
+        assertThat(toOrder2.getOrderLineItems()).hasSize(1);
     }
+
+    @Test
+    void moveDeliveredLineItems_CheckOrderState() {
+
+        Order fromOrder = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
+        final OrderLineItem coffee = fromOrder.addOrderLineItem(DummyObjects.productSnapshot("coffee", new BigDecimal("45")), 1);
+        orderService.createOrder(fromOrder);
+        orderService.performOrderAction(fromOrder, Order.OrderAction.SUBMIT);
+        orderService.performOrderAction(fromOrder, Order.OrderAction.DELIVER);
+
+        Order toOrder = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
+        orderService.createOrder(toOrder);
+
+        orderService.moveLineItems(fromOrder, toOrder, List.of(coffee.getId()));
+
+        assertThat(fromOrder.getOrderLineItems()).isEmpty();
+        assertThat(toOrder.getState()).isEqualByComparingTo(Order.OrderState.DELIVERED);
+        assertThat(toOrder.getOrderLineItems()).hasSize(1);
+
+        orderService.performOrderAction(fromOrder, Order.OrderAction.SETTLE);
+
+        assertThatThrownBy(() -> orderService.moveLineItems(fromOrder, toOrder, List.of(coffee.getId())))
+                .isInstanceOf(BusinessLogicException.class);
+    }
+
 
     @Test
     void getOrders() {

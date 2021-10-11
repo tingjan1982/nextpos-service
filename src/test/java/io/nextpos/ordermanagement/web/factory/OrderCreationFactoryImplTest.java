@@ -3,7 +3,10 @@ package io.nextpos.ordermanagement.web.factory;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.merchandising.data.ProductLevelOffer;
-import io.nextpos.ordermanagement.data.*;
+import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderLineItem;
+import io.nextpos.ordermanagement.data.OrderSettings;
+import io.nextpos.ordermanagement.data.UpdateTableInfo;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordermanagement.web.model.ComboOrderLineItemRequest;
 import io.nextpos.ordermanagement.web.model.OrderLineItemRequest;
@@ -26,7 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -200,20 +202,5 @@ class OrderCreationFactoryImplTest {
         final UpdateTableInfo noChange = orderCreationFactory.updateTableInfoAndDemographicData(order, request);
 
         assertThat(noChange.hasChange()).isFalse();
-    }
-
-    @Test
-    void test() {
-
-        final ProductSnapshot.ProductOptionSnapshot option = new ProductSnapshot.ProductOptionSnapshot("name", null, "value", null);
-
-        final List<ProductSnapshot.ProductOptionSnapshot> optionList = List.of(option);
-        final List<String> ids = optionList.stream()
-                .map(ProductSnapshot.ProductOptionSnapshot::getOptionValueId)
-                .collect(Collectors.toList());
-
-        System.out.println(ids);
-
-
     }
 }

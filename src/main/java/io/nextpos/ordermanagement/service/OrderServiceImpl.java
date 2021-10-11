@@ -17,6 +17,7 @@ import io.nextpos.shared.exception.GeneralApplicationException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.service.annotation.MongoTransaction;
 import io.nextpos.workingarea.service.WorkingAreaService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,6 +87,17 @@ public class OrderServiceImpl implements OrderService {
         order.setSerialId(serialId);
 
         return orderRepository.save(order);
+    }
+
+    @Override
+    public Optional<Order> getOrderByTableId(Client client, String tableId) {
+
+        final List<Order> orders = this.getOrdersByStates(client.getId(),
+                List.of(Order.OrderState.OPEN, Order.OrderState.IN_PROCESS, Order.OrderState.DELIVERED));
+
+        return orders.stream()
+                .filter(o -> o.getTables().stream().anyMatch(t -> StringUtils.equals(t.getTableId(), tableId)))
+                .findFirst();
     }
 
     @Override
@@ -420,7 +432,14 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @WebSocketClientOrder
+    @WebSocketClientOrders
     public Order moveLineItems(Order fromOrder, Order toOrder, List<String> lineItemIds) {
+
+        final EnumSet<Order.OrderState> allowedStates = EnumSet.of(Order.OrderState.OPEN, Order.OrderState.IN_PROCESS, Order.OrderState.DELIVERED);
+
+        if (!allowedStates.contains(fromOrder.getState()) || !allowedStates.contains(toOrder.getState())) {
+            throw new BusinessLogicException("message.moveNotAllowed", "Can only move line item(s) in between open, in process or delivered orders.");
+        }
 
         lineItemIds.stream()
                 .map(fromOrder::getOrderLineItem)
@@ -429,6 +448,20 @@ public class OrderServiceImpl implements OrderService {
                     toOrder.productSetOrder().addOrderLineItem(copy);
                     fromOrder.productSetOrder().deleteOrderLineItem(li);
                 });
+
+        final boolean anyInProgress = toOrder.getOrderLineItems().stream()
+                .anyMatch(li -> li.getState() == OrderLineItem.LineItemState.IN_PROCESS);
+
+        if (anyInProgress) {
+            toOrder.setState(Order.OrderState.IN_PROCESS);
+        } else {
+            final boolean allDelivered = toOrder.getOrderLineItems().stream()
+                    .allMatch(li -> li.getState() == OrderLineItem.LineItemState.DELIVERED);
+
+            if (allDelivered) {
+                toOrder.setState(Order.OrderState.DELIVERED);
+            }
+        }
 
         this.saveOrder(toOrder);
 

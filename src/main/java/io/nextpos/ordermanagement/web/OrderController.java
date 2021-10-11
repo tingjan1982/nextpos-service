@@ -424,6 +424,28 @@ public class OrderController {
         return OrderResponse.toOrderResponse(updatedOrder);
     }
 
+    @PostMapping("/{id}/lineitems/move")
+    @OrderLogAction
+    public OrderResponse moveLineItems(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                       @PathVariable final String id,
+                                       @Valid @RequestBody MoveLineItemsRequest request) {
+
+        final Order fromOrder = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
+
+        final Order toOrder = orderService.getOrderByTableId(client, request.getTableId()).orElseGet(() -> {
+            OrderRequest orderRequest = new OrderRequest();
+            orderRequest.setOrderType(Order.OrderType.IN_STORE);
+            orderRequest.setTableIds(List.of(request.getTableId()));
+
+            final Order newOrder = orderCreationFactory.newOrder(client, orderRequest);
+            return orderService.saveOrder(newOrder);
+        });
+
+        final Order updatedFromOrder = orderService.moveLineItems(fromOrder, toOrder, request.getLineItemIds());
+
+        return OrderResponse.toOrderResponse(updatedFromOrder);
+    }
+
     @PatchMapping("/{id}/lineitems/{lineItemId}")
     @OrderLogAction
     public OrderResponse updateOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,

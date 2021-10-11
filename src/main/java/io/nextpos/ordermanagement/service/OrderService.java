@@ -15,6 +15,8 @@ public interface OrderService {
 
     Order createOrder(Order order);
 
+    Optional<Order> getOrderByTableId(Client client, String tableId);
+
     Order saveOrder(Order order);
 
     Order getOrder(String id);
