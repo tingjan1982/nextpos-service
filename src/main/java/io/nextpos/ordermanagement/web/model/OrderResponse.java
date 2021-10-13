@@ -141,6 +141,8 @@ public class OrderResponse {
 
         private List<String> optionValueIds;
 
+        private String noteOption;
+
         private BigDecimal price;
 
         private int quantity;
@@ -181,8 +183,14 @@ public class OrderResponse {
             state = li.getState();
             options = li.getProductOptions();
             optionValueIds = productSnapshot.getProductOptions().stream()
+                    .peek(o -> {
+                        if ("noteId".equals(o.getOptionValueId())) {
+                            noteOption = o.getOptionValue();
+                        }
+                    })
                     .map(ProductSnapshot.ProductOptionSnapshot::getOptionValueId)
                     .collect(Collectors.toList());
+
             price = li.getProductPriceWithOptions().getAmount();
             quantity = li.getQuantity();
             lineItemSubTotal = li.getLineItemSubTotal();

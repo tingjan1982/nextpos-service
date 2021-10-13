@@ -230,7 +230,7 @@ public class OrderTransaction extends MongoBaseObject implements WithClientId {
      * Serves as validation check
      */
     public enum PaymentMethod {
-        CASH, CARD, LINE_PAY, JKO, UBER_EATS, FOOD_PANDA
+        CASH, CARD, LINE_PAY, JKO, UBER_EATS, FOOD_PANDA, GOV_VOUCHER
     }
 
     public enum PaymentStatus {
