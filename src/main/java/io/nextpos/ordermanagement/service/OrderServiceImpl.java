@@ -463,9 +463,10 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
+        this.saveOrder(fromOrder);
         this.saveOrder(toOrder);
 
-        return this.saveOrder(fromOrder);
+        return toOrder;
     }
 
     @Override

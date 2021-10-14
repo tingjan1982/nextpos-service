@@ -441,9 +441,9 @@ public class OrderController {
             return orderService.saveOrder(newOrder);
         });
 
-        final Order updatedFromOrder = orderService.moveLineItems(fromOrder, toOrder, request.getLineItemIds());
+        final Order updatedToOrder = orderService.moveLineItems(fromOrder, toOrder, request.getLineItemIds());
 
-        return OrderResponse.toOrderResponse(updatedFromOrder);
+        return OrderResponse.toOrderResponse(updatedToOrder);
     }
 
     @PatchMapping("/{id}/lineitems/{lineItemId}")
