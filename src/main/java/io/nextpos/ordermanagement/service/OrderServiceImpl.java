@@ -92,8 +92,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Optional<Order> getOrderByTableId(Client client, String tableId) {
 
-        final List<Order> orders = this.getOrdersByStates(client.getId(),
-                List.of(Order.OrderState.OPEN, Order.OrderState.IN_PROCESS, Order.OrderState.DELIVERED));
+        final List<Order> orders = this.getInStoreInFlightOrders(client.getId());
 
         return orders.stream()
                 .filter(o -> o.getTables().stream().anyMatch(t -> StringUtils.equals(t.getTableId(), tableId)))

@@ -438,7 +438,7 @@ public class OrderController {
             orderRequest.setTableIds(List.of(request.getTableId()));
 
             final Order newOrder = orderCreationFactory.newOrder(client, orderRequest);
-            return orderService.saveOrder(newOrder);
+            return orderService.createOrder(newOrder);
         });
 
         final Order updatedToOrder = orderService.moveLineItems(fromOrder, toOrder, request.getLineItemIds());
