@@ -434,6 +434,10 @@ public class OrderServiceImpl implements OrderService {
     @WebSocketClientOrders
     public Order moveLineItems(Order fromOrder, Order toOrder, List<String> lineItemIds) {
 
+        if (StringUtils.equals(fromOrder.getId(), toOrder.getId())) {
+            throw new BusinessLogicException("message.sameOrder", "You cannot move line item(s) to the same order");
+        }
+
         final EnumSet<Order.OrderState> allowedStates = EnumSet.of(Order.OrderState.OPEN, Order.OrderState.IN_PROCESS, Order.OrderState.DELIVERED);
 
         if (!allowedStates.contains(fromOrder.getState()) || !allowedStates.contains(toOrder.getState())) {

@@ -80,7 +80,6 @@ public class Reservation extends MongoBaseObject implements WithClientId {
                 .map(TableAllocation::new)
                 .collect(Collectors.toList());
 
-
         if (this.tableAllocations.isEmpty() && this.status != ReservationStatus.WAITING) {
             throw new BusinessLogicException("Reservation not in WAITING state cannot have empty tables");
         }
@@ -118,8 +117,19 @@ public class Reservation extends MongoBaseObject implements WithClientId {
 
     public enum ReservationStatus {
 
+        /**
+         * No table assigned.
+         */
         WAITING(0),
 
+        /**
+         * Same as WAITING, confirmed by customer.
+         */
+        WAITING_CONFIRMED(0),
+
+        /**
+         * Secured a table for the reservation.
+         */
         BOOKED(0),
 
         /**
@@ -139,7 +149,7 @@ public class Reservation extends MongoBaseObject implements WithClientId {
 
         DELETED(1);
 
-        private Integer ordering;
+        private final Integer ordering;
 
         ReservationStatus(int ordering) {
             this.ordering = ordering;

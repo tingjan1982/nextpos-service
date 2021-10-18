@@ -44,7 +44,11 @@ public class SplitOrderServiceImpl implements SplitOrderService {
 
         orderService.createOrder(targetOrder);
 
-        return updateSourceAndTargetOrder(sourceOrder, targetOrder, sourceLineItemId);
+        if (sourceLineItemId != null) {
+            return updateSourceAndTargetOrder(sourceOrder, targetOrder, sourceLineItemId);
+        } else {
+            return targetOrder;
+        }
     }
 
     /**

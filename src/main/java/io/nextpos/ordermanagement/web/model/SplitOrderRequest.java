@@ -12,6 +12,5 @@ public class SplitOrderRequest {
     @NotBlank
     private String sourceOrderId;
 
-    @NotBlank
     private String sourceLineItemId;
 }
