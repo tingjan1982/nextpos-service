@@ -75,17 +75,7 @@ public class OfferController {
                         offerRequest.getDiscountValue(),
                         offerRequest.isAppliesToAllProducts());
 
-                if (!productLevelOffer.isAppliesToAllProducts()) {
-                    offerRequest.getProductIds().forEach(productId -> {
-                        final Product product = productService.getProduct(productId);
-                        productLevelOffer.addProduct(product);
-                    });
-
-                    offerRequest.getProductLabelIds().forEach(labelId -> {
-                        final ProductLabel productLabel = productLabelService.getProductLabelOrThrows(labelId);
-                        productLevelOffer.addProductLabel(productLabel);
-                    });
-                }
+                updateApplicableProductsToOffer(productLevelOffer, offerRequest);
 
                 newOffer = productLevelOffer;
                 break;
@@ -154,24 +144,34 @@ public class OfferController {
 
         if (offer instanceof ProductLevelOffer) {
             final ProductLevelOffer productLevelOffer = (ProductLevelOffer) offer;
-            productLevelOffer.setAppliesToAllProducts(offerRequest.isAppliesToAllProducts());
+            updateApplicableProductsToOffer(productLevelOffer, offerRequest);
+        }
+    }
 
-            if (!productLevelOffer.isAppliesToAllProducts()) {
-                ((ProductLevelOffer) offer).getAppliesToProducts().clear();
+    private void updateApplicableProductsToOffer(ProductLevelOffer productLevelOffer, OfferRequest request) {
 
-                offerRequest.getProductIds().forEach(productId -> {
-                    final Product product = productService.getProduct(productId);
-                    productLevelOffer.addProduct(product);
-                });
+        productLevelOffer.setAppliesToAllProducts(request.isAppliesToAllProducts());
 
-                ((ProductLevelOffer) offer).getAppliesToProductLabels().clear();
+        if (!productLevelOffer.isAppliesToAllProducts()) {
+            productLevelOffer.getAppliesToProducts().clear();
 
-                offerRequest.getProductLabelIds().forEach(labelId -> {
-                    final ProductLabel productLabel = productLabelService.getProductLabelOrThrows(labelId);
-                    productLevelOffer.addProductLabel(productLabel);
-                });
-            }
+            request.getProductIds().forEach(productId -> {
+                final Product product = productService.getProduct(productId);
+                productLevelOffer.addProduct(product);
+            });
 
+            productLevelOffer.getAppliesToProductLabels().clear();
+
+            request.getProductLabelIds().forEach(labelId -> {
+                final ProductLabel productLabel = productLabelService.getProductLabelOrThrows(labelId);
+                productLevelOffer.addProductLabel(productLabel);
+            });
+        } else {
+            productLevelOffer.getExcludedProducts().clear();
+            request.getExcludedProductIds().forEach(pid -> {
+                final Product product = productService.getProduct(pid);
+                productLevelOffer.addExcludedProduct(product);
+            });
         }
     }
 
@@ -223,11 +223,22 @@ public class OfferController {
 
         if (offerType == OfferType.PRODUCT) {
             final ProductLevelOffer productOffer = (ProductLevelOffer) offer;
-            final Map<String, String> productIds = productOffer.getAppliesToProducts().stream().collect(Collectors.toMap(Product::getId, p -> p.getDesignVersion().getProductName()));
-            final Map<String, String> productLabelIds = productOffer.getAppliesToProductLabels().stream().collect(Collectors.toMap(ProductLabel::getId, ProductLabel::getName));
+            final Map<String, String> productIds = productOffer.getAppliesToProducts().stream()
+                    .collect(Collectors.toMap(Product::getId, p -> p.getDesignVersion().getProductName()));
+            final Map<String, String> excludedProductIds = productOffer.getExcludedProducts().stream()
+                    .collect(Collectors.toMap(Product::getId, p -> p.getDesignVersion().getProductName()));
+            final Map<String, String> productLabelIds = productOffer.getAppliesToProductLabels().stream()
+                    .collect(Collectors.toMap(ProductLabel::getId, ProductLabel::getName));
 
-            final List<OfferResponse.ProductOfferDetails.ProductOfferProduct> selectedProducts = productOffer.getAppliesToProducts().stream()
-                    .map(p -> new OfferResponse.ProductOfferDetails.ProductOfferProduct(
+            final List<OfferResponse.ProductOfferProduct> selectedProducts = productOffer.getAppliesToProducts().stream()
+                    .map(p -> new OfferResponse.ProductOfferProduct(
+                            p.getProductLabel() != null ? p.getProductLabel().getId() : null,
+                            p.getId(),
+                            p.getDesignVersion().getProductName()
+                    )).collect(Collectors.toList());
+
+            final List<OfferResponse.ProductOfferProduct> selectedExcludedProducts = productOffer.getExcludedProducts().stream()
+                    .map(p -> new OfferResponse.ProductOfferProduct(
                             p.getProductLabel() != null ? p.getProductLabel().getId() : null,
                             p.getId(),
                             p.getDesignVersion().getProductName()
@@ -235,8 +246,10 @@ public class OfferController {
 
             final OfferResponse.ProductOfferDetails productOfferDetails = new OfferResponse.ProductOfferDetails(productOffer.isAppliesToAllProducts(),
                     productIds,
+                    excludedProductIds,
                     productLabelIds,
-                    selectedProducts);
+                    selectedProducts,
+                    selectedExcludedProducts);
 
             offerResponse.setProductOfferDetails(productOfferDetails);
         }

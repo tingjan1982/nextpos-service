@@ -46,19 +46,23 @@ public class OfferResponse {
 
         private Map<String, String> productIds;
 
+        private Map<String, String> excludedProductIds;
+
         private Map<String, String> productLabelIds;
 
         private List<ProductOfferProduct> selectedProducts;
 
-        @Data
-        @AllArgsConstructor
-        public static class ProductOfferProduct {
+        private List<ProductOfferProduct> selectedExcludedProducts;
+    }
 
-            private String labelId;
+    @Data
+    @AllArgsConstructor
+    public static class ProductOfferProduct {
 
-            private String productId;
+        private String labelId;
 
-            private String name;
-        }
+        private String productId;
+
+        private String name;
     }
 }

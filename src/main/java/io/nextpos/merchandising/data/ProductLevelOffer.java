@@ -5,7 +5,6 @@ import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.product.data.Product;
 import io.nextpos.product.data.ProductLabel;
-import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -22,7 +21,7 @@ import java.util.List;
 @Entity(name = "client_product_level_offer")
 @Data
 @EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor(access = AccessLevel.PACKAGE)
+@NoArgsConstructor
 public class ProductLevelOffer extends Offer implements DiscountCalculator<OrderLineItem> {
 
     private boolean appliesToAllProducts;
@@ -34,6 +33,14 @@ public class ProductLevelOffer extends Offer implements DiscountCalculator<Order
             uniqueConstraints = @UniqueConstraint(columnNames = {"offer_id", "product_id"}))
     @Fetch(FetchMode.SUBSELECT)
     private List<Product> appliesToProducts = new ArrayList<>();
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(name = "client_product_level_offer_excluded_products",
+            joinColumns = @JoinColumn(name = "offer_id"),
+            inverseJoinColumns = @JoinColumn(name = "product_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"offer_id", "product_id"}))
+    @Fetch(FetchMode.SUBSELECT)
+    private List<Product> excludedProducts = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "client_product_level_offer_labels",
@@ -51,6 +58,10 @@ public class ProductLevelOffer extends Offer implements DiscountCalculator<Order
 
     public void addProduct(Product product) {
         appliesToProducts.add(product);
+    }
+
+    public void addExcludedProduct(Product product) {
+        excludedProducts.add(product);
     }
 
     public void addProductLabel(ProductLabel productLabel) {
@@ -80,6 +91,10 @@ public class ProductLevelOffer extends Offer implements DiscountCalculator<Order
     }
 
     private boolean isProductEligible(ProductSnapshot product) {
+
+        if (excludedProducts.stream().anyMatch(p -> StringUtils.equals(p.getId(), product.getId()))) {
+            return false;
+        }
 
         if (appliesToAllProducts) {
             return true;

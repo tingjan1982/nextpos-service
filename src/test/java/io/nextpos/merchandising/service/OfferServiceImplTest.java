@@ -118,11 +118,15 @@ class OfferServiceImplTest {
         final Product product = new Product(client, DummyObjects.dummyProductVersion());
         productService.saveProduct(product);
 
+        final Product noSpecial = Product.builder(client).productNameAndPrice("no special", new BigDecimal("100")).build();
+        productService.saveProduct(noSpecial);
+
         final ProductLabel drink = new ProductLabel("drink", client);
         productLabelService.saveProductLabel(drink);
 
         final ProductLevelOffer productLevelOffer = new ProductLevelOffer(client, "product level promotion", Offer.TriggerType.MEMBER, Offer.DiscountType.AMOUNT_OFF, BigDecimal.valueOf(50), false);
         productLevelOffer.addProduct(product);
+        productLevelOffer.addExcludedProduct(noSpecial);
         productLevelOffer.addProductLabel(drink);
 
         offerService.saveOffer(productLevelOffer);
@@ -134,6 +138,7 @@ class OfferServiceImplTest {
             assertThat(dd.getDiscountValue()).isEqualTo(BigDecimal.valueOf(50));
         });
         assertThat(productLevelOffer.getAppliesToProducts()).hasSize(1);
+        assertThat(productLevelOffer.getExcludedProducts()).hasSize(1);
         assertThat(productLevelOffer.getAppliesToProductLabels()).hasSize(1);
     }
 

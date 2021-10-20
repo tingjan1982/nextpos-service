@@ -38,5 +38,7 @@ public class OfferRequest {
 
     private List<String> productIds = new ArrayList<>();
 
+    private List<String> excludedProductIds = new ArrayList<>();
+
     private List<String> productLabelIds = new ArrayList<>();
 }
