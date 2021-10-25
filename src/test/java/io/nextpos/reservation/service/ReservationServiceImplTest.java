@@ -126,4 +126,28 @@ class ReservationServiceImplTest {
 
         assertThat(reservation.getMessageSentDate()).isNotNull();
     }
+
+    @Test
+    void confirmReservation() {
+
+        final Reservation reservation = Reservation.newReservation(client.getId(), new Date(), Reservation.SourceOfOrigin.APP, List.of());
+        reservationService.saveReservation(client, reservation);
+
+        assertThat(reservation.getStatus()).isEqualByComparingTo(Reservation.ReservationStatus.WAITING);
+
+        reservationService.confirmReservation(reservation);
+        reservationService.confirmReservation(reservation);
+
+        assertThat(reservation.getStatus()).isEqualByComparingTo(Reservation.ReservationStatus.WAITING_CONFIRMED);
+
+        final Reservation reservation2 = Reservation.newReservation(client.getId(), new Date(), Reservation.SourceOfOrigin.APP, tableLayout.getTables());
+        reservationService.saveReservation(client, reservation2);
+
+        assertThat(reservation2.getStatus()).isEqualByComparingTo(Reservation.ReservationStatus.BOOKED);
+
+        reservationService.confirmReservation(reservation2);
+        reservationService.confirmReservation(reservation2);
+
+        assertThat(reservation2.getStatus()).isEqualByComparingTo(Reservation.ReservationStatus.CONFIRMED);
+    }
 }

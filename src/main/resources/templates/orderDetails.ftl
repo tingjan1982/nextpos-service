@@ -46,6 +46,12 @@
             <text x="${indent}">TX&#10;</text>
             <text>營業稅額:</text>
             <text x="${indent}">0&#10;</text>
+
+            <#if order.discount gt 0>
+                <text>折扣:</text>
+                <text x="${indent}">${order.discount}&#10;</text>
+            </#if>
+
             <text>服務費:</text>
             <text x="${indent}">${order.serviceCharge}&#10;</text>
             <text>總計:</text>

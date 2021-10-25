@@ -6,6 +6,8 @@ import io.nextpos.einvoice.common.invoice.ElectronicInvoice;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRange;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRangeRepository;
 import io.nextpos.einvoice.common.invoicenumber.InvoiceNumberRangeService;
+import io.nextpos.merchandising.data.OrderLevelOffer;
+import io.nextpos.merchandising.service.MerchandisingService;
 import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordermanagement.service.ShiftService;
@@ -47,6 +49,9 @@ class PrinterInstructionsServiceImplTest {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private MerchandisingService merchandisingService;
 
     @Autowired
     private OrderTransactionService orderTransactionService;
@@ -177,6 +182,8 @@ class PrinterInstructionsServiceImplTest {
         order.addOrderLineItem(DummyObjects.productSnapshot("菲力牛排", new BigDecimal("550")), 1);
         order.addOrderLineItem(DummyObjects.productSnapshot("義大利麵", new BigDecimal("320")), 1);
         orderService.saveOrder(order);
+        merchandisingService.applyOrderOffer(order, OrderLevelOffer.GlobalOrderDiscount.ENTER_DISCOUNT.name(),
+                new BigDecimal("0.1"));
 
         final OrderTransaction orderTransaction = new OrderTransaction(order,
                 OrderTransaction.PaymentMethod.CARD,

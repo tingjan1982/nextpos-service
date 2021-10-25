@@ -97,10 +97,7 @@ public class ReservationServiceImpl implements ReservationService {
 
         reservation.setStatus(previousStatus);
 
-        final Reservation saved = reservationRepository.save(reservation);
-        //this.sendNotification(client, saved);
-
-        return saved;
+        return reservationRepository.save(reservation);
     }
 
     private ReservationDay getOrCreateReservationCapacity(String clientId, LocalDate reservationDate) {
@@ -177,7 +174,23 @@ public class ReservationServiceImpl implements ReservationService {
 
     @Override
     public void confirmReservation(Reservation reservation) {
-        reservation.setStatus(Reservation.ReservationStatus.CONFIRMED);
+
+        Reservation.ReservationStatus status = reservation.getStatus();
+
+        switch (status) {
+            case WAITING:
+            case WAITING_CONFIRMED:
+                status = Reservation.ReservationStatus.WAITING_CONFIRMED;
+                break;
+            case BOOKED:
+            case CONFIRMED:
+                status = Reservation.ReservationStatus.CONFIRMED;
+                break;
+            default:
+                throw new BusinessLogicException("Cannot confirm a reservation of status: " + status);
+        }
+
+        reservation.setStatus(status);
         reservationRepository.save(reservation);
     }
 
