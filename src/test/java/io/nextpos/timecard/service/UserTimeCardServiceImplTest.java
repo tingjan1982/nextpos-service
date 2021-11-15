@@ -5,6 +5,9 @@ import io.nextpos.calendarevent.service.bean.EventRepeatObject;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientService;
+import io.nextpos.datetime.data.ZonedDateRange;
+import io.nextpos.datetime.service.ZonedDateRangeBuilder;
+import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.roster.service.RosterObjectHelper;
 import io.nextpos.roster.service.RosterPlanService;
 import io.nextpos.shared.DummyObjects;
@@ -112,9 +115,14 @@ class UserTimeCardServiceImplTest {
     void getUserTimeCardsByDateRange() {
 
         final LocalDateTime now = LocalDateTime.now();
+        createUserTimeCard("user-2", now.withDayOfMonth(15), now.withDayOfMonth(15).plusHours(6));
         createUserTimeCard("user-1", now, now.plusDays(1));
         createUserTimeCard("user-1", now.withDayOfMonth(15), now.withDayOfMonth(15).plusHours(6));
-        createUserTimeCard("user-2", now.withDayOfMonth(15), now.withDayOfMonth(15).plusHours(6));
+
+        ZonedDateRange dateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.MONTH).build();
+        final List<UserTimeCard> timeCards = userTimeCardService.getUserTimeCardsByDateRange(client, dateRange);
+
+        assertThat(timeCards).hasSize(3);
 
         final List<UserTimeCard> userTimeCardsByDateRange = userTimeCardService.getUserTimeCardsByYearMonth(client, "user-1", YearMonth.now());
 

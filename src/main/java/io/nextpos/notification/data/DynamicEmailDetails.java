@@ -24,6 +24,10 @@ public class DynamicEmailDetails extends NotificationDetails {
 
     private Binary attachment;
 
+    private String contentType;
+
+    private String filename;
+
     public DynamicEmailDetails(String clientId, String recipientEmail, String templateId) {
         super(clientId);
 

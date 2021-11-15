@@ -12,6 +12,7 @@ import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.WorkingArea;
 import lombok.*;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.GenericGenerator;
@@ -154,6 +155,21 @@ public class Client extends BaseObject {
 
     public ZoneId getZoneId() {
         return ZoneId.of(timezone);
+    }
+
+    public String getNotificationEmail(String overrideEmail) {
+
+        if (StringUtils.isNotBlank(overrideEmail)) {
+            return overrideEmail;
+        }
+
+        String emailToUse = this.getUsername();
+
+        if (StringUtils.isNotBlank(this.getAttribute(Client.ClientAttributes.NOTIFICATION_EMAIL))) {
+            emailToUse = this.getAttribute(Client.ClientAttributes.NOTIFICATION_EMAIL);
+        }
+
+        return emailToUse;
     }
 
     public void addAttribute(ClientAttributes key, String value) {

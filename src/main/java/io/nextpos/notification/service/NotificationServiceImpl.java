@@ -130,8 +130,8 @@ public class NotificationServiceImpl implements NotificationService {
             if (notificationDetails.getAttachment() != null) {
                 final Attachments attachments = new Attachments();
                 attachments.setContent(Base64.encode(notificationDetails.getAttachment().getData()));
-                attachments.setType("application/pdf");
-                attachments.setFilename("einvoice.pdf");
+                attachments.setType(notificationDetails.getContentType());
+                attachments.setFilename(notificationDetails.getFilename());
                 attachments.setDisposition("attachment");
                 attachments.setContentId("Banner");
 

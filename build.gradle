@@ -70,6 +70,8 @@ dependencies {
     implementation 'com.google.zxing:core:3.3.0'
     implementation 'com.google.zxing:javase:3.3.0'
     implementation 'com.itextpdf:itext7-core:7.1.13'
+    implementation 'org.apache.poi:poi:5.0.0'
+    implementation 'org.apache.poi:poi-ooxml:5.0.0'
 
     //implementation 'org.projectlombok:lombok'
     runtimeOnly 'org.postgresql:postgresql'

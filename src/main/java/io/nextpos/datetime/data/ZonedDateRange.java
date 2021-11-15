@@ -1,6 +1,7 @@
 package io.nextpos.datetime.data;
 
 import io.nextpos.reporting.data.DateParameter;
+import io.nextpos.shared.util.DateTimeUtil;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
@@ -46,6 +47,14 @@ public class ZonedDateRange {
 
     public Date getToDate() {
         return Date.from(zonedToDate.toInstant());
+    }
+
+    public String getFormattedFromDate() {
+        return DateTimeUtil.formatDate(clientTimeZone, this.getFromDate());
+    }
+
+    public String getFormattedToDate() {
+        return DateTimeUtil.formatDate(clientTimeZone, this.getToDate());
     }
 
     /**

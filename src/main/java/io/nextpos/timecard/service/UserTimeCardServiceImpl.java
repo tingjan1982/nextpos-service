@@ -4,6 +4,7 @@ import io.nextpos.calendarevent.data.CalendarEvent;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientService;
+import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.roster.service.RosterPlanService;
 import io.nextpos.shared.auth.AuthenticationHelper;
 import io.nextpos.shared.exception.ObjectNotFoundException;
@@ -105,6 +106,18 @@ public class UserTimeCardServiceImpl implements UserTimeCardService {
         return userTimeCardRepository.findById(id).orElseThrow(() -> {
             throw new ObjectNotFoundException(id, UserTimeCard.class);
         });
+    }
+
+    @Override
+    public List<UserTimeCard> getUserTimeCardsByDateRange(Client client, ZonedDateRange dateRange) {
+
+        return userTimeCardRepository.findAllByClientIdAndTimeCardStatusAndClockInBetween(
+                client.getId(),
+                UserTimeCard.TimeCardStatus.COMPLETE,
+                dateRange.getFromDate(),
+                dateRange.getToDate(),
+                Sort.by(Sort.Direction.ASC, "nickname", "clockIn")
+        );
     }
 
     @Override

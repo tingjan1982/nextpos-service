@@ -151,11 +151,7 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
         final CountrySettings countrySettings = settingsService.getCountrySettings(client.getCountryCode());
         final CountrySettings.RoundingAmountHelper helper = countrySettings.roundingAmountHelper();
 
-        String emailToUse = client.getUsername();
-
-        if (StringUtils.isNotBlank(overrideEmail)) {
-            emailToUse = overrideEmail;
-        }
+        String emailToUse = client.getNotificationEmail(overrideEmail);
 
         final DynamicEmailDetails dynamicEmailDetails = new DynamicEmailDetails(client.getId(), emailToUse, instruction.getEmailTemplateId());
         dynamicEmailDetails.addTemplateData("client", client.getClientName());

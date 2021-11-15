@@ -155,11 +155,7 @@ public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrd
             throw new ObjectNotFoundException(subscriptionInvoice.getClientSubscription().getClientId(), Client.class);
         });
 
-        String emailToUse = client.getUsername();
-
-        if (StringUtils.isNotBlank(overrideEmail)) {
-            emailToUse = overrideEmail;
-        }
+        String emailToUse = client.getNotificationEmail(overrideEmail);
 
         final DynamicEmailDetails dynamicEmailDetails = new DynamicEmailDetails(client.getId(), emailToUse, "d-e574bf79c5534e52a86c80f25a762ba5");
         dynamicEmailDetails.addTemplateData("client", client.getClientName());
@@ -178,6 +174,8 @@ public class ClientSubscriptionOrderServiceImpl implements ClientSubscriptionOrd
         if (electronicInvoice != null) {
             final byte[] pdf = generateElectronicInvoicePdf(electronicInvoice);
             dynamicEmailDetails.setAttachment(new Binary(pdf));
+            dynamicEmailDetails.setContentType("application/pdf");
+            dynamicEmailDetails.setFilename("einvoice.pdf");
         }
 
         return notificationService.sendNotification(dynamicEmailDetails);
