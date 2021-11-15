@@ -32,7 +32,7 @@ public class SubscriptionPlanResponse {
         planName = subscriptionPlan.getPlanName();
         description = subscriptionPlan.getDescription();
         planPrices = subscriptionPlan.getPlanPrices().entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getPlanMonthlyPrice()));
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getAmount()));
         restrictedFeatures = subscriptionPlan.getSubscriptionLimit().getRestrictedFeatures();
     }
 }

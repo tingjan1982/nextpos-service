@@ -11,6 +11,7 @@ import io.nextpos.subscription.data.SubscriptionPlan;
 import io.nextpos.subscription.service.ClientSubscriptionLifecycleService;
 import io.nextpos.subscription.service.ClientSubscriptionOrderService;
 import io.nextpos.subscription.service.ClientSubscriptionService;
+import io.nextpos.subscription.service.SubscriptionPlanService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -28,6 +30,8 @@ import java.util.List;
 @ActiveProfiles("gcp")
 @TestPropertySource(properties = {"script=true", "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration"})
 public class ManageClientSubscription {
+
+    private final SubscriptionPlanService subscriptionPlanService;
 
     private final ClientSubscriptionService clientSubscriptionService;
 
@@ -42,7 +46,8 @@ public class ManageClientSubscription {
     private final ClientSubscriptionInvoiceRepository clientSubscriptionInvoiceRepository;
 
     @Autowired
-    public ManageClientSubscription(ClientSubscriptionService clientSubscriptionService, ClientSubscriptionOrderService clientSubscriptionOrderService, ClientSubscriptionLifecycleService clientSubscriptionLifecycleService, ClientService clientService, ClientRepository clientRepository, ClientSubscriptionInvoiceRepository clientSubscriptionInvoiceRepository) {
+    public ManageClientSubscription(SubscriptionPlanService subscriptionPlanService, ClientSubscriptionService clientSubscriptionService, ClientSubscriptionOrderService clientSubscriptionOrderService, ClientSubscriptionLifecycleService clientSubscriptionLifecycleService, ClientService clientService, ClientRepository clientRepository, ClientSubscriptionInvoiceRepository clientSubscriptionInvoiceRepository) {
+        this.subscriptionPlanService = subscriptionPlanService;
         this.clientSubscriptionService = clientSubscriptionService;
         this.clientSubscriptionOrderService = clientSubscriptionOrderService;
         this.clientSubscriptionLifecycleService = clientSubscriptionLifecycleService;
@@ -74,7 +79,41 @@ public class ManageClientSubscription {
             }
         }
     }
-    
+
+    @Test
+    void updateSubscriptionPlan() {
+
+        subscriptionPlanService.getSubscriptionPlans("TW").forEach(sp -> {
+            final BigDecimal monthlyPrice = new BigDecimal("1500");
+            final BigDecimal yearlyPrice = new BigDecimal("16500");
+
+            sp.addPlanPrice(SubscriptionPlan.PlanPeriod.MONTHLY, new SubscriptionPlan.PlanPrice(monthlyPrice));
+            sp.addPlanPrice(SubscriptionPlan.PlanPeriod.YEARLY, new SubscriptionPlan.PlanPrice(yearlyPrice));
+
+            subscriptionPlanService.saveSubscriptionPlan(sp);
+        });
+    }
+
+    @Test
+    void updateClientSubscription() {
+
+        clientService.getClientByUsername("ronandcompanytainan@gmail.com").ifPresent(c -> {
+            final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());
+            final SubscriptionPlan plan = subscription.getSubscriptionPlanSnapshot();
+            final BigDecimal monthlyPrice = new BigDecimal("1500");
+            final BigDecimal yearlyPrice = new BigDecimal("13500");
+
+            plan.addPlanPrice(SubscriptionPlan.PlanPeriod.MONTHLY, new SubscriptionPlan.PlanPrice(monthlyPrice));
+            plan.addPlanPrice(SubscriptionPlan.PlanPeriod.YEARLY, new SubscriptionPlan.PlanPrice(yearlyPrice));
+
+            subscription.updateSubscriptionPlanPrice(SubscriptionPlan.PlanPeriod.YEARLY, null);
+
+            clientSubscriptionService.saveClientSubscription(subscription);
+
+            System.out.println(subscription);
+        });
+    }
+
     @Test
     void createClientRenewalInvoices() {
 
@@ -86,7 +125,7 @@ public class ManageClientSubscription {
     @Test
     void getClientSubscription() {
 
-        clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
+        clientService.getClientByUsername("ron@gmail.com").ifPresent(c -> {
             final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());
             final List<ClientSubscriptionInvoice> invoices = clientSubscriptionService.getClientSubscriptionInvoices(subscription);
 
@@ -100,32 +139,21 @@ public class ManageClientSubscription {
     }
 
     @Test
-    void sendClientSubscriptionInvoice() {
-        clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
-            final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());
-            final ClientSubscriptionInvoice invoice = clientSubscriptionService.getClientSubscriptionInvoice(subscription.getCurrentInvoiceId());
-
-            clientSubscriptionService.sendClientSubscriptionInvoice(c, invoice);
-        });
-    }
-
-    @Test
     void renewClientSubscriptionForSpecificDate() {
 
-        final SubscriptionPlan.PlanPeriod newPlanPeriod = SubscriptionPlan.PlanPeriod.MONTHLY;
+        final SubscriptionPlan.PlanPeriod newPlanPeriod = SubscriptionPlan.PlanPeriod.YEARLY;
 
-        clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
+        clientService.getClientByUsername("ronandcompanytainan@gmail.com").ifPresent(c -> {
             final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());
 
             if (newPlanPeriod != subscription.getPlanPeriod()) {
-                subscription.setPlanPeriod(newPlanPeriod);
+                subscription.updateSubscriptionPlanPrice(newPlanPeriod, BigDecimal.ZERO);
                 clientSubscriptionService.saveClientSubscription(subscription);
-
-                System.out.println("Updated client subscription plan period: " + subscription);
+                System.out.println("Updated client subscription plan: " + subscription);
             }
 
-            Date renewalDate = DateTimeUtil.toDate(c.getZoneId(), LocalDateTime.of(2021, 6, 1, 0, 0, 0));
-            final ClientSubscriptionInvoice renewalInvoice = clientSubscriptionService.createClientSubscriptionInvoice(c, subscription, renewalDate);
+            Date renewalDate = DateTimeUtil.toDate(c.getZoneId(), LocalDateTime.of(2021, 11, 1, 0, 0, 0));
+            final ClientSubscriptionInvoice renewalInvoice = clientSubscriptionService.createAndSendClientSubscriptionInvoice(c, subscription, renewalDate, true, false);
 
             System.out.println("Renewal invoice identifier: " + renewalInvoice.getInvoiceIdentifier());
             System.out.println("Created renewal invoice: " + renewalInvoice);
@@ -133,9 +161,19 @@ public class ManageClientSubscription {
     }
 
     @Test
+    void sendClientSubscriptionInvoice() {
+        clientService.getClientByUsername("ronandcompanytainan@gmail.com").ifPresent(c -> {
+            final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());
+            final ClientSubscriptionInvoice invoice = clientSubscriptionService.getClientSubscriptionInvoice(subscription.getCurrentInvoiceId());
+
+            clientSubscriptionService.sendClientSubscriptionInvoice(c, invoice, "roncafebar@gmail.com");
+        });
+    }
+
+    @Test
     void activateClientSubscription() {
 
-        String invoiceIdentifier = "720681";
+        String invoiceIdentifier = "679880";
         clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
             final ClientSubscriptionInvoice paid = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(invoiceIdentifier, false);
             System.out.println("Paid invoice: " + paid);

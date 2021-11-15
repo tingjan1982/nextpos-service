@@ -108,17 +108,18 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
         clientSubscription.setCurrent(current);
         this.saveClientSubscription(clientSubscription);
 
-        return createAndSendClientSubscriptionInvoice(client, clientSubscription, validFrom, false);
+        return createAndSendClientSubscriptionInvoice(client, clientSubscription, validFrom, false, true);
     }
 
     @Override
     public ClientSubscriptionInvoice createClientSubscriptionInvoice(Client client, ClientSubscription clientSubscription, Date planStartDate) {
-        return this.createAndSendClientSubscriptionInvoice(client, clientSubscription, planStartDate, true);
+        return this.createAndSendClientSubscriptionInvoice(client, clientSubscription, planStartDate, true, true);
     }
 
-    private ClientSubscriptionInvoice createAndSendClientSubscriptionInvoice(Client client, ClientSubscription clientSubscription, Date subscriptionValidFrom, boolean renewal) {
+    @Override
+    public ClientSubscriptionInvoice createAndSendClientSubscriptionInvoice(Client client, ClientSubscription clientSubscription, Date subscriptionValidFrom, boolean renewal, boolean sendInvoice) {
 
-        final ClientSubscriptionInvoice subscriptionInvoice = new ClientSubscriptionInvoice(client.getZoneId(), clientSubscription, subscriptionValidFrom, renewal);
+        final ClientSubscriptionInvoice subscriptionInvoice = new ClientSubscriptionInvoice(client.getZoneId(), clientSubscription, subscriptionValidFrom);
         final ClientSubscriptionInvoice saved = clientSubscriptionInvoiceRepository.save(subscriptionInvoice);
 
         clientSubscription.setCurrentInvoiceId(saved.getId());
@@ -129,13 +130,20 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
 
         saveClientSubscription(clientSubscription);
 
-        this.sendClientSubscriptionInvoice(client, subscriptionInvoice);
+        if (sendInvoice) {
+            this.sendClientSubscriptionInvoice(client, subscriptionInvoice);
+        }
 
         return saved;
     }
 
     @Override
     public void sendClientSubscriptionInvoice(Client client, ClientSubscriptionInvoice subscriptionInvoice) {
+        this.sendClientSubscriptionInvoice(client, subscriptionInvoice, null);
+    }
+
+    @Override
+    public void sendClientSubscriptionInvoice(Client client, ClientSubscriptionInvoice subscriptionInvoice, String overrideEmail) {
 
         final SubscriptionPlan subscriptionPlanSnapshot = subscriptionInvoice.getClientSubscription().getSubscriptionPlanSnapshot();
         final SubscriptionPaymentInstruction instruction = subscriptionPlanService.getSubscriptionPaymentInstructionByCountryOrThrows(subscriptionPlanSnapshot.getCountryCode());
@@ -143,7 +151,13 @@ public class ClientSubscriptionServiceImpl implements ClientSubscriptionService 
         final CountrySettings countrySettings = settingsService.getCountrySettings(client.getCountryCode());
         final CountrySettings.RoundingAmountHelper helper = countrySettings.roundingAmountHelper();
 
-        final DynamicEmailDetails dynamicEmailDetails = new DynamicEmailDetails(client.getId(), client.getUsername(), instruction.getEmailTemplateId());
+        String emailToUse = client.getUsername();
+
+        if (StringUtils.isNotBlank(overrideEmail)) {
+            emailToUse = overrideEmail;
+        }
+
+        final DynamicEmailDetails dynamicEmailDetails = new DynamicEmailDetails(client.getId(), emailToUse, instruction.getEmailTemplateId());
         dynamicEmailDetails.addTemplateData("client", client.getClientName());
         dynamicEmailDetails.addTemplateData("subscriptionPlan", subscriptionPlanSnapshot.getPlanName());
         dynamicEmailDetails.addTemplateData("subscriptionPlanPeriod", subscriptionInvoice.getSubscriptionPeriod(client.getZoneId()));

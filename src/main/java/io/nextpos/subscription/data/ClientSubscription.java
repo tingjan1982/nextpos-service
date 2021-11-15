@@ -59,13 +59,18 @@ public class ClientSubscription extends MongoBaseObject implements WithClientId 
     public ClientSubscription(String clientId, SubscriptionPlan subscriptionPlanSnapshot, SubscriptionPlan.PlanPeriod planPeriod, BigDecimal discountAmount) {
         this.clientId = clientId;
         this.subscriptionPlanSnapshot = subscriptionPlanSnapshot;
-        this.planPeriod = planPeriod;
-        this.planPrice = subscriptionPlanSnapshot.getPlanPrice(planPeriod).getPlanMonthlyPrice();
-        this.discountAmount = discountAmount;
+
+        this.updateSubscriptionPlanPrice(planPeriod, discountAmount);
 
         this.status = SubscriptionStatus.SUBMITTED;
         this.submittedDate = new Date();
         this.current = true;
+    }
+
+    public void updateSubscriptionPlanPrice(SubscriptionPlan.PlanPeriod planPeriod, BigDecimal discountAmount) {
+        this.planPeriod = planPeriod;
+        this.planPrice = subscriptionPlanSnapshot.getPlanPrice(planPeriod).getAmount();
+        this.discountAmount = discountAmount != null ? discountAmount : BigDecimal.ZERO;
     }
 
     public void updateSubscriptionFeature(String featureName, boolean enabled) {

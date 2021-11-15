@@ -64,10 +64,6 @@ public class ClientSubscriptionInvoice extends MongoBaseObject implements WithCl
     private ElectronicInvoice electronicInvoice;
 
     public ClientSubscriptionInvoice(ZoneId zoneId, ClientSubscription clientSubscription, Date validFrom) {
-        this(zoneId, clientSubscription, validFrom, false);
-    }
-
-    public ClientSubscriptionInvoice(ZoneId zoneId, ClientSubscription clientSubscription, Date validFrom, boolean renewal) {
 
         this.clientId = clientSubscription.getClientId();
         this.clientSubscription = clientSubscription;
@@ -80,8 +76,8 @@ public class ClientSubscriptionInvoice extends MongoBaseObject implements WithCl
         this.validTo = Date.from(zonedValidTo.toInstant());
 
         this.dueAmount = clientSubscription.getSubscriptionPlanSnapshot().getTaxableAmount().newInstance();
-        final BigDecimal discountAmount = renewal ? BigDecimal.ZERO : clientSubscription.getDiscountAmount();
-        final BigDecimal calculatedAmount = clientSubscription.getPlanPrice().multiply(new BigDecimal(numberOfMonths)).subtract(discountAmount);
+        final BigDecimal discountAmount = clientSubscription.getDiscountAmount();
+        final BigDecimal calculatedAmount = clientSubscription.getPlanPrice().subtract(discountAmount);
         this.dueAmount.calculate(calculatedAmount);
         this.dueDate = validFrom;
 

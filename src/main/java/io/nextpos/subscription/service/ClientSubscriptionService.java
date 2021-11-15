@@ -14,7 +14,11 @@ public interface ClientSubscriptionService {
 
     ClientSubscriptionInvoice createClientSubscriptionInvoice(Client client, ClientSubscription clientSubscription, Date planStartDate);
 
+    ClientSubscriptionInvoice createAndSendClientSubscriptionInvoice(Client client, ClientSubscription clientSubscription, Date subscriptionValidFrom, boolean renewal, boolean sendInvoice);
+
     void sendClientSubscriptionInvoice(Client client, ClientSubscriptionInvoice subscriptionInvoice);
+
+    void sendClientSubscriptionInvoice(Client client, ClientSubscriptionInvoice subscriptionInvoice, String overrideEmail);
 
     ClientSubscriptionInvoice activateClientSubscriptionByInvoiceIdentifier(String invoiceIdentifier, boolean sendInvoiceNotification);
 

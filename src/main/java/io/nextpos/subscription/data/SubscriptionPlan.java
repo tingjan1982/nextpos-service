@@ -2,6 +2,7 @@ package io.nextpos.subscription.data;
 
 import io.nextpos.ordermanagement.data.TaxableAmount;
 import io.nextpos.settings.data.CountrySettings;
+import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.model.MongoBaseObject;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -60,7 +61,7 @@ public class SubscriptionPlan extends MongoBaseObject {
         PlanPrice planPrice = planPrices.get(planPeriod);
 
         if (planPrice == null) {
-            planPrice = planPrices.get(PlanPeriod.MONTHLY);
+            throw new BusinessLogicException("Plan price is not found by the specified plan period: " + planPeriod);
         }
 
         return planPrice;
@@ -81,11 +82,11 @@ public class SubscriptionPlan extends MongoBaseObject {
     }
 
     @Data
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class PlanPrice {
 
-        private BigDecimal planMonthlyPrice;
-
+        private BigDecimal amount = BigDecimal.ZERO;
     }
 
     @Data
