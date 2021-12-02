@@ -40,6 +40,10 @@ public class UserTimeCard extends MongoBaseObject implements WithClientId {
 
     private Date clockOut;
 
+    private int actualWorkingHours;
+
+    private int actualWorkingMinutes;
+
     @DBRef
     private CalendarEvent matchedRoster;
 

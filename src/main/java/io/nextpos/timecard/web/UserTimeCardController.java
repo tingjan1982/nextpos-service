@@ -9,6 +9,7 @@ import io.nextpos.reporting.service.SpreadsheetService;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.timecard.data.UserTimeCard;
 import io.nextpos.timecard.service.UserTimeCardService;
+import io.nextpos.timecard.web.model.UpdateWorkingTimeRequest;
 import io.nextpos.timecard.web.model.UserTimeCardResponse;
 import io.nextpos.timecard.web.model.UserTimeCardsResponse;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -56,6 +57,20 @@ public class UserTimeCardController {
 
         final UserTimeCard userTimeCard = userTimeCardService.getMostRecentTimeCard(client);
         return toUserTimeCardResponse(userTimeCard);
+    }
+
+
+    @PostMapping("/{id}/workingTime")
+    public UserTimeCardResponse updateUserTimeCardWorkingTime(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                              @PathVariable final String id,
+                                                              @RequestBody UpdateWorkingTimeRequest request) {
+
+        final UserTimeCard userTimeCard = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> userTimeCardService.getUserTimeCardById(id));
+        userTimeCard.setActualWorkingHours(request.getWorkingHours());
+        userTimeCard.setActualWorkingMinutes(request.getWorkingMinutes());
+
+        return toUserTimeCardResponse(userTimeCardService.saveUserTimeCard(userTimeCard));
+
     }
 
     @GetMapping("/{id}")

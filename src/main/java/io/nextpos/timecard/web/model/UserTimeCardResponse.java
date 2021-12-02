@@ -4,6 +4,7 @@ import io.nextpos.calendarevent.data.CalendarEvent;
 import io.nextpos.timecard.data.UserTimeCard;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.apache.commons.collections.FactoryUtils;
 
 import java.time.Duration;
 import java.util.Date;
@@ -29,6 +30,10 @@ public class UserTimeCardResponse {
 
     private long minutes;
 
+    private int actualWorkingHours;
+
+    private int actualWorkingMinutes;
+
     private Long arriveLateMinutes;
 
     private Long leaveEarlyMinutes;
@@ -44,6 +49,9 @@ public class UserTimeCardResponse {
         Duration workingDuration = userTimeCard.getWorkingDuration();
         hours = workingDuration.toHours();
         minutes = workingDuration.toMinutesPart();
+
+        actualWorkingHours = userTimeCard.getActualWorkingHours();
+        actualWorkingMinutes = userTimeCard.getActualWorkingMinutes();
 
         final CalendarEvent matchedRoster = userTimeCard.getMatchedRoster();
 

@@ -13,6 +13,8 @@ public interface UserTimeCardService {
 
     UserTimeCard clockOut(Client client);
 
+    UserTimeCard saveUserTimeCard(UserTimeCard userTimeCard);
+
     UserTimeCard getMostRecentTimeCard(Client client);
 
     UserTimeCard getUserTimeCardById(String id);

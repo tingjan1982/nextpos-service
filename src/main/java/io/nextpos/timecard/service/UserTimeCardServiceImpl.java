@@ -81,6 +81,11 @@ public class UserTimeCardServiceImpl implements UserTimeCardService {
         return userTimeCardRepository.save(userTimeCard);
     }
 
+    @Override
+    public UserTimeCard saveUserTimeCard(UserTimeCard userTimeCard) {
+        return userTimeCardRepository.save(userTimeCard);
+    }
+
     private Optional<UserTimeCard> getActiveTimeCard(final Client client) {
 
         final String username = authenticationHelper.resolveCurrentUsername();

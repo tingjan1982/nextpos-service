@@ -125,7 +125,7 @@ public class ManageClientSubscription {
     @Test
     void getClientSubscription() {
 
-        clientService.getClientByUsername("ron@gmail.com").ifPresent(c -> {
+        clientService.getClientByUsername("ronandcompanytainan@gmail.com").ifPresent(c -> {
             final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());
             final List<ClientSubscriptionInvoice> invoices = clientSubscriptionService.getClientSubscriptionInvoices(subscription);
 
@@ -162,19 +162,19 @@ public class ManageClientSubscription {
 
     @Test
     void sendClientSubscriptionInvoice() {
-        clientService.getClientByUsername("ronandcompanytainan@gmail.com").ifPresent(c -> {
+        clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
             final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());
             final ClientSubscriptionInvoice invoice = clientSubscriptionService.getClientSubscriptionInvoice(subscription.getCurrentInvoiceId());
 
-            clientSubscriptionService.sendClientSubscriptionInvoice(c, invoice, "roncafebar@gmail.com");
+            clientSubscriptionService.sendClientSubscriptionInvoice(c, invoice);
         });
     }
 
     @Test
     void activateClientSubscription() {
 
-        String invoiceIdentifier = "679880";
-        clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
+        String invoiceIdentifier = "255388";
+        clientService.getClientByUsername("ronandcompanytainan@gmail.com").ifPresent(c -> {
             final ClientSubscriptionInvoice paid = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(invoiceIdentifier, false);
             System.out.println("Paid invoice: " + paid);
         });
@@ -183,11 +183,11 @@ public class ManageClientSubscription {
     @Test
     @WithMockUser("rain.io.app@gmail.com")
     void sendSubscriptionInvoice() {
-        clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
+        clientService.getClientByUsername("ronandcompanytainan@gmail.com").ifPresent(c -> {
             final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());
             final ClientSubscriptionInvoice invoice = clientSubscriptionService.getClientSubscriptionInvoice(subscription.getCurrentInvoiceId());
 
-            clientSubscriptionOrderService.sendClientSubscriptionOrder(invoice, null);
+            clientSubscriptionOrderService.sendClientSubscriptionOrder(invoice, "roncafebar@gmail.com");
         });
     }
 }
