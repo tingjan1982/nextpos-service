@@ -55,12 +55,16 @@ public class SpreadsheetServiceImpl implements SpreadsheetService {
         tcHeader.addValue("End Time");
         tcHeader.addValue("Hour(s)");
         tcHeader.addValue("Minute(s)");
+        tcHeader.addValue("Actual Hour(s)");
+        tcHeader.addValue("Actual Minute(s)");
         timeCardRows.add(tcHeader);
 
         SpreadsheetRow summaryHeader = new SpreadsheetRow();
         summaryHeader.addValue("Name");
         summaryHeader.addValue("Hour(s)");
         summaryHeader.addValue("Minute(s)");
+        summaryHeader.addValue("Actual Hour(s)");
+        summaryHeader.addValue("Actual Minute(s)");
         summaryRows.add(summaryHeader);
 
         final Map<String, List<UserTimeCard>> groupedTimeCards = userTimeCards.stream()
@@ -68,6 +72,7 @@ public class SpreadsheetServiceImpl implements SpreadsheetService {
 
         groupedTimeCards.forEach((name, tcs) -> {
             Duration total = Duration.ZERO;
+            Duration actualTotal = Duration.ZERO;
 
             for (final UserTimeCard tc : tcs) {
                 final SpreadsheetRow row = new SpreadsheetRow();
@@ -81,6 +86,12 @@ public class SpreadsheetServiceImpl implements SpreadsheetService {
 
                 row.addValue(String.valueOf(duration.toHours()));
                 row.addValue(String.valueOf(duration.toMinutesPart()));
+                row.addValue(String.valueOf(tc.getActualWorkingHours()));
+                row.addValue(String.valueOf(tc.getActualWorkingMinutes()));
+
+                actualTotal = actualTotal.plusHours(tc.getActualWorkingHours());
+                actualTotal = actualTotal.plusMinutes(tc.getActualWorkingMinutes());
+
                 timeCardRows.add(row);
             }
 
@@ -90,6 +101,8 @@ public class SpreadsheetServiceImpl implements SpreadsheetService {
             summaryRow.addValue(name);
             summaryRow.addValue(String.valueOf(total.toHours()));
             summaryRow.addValue(String.valueOf(total.toMinutesPart()));
+            summaryRow.addValue(String.valueOf(actualTotal.toHours()));
+            summaryRow.addValue(String.valueOf(actualTotal.toMinutesPart()));
             summaryRows.add(summaryRow);
         });
 
@@ -110,7 +123,7 @@ public class SpreadsheetServiceImpl implements SpreadsheetService {
             spreadsheetRow.populateRowData(row);
         }
 
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 8; i++) {
             sheet.autoSizeColumn(i);
         }
     }
