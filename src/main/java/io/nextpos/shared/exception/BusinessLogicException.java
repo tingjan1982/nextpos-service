@@ -2,7 +2,7 @@ package io.nextpos.shared.exception;
 
 public class BusinessLogicException extends RuntimeException {
 
-    private String localizedMessageKey;
+    private final String localizedMessageKey;
 
     public BusinessLogicException(final String message) {
         this(null, message);

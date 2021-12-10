@@ -171,6 +171,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         return version == null;
     }
 
+    public boolean isPaying() {
+        return this.state == PAYMENT_IN_PROCESS;
+    }
+
     public boolean isClosed() {
         return OrderState.finalStates().contains(this.state);
     }
@@ -385,7 +389,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
         discountedTotal.calculate(computedDiscount);
 
         if (discountedTotal.lessThanZero()) {
-            throw new BusinessLogicException("message.discountedTotalLessThanZero", "Discounted amount cannot be less than zero");
+            this.throwDiscountLessThanZeroException();
         }
 
         if (!discountedTotal.isZero()) {

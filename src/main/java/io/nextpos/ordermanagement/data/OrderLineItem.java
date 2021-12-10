@@ -150,7 +150,7 @@ public class OrderLineItem implements OfferApplicableObject {
         discountedSubTotal.calculate(discountedLineItemTotal);
 
         if (discountedSubTotal.lessThanZero()) {
-            throw new BusinessLogicException("message.discountedTotalLessThanZero", "Discounted amount cannot be less than zero");
+            this.throwDiscountLessThanZeroException();
         }
 
         modifiedDate = new Date();

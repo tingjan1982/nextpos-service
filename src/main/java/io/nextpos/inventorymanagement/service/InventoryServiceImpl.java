@@ -117,9 +117,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public InventoryOrder saveInventoryOrder(InventoryOrder inventoryOrder) {
 
-        if (inventoryOrder.getStatus() == InventoryOrder.InventoryOrderStatus.PROCESSED) {
-            throw new BusinessLogicException("message.inventoryOrderImported", "Processed inventory order cannot be changed.");
-        }
+        checkStatus(inventoryOrder);
 
         return inventoryOrderRepository.save(inventoryOrder);
     }
@@ -146,6 +144,8 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public void processInventoryOrder(InventoryOrder inventoryOrder) {
 
+        checkStatus(inventoryOrder);
+
         inventoryOrder.getInventoryOrderItems().forEach(i -> {
             final Inventory inventory = getInventory(i.getInventoryId());
             inventory.updateInventoryQuantity(i.getSku(), i.getQuantity());
@@ -159,6 +159,8 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public void deleteInventoryOrder(InventoryOrder inventoryOrder) {
+
+        checkStatus(inventoryOrder);
         inventoryOrderRepository.delete(inventoryOrder);
     }
 
@@ -182,5 +184,12 @@ public class InventoryServiceImpl implements InventoryService {
 
         inventoryTransaction.setStatus(InventoryTransaction.InventoryTransactionStatus.PROCESSED);
         inventoryTransactionRepository.save(inventoryTransaction);
+    }
+
+    private void checkStatus(InventoryOrder inventoryOrder) {
+
+        if (inventoryOrder.getStatus() == InventoryOrder.InventoryOrderStatus.PROCESSED) {
+            throw new BusinessLogicException("message.alreadyProcessed", "Processed inventory order cannot be changed.");
+        }
     }
 }

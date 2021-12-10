@@ -177,7 +177,7 @@ public class ShiftServiceImpl implements ShiftService {
         final Shift shift = this.getShift(shiftId);
 
         if (!shift.getShiftStatus().isFinalState()) {
-            throw new BusinessLogicException("message.shiftNotClosed", "Please close the shift before sending the shift report");
+            this.shiftNotClosed();
         }
 
         DynamicEmailDetails notificationDetails = new DynamicEmailDetails(shift.getClientId(), emailAddress, "d-a1b0553668d34b2f84a4cd1c2e1689d6");
@@ -194,7 +194,7 @@ public class ShiftServiceImpl implements ShiftService {
         final Shift shift = this.getShift(shiftId);
 
         if (!shift.getShiftStatus().isFinalState()) {
-            throw new BusinessLogicException("message.shiftNotClosed", "Please close the shift before printing the shift report");
+            this.shiftNotClosed();
         }
 
         return printerInstructionService.createShiftReportPrintInstruction(client, shift);
@@ -204,5 +204,10 @@ public class ShiftServiceImpl implements ShiftService {
         return shiftRepository.findFirstByClientIdOrderByCreatedDateDesc(clientId).orElseThrow(() -> {
             throw new ObjectNotFoundException(clientId, Shift.class);
         });
+    }
+
+    private void shiftNotClosed() {
+        throw new BusinessLogicException("message.shiftNotClosed", "Please close the shift first");
+
     }
 }

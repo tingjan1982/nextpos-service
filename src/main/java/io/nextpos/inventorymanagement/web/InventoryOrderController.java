@@ -84,7 +84,6 @@ public class InventoryOrderController {
                                                        @Valid @RequestBody InventoryOrderRequest request) {
 
         final InventoryOrder inventoryOrder = inventoryService.getInventoryOrder(id);
-        checkStatus(inventoryOrder);
         updateFromRequest(inventoryOrder, request);
 
         return toResponse(inventoryService.saveInventoryOrder(inventoryOrder));
@@ -126,7 +125,6 @@ public class InventoryOrderController {
                                                         @PathVariable String id) {
 
         final InventoryOrder inventoryOrder = inventoryService.getInventoryOrder(id);
-        checkStatus(inventoryOrder);
 
         inventoryService.processInventoryOrder(inventoryOrder);
     }
@@ -137,15 +135,7 @@ public class InventoryOrderController {
                                       @PathVariable String id) {
 
         final InventoryOrder inventoryOrder = inventoryService.getInventoryOrder(id);
-        checkStatus(inventoryOrder);
 
         inventoryService.deleteInventoryOrder(inventoryOrder);
-    }
-
-    private void checkStatus(InventoryOrder inventoryOrder) {
-
-        if (inventoryOrder.getStatus() == InventoryOrder.InventoryOrderStatus.PROCESSED) {
-            throw new BusinessLogicException("message.alreadyProcessed", "Inventory order is already processed.");
-        }
     }
 }

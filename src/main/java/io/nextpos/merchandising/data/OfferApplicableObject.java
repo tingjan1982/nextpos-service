@@ -1,6 +1,7 @@
 package io.nextpos.merchandising.data;
 
 import io.nextpos.ordermanagement.data.TaxableAmount;
+import io.nextpos.shared.exception.BusinessLogicException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -51,6 +52,9 @@ public interface OfferApplicableObject {
 
     void setAppliedOfferInfo(AppliedOfferInfo appliedOfferInfo);
 
+    default void throwDiscountLessThanZeroException() {
+        throw new BusinessLogicException("message.discountedTotalLessThanZero", "Discounted amount cannot be less than zero");
+    }
 
     @Data
     @NoArgsConstructor

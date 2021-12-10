@@ -321,10 +321,6 @@ public class OrderServiceImpl implements OrderService {
     @WebSocketClientOrder
     public Order addOrderLineItem(Client client, final Order order, final OrderLineItem orderLineItem) {
 
-        if (order.isClosed()) {
-            throw new BusinessLogicException("message.orderClosed", "Order is closed, cannot add OrderLineItem: " + order.getId());
-        }
-
         order.productSetOrder().addOrderLineItem(orderLineItem);
 
         return merchandisingService.computeOffers(client, order);

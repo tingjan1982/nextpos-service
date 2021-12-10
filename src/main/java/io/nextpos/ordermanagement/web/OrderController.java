@@ -21,6 +21,7 @@ import io.nextpos.ordertransaction.web.model.OrderTransactionResponse;
 import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.shared.aspect.OrderLogAction;
 import io.nextpos.shared.aspect.OrderLogParam;
+import io.nextpos.shared.aspect.ValidateOrderState;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.tablelayout.service.TableLayoutService;
@@ -370,6 +371,7 @@ public class OrderController {
 
 
     @PostMapping("/{id}/lineitems")
+    @ValidateOrderState
     @OrderLogAction
     public OrderResponse addOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                           @PathVariable String id,
@@ -389,6 +391,7 @@ public class OrderController {
     }
 
     @PostMapping("/{id}/comboLineitems")
+    @ValidateOrderState
     @OrderLogAction
     public OrderResponse addComboOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                @PathVariable String id,
@@ -447,6 +450,7 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}/lineitems/{lineItemId}")
+    @ValidateOrderState
     @OrderLogAction
     public OrderResponse updateOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                              @PathVariable String id,
@@ -486,6 +490,7 @@ public class OrderController {
     }
 
     @PatchMapping("/{id}/lineitems/{lineItemId}/price")
+    @ValidateOrderState
     @OrderLogAction
     public OrderResponse updateOrderLineItemPrice(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                   @PathVariable String id,
@@ -502,6 +507,7 @@ public class OrderController {
 
     @DeleteMapping("/{id}/lineitems/{lineItemId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ValidateOrderState
     @OrderLogAction
     public void deleteOrderLineItem(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                     @PathVariable String id,
