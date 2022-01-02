@@ -13,6 +13,7 @@ import io.nextpos.shared.auth.AuthenticationHelper;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ObjectNotFoundException;
 import io.nextpos.shared.exception.ShiftException;
+import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.shared.service.annotation.MongoTransaction;
 import io.nextpos.workingarea.data.SinglePrintInstruction;
 import io.nextpos.workingarea.service.PrinterInstructionService;
@@ -25,9 +26,13 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service
-@MongoTransaction
+@ChainedTransaction
 public class ShiftServiceImpl implements ShiftService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ShiftServiceImpl.class);
@@ -44,6 +49,8 @@ public class ShiftServiceImpl implements ShiftService {
 
     private final AuthenticationHelper authenticationHelper;
 
+    private final ConcurrentMap<String, ReentrantLock> locks = new ConcurrentHashMap<>();
+
     @Autowired
     public ShiftServiceImpl(final OrderTransactionReportService orderTransactionReportService, PrinterInstructionService printerInstructionService, NotificationService notificationService, final ShiftRepository shiftRepository, final OrderRepository orderRepository, AuthenticationHelper authenticationHelper) {
         this.orderTransactionReportService = orderTransactionReportService;
@@ -57,17 +64,28 @@ public class ShiftServiceImpl implements ShiftService {
     @Override
     public Shift openShift(final String clientId, BigDecimal openingBalance) {
 
-        final Optional<Shift> activeShift = this.getActiveShift(clientId);
+        Lock lock = acquireLock(clientId);
+        lock.lock();
 
-        if (activeShift.isPresent()) {
-            LOGGER.info("There is already an active shift. Returning active shift directly: {}", activeShift.get());
-            return activeShift.get();
+        try {
+            final Optional<Shift> activeShift = this.getActiveShift(clientId);
+
+            if (activeShift.isPresent()) {
+                LOGGER.info("There is already an active shift. Returning active shift directly: {}", activeShift.get());
+                return activeShift.get();
+            }
+
+            final String currentUser = authenticationHelper.resolveCurrentUsername();
+            final Shift shift = new Shift(clientId, new Date(), currentUser, openingBalance);
+
+            return shiftRepository.save(shift);
+        } finally {
+            lock.unlock();
         }
+    }
 
-        final String currentUser = authenticationHelper.resolveCurrentUsername();
-        final Shift shift = new Shift(clientId, new Date(), currentUser, openingBalance);
-
-        return shiftRepository.save(shift);
+    private Lock acquireLock(String clientId) {
+        return locks.computeIfAbsent(clientId, s -> new ReentrantLock());
     }
 
     @Override

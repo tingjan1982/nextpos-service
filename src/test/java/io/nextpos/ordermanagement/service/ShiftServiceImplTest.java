@@ -13,6 +13,7 @@ import io.nextpos.ordertransaction.service.OrderTransactionService;
 import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.BusinessLogicException;
+import io.nextpos.shared.service.annotation.ChainedTransaction;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,6 @@ import java.util.*;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-@Transactional
 @TestPropertySource(properties = "nomock=true")
 class ShiftServiceImplTest {
 
@@ -71,6 +71,7 @@ class ShiftServiceImplTest {
 
     @Test
     @WithMockUser("dummyUser")
+    @ChainedTransaction
     void openAndCloseShift() throws Exception {
 
         final Shift openedShift = shiftService.openShift(clientId, BigDecimal.valueOf(1000));
@@ -162,6 +163,7 @@ class ShiftServiceImplTest {
 
     @Test
     @WithMockUser("dummyUser")
+    @ChainedTransaction
     void abortShift() {
 
         shiftService.openShift(clientId, BigDecimal.valueOf(1000));
@@ -178,6 +180,7 @@ class ShiftServiceImplTest {
 
     @Test
     @WithMockUser
+    @ChainedTransaction
     void listShifts() {
         final Instant now = ZonedDateTime.now().toInstant();
 
