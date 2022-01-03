@@ -14,7 +14,8 @@
             <feed line="1"/>
             <text align="left"/>
             <text width="1" height="1"/>
-            <text>${order.createdDate?string('MM/dd/yyyy HH:mm:ss')!"NA"}&#10;</text>
+            <#assign currentDate = .now>
+            <text>${currentDate?string('MM/dd/yyyy HH:mm:ss')!"NA"}&#10;</text>
             <text>訂單: ${order.serialId!"NA"}&#10;</text>
             <#list lineItems as li>
                 <feed line="1"/>

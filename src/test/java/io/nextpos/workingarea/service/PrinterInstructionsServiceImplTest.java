@@ -150,7 +150,7 @@ class PrinterInstructionsServiceImplTest {
 
         LOGGER.info("{}", orderToWorkingArea);
 
-        printInstruction(orderToWorkingArea.getPrinterInstructions().get(0).getPrintInstruction());
+        logAndPrint(orderToWorkingArea.getPrinterInstructions().get(0).getPrintInstruction());
     }
 
     @Test

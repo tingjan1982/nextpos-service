@@ -8,6 +8,7 @@
             <text align="center"/>
             <text lang="zh-tw"/>
             <text font="font_b"/>
+            <#assign currentDate = .now>
             <#list lineItems as li>
                 <#list 1..li.quantity as i>
                     <text width="2" height="2"/>
@@ -16,7 +17,7 @@
                     <feed line="1"/>
                     <text align="left"/>
                     <text width="1" height="1"/>
-                    <text>${order.createdDate?string('MM/dd/yyyy HH:mm:ss')!"NA"}&#10;</text>
+                    <text>${currentDate?string('MM/dd/yyyy HH:mm:ss')!"NA"}&#10;</text>
                     <text>訂單: ${order.serialId!"NA"} (${i})&#10;</text>
                     <feed line="1"/>
                     <text width="2" height="2"/>
