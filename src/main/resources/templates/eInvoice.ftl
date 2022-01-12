@@ -9,6 +9,7 @@
         <s:Body>
             <epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">
                 <#setting time_zone="Asia/Taipei">
+                <#assign indent="285"/>
                 <text lang="zh-tw"/>
                 <text align="center"/>
                 <text font="font_a"/>
@@ -92,9 +93,9 @@
                     <feed line="1"/>
                     <text linespc="40"/>
                     <#list order.orderLineItems as li>
-                        <text width="2" height="2"/>
+                        <text em="true"/>
                         <text>${li.productSnapshot.name}&#10;</text>
-                        <text width="1" height="1"/>
+                        <text em="false" width="1" height="1"/>
                         <text x="100">x ${li.quantity} (${li.productSnapshot.productPriceWithOptions})</text>
                         <text x="310">$${li.lineItemSubTotal}&#10;</text>
                     </#list>
