@@ -6,8 +6,10 @@ import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLog;
 import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.shared.auth.OAuth2Helper;
+import io.nextpos.shared.exception.GeneralApplicationException;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
@@ -58,16 +60,17 @@ public class OrderLogAspect {
                                              Client client,
                                              String id) throws Throwable {
 
+        final String orderLogActionName = resolveOrderLogActionName(orderLogAction, proceedingJoinPoint.getSignature());
+        final String who = this.resolvePrincipal(client);
+        final Order orderBeforeChange = orderService.getOrder(id);
+
         return retryTemplate.execute(retry -> new TransactionTemplate(mongoTransactionManager).execute(a -> {
             try {
-
-                final Order orderBeforeChange = orderService.getOrder(id);
                 final Object result = proceedingJoinPoint.proceed();
                 LOGGER.debug("Returns: {}", result);
 
                 final Order orderAfterChange = orderService.getOrder(id);
-                final String orderLogActionName = resolveOrderLogActionName(orderLogAction, proceedingJoinPoint.getSignature());
-                final String who = this.resolvePrincipal(client);
+
                 final OrderLogInformation orderLogInformation = new OrderLogInformation(orderBeforeChange, orderAfterChange);
 
                 final OrderLogChangeObject orderLogChangeObject = Arrays.stream(proceedingJoinPoint.getArgs())
@@ -98,11 +101,28 @@ public class OrderLogAspect {
 
 
             } catch (Throwable e) {
-                LOGGER.debug("Caught an exception: {}", e.getMessage(), e);
-
-                throw new TransactionUsageException(e.getMessage(), e);
+                throw new RuntimeException(e.getMessage(), e);
             }
-        }));
+        }), state -> {
+            String errorKey = RandomStringUtils.randomNumeric(6);
+            Throwable lastThrowable = state.getLastThrowable();
+            String errorMsg = String.format("%s failed (%s): %s", orderLogActionName, errorKey, lastThrowable.getMessage());
+
+            LOGGER.error(errorMsg, lastThrowable);
+
+            final OrderLog orderLog = new OrderLog(new Date(), who, orderLogActionName);
+            orderLog.addOrderLogEntry("error", errorMsg);
+            orderBeforeChange.addOrderLog(orderLog);
+            orderService.saveOrder(orderBeforeChange);
+
+            LOGGER.error("End error ({})", errorKey);
+
+            if (lastThrowable instanceof Exception) {
+                throw (Exception) lastThrowable;
+            }
+
+            throw new GeneralApplicationException("Shouldn't reach here");
+        });
     }
 
     private String resolveOrderLogActionName(final OrderLogAction orderLogAction, final Signature signature) {

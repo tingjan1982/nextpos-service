@@ -29,9 +29,10 @@ public class RequestIdContextFilter extends OncePerRequestFilter {
     protected void doFilterInternal(final HttpServletRequest request, final HttpServletResponse response, final FilterChain filterChain) throws ServletException, IOException {
 
         final String requestId = UUID.randomUUID().toString();
+        String requestURI = request.getRequestURI();
 
         try {
-            MDC.put(MDC_REQUEST_ID, requestId);
+            MDC.put(MDC_REQUEST_ID, requestURI);
             response.setHeader(REQUEST_ID_HEADER, requestId);
             filterChain.doFilter(request, response);
         } catch (Exception e) {
