@@ -5,6 +5,8 @@ metadata:
 spec:
   tls:
     - secretName: nextpos-secret-tls2
-  backend:
-    serviceName: nextpos-service-nodeport
-    servicePort: 80     
+  defaultBackend:
+    service:
+      name: nextpos-service-nodeport
+      port:
+        number: 80
