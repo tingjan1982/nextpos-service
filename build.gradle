@@ -1,3 +1,8 @@
+/**
+ * Spring Boot Gradle Plugin guide:
+ *
+ * https://docs.spring.io/spring-boot/docs/current/gradle-plugin/reference/htmlsingle/
+ */
 plugins {
     id 'java'
     id 'org.springframework.boot'
@@ -7,7 +12,7 @@ plugins {
     // https://blog.jdriven.com/2017/01/spring-sweets-add-git-info-info-endpoint/
     id "com.gorylenko.gradle-git-properties" version "2.4.0-rc1"
 
-    id "io.freefair.lombok" version "5.0.0-rc4"
+    id "io.freefair.lombok" version "6.3.0"
 }
 
 group = 'io.nextpos'
@@ -39,7 +44,7 @@ dependencies {
     if (!project.hasProperty('ciBuild')) {
         implementation project(':einvoice-common')
     } else {
-        implementation 'io.nextpos.einvoice:einvoice-common:1.4.3'
+        implementation 'io.nextpos.einvoice:einvoice-common:1.5.1'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -91,7 +96,7 @@ dependencies {
     /**
      * https://www.baeldung.com/spring-boot-embedded-mongodb
      */
-    testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:2.2.0'
+    testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:3.0.0'
 }
 
 dependencyManagement {
@@ -113,6 +118,6 @@ test {
 docker {
     dependsOn build
     name "joelin/${bootJar.archiveBaseName.get()}:latest"
-    files bootJar.archiveFile.get()
-    buildArgs(['JAR_FILE': "${bootJar.archiveFileName.get()}"])
+    files bootJar.archiveFile.get(), "/Users/joelin/IdeaProjects/nextpos-service/helpful-range-236813-681ca732dc15.json"
+    buildArgs(['JAR_FILE': "${bootJar.archiveFileName.get()}", 'SERVICE_ACCOUNT_JSON': "helpful-range-236813-681ca732dc15.json"])
 }

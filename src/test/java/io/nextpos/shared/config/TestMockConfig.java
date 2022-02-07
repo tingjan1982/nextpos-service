@@ -10,7 +10,6 @@ import de.flapdoodle.embed.mongo.distribution.Feature;
 import de.flapdoodle.embed.mongo.distribution.IFeatureAwareVersion;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.mongo.distribution.Versions;
-import de.flapdoodle.embed.process.distribution.GenericVersion;
 import de.flapdoodle.embed.process.runtime.Network;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
@@ -70,12 +69,13 @@ public class TestMockConfig {
      * Override the configuration in EmbeddedMongoAutoConfiguration to start Mongo server with replica set and journal.
      */
     @Bean
-    public IMongodConfig embeddedMongoConfiguration(EmbeddedMongoProperties embeddedProperties) throws IOException {
-        IMongoCmdOptions cmdOptions = new MongoCmdOptionsBuilder()
+    public MongodConfig embeddedMongoConfiguration(EmbeddedMongoProperties embeddedProperties) throws IOException {
+
+        MongoCmdOptions cmdOptions = ImmutableMongoCmdOptions.builder()
                 .useNoJournal(false)
                 .build();
 
-        MongodConfigBuilder builder = new MongodConfigBuilder().version(determineVersion(embeddedProperties)).cmdOptions(cmdOptions);
+        ImmutableMongodConfig.Builder builder = MongodConfig.builder().version(determineVersion(embeddedProperties)).cmdOptions(cmdOptions);
         builder.stopTimeoutInMillis(6000);
 
         EmbeddedMongoProperties.Storage storage = embeddedProperties.getStorage();
@@ -88,7 +88,8 @@ public class TestMockConfig {
         Integer configuredPort = this.properties.getPort();
         if (configuredPort != null && configuredPort > 0) {
             builder.net(new Net(getHost().getHostAddress(), configuredPort, Network.localhostIsIPv6()));
-        } else {
+        }
+        else {
             builder.net(new Net(getHost().getHostAddress(), Network.getFreeServerPort(getHost()),
                     Network.localhostIsIPv6()));
         }
@@ -102,10 +103,14 @@ public class TestMockConfig {
                     return version;
                 }
             }
-            return Versions.withFeatures(new GenericVersion(embeddedProperties.getVersion()));
+            return Versions.withFeatures(createEmbeddedMongoVersion(embeddedProperties));
         }
-        return Versions.withFeatures(new GenericVersion(embeddedProperties.getVersion()),
+        return Versions.withFeatures(createEmbeddedMongoVersion(embeddedProperties),
                 embeddedProperties.getFeatures().toArray(new Feature[0]));
+    }
+
+    private de.flapdoodle.embed.process.distribution.Version.GenericVersion createEmbeddedMongoVersion(EmbeddedMongoProperties embeddedProperties) {
+        return de.flapdoodle.embed.process.distribution.Version.of(embeddedProperties.getVersion());
     }
 
     private InetAddress getHost() throws UnknownHostException {
