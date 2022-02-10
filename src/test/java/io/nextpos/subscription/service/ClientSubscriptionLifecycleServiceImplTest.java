@@ -5,6 +5,7 @@ import io.nextpos.client.service.ClientService;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
+import io.nextpos.shared.util.DateTimeUtil;
 import io.nextpos.subscription.data.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
@@ -73,10 +76,10 @@ class ClientSubscriptionLifecycleServiceImplTest {
 
         createSubscriptionInvoice(clientSubscription, ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PAID);
 
-        final List<ClientSubscriptionInvoice> renewalInvoices = clientSubscriptionLifecycleService.findSubscriptionInvoicesForRenewal();
+        final List<ClientSubscriptionInvoice> renewalInvoices = clientSubscriptionLifecycleService.renewActiveClientSubscriptions();
 
         assertThat(renewalInvoices).hasSize(1);
-        assertThat(clientSubscriptionLifecycleService.findSubscriptionInvoicesForRenewal()).isEmpty();
+        assertThat(clientSubscriptionLifecycleService.renewActiveClientSubscriptions()).isEmpty();
 
         final ClientSubscriptionInvoice renewalInvoice = renewalInvoices.get(0);
 
@@ -127,6 +130,21 @@ class ClientSubscriptionLifecycleServiceImplTest {
         assertThat(clientSubscriptions).allSatisfy(cs -> {
             assertThat(cs.getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.LAPSED);
         });
+    }
+
+    @Test
+    void computeDaysFromDate() {
+
+        ZoneId zone = ZoneId.systemDefault();
+        ClientSubscriptionLifecycleServiceImpl impl = (ClientSubscriptionLifecycleServiceImpl) this.clientSubscriptionLifecycleService;
+
+        Date date = impl.computeDaysFromDate(LocalDate.of(2022, 1, 10));
+
+        assertThat(DateTimeUtil.toLocalDate(zone, date)).isEqualTo("2022-01-20");
+
+        Date date2 = impl.computeDaysFromDate(LocalDate.of(2022, 1, 25));
+
+        assertThat(DateTimeUtil.toLocalDate(zone, date2)).isEqualTo("2022-01-31");
     }
 
     private ClientSubscription createClientSubscription(ClientSubscription.SubscriptionStatus status) {

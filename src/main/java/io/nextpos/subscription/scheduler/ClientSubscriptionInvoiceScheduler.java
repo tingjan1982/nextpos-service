@@ -23,33 +23,33 @@ public class ClientSubscriptionInvoiceScheduler {
         this.clientSubscriptionLifecycleService = clientSubscriptionLifecycleService;
     }
 
-    @Scheduled(cron = "0 0 0 * * ?")
-    public void findSubscriptionInvoicesForRenewal() {
+    @Scheduled(cron = "#{@clientSubscriptionSchedulerProperties.renewActiveClientSubscriptionsCron}")
+    public void renewActiveClientSubscriptions() {
 
         LOGGER.info("[Renewal subscription invoices]: Start");
 
-        final List<ClientSubscriptionInvoice> invoices = clientSubscriptionLifecycleService.findSubscriptionInvoicesForRenewal();
+        final List<ClientSubscriptionInvoice> invoices = clientSubscriptionLifecycleService.renewActiveClientSubscriptions();
 
-        LOGGER.info("[Renewal subscription invoices]: Start ({})", invoices.size());
+        LOGGER.info("[Renewal subscription invoices]: Issued {} invoices", invoices.size());
     }
 
-    @Scheduled(cron = "0 0 1 * * ?")
+    @Scheduled(cron = "#{@clientSubscriptionSchedulerProperties.unpaidSubscriptionInvoicesCron}")
     public void findUnpaidSubscriptionInvoices() {
 
         LOGGER.info("[Unpaid subscription invoices]: Start");
 
         final List<ClientSubscriptionInvoice> invoices = clientSubscriptionLifecycleService.findUnpaidSubscriptionInvoices();
 
-        LOGGER.info("[Unpaid subscription invoices]: Complete ({})", invoices.size());
+        LOGGER.info("[Unpaid subscription invoices]: Found {} invoices", invoices.size());
     }
 
-    @Scheduled(cron = "0 0 2 * * ?")
-    public void processLapsingClientSubscriptions() {
+    @Scheduled(cron = "#{@clientSubscriptionSchedulerProperties.lapseActiveClientSubscriptionsCron}")
+    public void processActiveLapsingClientSubscriptions() {
 
         LOGGER.info("[Lapsing client subscriptions]: Start");
 
         final List<ClientSubscription> clientSubscriptions = clientSubscriptionLifecycleService.processActiveLapsingClientSubscriptions();
 
-        LOGGER.info("[Lapsing client subscriptions]: Complete ({})", clientSubscriptions.size());
+        LOGGER.info("[Lapsing client subscriptions]: Processed ({}) subscriptions", clientSubscriptions.size());
     }
 }

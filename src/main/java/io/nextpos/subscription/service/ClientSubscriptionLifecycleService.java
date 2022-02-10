@@ -9,7 +9,7 @@ public interface ClientSubscriptionLifecycleService {
 
     List<ClientSubscription> findClientSubscriptionsUpForRenewal();
 
-    List<ClientSubscriptionInvoice> findSubscriptionInvoicesForRenewal();
+    List<ClientSubscriptionInvoice> renewActiveClientSubscriptions();
 
     List<ClientSubscriptionInvoice> findUnpaidSubscriptionInvoices();
 

@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import javax.annotation.PostConstruct;
 import java.util.Date;
@@ -11,6 +12,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 @SpringBootApplication
+@EnableScheduling
 public class NextposServiceApplication {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NextposServiceApplication.class);

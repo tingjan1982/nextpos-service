@@ -6,6 +6,7 @@ import io.nextpos.client.data.ClientUser;
 import io.nextpos.client.service.ClientActivationService;
 import io.nextpos.client.service.ClientBootstrapService;
 import io.nextpos.client.service.ClientService;
+import io.nextpos.client.service.DeleteClientService;
 import io.nextpos.client.web.model.*;
 import io.nextpos.clienttracker.data.ClientUsageTrack;
 import io.nextpos.clienttracker.service.ClientUserTrackingService;
@@ -41,6 +42,8 @@ public class ClientController {
 
     private final ClientService clientService;
 
+    private final DeleteClientService deleteClientService;
+
     private final UserRoleService userRoleService;
 
     private final SettingsService settingsService;
@@ -60,8 +63,9 @@ public class ClientController {
     private final OAuth2Helper oAuth2Helper;
 
     @Autowired
-    public ClientController(final ClientService clientService, final UserRoleService userRoleService, SettingsService settingsService, WorkingAreaService workingAreaService, ClientBootstrapService clientBootstrapService, final ClientActivationService clientActivationService, ClientUserTrackingService clientUserTrackingService, ClientSubscriptionAccessService clientSubscriptionAccessService, EncryptionService encryptionService, final OAuth2Helper oAuth2Helper) {
+    public ClientController(final ClientService clientService, DeleteClientService deleteClientService, final UserRoleService userRoleService, SettingsService settingsService, WorkingAreaService workingAreaService, ClientBootstrapService clientBootstrapService, final ClientActivationService clientActivationService, ClientUserTrackingService clientUserTrackingService, ClientSubscriptionAccessService clientSubscriptionAccessService, EncryptionService encryptionService, final OAuth2Helper oAuth2Helper) {
         this.clientService = clientService;
+        this.deleteClientService = deleteClientService;
         this.userRoleService = userRoleService;
         this.settingsService = settingsService;
         this.workingAreaService = workingAreaService;
@@ -237,7 +241,7 @@ public class ClientController {
             throw new BusinessLogicException("You have to mark client account as deleted first.");
         }
 
-        clientService.deleteClient(client.getId());
+        deleteClientService.deleteClient(client.getId());
     }
 
     private ClientResponse toClientResponse(final Client client) {

@@ -3,6 +3,7 @@ package io.nextpos.subscription.service;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.shared.service.annotation.ChainedTransaction;
+import io.nextpos.shared.util.DateTimeUtil;
 import io.nextpos.subscription.data.ClientSubscription;
 import io.nextpos.subscription.data.ClientSubscriptionInvoice;
 import io.nextpos.subscription.data.ClientSubscriptionInvoiceRepository;
@@ -12,8 +13,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,35 +46,51 @@ public class ClientSubscriptionLifecycleServiceImpl implements ClientSubscriptio
     @Override
     public List<ClientSubscription> findClientSubscriptionsUpForRenewal() {
 
-        final Date tenDaysFromNow = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).plusDays(10).toInstant());
+        LocalDateTime endDt = LocalDate.now().atStartOfDay().with(TemporalAdjusters.firstDayOfNextMonth());
+        ZoneId zone = ZoneId.systemDefault();
 
-        final List<ClientSubscription> clientSubscriptions = clientSubscriptionRepository.findAllByStatusAndPlanEndDateBetween(
-                ClientSubscription.SubscriptionStatus.ACTIVE,
-                new Date(),
-                tenDaysFromNow);
-
-        return clientSubscriptions.stream()
-                .filter(sub -> clientService.getClient(sub.getClientId()).isPresent())
-                .collect(Collectors.toList());
+        return this.findActiveClientSubscriptionByDate(new Date(), DateTimeUtil.toDate(zone, endDt));
     }
 
     @Override
-    public List<ClientSubscriptionInvoice> findSubscriptionInvoicesForRenewal() {
+    public List<ClientSubscriptionInvoice> renewActiveClientSubscriptions() {
 
-        final Date tenDaysFromNow = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).plusDays(10).toInstant());
-        final List<ClientSubscription> activeSubscriptions = clientSubscriptionRepository.findAllByStatusAndPlanEndDateBetween(
-                ClientSubscription.SubscriptionStatus.ACTIVE,
-                new Date(),
-                tenDaysFromNow);
+        final List<ClientSubscription> activeSubscriptions = this.findActiveClientSubscriptionByDate(new Date(), computeDaysFromDate(LocalDate.now()));
 
         return activeSubscriptions.stream()
-                .filter(sub -> clientService.getClient(sub.getClientId()).isPresent())
                 .map(sub -> {
                     final Client client = clientService.getClientOrThrows(sub.getClientId());
                     return clientSubscriptionService.createClientSubscriptionInvoice(client, sub, sub.getPlanEndDate());
                 })
                 .collect(Collectors.toList());
     }
+
+    Date computeDaysFromDate(LocalDate localDate) {
+
+        ZoneId zone = ZoneId.systemDefault();
+        LocalDateTime dateInFuture = localDate.atStartOfDay().plusDays(10);
+
+        if (dateInFuture.getMonth() != localDate.getMonth()) {
+            dateInFuture = dateInFuture.withMonth(localDate.getMonthValue()).with(TemporalAdjusters.lastDayOfMonth());
+        }
+
+        return DateTimeUtil.toDate(zone, dateInFuture);
+    }
+
+    private List<ClientSubscription> findActiveClientSubscriptionByDate(Date from, Date to) {
+
+        LOGGER.info("Finding client subscription with date range: {} - {}", from, to);
+
+        List<ClientSubscription> clientSubscriptions = clientSubscriptionRepository.findAllByStatusAndPlanEndDateBetween(
+                ClientSubscription.SubscriptionStatus.ACTIVE,
+                from,
+                to);
+
+        return clientSubscriptions.stream()
+                .filter(sub -> clientService.getClient(sub.getClientId()).isPresent())
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     public List<ClientSubscriptionInvoice> findUnpaidSubscriptionInvoices() {
@@ -80,8 +99,8 @@ public class ClientSubscriptionLifecycleServiceImpl implements ClientSubscriptio
 
         return unpaidInvoices.stream()
                 .peek(inv -> {
-                    inv.setStatus(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.OVERDUE);
-                    clientSubscriptionInvoiceRepository.save(inv);
+//                    inv.setStatus(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.OVERDUE);
+//                    clientSubscriptionInvoiceRepository.save(inv);
 
                 }).collect(Collectors.toList());
     }

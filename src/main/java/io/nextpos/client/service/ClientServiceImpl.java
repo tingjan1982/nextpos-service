@@ -262,9 +262,7 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public void deleteClient(final String id) {
         clientRepository.findById(id).ifPresent(client -> {
-            if (client.getClientName().equalsIgnoreCase("attic")) {
-                throw new GeneralApplicationException("You cannot delete this client: " + client.getClientName());
-            }
+            System.out.printf("Deleting client %s (%s)...\n", client.getClientName(), id);
 
             clientDetailsService.removeClientDetails(client.getUsername());
             clientUserRepository.deleteAllByClient(client);

@@ -1,8 +1,12 @@
 package io.nextpos.script;
 
+import io.nextpos.announcement.data.Announcement;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientRepository;
 import io.nextpos.client.service.ClientService;
+import io.nextpos.client.service.DeleteClientService;
+import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.subscription.data.ClientSubscriptionInvoice;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -36,25 +40,27 @@ public class ManageClientAccount {
 
     private final ClientService clientService;
 
+    private final DeleteClientService deleteClientService;
+
     private final ClientRepository clientRepository;
 
     private final MongoTemplate mongoTemplate;
 
     @Autowired
-    public ManageClientAccount(ClientService clientService, ClientRepository clientRepository, MongoTemplate mongoTemplate) {
+    public ManageClientAccount(ClientService clientService, DeleteClientService deleteClientService, ClientRepository clientRepository, MongoTemplate mongoTemplate) {
         this.clientService = clientService;
+        this.deleteClientService = deleteClientService;
         this.clientRepository = clientRepository;
         this.mongoTemplate = mongoTemplate;
     }
 
     @Test
-    void deleteDocumentsWithoutClientId() {
+    void analyzeDocuments() {
 
         final List<String> clientIds = clientRepository.findAll().stream()
-                .peek(c -> LOGGER.info("Client[{}] - {}", c.getId(), c.getClientName()))
                 .map(Client::getId).collect(Collectors.toList());
 
-        LOGGER.info("Client count: {}", clientIds.size());
+        System.out.printf("Client count: %d\n", clientIds.size());
 
         MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext = mongoTemplate.getConverter().getMappingContext();
         AtomicInteger totalDocument = new AtomicInteger();
@@ -68,20 +74,40 @@ public class ManageClientAccount {
                 .forEach(it -> {
                     totalDocument.incrementAndGet();
                     final MongoPersistentProperty property = it.getPersistentProperty("clientId");
+                    System.out.printf("%s - ", it.getName());
 
                     if (property != null) {
                         documentWithClientId.incrementAndGet();
                         Query query = Query.query(where("clientId").nin(clientIds));
-                        final List<?> documentsWithoutClient = mongoTemplate.find(query, it.getType());
-                        LOGGER.info("{}: without client total: {}", it.getName(), documentsWithoutClient.size());
+                        final List<?> documentsWithoutClient = mongoTemplate.findAllAndRemove(query, it.getType());
+                        System.out.printf("total records with invalid client id: %d", documentsWithoutClient.size());
+
+                        if(!documentsWithoutClient.isEmpty()) {
+                            System.out.print(" deleting...");
+                        }
+
+                        System.out.println();
 
                     } else {
                         documentWithoutClientId.incrementAndGet();
-                        LOGGER.info("Skipping without client id: {}", it.getName());
+                        System.out.println("no clientId field");
                     }
                 });
 
-        LOGGER.info("Summary: total document={}, with client id={}, without client id={}", totalDocument.get(), documentWithClientId.get(), documentWithoutClientId.get());
+        System.out.printf("Summary - total documents: %d , with client id: %d, without client id: %d", totalDocument.get(), documentWithClientId.get(), documentWithoutClientId.get());
+    }
+
+    @Test
+    void deleteDocumentWithInvalidClientId() {
+
+        Class<?> documentClassToDelete = ClientSubscriptionInvoice.class;
+        final List<String> clientIds = clientRepository.findAll().stream()
+                .map(Client::getId).collect(Collectors.toList());
+
+        Query query = Query.query(where("clientId").nin(clientIds));
+        final List<?> documentsWithoutClient = mongoTemplate.findAllAndRemove(query, documentClassToDelete);
+
+        System.out.printf("Total deleted records: %d", documentsWithoutClient.size());
     }
 
     @Test
@@ -120,19 +146,7 @@ public class ManageClientAccount {
     @Test
     void deleteClient() {
 
-        MappingContext<? extends MongoPersistentEntity<?>, MongoPersistentProperty> mappingContext = mongoTemplate.getConverter().getMappingContext();
-        String clientIdToDelete = "cli-v14LKjQf3o6kQBTWk87f4epF8nmN";
-
-        mappingContext.getPersistentEntities()
-                .stream()
-                .filter(it -> it.isAnnotationPresent(Document.class))
-                .forEach(it -> {
-                    Query queryByClientId = Query.query(where("clientId").is(clientIdToDelete));
-                    final List<?> documents = mongoTemplate.findAllAndRemove(queryByClientId, it.getType());
-                    LOGGER.info("Deleted records in {}: size: {}", it.getName(), documents.size());
-                });
-
-        clientService.deleteClient(clientIdToDelete);
-        LOGGER.info("Deleted client account: {}", clientIdToDelete);
+        String clientIdToDelete = "cli-lc3lVS2GF2mvr5jON5BD083JV0QQ";
+        deleteClientService.deleteClient(clientIdToDelete);
     }
 }
