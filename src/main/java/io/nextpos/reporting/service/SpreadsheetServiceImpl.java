@@ -131,7 +131,7 @@ public class SpreadsheetServiceImpl implements SpreadsheetService {
     @Override
     public void sendWorkBookNotification(Client client, String email, ZonedDateRange dateRange, Workbook workbook) {
 
-        final DynamicEmailDetails emailDetails = new DynamicEmailDetails(client.getId(), "tingjan1982@gmail.com", "d-f16f5ac4b1bc497aad0d0f200770f526");
+        final DynamicEmailDetails emailDetails = new DynamicEmailDetails(client.getId(), email, "d-f16f5ac4b1bc497aad0d0f200770f526");
         emailDetails.addTemplateData("client", client.getClientName());
 
         String formattedDateRange = dateRange.getFormattedFromDate() +

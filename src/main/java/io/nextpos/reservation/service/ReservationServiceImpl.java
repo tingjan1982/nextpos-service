@@ -40,9 +40,7 @@ public class ReservationServiceImpl implements ReservationService {
 
     private final ReservationRepository reservationRepository;
 
-    private final ReservationSettingsRepository reservationSettingsRepository;
-
-    private final OrderService orderService;
+    private final ReservationSettingsService reservationSettingsService;
 
     private final TableLayoutService tableLayoutService;
 
@@ -55,11 +53,10 @@ public class ReservationServiceImpl implements ReservationService {
     private final String reservationUrl;
 
     @Autowired
-    public ReservationServiceImpl(ReservationDayRepository reservationDayRepository, ReservationRepository reservationRepository, ReservationSettingsRepository reservationSettingsRepository, OrderService orderService, TableLayoutService tableLayoutService, NotificationService notificationService, SettingsService settingsService, MongoTemplate mongoTemplate, @Value("${reservation.url}") String reservationUrl) {
+    public ReservationServiceImpl(ReservationDayRepository reservationDayRepository, ReservationRepository reservationRepository, ReservationSettingsService reservationSettingsService, TableLayoutService tableLayoutService, NotificationService notificationService, SettingsService settingsService, MongoTemplate mongoTemplate, @Value("${reservation.url}") String reservationUrl) {
         this.reservationDayRepository = reservationDayRepository;
         this.reservationRepository = reservationRepository;
-        this.reservationSettingsRepository = reservationSettingsRepository;
-        this.orderService = orderService;
+        this.reservationSettingsService = reservationSettingsService;
         this.tableLayoutService = tableLayoutService;
         this.notificationService = notificationService;
         this.settingsService = settingsService;
@@ -141,17 +138,6 @@ public class ReservationServiceImpl implements ReservationService {
                 .map(Reservation.TableAllocation::getTableId)
                 .collect(Collectors.toList());
 
-//        final LocalDate today = DateTimeUtil.toLocalDate(client.getZoneId(), new Date());
-//
-//        if (reservationTime.toLocalDate().isEqual(today)) {
-//            final List<String> inflightTables = orderService.getInStoreInFlightOrders(client.getId()).stream()
-//                    .flatMap(o -> o.getTables().stream())
-//                    .map(Order.TableInfo::getTableId)
-//                    .collect(Collectors.toList());
-//
-//            bookedTables.addAll(inflightTables);
-//        }
-
         return tableLayoutService.getTableLayouts(client).stream()
                 .flatMap(tl -> tl.getTables().stream())
                 .filter(td -> !bookedTables.contains(td.getId()))
@@ -160,9 +146,8 @@ public class ReservationServiceImpl implements ReservationService {
     }
 
     private ReservationSettings getOrCreateReservationSettings(Client client) {
-        return reservationSettingsRepository.findById(client.getId()).orElseGet(() -> {
-            return reservationSettingsRepository.save(new ReservationSettings(client.getId()));
-        });
+
+        return reservationSettingsService.getReservationSettings(client.getId());
     }
 
     @Override

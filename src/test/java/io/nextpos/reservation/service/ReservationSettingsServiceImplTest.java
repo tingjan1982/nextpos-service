@@ -28,7 +28,7 @@ class ReservationSettingsServiceImplTest {
     }
 
     @Test
-    void test() {
+    void crudReservationSettings() {
 
         Client client = DummyObjects.dummyClient();
         clientService.saveClient(client);
@@ -36,7 +36,8 @@ class ReservationSettingsServiceImplTest {
         final ReservationSettings reservationSettings = reservationSettingsService.getReservationSettings(client.getId());
 
         assertThat(reservationSettings).satisfies(rs -> {
-            assertThat(rs.getId()).isEqualTo(client.getId());
+            assertThat(rs.getId()).isNotNull();
+            assertThat(rs.getClientId()).isEqualTo(client.getId());
             assertThat(rs.getReservationDuration()).isEqualByComparingTo(Duration.ofMinutes(120));
         });
 

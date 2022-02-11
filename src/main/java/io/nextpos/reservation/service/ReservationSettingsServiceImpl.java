@@ -20,7 +20,7 @@ public class ReservationSettingsServiceImpl implements ReservationSettingsServic
 
     @Override
     public ReservationSettings getReservationSettings(String id) {
-        return reservationSettingsRepository.findById(id).orElseGet(() -> {
+        return reservationSettingsRepository.findByClientId(id).orElseGet(() -> {
             return reservationSettingsRepository.save(new ReservationSettings(id));
         });
     }

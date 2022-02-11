@@ -1,12 +1,10 @@
 package io.nextpos.script;
 
-import io.nextpos.client.data.Client;
-import io.nextpos.client.data.ClientRepository;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.reservation.data.Reservation;
+import io.nextpos.reservation.data.ReservationSettingsRepository;
 import io.nextpos.reservation.service.ReservationService;
 import io.nextpos.shared.util.DateTimeUtil;
-import io.nextpos.subscription.data.ClientSubscriptionInvoice;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +24,14 @@ public class ManageClientReservation {
 
     private final ReservationService reservationService;
 
+    private final ReservationSettingsRepository reservationSettingsRepository;
+
     private final ClientService clientService;
 
     @Autowired
-    public ManageClientReservation(ReservationService reservationService, ClientService clientService) {
+    public ManageClientReservation(ReservationService reservationService, ReservationSettingsRepository reservationSettingsRepository, ClientService clientService) {
         this.reservationService = reservationService;
+        this.reservationSettingsRepository = reservationSettingsRepository;
         this.clientService = clientService;
     }
 
@@ -50,6 +51,15 @@ public class ManageClientReservation {
             reservations.forEach(r -> {
                 System.out.printf("%s (%s) - %s\n", r.getName(), r.getStatus(), DateTimeUtil.toLocalDateTime(c.getZoneId(), r.getStartDate()));
             });
+        });
+    }
+
+    @Test
+    void populateClientId() {
+
+        reservationSettingsRepository.findAll().forEach(rs -> {
+            rs.setClientId(rs.getId());
+            reservationSettingsRepository.save(rs);
         });
     }
 

@@ -83,7 +83,7 @@ public class ManageClientAccount {
                         System.out.printf("total records with invalid client id: %d", documentsWithoutClient.size());
 
                         if(!documentsWithoutClient.isEmpty()) {
-                            System.out.print(" deleting...");
+                            System.out.print(" deleted...");
                         }
 
                         System.out.println();
@@ -146,7 +146,7 @@ public class ManageClientAccount {
     @Test
     void deleteClient() {
 
-        String clientIdToDelete = "cli-lc3lVS2GF2mvr5jON5BD083JV0QQ";
+        String clientIdToDelete = "cli-";
         deleteClientService.deleteClient(clientIdToDelete);
     }
 }

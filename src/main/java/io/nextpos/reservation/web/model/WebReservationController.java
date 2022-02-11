@@ -68,7 +68,7 @@ public class WebReservationController {
 
         final ReservationSettings reservationSettings = reservationSettingsService.getReservationSettingsByReservationKey(id);
 
-        return new ClientResponse(clientService.getClientOrThrows(reservationSettings.getId()));
+        return new ClientResponse(clientService.getClientOrThrows(reservationSettings.getClientId()));
     }
 
     @PostMapping("/clients/{id}/findTables")
