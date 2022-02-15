@@ -17,7 +17,6 @@ import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.auth.AuthenticationHelper;
-import io.nextpos.shared.auth.OAuth2Helper;
 import org.awaitility.Awaitility;
 import org.awaitility.Duration;
 import org.bson.Document;
@@ -177,17 +176,6 @@ public class TestMockConfig {
             });
         }
 
-    }
-
-    @Bean
-    @ConditionalOnProperty(name = "nomock", havingValue = "false", matchIfMissing = true)
-    public OAuth2Helper oAuth2Helper(Client client) {
-        final OAuth2Helper mock = Mockito.mock(OAuth2Helper.class);
-        final ClientUser clientUser = DummyObjects.dummyClientUser(client);
-
-        Mockito.when(mock.resolveCurrentClientUser(any(Client.class))).thenReturn(clientUser);
-
-        return mock;
     }
 
     @Bean

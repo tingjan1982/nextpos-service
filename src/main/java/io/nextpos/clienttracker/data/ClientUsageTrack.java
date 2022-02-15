@@ -2,18 +2,17 @@ package io.nextpos.clienttracker.data;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.shared.model.BaseObject;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.Objects;
 
 @Entity
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
+@ToString
 @NoArgsConstructor
 public class ClientUsageTrack extends BaseObject {
 
@@ -43,5 +42,18 @@ public class ClientUsageTrack extends BaseObject {
     public enum TrackingType {
 
         USER, DEVICE
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ClientUsageTrack that = (ClientUsageTrack) o;
+        return id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

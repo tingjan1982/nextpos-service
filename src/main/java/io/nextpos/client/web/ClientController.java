@@ -14,7 +14,6 @@ import io.nextpos.einvoice.common.encryption.EncryptionService;
 import io.nextpos.roles.data.UserRole;
 import io.nextpos.roles.service.UserRoleService;
 import io.nextpos.settings.service.SettingsService;
-import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.config.BootstrapConfig;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.shared.exception.ClientAccountException;
@@ -60,10 +59,8 @@ public class ClientController {
 
     private final EncryptionService encryptionService;
 
-    private final OAuth2Helper oAuth2Helper;
-
     @Autowired
-    public ClientController(final ClientService clientService, DeleteClientService deleteClientService, final UserRoleService userRoleService, SettingsService settingsService, WorkingAreaService workingAreaService, ClientBootstrapService clientBootstrapService, final ClientActivationService clientActivationService, ClientUserTrackingService clientUserTrackingService, ClientSubscriptionAccessService clientSubscriptionAccessService, EncryptionService encryptionService, final OAuth2Helper oAuth2Helper) {
+    public ClientController(final ClientService clientService, DeleteClientService deleteClientService, final UserRoleService userRoleService, SettingsService settingsService, WorkingAreaService workingAreaService, ClientBootstrapService clientBootstrapService, final ClientActivationService clientActivationService, ClientUserTrackingService clientUserTrackingService, ClientSubscriptionAccessService clientSubscriptionAccessService, EncryptionService encryptionService) {
         this.clientService = clientService;
         this.deleteClientService = deleteClientService;
         this.userRoleService = userRoleService;
@@ -74,7 +71,6 @@ public class ClientController {
         this.clientUserTrackingService = clientUserTrackingService;
         this.clientSubscriptionAccessService = clientSubscriptionAccessService;
         this.encryptionService = encryptionService;
-        this.oAuth2Helper = oAuth2Helper;
     }
 
     @PostMapping
@@ -289,7 +285,7 @@ public class ClientController {
         final ClientUser clientUser;
 
         if (username.equals("me")) {
-            clientUser = oAuth2Helper.resolveCurrentClientUser(client);
+            clientUser = clientService.getCurrentClientUser(client);
         } else {
             clientUser = clientService.getClientUser(client, username);
         }
@@ -372,7 +368,7 @@ public class ClientController {
     public ClientUserResponse updateCurrentClientUserPassword(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                                               @Valid @RequestBody UpdateClientUserPasswordRequest request) {
 
-        final ClientUser currentUser = oAuth2Helper.resolveCurrentClientUser(client);
+        final ClientUser currentUser = clientService.getCurrentClientUser(client);
 
         final ClientUser updatedClientUser = clientService.updateClientUserPassword(client, currentUser, request.getPassword());
 

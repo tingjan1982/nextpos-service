@@ -1,6 +1,10 @@
 # https://tachingchen.com/blog/kubernetes-rolling-update-with-deployment/#rolling-update
 # https://stackoverflow.com/questions/40366192/kubernetes-how-to-make-deployment-to-update-image
 # https://kubernetes.io/docs/concepts/containers/images/
+
+# Provision a containerized app with node port and ingress:
+# https://cloud.google.com/kubernetes-engine/docs/tutorials/http-balancer#deploying_a_web_application
+# https://ikala.cloud/tutorials-kubernetes-engine-load-balancer/
 apiVersion: apps/v1
 kind: Deployment
 metadata:

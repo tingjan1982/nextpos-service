@@ -2,10 +2,10 @@ package io.nextpos.shared.aspect;
 
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientUser;
+import io.nextpos.client.service.ClientService;
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderLog;
 import io.nextpos.ordermanagement.service.OrderService;
-import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.exception.GeneralApplicationException;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.MongoTransactionManager;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.TransactionUsageException;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.lang.reflect.Parameter;
@@ -40,16 +39,16 @@ public class OrderLogAspect {
 
     private final OrderService orderService;
 
-    private final OAuth2Helper oAuth2Helper;
+    private final ClientService clientService;
 
     private final MongoTransactionManager mongoTransactionManager;
 
     private final RetryTemplate retryTemplate;
 
     @Autowired
-    public OrderLogAspect(final OrderService orderService, final OAuth2Helper oAuth2Helper, final MongoTransactionManager mongoTransactionManager, final RetryTemplate retryTemplate) {
+    public OrderLogAspect(final OrderService orderService, final ClientService clientService, final MongoTransactionManager mongoTransactionManager, final RetryTemplate retryTemplate) {
         this.orderService = orderService;
-        this.oAuth2Helper = oAuth2Helper;
+        this.clientService = clientService;
         this.mongoTransactionManager = mongoTransactionManager;
         this.retryTemplate = retryTemplate;
     }
@@ -158,7 +157,8 @@ public class OrderLogAspect {
     }
 
     private String resolvePrincipal(Client client) {
-        final ClientUser clientUser = oAuth2Helper.resolveCurrentClientUser(client);
+
+        final ClientUser clientUser = clientService.getCurrentClientUser(client);
         return clientUser.getName();
     }
 

@@ -3,6 +3,7 @@ package io.nextpos.ordermanagement.web.factory;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientSetting;
 import io.nextpos.client.data.ClientUser;
+import io.nextpos.client.service.ClientService;
 import io.nextpos.client.service.ClientSettingsService;
 import io.nextpos.ordermanagement.data.*;
 import io.nextpos.ordermanagement.web.model.ComboOrderLineItemRequest;
@@ -13,7 +14,6 @@ import io.nextpos.product.data.ProductSet;
 import io.nextpos.product.service.ProductService;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.settings.service.SettingsService;
-import io.nextpos.shared.auth.OAuth2Helper;
 import io.nextpos.shared.exception.BusinessLogicException;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
@@ -41,17 +41,17 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
 
     private final TableLayoutService tableLayoutService;
 
+    private final ClientService clientService;
+
     private final ClientSettingsService clientSettingsService;
 
-    private final OAuth2Helper oAuth2Helper;
-
     @Autowired
-    public OrderCreationFactoryImpl(final ProductService productService, final SettingsService settingsService, final TableLayoutService tableLayoutService, final ClientSettingsService clientSettingsService, final OAuth2Helper oAuth2Helper) {
+    public OrderCreationFactoryImpl(final ProductService productService, final SettingsService settingsService, final TableLayoutService tableLayoutService, ClientService clientService, final ClientSettingsService clientSettingsService) {
         this.productService = productService;
         this.settingsService = settingsService;
         this.tableLayoutService = tableLayoutService;
+        this.clientService = clientService;
         this.clientSettingsService = clientSettingsService;
-        this.oAuth2Helper = oAuth2Helper;
     }
 
     @Override
@@ -62,7 +62,7 @@ public class OrderCreationFactoryImpl implements OrderCreationFactory {
         final Order order = Order.newOrder(client.getId(), orderRequest.getOrderType(), orderSettings);
         updateTableInfoAndDemographicData(order, orderRequest);
 
-        final ClientUser clientUser = oAuth2Helper.resolveCurrentClientUser(client);
+        final ClientUser clientUser = clientService.getCurrentClientUser(client);
         order.setServedBy(clientUser.getName());
 
         if (!CollectionUtils.isEmpty(orderRequest.getLineItems())) {
