@@ -128,7 +128,7 @@ class PrinterInstructionsServiceImplTest {
                 new ProductSnapshot.ChildProductSnapshot("id", "sugar", null),
                 new ProductSnapshot.ChildProductSnapshot("id", "ice", "ICE")
         ));
-        final OrderLineItem coffee = order.addOrderLineItem(coffeeP, 5);
+        final OrderLineItem coffee = order.addOrderLineItem(coffeeP, 2);
         coffee.setState(OrderLineItem.LineItemState.IN_PROCESS);
         coffee.setWorkingAreaId(workingArea1.getId());
 

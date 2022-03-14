@@ -6,7 +6,7 @@
 <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
     <s:Body>
         <#setting time_zone="Asia/Taipei">
-        <#assign indent="285"/>
+        <#assign indent="270"/>
         <epos-print xmlns="http://www.epson-pos.com/schemas/2011/03/epos-print">
             <#setting time_zone="Asia/Taipei">
             <text align="center"/>
@@ -55,7 +55,8 @@
             <text>服務費:</text>
             <text x="${indent}">${order.serviceCharge}&#10;</text>
             <text>總計:</text>
-            <text x="${indent}">$${order.orderTotal}&#10;</text>
+            <text x="${indent}" align="right" em="true">$${order.orderTotal}&#10;</text>
+            <text em="false" width="1" height="1"/>
             <#if orderTransaction??>
                 <#assign paymentMethod = { "CASH": "現金", "CARD": "刷卡" }>
                 <text>結帳方式:</text><text x="${indent}">${paymentMethod[orderTransaction.paymentDetails.paymentMethod]!"NA"}&#10;</text>

@@ -68,7 +68,7 @@ public class ClientSubscriptionLifecycleServiceImpl implements ClientSubscriptio
     Date computeDaysFromDate(LocalDate localDate) {
 
         ZoneId zone = ZoneId.systemDefault();
-        LocalDateTime dateInFuture = localDate.atStartOfDay().plusDays(10);
+        LocalDateTime dateInFuture = localDate.atTime(23, 59, 59).plusDays(10);
 
         if (dateInFuture.getMonth() != localDate.getMonth()) {
             dateInFuture = dateInFuture.withMonth(localDate.getMonthValue()).with(TemporalAdjusters.lastDayOfMonth());
