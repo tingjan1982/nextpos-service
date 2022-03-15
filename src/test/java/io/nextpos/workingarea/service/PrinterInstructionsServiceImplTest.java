@@ -96,15 +96,15 @@ class PrinterInstructionsServiceImplTest {
 
         clientService.saveClient(client);
 
-        final Printer printer = new Printer(client, "main printer", "192.168.2.231", Set.of(Printer.ServiceType.WORKING_AREA, Printer.ServiceType.CHECKOUT));
+        final Printer printer = new Printer(client, "main printer", "192.168.2.200", Set.of(Printer.ServiceType.WORKING_AREA, Printer.ServiceType.CHECKOUT));
         workingAreaService.savePrinter(printer);
 
-        workingArea1 = new WorkingArea(client, "wk 1");
+        workingArea1 = new WorkingArea(client, "wa 1");
         workingArea1.setNoOfPrintCopies(1);
         workingArea1.addPrinter(printer);
         workingAreaService.saveWorkingArea(workingArea1);
 
-        workingArea2 = new WorkingArea(client, "wk 2");
+        workingArea2 = new WorkingArea(client, "wa 2");
         workingArea2.setNoOfPrintCopies(1);
         workingArea2.addPrinter(printer);
         workingAreaService.saveWorkingArea(workingArea2);
@@ -150,7 +150,9 @@ class PrinterInstructionsServiceImplTest {
 
         LOGGER.info("{}", orderToWorkingArea);
 
-        logAndPrint(orderToWorkingArea.getPrinterInstructions().get(0).getPrintInstruction());
+        orderToWorkingArea.getPrinterInstructions().forEach(pi -> {
+            logAndPrint(pi.getPrintInstruction());
+        });
     }
 
     @Test

@@ -133,8 +133,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     private String lookupOrderId;
 
     @DBRef
+    @Indexed
     private Membership membership;
 
+    @Indexed
     private String lookupMembershipId;
 
     /**

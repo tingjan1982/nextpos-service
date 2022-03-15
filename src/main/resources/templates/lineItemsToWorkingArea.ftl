@@ -12,13 +12,13 @@
             <#list lineItems as li>
                 <#list 1..li.quantity as i>
                     <text align="left" width="2" height="2"/>
-                    <#--<text linespc="30"/>-->
+                    <text linespc="30"/>
                     <text>桌號: ${order.oneTableInfo.displayName!"外帶"}&#10;</text>
                     <feed line="1"/>
                     <text align="left" width="1" height="1"/>
                     <text>樓層: ${order.oneTableInfo.tableLayoutName}&#10;</text>
-                    <text>${currentDate?string('MM/dd/yyyy HH:mm:ss')!"NA"}&#10;</text>
                     <text>訂單: ${order.serialId!"NA"} (${i})&#10;</text>
+                    <text>${currentDate?string('MM/dd/yyyy HH:mm:ss')!"NA"}&#10;</text>
                     <feed line="1"/>
                     <text width="2" height="2"/>
                     <text linespc="60"/>
