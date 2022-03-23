@@ -72,7 +72,7 @@ public interface OrderService {
 
     Order moveLineItems(Order fromOrder, Order toOrder, List<String> lineItemIds);
 
-    Order copyOrder(String id);
+    Order copyOrder(Client client, String id);
 
     String generateSerialId(String clientId);
 

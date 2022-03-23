@@ -440,7 +440,7 @@ class OrderServiceImplTest {
 
         orderService.createOrder(order);
 
-        final Order copiedOrder = orderService.copyOrder(order.getId());
+        final Order copiedOrder = orderService.copyOrder(client, order.getId());
 
         assertThat(copiedOrder.getMetadata(Order.COPY_FROM_ORDER_ID)).isEqualTo(order.getId());
         assertThat(copiedOrder.getMetadata(Order.COPY_FROM_SERIAL_ID)).isEqualTo(order.getSerialId());

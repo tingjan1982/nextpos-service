@@ -330,7 +330,7 @@ public class OrderController {
     public OrderResponse copyOrder(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
                                    @PathVariable final String id) {
 
-        Order copiedOrder = orderService.copyOrder(id);
+        Order copiedOrder = orderService.copyOrder(client, id);
         return OrderResponse.toOrderResponse(copiedOrder);
     }
 

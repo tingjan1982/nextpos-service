@@ -469,7 +469,9 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order copyOrder(final String id) {
+    public Order copyOrder(Client client, final String id) {
+
+        shiftService.getActiveShiftOrThrows(client.getId());
 
         final Order order = this.getOrder(id);
         Order copiedOrder = order.copy();

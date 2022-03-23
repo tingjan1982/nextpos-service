@@ -63,7 +63,6 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
      */
     private String serialId;
 
-    @Indexed
     private String clientId;
 
     private OrderType orderType;
