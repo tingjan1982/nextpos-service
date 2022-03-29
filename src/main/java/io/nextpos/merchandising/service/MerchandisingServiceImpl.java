@@ -83,7 +83,7 @@ public class MerchandisingServiceImpl implements MerchandisingService {
         order.setFullDiscount(true);
         order.applyAndRecordOffer(orderLevelOffer, BigDecimal.ZERO);
 
-        return order;
+        return orderRepository.save(order);
     }
 
     @Override
