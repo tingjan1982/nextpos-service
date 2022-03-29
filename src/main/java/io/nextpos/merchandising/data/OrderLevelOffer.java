@@ -44,6 +44,7 @@ public class OrderLevelOffer extends Offer implements DiscountCalculator<Order> 
     public enum GlobalOrderDiscount {
 
         NO_DISCOUNT("No Discount", DiscountType.PERCENT_OFF, BigDecimal.valueOf(-1)),
+        FULL_DISCOUNT("Full Discount", DiscountType.PERCENT_OFF, BigDecimal.valueOf(-1)),
         ENTER_DISCOUNT("Discount %", DiscountType.PERCENT_OFF, BigDecimal.valueOf(0)),
         DISCOUNT_AMOUNT_OFF("Discount $", DiscountType.AMOUNT_OFF, BigDecimal.valueOf(0));
 
