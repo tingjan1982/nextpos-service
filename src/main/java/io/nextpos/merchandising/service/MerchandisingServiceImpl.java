@@ -89,6 +89,7 @@ public class MerchandisingServiceImpl implements MerchandisingService {
     @Override
     public Order removeOrderOffer(final Order order) {
 
+        order.setFullDiscount(false);
         order.removeOffer();
         return orderRepository.save(order);
     }
