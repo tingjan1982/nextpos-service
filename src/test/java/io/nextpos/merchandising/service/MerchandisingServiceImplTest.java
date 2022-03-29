@@ -10,6 +10,7 @@ import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.ordermanagement.service.OrderService;
+import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.BusinessLogicException;
 import org.assertj.core.data.Index;
@@ -44,6 +45,9 @@ class MerchandisingServiceImplTest {
 
     @Autowired
     private OrderSettings orderSettings;
+
+    @Autowired
+    private CountrySettings countrySettings;
 
     private Client client;
 
@@ -215,7 +219,7 @@ class MerchandisingServiceImplTest {
         final Order order = new Order(client.getId(), orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
 
-        merchandisingService.applyOrderOffer(order, OrderLevelOffer.GlobalOrderDiscount.ENTER_DISCOUNT.name(), BigDecimal.valueOf(0.2));
+        merchandisingService.applyOrderOffer(order, OrderLevelOffer.GlobalOrderDiscount.ENTER_DISCOUNT.name(), BigDecimal.valueOf(20));
         merchandisingService.updateServiceCharge(order, true);
 
         final Order updatedOrder = merchandisingService.resetOrderOffers(order);
@@ -223,5 +227,35 @@ class MerchandisingServiceImplTest {
         assertThat(updatedOrder.getTotal().getAmountWithTax()).isEqualByComparingTo(BigDecimal.valueOf(105));
         assertThat(updatedOrder.getServiceCharge()).isEqualByComparingTo(BigDecimal.valueOf(10.5));
         assertThat(updatedOrder.getOrderTotal()).isEqualByComparingTo(BigDecimal.valueOf(115.5));
+    }
+
+    @Test
+    void applyFullDiscount() {
+
+        OrderSettings os = new OrderSettings(countrySettings, true, new BigDecimal("0.1"));
+        final Order order = new Order(client.getId(), os);
+        order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
+
+        merchandisingService.applyFullDiscount(order);
+
+        assertThat(order.getOrderTotal()).isZero();
+        assertThat(order.isFullDiscount()).isTrue();
+        assertThat(order.getDiscountedTotal().isZero()).isTrue();
+        assertThat(order.getDiscount()).isEqualByComparingTo("100");
+        assertThat(order.getTotal().getAmountWithTax()).isEqualByComparingTo("100");
+        assertThat(order.getOrderTotalWithoutServiceCharge()).isZero();
+        assertThat(order.getOrderTotalTax()).isZero();
+        assertThat(order.getServiceCharge()).isZero();
+
+        merchandisingService.resetOrderOffers(order);
+
+        assertThat(order.getOrderTotal()).isEqualByComparingTo("110");
+        assertThat(order.isFullDiscount()).isFalse();
+        assertThat(order.getDiscountedTotal().isZero()).isTrue();
+        assertThat(order.getDiscount()).isZero();
+        assertThat(order.getTotal().getAmountWithTax()).isEqualByComparingTo("100");
+        assertThat(order.getOrderTotalWithoutServiceCharge()).isEqualByComparingTo("100");
+        assertThat(order.getOrderTotalTax()).isEqualByComparingTo("5");
+        assertThat(order.getServiceCharge()).isEqualByComparingTo("10");
     }
 }

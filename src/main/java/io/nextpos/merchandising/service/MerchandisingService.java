@@ -13,6 +13,8 @@ public interface MerchandisingService {
 
     Order applyOrderOffer(Order order, String orderOfferId, BigDecimal overrideDiscountValue);
 
+    Order applyFullDiscount(Order order);
+
     Order removeOrderOffer(Order order);
 
     OrderLineItem applyGlobalProductDiscount(OrderLineItem lineItem, ProductLevelOffer.GlobalProductDiscount globalProductDiscount, BigDecimal overrideDiscount);

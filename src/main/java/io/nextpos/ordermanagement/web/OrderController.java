@@ -289,6 +289,18 @@ public class OrderController {
         return OrderResponse.toOrderResponse(updatedOrder);
     }
 
+    @PostMapping("/{id}/applyFullDiscount")
+    @OrderLogAction
+    public OrderResponse applyFullOrderDiscount(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,
+                                                @PathVariable final String id) {
+
+        final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
+
+        final Order updatedOrder = merchandisingService.applyFullDiscount(order);
+
+        return OrderResponse.toOrderResponse(updatedOrder);
+    }
+
     @PostMapping("/{id}/removeDiscount")
     @OrderLogAction
     public OrderResponse removeOrderDiscount(@RequestAttribute(ClientResolver.REQ_ATTR_CLIENT) Client client,

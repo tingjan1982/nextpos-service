@@ -4,15 +4,16 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.collections.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 public class UpdateTableInfo {
 
-    private List<Order.TableInfo> fromTables;
+    private List<Order.TableInfo> fromTables = new ArrayList<>();
 
-    private List<Order.TableInfo> toTables;
+    private List<Order.TableInfo> toTables = new ArrayList<>();
 
     public UpdateTableInfo(Order order) {
         fromTables = (List) order.getMetadata(Order.PREVIOUS_TABLES);

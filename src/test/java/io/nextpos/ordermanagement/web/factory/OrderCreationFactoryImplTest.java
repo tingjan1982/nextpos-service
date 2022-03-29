@@ -16,6 +16,7 @@ import io.nextpos.product.data.Product;
 import io.nextpos.product.service.ProductService;
 import io.nextpos.settings.data.CountrySettings;
 import io.nextpos.shared.DummyObjects;
+import io.nextpos.shared.PrepareTestUtils;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
 import io.nextpos.workingarea.data.WorkingArea;
@@ -40,10 +41,10 @@ class OrderCreationFactoryImplTest {
     private OrderCreationFactory orderCreationFactory;
 
     @Autowired
-    private OrderService orderService;
+    private PrepareTestUtils prepareTestUtils;
 
     @Autowired
-    private ClientService clientService;
+    private OrderService orderService;
 
     @Autowired
     private ProductService productService;
@@ -65,8 +66,7 @@ class OrderCreationFactoryImplTest {
 
     @BeforeEach
     void prepare() {
-        client = DummyObjects.dummyClient();
-        clientService.saveClient(client);
+        client = prepareTestUtils.createTestClient();
 
         final TableLayout tableLayout = DummyObjects.dummyTableLayout(client);
         tableLayoutService.saveTableLayout(tableLayout);

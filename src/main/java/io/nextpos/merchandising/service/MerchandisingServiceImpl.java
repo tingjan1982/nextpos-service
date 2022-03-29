@@ -77,6 +77,16 @@ public class MerchandisingServiceImpl implements MerchandisingService {
     }
 
     @Override
+    public Order applyFullDiscount(Order order) {
+        final OrderLevelOffer orderLevelOffer = offerService.resolveOrderOffer(OrderLevelOffer.GlobalOrderDiscount.ENTER_DISCOUNT.name());
+
+        order.setFullDiscount(true);
+        order.applyAndRecordOffer(orderLevelOffer, BigDecimal.ZERO);
+
+        return order;
+    }
+
+    @Override
     public Order removeOrderOffer(final Order order) {
 
         order.removeOffer();
@@ -125,6 +135,7 @@ public class MerchandisingServiceImpl implements MerchandisingService {
     public Order resetOrderOffers(Order order) {
 
         Order.OperationPipeline.executeAfter(order, () -> {
+            order.setFullDiscount(false);
             order.removeOffer();
 
             final OrderSettings originalOrderSettings = (OrderSettings) order.getMetadata(Order.ORIGINAL_ORDER_SETTINGS);

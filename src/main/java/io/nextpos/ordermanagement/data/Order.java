@@ -86,8 +86,15 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     /**
      * Stores order level discounted total computed by order level offers.
+     * Zero indicates no discount unless fullDiscount is set to true, which means the order total is zero.
      */
     private TaxableAmount discountedTotal;
+
+    /**
+     * This has an effect on the value of discountedTotal when set to true.
+     * See calculateServiceChargeAndOrderTotal() for usage reference.
+     */
+    private boolean fullDiscount;
 
     /**
      * if discountedTotal is not zero then, total - discountedTotal (tax inclusive)
@@ -396,10 +403,10 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
             this.throwDiscountLessThanZeroException();
         }
 
-        if (!discountedTotal.isZero()) {
-            discount = total.getAmountWithTax().subtract(discountedTotal.getAmountWithTax());
-        } else {
+        if (discountedTotal.isZero() && !fullDiscount) {
             discount = BigDecimal.ZERO;
+        } else {
+            discount = total.getAmountWithTax().subtract(discountedTotal.getAmountWithTax());
         }
 
         OperationPipeline.executeDirectly(this);
@@ -410,13 +417,13 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     }
 
     public BigDecimal getOrderTotalWithoutTax() {
-        final TaxableAmount taxableAmount = discountedTotal != null && !discountedTotal.isZero() ? discountedTotal : total;
+        final TaxableAmount taxableAmount = !discountedTotal.isZero() || fullDiscount ? discountedTotal : total;
 
         return this.deduceRoundingAmount(taxableAmount::getAmountWithoutTax);
     }
 
     public BigDecimal getOrderTotalTax() {
-        final TaxableAmount taxableAmount = discountedTotal != null && !discountedTotal.isZero() ? discountedTotal : total;
+        final TaxableAmount taxableAmount = !discountedTotal.isZero() || fullDiscount ? discountedTotal : total;
 
         return this.deduceRoundingAmount(taxableAmount::getTax);
     }
@@ -476,9 +483,13 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
     private void calculateServiceChargeAndOrderTotal() {
 
-        final BigDecimal deducedTotal = discountedTotal != null && !discountedTotal.isZero() ? discountedTotal.getAmountWithTax() : total.getAmountWithTax();
+        BigDecimal deducedTotal = !discountedTotal.isZero() || fullDiscount ? discountedTotal.getAmountWithTax() : total.getAmountWithTax();
 
-        serviceCharge = orderSettings.hasServiceCharge() ? total.getAmountWithTax().multiply(orderSettings.getServiceCharge()) : BigDecimal.ZERO;
+        serviceCharge = BigDecimal.ZERO;
+
+        if (orderSettings.hasServiceCharge() && deducedTotal.compareTo(BigDecimal.ZERO) > 0) {
+            serviceCharge = total.getAmountWithTax().multiply(orderSettings.getServiceCharge());
+        }
 
         orderTotal = this.deduceRoundingAmount(() -> deducedTotal.add(serviceCharge));
     }
