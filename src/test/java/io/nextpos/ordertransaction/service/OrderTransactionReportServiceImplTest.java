@@ -7,6 +7,7 @@ import io.nextpos.ordermanagement.service.OrderService;
 import io.nextpos.ordertransaction.data.ClosingShiftTransactionReport;
 import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.data.OrderTransactionRepository;
+import io.nextpos.shared.service.annotation.ChainedTransaction;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +19,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 @SpringBootTest
-@Transactional
+@ChainedTransaction
 class OrderTransactionReportServiceImplTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OrderTransactionReportServiceImplTest.class);

@@ -1,6 +1,7 @@
 package io.nextpos.script;
 
 import io.nextpos.shared.service.annotation.ChainedTransaction;
+import io.nextpos.workingarea.data.Printer;
 import io.nextpos.workingarea.data.PrinterRepository;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -42,14 +43,21 @@ public class UpdatePrinterServiceTypes {
 
         printerRepository.findAll().forEach(p -> {
             count.incrementAndGet();
-            LOGGER.info("Found printer {}", p.getName());
-//            p.setServiceTypes(Set.of(p.getServiceType()));
-//            LOGGER.info("Check printer service type: {}", p.getServiceType() == p.getServiceTypes().iterator().next());
+            System.out.printf("name=%s, ip=%s, type=%s", p.getName(), p.getIpAddress(), p.getServiceTypes());
 
+            if (p.getServiceTypes().contains(Printer.ServiceType.CHECKOUT)) {
+                System.out.print(" - adding ORDER_DETAILS service type - ");
+
+                p.getServiceTypes().add(Printer.ServiceType.ORDER_DETAILS);
+                System.out.println(p.getServiceTypes());
+                printerRepository.save(p);
+            }
+
+            System.out.println();
             // it seems like if record is modified within a transaction, changes will be flushed and persisted without explicit save.
             //printerRepository.save(p);
         });
 
-        LOGGER.info("Processed {} printers.", count.get());
+        System.out.println("Processed printers: " + count.get());
     }
 }

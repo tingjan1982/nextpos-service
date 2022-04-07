@@ -137,6 +137,7 @@ class UserTimeCardServiceImplTest {
         UserTimeCard userTimeCard = ObjectHelper.testTimeCard(client.getId(), username);
         userTimeCard.setClockIn(DateTimeUtil.toDate(client.getZoneId(), clockIn));
         userTimeCard.setClockOut(DateTimeUtil.toDate(client.getZoneId(), clockOut));
+        userTimeCard.setTimeCardStatus(UserTimeCard.TimeCardStatus.COMPLETE);
 
         userTimeCardRepository.save(userTimeCard);
     }

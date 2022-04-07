@@ -13,10 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -107,7 +106,7 @@ class ClientSubscriptionLifecycleServiceImplTest {
         assertThat(unpaidSubscriptionInvoices).hasSize(1);
         assertThat(unpaidSubscriptionInvoices).allSatisfy(inv -> {
             assertThat(inv.getClientSubscription().getStatus()).isEqualByComparingTo(ClientSubscription.SubscriptionStatus.ACTIVE); // unchanged
-            assertThat(inv.getStatus()).isEqualByComparingTo(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.OVERDUE);
+            assertThat(inv.getStatus()).isEqualByComparingTo(ClientSubscriptionInvoice.SubscriptionInvoiceStatus.PENDING);
         });
 
         final List<ClientSubscriptionInvoice> outstandingInvoices = clientSubscriptionService.getClientSubscriptionInvoicesByStatuses(
@@ -152,7 +151,14 @@ class ClientSubscriptionLifecycleServiceImplTest {
         final ClientSubscription clientSubscription = new ClientSubscription(client.getId(), subscriptionPlan, SubscriptionPlan.PlanPeriod.MONTHLY);
         clientSubscription.setStatus(status);
         clientSubscription.setPlanStartDate(new Date());
-        clientSubscription.setPlanEndDate(Date.from(Instant.now().plus(10, ChronoUnit.DAYS)));
+
+        LocalDateTime endDate = LocalDate.now().atTime(23, 59, 5).plusDays(10);
+
+        if (endDate.getMonth() != YearMonth.now().getMonth()) {
+            endDate = endDate.withMonth(LocalDate.now().getMonthValue()).with(TemporalAdjusters.lastDayOfMonth());
+        }
+
+        clientSubscription.setPlanEndDate(DateTimeUtil.toDate(client.getZoneId(), endDate));
 
         return clientSubscriptionRepository.save(clientSubscription);
     }

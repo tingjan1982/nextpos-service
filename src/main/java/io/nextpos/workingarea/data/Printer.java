@@ -48,6 +48,12 @@ public class Printer extends BaseObject implements ClientObject {
     @ToString.Exclude
     private Set<WorkingArea> workingAreas = new HashSet<>();
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SUBSELECT)
+    @CollectionTable(joinColumns = @JoinColumn(name = "printer_id"))
+    @Column(name = "table_layout_id")
+    private Set<String> tableLayouts = new HashSet<>();
+
     public Printer(final Client client, final String name, final String ipAddress, final Set<ServiceType> serviceTypes) {
         this.client = client;
         this.name = name;
@@ -64,6 +70,6 @@ public class Printer extends BaseObject implements ClientObject {
      * This determines which printer will handle work order and receipt.
      */
     public enum ServiceType {
-        WORKING_AREA, CHECKOUT
+        WORKING_AREA, ORDER_DETAILS, CHECKOUT
     }
 }

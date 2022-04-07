@@ -46,8 +46,6 @@ public class NotificationServiceImpl implements NotificationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NotificationService.class);
 
-    private final JavaMailSender javaMailSender;
-
     private final NotificationDetailsRepository notificationDetailsRepository;
 
     private final NotificationProperties notificationProperties;
@@ -55,8 +53,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final MailProperties mailProperties;
 
     @Autowired
-    public NotificationServiceImpl(final JavaMailSender javaMailSender, final NotificationDetailsRepository notificationDetailsRepository, final NotificationProperties notificationProperties, final MailProperties mailProperties) {
-        this.javaMailSender = javaMailSender;
+    public NotificationServiceImpl(final NotificationDetailsRepository notificationDetailsRepository, final NotificationProperties notificationProperties, final MailProperties mailProperties) {
         this.notificationDetailsRepository = notificationDetailsRepository;
         this.notificationProperties = notificationProperties;
         this.mailProperties = mailProperties;

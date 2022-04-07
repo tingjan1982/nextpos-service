@@ -6,6 +6,7 @@ import io.nextpos.ordermanagement.data.OrderSet;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.shared.DummyObjects;
 import io.nextpos.shared.exception.ObjectNotFoundException;
+import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.tablelayout.data.TableLayout;
 import io.nextpos.tablelayout.service.TableLayoutService;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
-@Transactional
+@ChainedTransaction
 class OrderSetServiceImplTest {
 
     private final OrderSetService orderSetService;
