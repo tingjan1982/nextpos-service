@@ -719,7 +719,9 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class TableInfo {
 
-        private String tableLayoutId = "NO_LAYOUT";
+        public static final String NO_LAYOUT = "NO_LAYOUT";
+
+        private String tableLayoutId = NO_LAYOUT;
 
         private String tableLayoutName = "No Layout";
 

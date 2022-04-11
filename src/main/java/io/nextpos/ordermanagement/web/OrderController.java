@@ -45,6 +45,7 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @RestController
@@ -363,9 +364,13 @@ public class OrderController {
                                                         @PathVariable final String id) {
 
         final Order order = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> orderService.getOrder(id));
+        String oneTableLayoutId = order.getOneTableInfo().getTableLayoutId();
 
         final String printInstruction = printerInstructionService.createOrderDetailsPrintInstruction(client, order, null);
-        final List<String> printerIps = workingAreaService.getPrintersByServiceType(client, Printer.ServiceType.CHECKOUT).stream()
+        Predicate<Printer> shouldPrint = p -> p.getTableLayouts().isEmpty() || Order.TableInfo.NO_LAYOUT.equals(oneTableLayoutId) || p.getTableLayouts().contains(oneTableLayoutId);
+
+        final List<String> printerIps = workingAreaService.getPrintersByServiceType(client, Printer.ServiceType.ORDER_DETAILS).stream()
+                .filter(shouldPrint)
                 .map(Printer::getIpAddress)
                 .collect(Collectors.toList());
 
