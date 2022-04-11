@@ -18,11 +18,14 @@ public class PrinterResponse {
 
     private Set<Printer.ServiceType> serviceTypes;
 
+    private Set<String> tableLayouts;
+
     public PrinterResponse(Printer printer) {
         id = printer.getId();
         name = printer.getName();
         ipAddress = printer.getIpAddress();
         serviceTypes = printer.getServiceTypes();
+        tableLayouts = printer.getTableLayouts();
 
     }
 }
