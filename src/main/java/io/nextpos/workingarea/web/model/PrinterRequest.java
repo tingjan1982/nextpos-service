@@ -23,4 +23,6 @@ public class PrinterRequest {
 
     private Set<Printer.ServiceType> serviceTypes = new HashSet<>();
 
+    private Set<String> tableLayouts = new HashSet<>();
+
 }

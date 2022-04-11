@@ -148,6 +148,8 @@ public class WorkingAreaController {
                 printerRequest.getIpAddress(),
                 printerRequest.getServiceTypes());
 
+        printer.replaceTableLayouts(printerRequest.getTableLayouts());
+
         return printer;
     }
 
@@ -200,6 +202,7 @@ public class WorkingAreaController {
         printer.setName(printerRequest.getName());
         printer.setIpAddress(printerRequest.getIpAddress());
         printer.replaceServiceTypes(printerRequest.getServiceTypes());
+        printer.replaceTableLayouts(printerRequest.getTableLayouts());
     }
 
     private PrinterResponse toPrinterResponse(final Printer printer) {

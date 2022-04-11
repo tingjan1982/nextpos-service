@@ -66,6 +66,11 @@ public class Printer extends BaseObject implements ClientObject {
         this.serviceTypes.addAll(serviceTypes);
     }
 
+    public void replaceTableLayouts(Set<String> tableLayouts) {
+        this.tableLayouts.clear();
+        this.tableLayouts.addAll(tableLayouts);
+    }
+
     /**
      * This determines which printer will handle work order and receipt.
      */
