@@ -153,7 +153,7 @@ public class ClientActivationServiceImpl implements ClientActivationService {
         client.addAttribute(Client.ClientAttributes.PASSCODE, passcode);
         clientService.saveClient(client);
 
-        final EmailDetails emailDetails = new EmailDetails(client.getId(), client.getUsername(), "Rain App Reset Password", passcode);
+        final EmailDetails emailDetails = new EmailDetails(client.getId(), client.getNotificationEmail(null), "Rain App Reset Password", passcode);
 
         return notificationService.sendNotification(emailDetails);
     }
