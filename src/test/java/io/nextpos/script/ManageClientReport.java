@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.util.StopWatch;
 
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -49,11 +50,16 @@ public class ManageClientReport {
     @Test
     void runSalesReport() {
 
-        clientService.getClientByUsername("ron@gmail.com").ifPresent(c -> {
+        clientService.getClientByUsername("ronandcompanytainan@gmail.com").ifPresent(c -> {
 
             final ZonedDateRange dateRange = this.dateRange(c);
+            StopWatch sw = new StopWatch();
+            sw.start();
             final RangedSalesReport report = salesReportService.generateRangedSalesReport(c.getId(), dateRange);
-            System.out.println(report);
+            sw.stop();
+            System.out.println(sw.prettyPrint());
+            System.out.println(sw.getTotalTimeMillis());
+            //System.out.println(report);
         });
 
     }
@@ -61,8 +67,8 @@ public class ManageClientReport {
     private ZonedDateRange dateRange(Client client) {
 
         final ZonedDateRange dateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.RANGE)
-                .dateRange(LocalDateTime.of(2021, 4, 1, 0, 0),
-                        LocalDateTime.of(2021, 9, 1, 0, 0))
+                .dateRange(LocalDateTime.of(2022, 1, 1, 0, 0),
+                        LocalDateTime.of(2022, 4, 30, 23, 59))
                 .build();
 
         LOGGER.info("{}", dateRange);

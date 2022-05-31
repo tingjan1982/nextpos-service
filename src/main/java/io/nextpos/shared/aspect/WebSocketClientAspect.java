@@ -2,6 +2,7 @@ package io.nextpos.shared.aspect;
 
 import io.nextpos.ordermanagement.data.Order;
 import io.nextpos.ordermanagement.data.OrderStateChange;
+import io.nextpos.ordermanagement.service.OrderMessagingService;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Around;
@@ -17,9 +18,12 @@ public class WebSocketClientAspect {
 
     private final SimpMessagingTemplate messagingTemplate;
 
+    private final OrderMessagingService orderMessagingService;
+
     @Autowired
-    public WebSocketClientAspect(SimpMessagingTemplate messagingTemplate) {
+    public WebSocketClientAspect(SimpMessagingTemplate messagingTemplate, OrderMessagingService orderMessagingService) {
         this.messagingTemplate = messagingTemplate;
+        this.orderMessagingService = orderMessagingService;
     }
 
     @Around(value = "onWebSocketClientOrders(webSocketClientOrders, order)", argNames = "proceedingJoinPoint,webSocketClientOrders,order")
@@ -30,6 +34,8 @@ public class WebSocketClientAspect {
         final Object result = proceedingJoinPoint.proceed();
 
         messagingTemplate.convertAndSend("/topic/inflightOrders/" + order.getClientId(), order.getClientId() + ".inflightOrders.ordersChanged");
+        // todo: enable this after message service is online.
+        // orderMessagingService.sendInFlightOrderUpdate(order.getClientId());
 
         return result;
     }

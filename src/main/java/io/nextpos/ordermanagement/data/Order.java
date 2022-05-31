@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Version;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -63,11 +65,11 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
      */
     private String serialId;
 
+    @Indexed
     private String clientId;
 
     private OrderType orderType;
 
-    @Indexed
     private OrderState state;
 
     private List<OrderLineItem> orderLineItems = new ArrayList<>();

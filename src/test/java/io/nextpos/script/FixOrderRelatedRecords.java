@@ -12,6 +12,7 @@ import io.nextpos.ordertransaction.data.OrderTransaction;
 import io.nextpos.ordertransaction.service.ElectronicInvoiceService;
 import io.nextpos.ordertransaction.service.OrderTransactionReportService;
 import io.nextpos.ordertransaction.service.OrderTransactionService;
+import io.nextpos.shared.service.annotation.ChainedTransaction;
 import io.nextpos.subscription.data.ClientSubscriptionInvoice;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
@@ -35,6 +37,7 @@ import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 @Disabled
 @SpringBootTest
+@ChainedTransaction
 @ActiveProfiles("gcp")
 @TestPropertySource(properties = {"script=true", "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration"})
 public class FixOrderRelatedRecords {
@@ -184,7 +187,7 @@ public class FixOrderRelatedRecords {
 
             if (s.getShiftStatus() != Shift.ShiftStatus.ACTIVE) {
                 final Map<String, Shift.ClosingBalanceDetails> closingBalances = s.getEnd().getClosingBalances();
-                
+
                 if (closingBalances.isEmpty()) {
                     noClosingBalance.incrementAndGet();
 
@@ -238,5 +241,17 @@ public class FixOrderRelatedRecords {
 //                        }
 //                    });
 //        });
+    }
+
+    @Test
+    void cancelElectronicInvoice() {
+
+        String orderId = "626a859054a074438fb18121";
+        List<OrderTransaction> transactions = orderTransactionService.getOrderTransactionByOrderId(orderId);
+
+        transactions.forEach(ot -> {
+            ot.getElectronicInvoice().ifPresent(inv -> System.out.println("Cancelling electronic invoice: " + inv.getInvoiceNumber()));
+            orderTransactionService.cancelOrderTransaction(ot.getId());
+        });
     }
 }
