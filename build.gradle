@@ -44,7 +44,7 @@ dependencies {
     if (!project.hasProperty('ciBuild')) {
         implementation project(':einvoice-common')
     } else {
-        implementation 'io.nextpos.einvoice:einvoice-common:1.5.1'
+        implementation 'io.nextpos.einvoice:einvoice-common:1.5.2'
     }
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
