@@ -6,5 +6,5 @@ public interface OrderMessagingService {
 
     void sendOrders(String clientId, boolean needAlert);
 
-    void sendInFlightOrderUpdate(String clientId);
+    void sendInFlightOrdersUpdate(String clientId);
 }

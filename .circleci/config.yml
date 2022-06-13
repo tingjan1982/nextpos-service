@@ -85,7 +85,7 @@ jobs:
       TERM: dumb
     steps:
       - setup_remote_docker:
-          version: 20.10.11
+          version: 20.10.14
       - attach_workspace:
           at: source
       - run:
@@ -103,7 +103,7 @@ jobs:
             docker push joelin/nextpos-service:latest
   deploy:
     docker:
-      - image: google/cloud-sdk:249.0.0-alpine
+      - image: google/cloud-sdk:389.0.0-alpine
     steps:
       - run:
           name: deploy to gcp

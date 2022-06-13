@@ -22,6 +22,6 @@ class OrderMessagingServiceImplTest {
     @Test
     void sendInFlightOrderUpdate() {
 
-        orderMessagingService.sendInFlightOrderUpdate("test-client");
+        orderMessagingService.sendInFlightOrdersUpdate("test-client");
     }
 }

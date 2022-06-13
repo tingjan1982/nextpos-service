@@ -34,8 +34,7 @@ public class WebSocketClientAspect {
         final Object result = proceedingJoinPoint.proceed();
 
         messagingTemplate.convertAndSend("/topic/inflightOrders/" + order.getClientId(), order.getClientId() + ".inflightOrders.ordersChanged");
-        // todo: enable this after message service is online.
-        // orderMessagingService.sendInFlightOrderUpdate(order.getClientId());
+        orderMessagingService.sendInFlightOrdersUpdate(order.getClientId());
 
         return result;
     }

@@ -58,7 +58,7 @@ public class OrderMessagingServiceImpl implements OrderMessagingService {
     }
 
     @Override
-    public void sendInFlightOrderUpdate(String clientId) {
+    public void sendInFlightOrdersUpdate(String clientId) {
 
         try {
             restTemplate.exchange( messageEndpoint + "/messages/inflightOrders/{clientId}", HttpMethod.POST, null, String.class, clientId);
