@@ -24,4 +24,13 @@ class OrderMessagingServiceImplTest {
 
         orderMessagingService.sendInFlightOrdersUpdate("test-client");
     }
+
+    /**
+     * This test requires the message service to be up and running.
+     */
+    @Test
+    void sendOrderUpdate() {
+
+        orderMessagingService.sendOrderUpdate("test-order");
+    }
 }

@@ -44,7 +44,7 @@ public class WebSocketClientAspect {
 
         final String orderId = result.getId();
 
-        messagingTemplate.convertAndSend("/topic/order/" + orderId, orderId + ".order.orderChanged");
+        sendOrderUpdate(orderId);
     }
 
     @AfterReturning(value = "onWebSocketClientOrder(webSocketClientOrder)", argNames = "webSocketClientOrder,result", returning = "result")
@@ -52,7 +52,13 @@ public class WebSocketClientAspect {
 
         final String orderId = result.getOrderId();
 
+        sendOrderUpdate(orderId);
+    }
+
+    private void sendOrderUpdate(String orderId) {
+
         messagingTemplate.convertAndSend("/topic/order/" + orderId, orderId + ".order.orderChanged");
+        orderMessagingService.sendOrderUpdate(orderId);
     }
 
     @Pointcut(value = "@annotation(webSocketClientOrders) && args(order, ..)", argNames = "webSocketClientOrders,order")

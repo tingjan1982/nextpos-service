@@ -68,6 +68,17 @@ public class OrderMessagingServiceImpl implements OrderMessagingService {
         }
     }
 
+    @Override
+    public void sendOrderUpdate(String orderId) {
+
+        try {
+            restTemplate.exchange( messageEndpoint + "/messages/orders/{orderId}", HttpMethod.POST, null, String.class, orderId);
+
+        } catch (Exception e) {
+            logFailedUpdate(e.getMessage());
+        }
+    }
+
     private void logFailedUpdate(String message) {
         LOGGER.warn("Error while sending update message to message service: {}", message);
     }
