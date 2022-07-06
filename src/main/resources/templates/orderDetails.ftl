@@ -41,7 +41,7 @@
             <feed line="1"/>
             <text width="1" height="1"/>
             <text>銷售金額:</text>
-            <text x="${indent}">${order.orderTotal}&#10;</text>
+            <text x="${indent}">${order.orderTotalWithoutServiceCharge}&#10;</text>
             <text>課稅別:</text>
             <text x="${indent}">TX&#10;</text>
             <text>營業稅額:</text>

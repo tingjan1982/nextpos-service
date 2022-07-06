@@ -4,7 +4,7 @@ metadata:
   name: nextpos-ingress
 spec:
   tls:
-    - secretName: nextpos-secret-tls1
+    - secretName: nextpos-secret-tls2
   defaultBackend:
     service:
       name: nextpos-service-nodeport
