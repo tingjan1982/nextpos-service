@@ -34,7 +34,7 @@ public class WebSocketClientAspect {
         final Object result = proceedingJoinPoint.proceed();
 
         messagingTemplate.convertAndSend("/topic/inflightOrders/" + order.getClientId(), order.getClientId() + ".inflightOrders.ordersChanged");
-        orderMessagingService.sendInFlightOrdersUpdate(order.getClientId());
+        //orderMessagingService.sendInFlightOrdersUpdate(order.getClientId());
 
         return result;
     }
@@ -58,7 +58,7 @@ public class WebSocketClientAspect {
     private void sendOrderUpdate(String orderId) {
 
         messagingTemplate.convertAndSend("/topic/order/" + orderId, orderId + ".order.orderChanged");
-        orderMessagingService.sendOrderUpdate(orderId);
+        //orderMessagingService.sendOrderUpdate(orderId);
     }
 
     @Pointcut(value = "@annotation(webSocketClientOrders) && args(order, ..)", argNames = "webSocketClientOrders,order")
