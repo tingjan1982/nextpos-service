@@ -6,6 +6,8 @@ import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.reporting.data.DateParameterType;
 import io.nextpos.reporting.service.SpreadsheetService;
+import io.nextpos.shared.exception.BusinessLogicException;
+import io.nextpos.shared.util.DateTimeUtil;
 import io.nextpos.shared.web.ClientResolver;
 import io.nextpos.timecard.data.UserTimeCard;
 import io.nextpos.timecard.service.UserTimeCardService;
@@ -18,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.YearMonth;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -66,6 +69,21 @@ public class UserTimeCardController {
                                                               @RequestBody UpdateWorkingTimeRequest request) {
 
         final UserTimeCard userTimeCard = clientObjectOwnershipService.checkWithClientIdOwnership(client, () -> userTimeCardService.getUserTimeCardById(id));
+
+        if (userTimeCard.getTimeCardStatus() != UserTimeCard.TimeCardStatus.COMPLETE) {
+            throw new BusinessLogicException("message.timeCardNotComplete", "You can only update user time card after they are completed.");
+        }
+
+        if (request.getClockIn() != null) {
+            Date clockIn = DateTimeUtil.toDate(client.getZoneId(), request.getClockIn());
+            userTimeCard.setClockIn(clockIn);
+        }
+
+        if (request.getClockOut() != null) {
+            Date clockOut = DateTimeUtil.toDate(client.getZoneId(), request.getClockOut());
+            userTimeCard.setClockOut(clockOut);
+        }
+
         userTimeCard.setActualWorkingHours(request.getWorkingHours());
         userTimeCard.setActualWorkingMinutes(request.getWorkingMinutes());
 

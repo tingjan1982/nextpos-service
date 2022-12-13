@@ -20,6 +20,8 @@ public interface ClientUserRepository extends JpaRepository<ClientUser, String> 
 
     Optional<ClientUser> findByClientAndUsername(Client client, String username);
 
+    Optional<ClientUser> findByClientAndNickname(Client client, String nickname);
+
     Optional<ClientUser> findByUsernameAndClientIn(String username, List<Client> clients);
 
     List<ClientUser> findAllByClientInOrderByNicknameAsc(List<Client> clients);

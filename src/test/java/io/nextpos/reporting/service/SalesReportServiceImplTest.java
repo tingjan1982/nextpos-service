@@ -4,6 +4,7 @@ import io.nextpos.client.data.Client;
 import io.nextpos.datetime.data.ZonedDateRange;
 import io.nextpos.datetime.service.ZonedDateRangeBuilder;
 import io.nextpos.ordermanagement.data.Order;
+import io.nextpos.ordermanagement.data.OrderLineItem;
 import io.nextpos.ordermanagement.data.OrderSettings;
 import io.nextpos.ordermanagement.data.ProductSnapshot;
 import io.nextpos.ordermanagement.service.OrderService;
@@ -61,6 +62,37 @@ class SalesReportServiceImplTest {
 
     @Autowired
     private Client client;
+
+
+    @Test
+    void test() {
+
+        Order order = Order.newOrder(client.getId(), Order.OrderType.IN_STORE, orderSettings);
+        order.setState(Order.OrderState.DELIVERED);
+        ProductSnapshot coffee = new ProductSnapshot("coffee", "coffee", new BigDecimal("50"));
+        OrderLineItem coffeeLi = order.addOrderLineItem(coffee, 5);
+        OrderLineItem toBeDeleted = order.addOrderLineItem(DummyObjects.productSnapshot(), 1);
+        orderService.createOrder(order);
+        orderService.deleteOrderLineItem(order, toBeDeleted.getId());
+        createOrderTransaction(order);
+
+        createDeletedOrder(LocalDate.now());
+
+        final ZonedDateRange zonedDateRange = ZonedDateRangeBuilder.builder(client, DateParameterType.TODAY).build();
+        final RangedSalesReport results = salesReportService.generateRangedSalesReport(client.getId(), zonedDateRange);
+
+        assertThat(results.getTotalSales().getSalesTotal()).isEqualByComparingTo("288.75"); // (50 + 35) * 5 * 7 * 1.1
+        assertThat(results.getSalesByPaymentMethod()).hasSize(1);
+        assertThat(results.getSalesByRange()).hasSize(1);
+        assertThat(results.getSalesByProduct()).hasSize(1);
+
+        assertThat(results.getSalesByProduct()).allSatisfy(byProduct -> {
+            assertThat(byProduct.getProductName()).isNotNull();
+            assertThat(byProduct.getSalesQuantity()).isEqualTo(5);
+            assertThat(byProduct.getProductSales()).isNotZero();
+            assertThat(byProduct.getPercentage()).isNotZero();
+        });
+    }
 
     @Test
     void generateRangedSalesReport_WeekRangeType() {
@@ -228,7 +260,7 @@ class SalesReportServiceImplTest {
 
     private Order createOrder(final LocalDate orderDate, String productName, BigDecimal price, int quantity) {
 
-        final ProductSnapshot productSnapshot = new ProductSnapshot(null, productName, price);
+        final ProductSnapshot productSnapshot = new ProductSnapshot(productName, productName, price);
         productSnapshot.setLabelInformation("default-id", "default");
 
         return this.createOrder(orderDate, productSnapshot, quantity, false);

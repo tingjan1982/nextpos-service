@@ -3,6 +3,7 @@ package io.nextpos.script;
 import io.nextpos.client.data.Client;
 import io.nextpos.client.data.ClientRepository;
 import io.nextpos.client.service.ClientService;
+import io.nextpos.ordermanagement.data.TaxableAmount;
 import io.nextpos.shared.util.DateTimeUtil;
 import io.nextpos.subscription.data.*;
 import io.nextpos.subscription.service.ClientSubscriptionLifecycleService;
@@ -91,7 +92,7 @@ public class ManageClientSubscription {
 
         subscriptionPlanService.getSubscriptionPlans("TW").forEach(sp -> {
             final BigDecimal monthlyPrice = new BigDecimal("1500");
-            final BigDecimal yearlyPrice = new BigDecimal("16500");
+            final BigDecimal yearlyPrice = new BigDecimal("18000");
 
             sp.addPlanPrice(SubscriptionPlan.PlanPeriod.MONTHLY, new SubscriptionPlan.PlanPrice(monthlyPrice));
             sp.addPlanPrice(SubscriptionPlan.PlanPeriod.YEARLY, new SubscriptionPlan.PlanPrice(yearlyPrice));
@@ -103,21 +104,31 @@ public class ManageClientSubscription {
     @Test
     void updateClientSubscription() {
 
-        clientService.getClientByUsername("ronandcompanytainan@gmail.com").ifPresent(c -> {
+        clientService.getClientByUsername("roncafebar@gmail.com").ifPresent(c -> {
             final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());
             final SubscriptionPlan plan = subscription.getSubscriptionPlanSnapshot();
             final BigDecimal monthlyPrice = new BigDecimal("1500");
-            final BigDecimal yearlyPrice = new BigDecimal("13500");
+            final BigDecimal yearlyPrice = new BigDecimal("18000");
 
             plan.addPlanPrice(SubscriptionPlan.PlanPeriod.MONTHLY, new SubscriptionPlan.PlanPrice(monthlyPrice));
             plan.addPlanPrice(SubscriptionPlan.PlanPeriod.YEARLY, new SubscriptionPlan.PlanPrice(yearlyPrice));
 
-            subscription.updateSubscriptionPlanPrice(SubscriptionPlan.PlanPeriod.YEARLY, null);
+            subscription.updateSubscriptionPlanPrice(SubscriptionPlan.PlanPeriod.YEARLY, new BigDecimal("1500"));
 
             clientSubscriptionService.saveClientSubscription(subscription);
 
             System.out.println(subscription);
         });
+    }
+
+    private void fixClientSubscriptionInvoice(ClientSubscription subscription) {
+
+        ClientSubscriptionInvoice invoice = clientSubscriptionService.getClientSubscriptionInvoiceByInvoiceIdentifier("880666");
+        TaxableAmount dueAmount = subscription.getSubscriptionPlanSnapshot().getTaxableAmount().newInstance();
+        dueAmount.calculate(new BigDecimal("16500"));
+        invoice.setDueAmount(dueAmount);
+
+        clientSubscriptionInvoiceRepository.save(invoice);
     }
 
     @Test
@@ -198,19 +209,19 @@ public class ManageClientSubscription {
 
     @Test
     void sendClientSubscriptionInvoice() {
-        clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
+        clientService.getClientByUsername("shapot-tk@zexgroup.com").ifPresent(c -> {
             final ClientSubscription subscription = clientSubscriptionService.getCurrentClientSubscription(c.getId());
             final ClientSubscriptionInvoice invoice = clientSubscriptionService.getClientSubscriptionInvoice(subscription.getCurrentInvoiceId());
 
-            clientSubscriptionService.sendClientSubscriptionInvoice(c, invoice);
+            clientSubscriptionService.sendClientSubscriptionInvoice(c, invoice, "cindy.wu@zexgroup.com");
         });
     }
 
     @Test
     void activateClientSubscription() {
 
-        String invoiceIdentifier = "798674";
-        clientService.getClientByUsername("Stancwm@gmail.com").ifPresent(c -> {
+        String invoiceIdentifier = "751463";
+        clientService.getClientByUsername("ronandcompanytainan@gmail.com").ifPresent(c -> {
             final ClientSubscriptionInvoice paid = clientSubscriptionService.activateClientSubscriptionByInvoiceIdentifier(invoiceIdentifier, true);
             System.out.println("Paid invoice: " + paid);
         });
