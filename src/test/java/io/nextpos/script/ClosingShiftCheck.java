@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.CollectionUtils;
 
@@ -19,16 +20,20 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Disabled
 @SpringBootTest
-@TestPropertySource(properties = "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration")
-public class ClosingShiftCheck {
+@ActiveProfiles("gcp")
+@TestPropertySource(properties = {"script=true", "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.embedded.EmbeddedMongoAutoConfiguration"})public class ClosingShiftCheck {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClosingShiftCheck.class);
 
-    @Autowired
-    private ShiftService shiftService;
+    private final ShiftService shiftService;
+
+    private final ShiftRepository shiftRepository;
 
     @Autowired
-    private ShiftRepository shiftRepository;
+    public ClosingShiftCheck(ShiftService shiftService, ShiftRepository shiftRepository) {
+        this.shiftService = shiftService;
+        this.shiftRepository = shiftRepository;
+    }
 
     @Test
     void test() {

@@ -3,9 +3,10 @@ package io.nextpos.script;
 import io.nextpos.client.data.ClientUserRepository;
 import io.nextpos.client.service.ClientService;
 import io.nextpos.shared.util.DateTimeUtil;
+import io.nextpos.timecard.data.TimeCardReport;
 import io.nextpos.timecard.data.UserTimeCard;
 import io.nextpos.timecard.data.UserTimeCardRepository;
-import io.nextpos.timecard.service.UserTimeCardService;
+import io.nextpos.timecard.service.TimeCardReportService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -36,11 +37,14 @@ public class UpdateUserTimeCard {
 
     private final ClientUserRepository clientUserRepository;
 
+    private final TimeCardReportService timeCardReportService;
+
     @Autowired
-    public UpdateUserTimeCard(UserTimeCardRepository userTimeCardRepository, ClientService clientService, ClientUserRepository clientUserRepository) {
+    public UpdateUserTimeCard(UserTimeCardRepository userTimeCardRepository, ClientService clientService, ClientUserRepository clientUserRepository, TimeCardReportService timeCardReportService) {
         this.userTimeCardRepository = userTimeCardRepository;
         this.clientService = clientService;
         this.clientUserRepository = clientUserRepository;
+        this.timeCardReportService = timeCardReportService;
     }
 
     @Test
@@ -98,6 +102,21 @@ public class UpdateUserTimeCard {
                             DateTimeUtil.formatDate(ZoneId.of("Asia/Taipei"), tc.getClockIn()),
                             DateTimeUtil.formatDate(ZoneId.of("Asia/Taipei"), tc.getClockOut()));
                 });
+            });
+        });
+    }
+
+    @Test
+    void timeCardReport() {
+
+        clientService.getClientByUsername("roncafebar@gmail.com").ifPresent(c -> {
+
+            TimeCardReport timeCardReport = timeCardReportService.getTimeCardReport(c, YearMonth.of(2022, 12));
+            timeCardReport.getUserTimeCards().forEach(us -> {
+                System.out.printf("User: %s, shifts: %d, total: %sH %sM\n", us.getDisplayName(),
+                        us.getTotalShifts(),
+                        us.getHours(),
+                        us.getMinutes());
             });
         });
     }

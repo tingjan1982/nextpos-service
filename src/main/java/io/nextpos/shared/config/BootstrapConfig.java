@@ -154,6 +154,7 @@ public class BootstrapConfig {
             cs.addSupportedPaymentMethod(settingsService.getOrCreatePaymentMethod("UBER_EATS", "Uber Eats", 5));
             cs.addSupportedPaymentMethod(settingsService.getOrCreatePaymentMethod("FOOD_PANDA", "Foodpanda", 6));
             cs.addSupportedPaymentMethod(settingsService.getOrCreatePaymentMethod("GOV_VOUCHER", "Gov. Voucher", 7));
+            cs.addSupportedPaymentMethod(settingsService.getOrCreatePaymentMethod("VOUCHER_1000", "Voucher $1000", 8));
 
             settingsService.saveCountrySettings(cs);
         });
