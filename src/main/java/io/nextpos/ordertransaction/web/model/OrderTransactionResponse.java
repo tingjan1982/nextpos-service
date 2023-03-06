@@ -32,6 +32,8 @@ public class OrderTransactionResponse {
 
     private String invoiceNumber;
 
+    private String buyerUbn;
+
     private ElectronicInvoice.InvoiceStatus invoiceStatus;
 
     private String receiptXML;
@@ -55,6 +57,7 @@ public class OrderTransactionResponse {
 
         orderTransaction.getElectronicInvoice().ifPresent(electronicInvoice -> {
             response.setInvoiceNumber(electronicInvoice.getInternalInvoiceNumber());
+            response.setBuyerUbn(electronicInvoice.getBuyerUbn());
             response.setInvoiceStatus(electronicInvoice.getInvoiceStatus());
         });
 
