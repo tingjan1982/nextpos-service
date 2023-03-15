@@ -25,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -454,16 +455,17 @@ class OrderServiceImplTest {
         final Order order = new Order(client.getId(), orderSettings);
         order.addOrderLineItem(DummyObjects.productSnapshot("coffee", new BigDecimal("9.5")), 1);
 
-        assertThat(order.getOrderTotal()).isEqualTo("10.97"); // from 10.9725
+        assertThat(order.getOrderTotal()).isEqualTo("10.98"); // from 10.9725
 
         final OrderSettings copiedOrderSettings = orderSettings.copy();
         copiedOrderSettings.setDecimalPlaces(0);
-        copiedOrderSettings.setRoundingMode(null);
+        copiedOrderSettings.setRoundingMode(RoundingMode.HALF_UP);
 
         order.setOrderSettings(copiedOrderSettings);
         order.computeTotal();
 
         assertThat(order.getOrderTotal()).isEqualTo("11");
+        assertThat(order.getServiceCharge()).isEqualByComparingTo("1");
     }
 
     @Test

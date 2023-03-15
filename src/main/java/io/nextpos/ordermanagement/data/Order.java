@@ -491,6 +491,7 @@ public class Order extends MongoBaseObject implements WithClientId, OfferApplica
 
         if (orderSettings.hasServiceCharge() && deducedTotal.compareTo(BigDecimal.ZERO) > 0) {
             serviceCharge = total.getAmountWithTax().multiply(orderSettings.getServiceCharge());
+            serviceCharge = this.deduceRoundingAmount(() -> serviceCharge);
         }
 
         orderTotal = this.deduceRoundingAmount(() -> deducedTotal.add(serviceCharge));
